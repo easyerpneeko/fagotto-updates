@@ -4,7 +4,7 @@
       <div class="pl-2 d-flex row w-100">
         <div class="card title-card col-md-5 col-sm-7 col-12">
           <div class="card-body">
-            <h5 class="font-weight-bold m-0">s</h5>
+            <h5 class="font-weight-bold m-0">Usuarios</h5>
             <span>Edita, agrega o elimina usuarios</span>
           </div>
         </div>

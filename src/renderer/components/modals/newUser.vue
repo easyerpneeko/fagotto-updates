@@ -41,17 +41,12 @@
           </div>
         </div>
         <div class="d-flex row flex-wrap">
-          <div class="form-group col-md-6 col-12">
+          <div class="form-group col-md-12 col-12">
             <label for="role">Rol de empresa</label>
             <select id="role" class="browser-default custom-select" v-model="role">
               <option selected disabled value="">Rol</option>
               <option :value="rol.id" v-for="rol in roles" class="text-capitalize">{{rol.name}}</option>
             </select>
-          </div>
-          <div class="form-group col-md-6 col-12">
-            <label for="email">Correo Electronico</label>
-            <input id="email" type="email" class="form-control" placeholder="Correo Electronico" :disabled="waitResponse"
-            v-model="email" @keyup.enter="newUser">
           </div>
         </div>
       </div>
@@ -78,7 +73,6 @@ export default {
       username:'',
       password:'',
       confirmPass: '',
-      email:'',
       fullname:'',
       role: '',
       avatar:'',
@@ -97,7 +91,7 @@ export default {
   methods:{
     // Guardar o editar usuario
     async newUser(){
-      let fields = ['username','password','confirmPass','email','fullname','role','avatar'];
+      let fields = ['username','password','confirmPass','fullname','role','avatar'];
       let fd = new FormData();
       for (var field of fields) {
         if (!this.edit){
@@ -144,7 +138,7 @@ export default {
 
     // Actualizar modal
     refreshData(){
-      let fields = ['username','email','fullname','id','avatar','role'];
+      let fields = ['username','fullname','id','avatar','role'];
       for (var field of fields){
         if (this.userEdit != null){
           this[field] = this.userEdit[field];

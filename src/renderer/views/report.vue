@@ -24,12 +24,12 @@
         </div>
 
         
-        <div class="d-flex flex-column mediaWidth2">
+        <!-- <div class="d-flex flex-column mediaWidth2">
           <div class="d-flex flex-column m-1">
             <label>Iniciar turno</label>
            <button @click="startShift" type="button" :class="['fontSizeBtn btn bg-secundario m-0 mx-1',{'disabled': offOn}]">Iniciar turno</button>
           </div>
-        </div>
+        </div> -->
 
         <div class="d-flex flex-column mediaWidth2">
           <div class="d-flex flex-column m-1">
@@ -49,7 +49,7 @@
         </div>
       </div>
     </div>
-    <div class="bg-white col-12 border-radius-4 elevation-1 mt-2">
+    <!-- <div class="bg-white col-12 border-radius-4 elevation-1 mt-2">
       <div class="row p-3">
         <div v-for="(item, index) in ckecks" :key="index" class="d-flex px-3">
           <div class="custom-control custom-checkbox mx-2 my-1">
@@ -58,7 +58,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <!-- Cards de resultados -->
     <div ref="loaderReport" class="vld-parent row mt-2">
@@ -161,15 +161,15 @@ export default {
       oldPage: 1,
       // checks
       ckecks:[
-        {key:'factura',label:'Facturas', value:true},
-        {key:'boleta',label:'Boletas', value:true},
-        {key:'guia_despacho',label:'Guia despacho', value:true},
-        {key:'fastSell',label:'Ventas rapidas', value:true},
-        {key:'noSii',label:'No SII', value:true},
-        {key:'amipass',label:'Amipass', value:true},
-        {key:'credito',label:'Credito', value:true},
-        {key:'rappi',label:'Rappi', value:true},
-        {key:'convenio_empresa',label:'Convenio Empresa', value:true}
+        // {key:'factura',label:'Facturas', value:true},
+        // {key:'boleta',label:'Boletas', value:true},
+        // {key:'guia_despacho',label:'Guia despacho', value:true},
+        // {key:'fastSell',label:'Ventas rapidas', value:true},
+        // {key:'noSii',label:'No SII', value:true},
+        // {key:'amipass',label:'Amipass', value:true},
+        // {key:'credito',label:'Credito', value:true},
+        // {key:'rappi',label:'Rappi', value:true},
+        // {key:'convenio_empresa',label:'Convenio Empresa', value:true}
       ]
     }
   },

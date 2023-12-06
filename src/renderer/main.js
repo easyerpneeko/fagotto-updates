@@ -37,7 +37,10 @@ import "./css/adminlte.css";
 import "vue-multiselect/dist/vue-multiselect.min.css";
 import 'vue2-datepicker/index.css';
 import EchoHelper, { $pusher, $echo } from './helpers/EchoHelper';
+import Chartkick from 'vue-chartkick'
+import Chart from 'chart.js'
 
+Vue.use(Chartkick.use(Chart))
 // import "mdbootstrap/js/mdb.min.js"
 Vue.use(require('bootstrap'))
 

@@ -20,7 +20,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, index) in data.items" :key="index" :class="item.trash==1 ? 'bg-danger' : ''">
+          <tr v-for="(item, index) in data.items" :key="index" :class="item.trash==1 ? 'bg-danger bg-light' : ''">
             <td v-if="getPermission(key.permission)" :class="[key.class, (key.edit) ? 'fieldEditTd' : '' ]" v-for="(key, index2) in data.rows">
               <!-- Editables -->
               <input min="0" v-if="key.edit" @keyup="$emit('changeValue', data.items)" @blur="$emit('onBlur', item)" class="fieldEdit" type="number" v-model="item[key.key]" />

@@ -30,10 +30,14 @@
             <i class="fas fa-list-alt"></i>
             <span class="">Todas</span>
           </a>
+          <a @click="getDeletedSells()" :class="['btn mx-1 mt-1 mb-0 bg-primario btnPersonalice',{'disabled': offOn}]" href="#">
+            <i class="fas fa-list-alt"></i>
+            <span class="">Canceladas</span>
+          </a>
         </div>
       </div>
       <!-- Lista de ventas -->
-      <div v-if="sells" ref="loaderSells" class="vld-parent p-0 m-0">
+      <div v-if="sells" ref="loaderSells" class="vld-parent p-0 m-0 bg-light">
         <custom-table  v-model="jsonTable" @orderBy="orderBy" v-slot="props">
           <a @click="openDetails(props.item)" class="py-1 px-2 text-center btn" :class="props.item.trash==0 ? 'bg-secundario' : 'bg-light'" href="#">
             <i class="fas fa-eye"></i>
@@ -52,6 +56,9 @@
             @getPage="refreshData"
           />
         </nav>
+        <div v-if="sells.items.length" class="card ">
+          <span>Total: </span>{{ sells.items.length }}
+        </div>
       </div>
       <div v-else ref="loaderSells"  class="vld-parent box-false d-flex flex-center text-center p-2">
         <h2>No existen ventas registradas</h2>
@@ -67,7 +74,8 @@
 // components
 import paginate from  '@/components/MPage.vue';
 import detailSell from '@/components/modals/detailSell.vue';
-import Verifymodal from '@/components/modals/verifyDelete.vue';
+// import Verifymodal from '@/components/modals/verifyDelete.vue';
+import Verifymodal from '@/components/modals/verifyDeleteSell.vue';
 import modalClient from '@/components/modals/client.vue';
 import customTable from '@/components/tables/table.vue';
 // helpers
@@ -76,6 +84,7 @@ import FormatNumber from '@/helpers/FormatNumber.js';
 import Loader from '@/helpers/Loader';
 import moment from 'moment';
 import $ from 'jquery';
+import { getDeletedSells } from '../store/sells/actions';
 
 export default {
   name: 'sellsList',
@@ -208,6 +217,26 @@ export default {
       if(isLoader) Loader.hide();
       this.offOn = false;
     },
+    async getDeletedSells(){
+      // Iniciando refrescamiento (carga y botones disabled)
+      this.offOn = true;
+      Loader.containe(this.$refs.loaderSells);
+
+        // Iniciando peticion
+      var request = await this.$store.dispatch("sells/getDeletedSells");
+      // Verificando la respuesta
+      if (!request.success) this.$awn.alert('Error al obtener las ventas eliminadas');
+      else{
+        this.sells = (request.data.items.length == 0) ? false : request.data;
+        this.jsonTable.items = this.sells.items;
+        // if(!isLoader && id){
+        //   this.dataDetail = this.jsonTable.items.find((item) => item.id == id);
+        // }
+      }
+      // Culminando la funcion
+      Loader.hide();
+      this.offOn = false;
+    },
     // Modal de verificacion
     openVerify(sell){
       this.propVerify = {
@@ -249,7 +278,10 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
+  .bg-light tr{
+    background-color: #ffffff !important;
+  }
   .widthInput{
     width: 100% !important;
   }

@@ -41,6 +41,7 @@
 
               <!-- Data user -->
               <div class="text-center" v-if="dataDetail && dataDetail.trash">
+                <h6 class="mt-2 text-capitalize text-red">Motivo de cancelacion: {{ dataDetail.trash_comment }} </h6>
                 <h6 class="mt-2 text-capitalize text-red">Venta eliminada por: </h6>
                 <h6 class="mt-2 text-capitalize">{{dataDetail.user_trash}}</h6>
                 <div class="p-3 circleStyle">
@@ -59,7 +60,7 @@
                 </h5>
               </div>
 
-              <hr class="w-95 m-3" style="border: 0.5px solid rgba(0,0,0,0.2);">
+              <!-- <hr class="w-95 m-3" style="border: 0.5px solid rgba(0,0,0,0.2);"> -->
             </div>
 
             <!-- data products and sell -->

@@ -36,9 +36,15 @@ export async function fastSell(context, data) {
   return request;
 }
 
-export async function removeSell(context, id) {
-  let url = BaseUrl.getUrl('api/local/sell/'+id);
-  const request = await Connection.request('delete', url);
+export async function removeSell(context, data) {
+  let url = BaseUrl.getUrl('api/local/sell/' + data.id);  
+  const request = await Connection.request('put', url, data.formData);
+  return request;
+}
+
+export async function getDeletedSells(context) {
+  let url = BaseUrl.getUrl('api/local/sells/deleted');
+  const request = await Connection.request('get',url);
   return request;
 }
 

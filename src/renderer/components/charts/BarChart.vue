@@ -11,7 +11,7 @@
                 </div>
             </div>
             <div class="px-3 collapse show scrollTableReport" :id="idTarget">
-                <bar-chart :data="chartData"></bar-chart>
+                <bar-chart :data="chartData" :colors="['#28a745']"></bar-chart>
             </div>
         </div>
     </div>

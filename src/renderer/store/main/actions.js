@@ -36,6 +36,11 @@ export async function setInitMoney(context, data) {
   return request;
 }
 
+export async function newWorkshift(context, data) {
+  let url = BaseUrl.getUrl('api/local/workshift');
+  const request = await Connection.request('post',url,data);
+  return request;
+}
 
 export async function sendLogin(context, data) {
   let url = BaseUrl.getUrl('api/local/login');

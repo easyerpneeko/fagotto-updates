@@ -17,6 +17,7 @@ export async function getCounters(context, data) {
     context.commit('setProperty', { key: 'products', data: request.data.products });
     context.commit('setProperty', { key: 'waiters', data: request.data.waiters });
     context.commit('setProperty', { key: 'expenses', data: request.data.expenses });
+    context.commit('setProperty', { key: 'workshifts', data: request.data.workshifts });
   }
 }
 export async function getOneWaiter(context, data) {

@@ -180,8 +180,12 @@ export default {
 
     // Monto inicial
     async verifyInitMoney(){
-      let request = await this.$store.dispatch('main/getMyInitMoney');
-      if(request.success && request.data){
+      // let request = await this.$store.dispatch('main/getMyInitMoney');
+      // if(request.success && request.data){
+      //   $('#initMoney').modal('show');
+      // }
+      let start_workshift = localStorage.getItem('start_workshift');
+      if(start_workshift === null){
         $('#initMoney').modal('show');
       }
     },

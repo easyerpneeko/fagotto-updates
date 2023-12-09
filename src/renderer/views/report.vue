@@ -24,12 +24,12 @@
         </div>
 
         
-        <div class="d-flex flex-column mediaWidth2">
+        <!-- <div class="d-flex flex-column mediaWidth2">
           <div class="d-flex flex-column m-1">
             <label>Iniciar turno</label>
            <button @click="startShift" type="button" :class="['fontSizeBtn btn bg-secundario m-0 mx-1',{'disabled': offOn}]">Iniciar turno</button>
           </div>
-        </div>
+        </div> -->
 
         <div class="d-flex flex-column mediaWidth2">
           <div class="d-flex flex-column m-1">
@@ -85,7 +85,7 @@
       <div v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2" >
         <bar-chart :chart-data="topSellsChartData" :idTarget="randToken()" cardTitle="Top Ventas"></bar-chart>
       </div>
-      <div class="col-lg-6 col-12 my-2" >
+      <div v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2" >
         <area-chart :chart-data="sellsByhourChartData" :idTarget="randToken()" cardTitle="Ventas por hora"></area-chart>
       </div>
       <div v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2" >
@@ -100,6 +100,14 @@
           cardTitle="Gastos del día"
           :th="['Nombre', 'Total']"
           :tr="getExpenses"
+          :idTarget="randToken()"
+        />
+      </div>
+      <div v-if="getWorkshifts" class="col-lg-6 col-12 my-2">
+        <cardTable
+          cardTitle="Turnos del dia"
+          :th="['Usuario', 'Monto Inicial', 'Total de Ventas', 'Inicio del turno', 'Fin del turno']"
+          :tr="getWorkshifts"
           :idTarget="randToken()"
         />
       </div>
@@ -156,7 +164,7 @@ import BarChart from '../components/charts/BarChart.vue';
 import AreaChart from '../components/charts/AreaChart.vue';
 import PieChart from '../components/charts/PieChart.vue';
 import ColumnChart from '../components/charts/ColumnChart.vue';
-
+const fs = require('fs');
 export default {
   name:'report',
   data(){
@@ -228,6 +236,14 @@ export default {
   },
 
   methods:{
+    async logout(){
+      await fs.unlink('authorization.json',(error)=>{
+        if (error) {
+          // console.log(error);
+        }
+        this.$router.push('/login');
+      });
+    },
     formatNumber(number){
       var number=  Math.round(number/10)*10;
       return FormatNumber.format(String(number));
@@ -241,24 +257,46 @@ export default {
         return FormatNumber.deFormat(String(number));
       }
     },
-
-     startShift(){
-      console.log("startShift")
-      //guardar la hora y fecha de inicio de turno en un local storage
-
-
-      const storage = localStorage.setItem('iniciarTurno', moment().format('YYYY-MM-DD HH:mm:ss'));
-     
+    startShift(){     
     },
-    endShift(){
-      // this.rangeDate
-      
-      console.log("endShift")
+    async endShift(){
       //guardar la hora y fecha de fin de turno en un local storage
-      const storage = localStorage.setItem('finalizarTurno', moment().format('YYYY-MM-DD HH:mm:ss'));
+      let start_workshift = localStorage.getItem('start_workshift');
+      localStorage.setItem('end_workshift', moment().format('YYYY-MM-DD HH:mm:ss'));
+      let end_workshift = localStorage.getItem('end_workshift');
+      let init_money = localStorage.getItem('init_money');
+      let final_money = init_money + 20;
+      let user = this.$store.getters['main/user'];
+      // this.getSell_ext();
+      const data = {
+        start_workshift: start_workshift,
+        end_workshift: end_workshift,
+        init_money: init_money,
+        final_money: final_money,
+        user_id: user.id
+      };
+      // Crear un objeto FormData
+      const formData = new FormData();
+      
+      for (let key in data) {
+        formData.append(key, data[key]);
+      }
 
-      this.getSell_ext();
+      this.waitResponse = true;
+      Loader.fullPage();
+      let request = await this.$store.dispatch('main/newWorkshift', formData);
+      Loader.hide();
 
+      if (request.success) {
+        this.$awn.success('Turno finalizado Exitosamente', { labels: { success: 'CORRECTO' } });
+        localStorage.clear();
+        this.logout();
+      }else{
+        console.log(request.data);
+        this.$awn.alert('Error al finalizar el turno');
+      }
+      this.waitResponse = false;  
+      console.log(data);      
     },
 
     async getSell_ext(ref = 'loaderReport'){    // Iniciando refrescamiento (carga y botones disabled)
@@ -269,7 +307,7 @@ export default {
         startDate: startDate,
         endDate: endDate,
       };
-console.log("turno",data)
+      console.log("turno",data)
 
       var thing = new FormData();
       for (let key in data) if (data[key]) thing.append(key, data[key]);
@@ -535,6 +573,9 @@ console.log("turno",data)
       // Loader.hide();
       this.offOn = false;
     },
+    async getWorkshifts(){
+      
+    },
     get_cafeteria(){// esto detecta si cafeteria esta activo
       let __a = false
       let cafeterria = ConfigHelper.Config().Modules
@@ -762,6 +803,25 @@ console.log("turno",data)
               waiter.orders,
               '$' + this.formatNumber(waiter.total),
               '$' + this.formatNumber(waiter.propina)
+            ]);
+          });
+          return myList;
+        }else return false;
+      }
+    },
+    getWorkshifts:{
+      get(){
+        let request = this.$store.getters['reports/getterWorkshifts'];
+        console.log('Turno',request);
+        if(request && request.length > 0){
+          let myList = [];
+          request.map((workshift)=>{
+            myList.push([
+              workshift.user.fullname,
+              '$' + this.formatNumber(workshift.init_money),
+              '$' + this.formatNumber(workshift.final_money),
+              workshift.start_workshift,
+              workshift.end_workshift,
             ]);
           });
           return myList;

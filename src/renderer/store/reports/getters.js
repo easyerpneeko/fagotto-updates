@@ -7,6 +7,9 @@ export function getterProductEstadisticas(state) {
 export function getterWaiters(state) {
   return state.waiters;
 }
+export function getterWorkshifts(state) {
+  return state.workshifts;
+}
 export function getterExpenses(state) {
   return state.expenses;
 }

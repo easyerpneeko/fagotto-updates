@@ -522,8 +522,9 @@ export default {
         this.$awn.info('Top Ventas no encontradas');
       }else{
         let topVentas = request.data;
-        console.log(topVentas);
-        this.topSellsChartData = topVentas.map(item => [item.product_name, item.total_quantity]);
+        console.log('Top ventas: ',typeof topVentas);
+        let topVentasArray = Object.values(topVentas);
+        this.topSellsChartData = topVentasArray.map(item => [item.product_name, item.total_quantity]);
       }
 
       // Culminando la funcion

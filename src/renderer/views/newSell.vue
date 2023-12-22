@@ -992,7 +992,7 @@
         //setTimeout(() => {this.$refs.counter_product.focus();}, 500);
         return;
       }
-          if(result.stock > 0){
+          if(result.stock > 0 || this.settingVenderSinStock){
             if (result.stock <= 10) {
               if (result.stock != null) this.$awn.alert("Stock critico de "+result.name+", quedan "+result.stock)
               this.quantityAdd({
@@ -1017,7 +1017,7 @@
        var result = this.product_modal;
        console.log(result);
        
-        if(result.stock > 0){
+        if(result.stock > 0 || this.settingVenderSinStock){
           if (result.stock <= 10) {
             if (result.stock != null) this.$awn.alert("Stock critico de "+result.name+", quedan "+result.stock)
             if(this.product_counter > 0 && result) {
@@ -1323,7 +1323,9 @@
        if (!ConfigHelper.ConfStr('modulos.ventas')) return false;
        return ConfigHelper.ConfStr('modulos.ventas.submodulos.cantidades_float');
      } },
-     
+     settingVenderSinStock:{ get(){
+        return ConfigHelper.ConfStr('modulos.ventas.ajustes.permitir_venta_sin_stock');
+     } },
      lastSell:{ get(){ return this.$store.getters['sells/sellPast']; } },
      
      productsGet:{ get(){ 

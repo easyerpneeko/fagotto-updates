@@ -95,26 +95,26 @@
           <button v-if="settingBoletaLocal" @click="verifyClient('boleta_local')" type="button" class="btn bg-secundario text-white">
             Efectivo
           </button>
-          <button v-if="settingStateBank && settingBoletaLocal" @click="verifyClient('boleta_local', 'banco')" type="button" class="btn bg-secundario text-white">
+          <button v-if="settingBank" @click="verifyClient('boleta_local', 'banco')" type="button" class="btn bg-secundario text-white">
             Trasnbank
           </button>
-          <button v-if="settingBoletaLocal" @click="verifyClient('amipass')" type="button" class="btn bg-primario text-white">
+          <button v-if="settingAmipass" @click="verifyClient('amipass')" type="button" class="btn bg-primario text-white">
             AMIPASS
           </button>
           
-          <button v-if="settingBoletaLocal" @click="verifyClient('multicaja')" type="button" class="btn bg-primario text-white">
+          <button v-if="settingMulticaja" @click="verifyClient('multicaja')" type="button" class="btn bg-primario text-white">
             Multicaja
           </button>
           
-          <button v-if="settingBoletaLocal" @click="verifyClient('edenred')" type="button" class="btn bg-primario text-white">
+          <button v-if="settingBank" @click="verifyClient('edenred')" type="button" class="btn bg-primario text-white">
             Edenred 
-          </button>
+          </button> 
           
           <button v-if="settingTransferencia" @click="verifyClient('transferencia')" type="button" class="btn bg-secundario text-white">
             Transferencia
           </button>
           
-          <button v-if="settingBoletaLocal" @click="verifyClient('convenio_empresa')" type="button" class="btn bg-primario text-white">
+          <button v-if="settingSodexo" @click="verifyClient('convenio_empresa')" type="button" class="btn bg-primario text-white">
             Sodexo
           </button>
 
@@ -721,9 +721,25 @@ export default {
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.cheque');
     } },
-    settingStateBank:{ get(){
+    settingBank:{ get(){
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.banco');
+    } },
+    settingNotaCredito:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.nota_de_credito');
+    } },
+    settingMulticaja:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.multicaja');
+    } },
+    settingSodexo:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.sodexo');
+    } },
+    settingAmipass:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.amipass');
     } },
   },
 }

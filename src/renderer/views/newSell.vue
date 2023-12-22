@@ -983,43 +983,48 @@
      },
  
      submitAutocomplete(result) {
-      console.log("ENVIADO AUTOCOMPLETEEE", this.inputElement);
-      if(this.product_modal_init){
-        this.product_counter = 1;
-        this.product_name = result.name;
-        this.product_modal = result;
-        $('#modalProductAdd').modal('show');
-        //setTimeout(() => {this.$refs.counter_product.focus();}, 500);
-        return;
-      }
-          if(result.stock > 0 || this.settingVenderSinStock){
+        console.log("ENVIADO AUTOCOMPLETEEE", this.inputElement);
+        if (this.product_modal_init) {
+          this.product_counter = 1;
+          this.product_name = result.name;
+          this.product_modal = result;
+          $('#modalProductAdd').modal('show');
+          //setTimeout(() => {this.$refs.counter_product.focus();}, 500);
+          return;
+        }
+        
+        if (result.stock != null) {
+          if (result.stock > 0 || this.settingVenderSinStock) {
             if (result.stock <= 10) {
-              if (result.stock != null) this.$awn.alert("Stock critico de "+result.name+", quedan "+result.stock)
-              this.quantityAdd({
-                id: result.id,
-                name: result.name,
-                price: result.price,
-                quantity: parseInt(this.product_counter),
-                prices: result.prices,
-                cecina: (result.cecina)?true:false,
-                stock: result.stock
-              });
+              this.$awn.alert("Stock crítico de " + result.name + ", quedan " + result.stock);
             }
-          }else{
-            this.$awn.alert("Producto "+result.name+", sin stock ");
+            
+            this.quantityAdd({
+              id: result.id,
+              name: result.name,
+              price: result.price,
+              quantity: parseInt(this.product_counter),
+              prices: result.prices,
+              cecina: (result.cecina) ? true : false,
+              stock: result.stock
+            });
+          } else {
+            this.$awn.alert("Producto " + result.name + " sin stock");
             this.$refs.productAutocomplete.setValue('');
           }
-          
+        }
+
         this.$refs.productAutocomplete.setValue('');
-     },
+      },
      //agregar productos a tabla
      addProductQuantityTable() {
        var result = this.product_modal;
        console.log(result);
-       
+       if (result.stock != null) {
         if(result.stock > 0 || this.settingVenderSinStock){
           if (result.stock <= 10) {
-            if (result.stock != null) this.$awn.alert("Stock critico de "+result.name+", quedan "+result.stock)
+            this.$awn.alert("Stock critico de "+result.name+", quedan "+result.stock)
+          }
             if(this.product_counter > 0 && result) {
               $('#modalProductAdd').modal('hide');
               this.quantityAdd({
@@ -1396,29 +1401,34 @@
           }
 
           if (findProduct) {
-            if(findProduct.stock > 0){
-                if (this.product_modal_init) {
-                this.product_counter = 1;
-                this.product_name = findProduct.name;
-                this.product_modal = findProduct;
-                $('#modalProductAdd').modal('show');
-                setTimeout(() => { this.$refs.counter_product.focus(); }, 50);
-                  return;
+            if (findProduct.stock != null) {
+              if(findProduct.stock > 0 || this.settingVenderSinStock){
+                if (findProduct.stock <= 10) {
+                  this.$awn.alert("Stock crítico de " + findProduct.name + ", quedan " + findProduct.stock);
                 }
-                this.quantityAdd({
-                  id: findProduct.id,
-                  name: findProduct.name,
-                  price: findProduct.price,
-                  quantity: parseInt(1),
-                  prices: findProduct.prices,
-                  cecina: findProduct.cecina ? true : false,
-                  stock: findProduct.stock
-                });
-                this.productSearch = '';
+                  if (this.product_modal_init) {
+                    this.product_counter = 1;
+                    this.product_name = findProduct.name;
+                    this.product_modal = findProduct;
+                    $('#modalProductAdd').modal('show');
+                    setTimeout(() => { this.$refs.counter_product.focus(); }, 50);
+                      return;
+                  }
+                  this.quantityAdd({
+                    id: findProduct.id,
+                    name: findProduct.name,
+                    price: findProduct.price,
+                    quantity: parseInt(1),
+                    prices: findProduct.prices,
+                    cecina: findProduct.cecina ? true : false,
+                    stock: findProduct.stock
+                  });
+                  this.productSearch = '';
+                  this.$refs.productAutocomplete.setValue('');
+              }else{
+                this.$awn.info('Producto, ' + findProduct.name+ ' sin stock C');
                 this.$refs.productAutocomplete.setValue('');
-            }else{
-              this.$awn.info('Producto, ' + findProduct.name+ ' sin stock');
-              this.$refs.productAutocomplete.setValue('');
+              }
             }
           }
 

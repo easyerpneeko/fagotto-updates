@@ -56,9 +56,6 @@
             @getPage="refreshData"
           />
         </nav>
-        <div v-if="sells.items.length" class="card ">
-          <span>Total: </span>{{ sells.items.length }}
-        </div>
       </div>
       <div v-else ref="loaderSells"  class="vld-parent box-false d-flex flex-center text-center p-2">
         <h2>No existen ventas registradas</h2>

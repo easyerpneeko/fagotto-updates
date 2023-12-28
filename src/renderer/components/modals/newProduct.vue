@@ -302,7 +302,7 @@ export default {
   },
   methods:{
     validar_form() {
-      if (!this.isValidName || !this.isValidBarcode || !this.isValidPrice || !this.isValidCategory) {
+      if (!this.isValidName || !this.isValidPrice || !this.isValidCategory) {
         return false;
       }
 

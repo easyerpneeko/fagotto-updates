@@ -84,7 +84,7 @@
         <!-- Si hay una mesa seleccionada... -->
         <template>
           <span v-if="!ver_ticket" class="m-0 p-0">
-            <button v-if="ticket_sell && settingBoletaLocal" type="button" class="btn bg-primario text-white" @click="viewTicket('boleta_local')">
+            <button v-if="ticket_sell && settingEfectivo" type="button" class="btn bg-primario text-white" @click="viewTicket('boleta_local')">
               Ticket + Efectivo
             </button>
             <button v-if="ticket_sell && settingBoleta" type="button" class="btn bg-dark text-white" @click="viewTicket('boleta')">
@@ -96,10 +96,10 @@
             <button v-if="settingTransferencia" @click="viewTicket('transferencia')" type="button" class="btn bg-primario text-white">
               Ticket + Transferencia
             </button>
-            <button v-if="settingBoletaLocal" @click="viewTicket('rappi')" type="button" class="btn bg-primario text-white">
+            <button v-if="settingRappi" @click="viewTicket('rappi')" type="button" class="btn bg-primario text-white">
               Ticket + Rappi
             </button>
-            <button v-if="settingBoletaLocal" @click="viewTicket('credito')" type="button" class="btn bg-primario text-white">
+            <button v-if="settingNotaCredito" @click="viewTicket('credito')" type="button" class="btn bg-primario text-white">
               Ticket + Credito
             </button>
             <button v-if="ticket_sell_close" type="button" class="btn bg-primario text-white" @click="viewTicket('ticket_venta')">
@@ -707,7 +707,18 @@ export default {
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.factura');
     } },
-
+    settingRappi:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.rappi');
+    } },
+    settingNotaCredito:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.nota_de_credito');
+    } },
+    settingEfectivo:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.efectivo');
+    } },
     
     settingDebito:{ get(){
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;

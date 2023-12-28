@@ -265,7 +265,7 @@ export default {
       localStorage.setItem('end_workshift', moment().format('YYYY-MM-DD HH:mm:ss'));
       let end_workshift = localStorage.getItem('end_workshift');
       let init_money = localStorage.getItem('init_money');
-      let final_money = init_money + 20;
+      let final_money = 0;
       let user = this.$store.getters['main/user'];
       // this.getSell_ext();
       const data = {

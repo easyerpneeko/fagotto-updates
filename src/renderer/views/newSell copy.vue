@@ -371,7 +371,7 @@
                 </div>
                 <div v-if="settingBoletaLocal" class="col-6 p-0 pl-1">
                   <button :disabled="offOn" @click="verifyClient('boleta_local')" type="button" class="btnRadius w-100 btn bg-primario btn-r0 m-0 mt-1" >
-                    Boleta local
+                    Efectivo
                   </button>
                 </div>
                 <div v-if="settingDebito" class="col-12 p-0 pl-1">

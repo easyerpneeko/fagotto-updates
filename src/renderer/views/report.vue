@@ -671,7 +671,7 @@ export default {
         }
         this.countersChartData = this.listCounter.map(item => [
           item[0], // Mantener el primer elemento sin cambios
-          Number(item[1].substring(1)) // Eliminar el símbolo "$" y convertir el valor a número
+          // Number(item[1].substring(1)) // Eliminar el símbolo "$" y convertir el valor a número
         ]);
         return this.listCounter;
       }

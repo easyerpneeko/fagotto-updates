@@ -84,7 +84,7 @@
         <!-- Si hay una mesa seleccionada... -->
         <template>
           <span v-if="!ver_ticket" class="m-0 p-0">
-            <button v-if="ticket_sell && settingEfectivo" type="button" class="btn bg-primario text-white" @click="viewTicket('boleta_local')">
+            <button v-if="ticket_sell && settingBoletaLocal" type="button" class="btn bg-primario text-white" @click="viewTicket('boleta_local')">
               Ticket + Efectivo
             </button>
             <button v-if="ticket_sell && settingBoleta" type="button" class="btn bg-dark text-white" @click="viewTicket('boleta')">
@@ -101,6 +101,21 @@
             </button>
             <button v-if="settingNotaCredito" @click="viewTicket('credito')" type="button" class="btn bg-primario text-white">
               Ticket + Credito
+            </button>
+            <button v-if="settingCheque" @click="viewTicket('cheque')" type="button" class="btn bg-primario text-white">
+              Ticket + Cheque
+            </button>
+            <button v-if="settingBanco" @click="viewTicket('banco')" type="button" class="btn bg-primario text-white">
+              Ticket + Banco
+            </button>
+            <button v-if="settingSodexo" @click="viewTicket('sodexo')" type="button" class="btn bg-primario text-white">
+              Ticket + Sodexo
+            </button>
+            <button v-if="settingAmipass" @click="viewTicket('amipass')" type="button" class="btn bg-primario text-white">
+              Ticket + Amipass
+            </button>
+            <button v-if="settingMulticaja" @click="viewTicket('multicaja')" type="button" class="btn bg-primario text-white">
+              Ticket + Multicaja
             </button>
             <button v-if="ticket_sell_close" type="button" class="btn bg-primario text-white" @click="viewTicket('ticket_venta')">
               Ticket + Cerrar venta
@@ -730,6 +745,29 @@ export default {
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.transferencia');
     } },
 
+    settingCheque:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.cheque');
+    } },
+
+    settingBanco:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.banco');
+    } },
+
+    settingSodexo:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.sodexo');
+    } },
+
+    settingAmipass:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.amipass');
+    } },
+    settingMulticaja:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.multicaja');
+    } },
 
 
     filteredList:{

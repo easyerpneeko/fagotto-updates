@@ -499,8 +499,8 @@ export default {
       var startTime = (this.startTime == null) ? '00:00:00' : this.startTime;
       var endTime = (this.endTime == null) ? '23:59:59' : this.endTime;
 
-      var startDate = moment(this.rangeDate[0]).format('YYYY-MM-DD') + ' ' + startTime;
-      var endDate = moment(this.rangeDate[1]).format('YYYY-MM-DD') + ' ' + endTime;
+      var startDate = moment(this.rangeDate[0]).format('YYYY-MM-DD');
+      var endDate = moment(this.rangeDate[1]).format('YYYY-MM-DD');
       const data = {
         startDate: startDate,
         endDate: endDate,
@@ -522,7 +522,7 @@ export default {
         this.$awn.info('Top Ventas no encontradas');
       }else{
         let topVentas = request.data;
-        console.log('Top ventas: ',typeof topVentas);
+        console.log('Top ventas: ', topVentas);
         let topVentasArray = Object.values(topVentas);
         this.topSellsChartData = topVentasArray.map(item => [item.product_name, item.total_quantity]);
       }
@@ -544,8 +544,8 @@ export default {
       var startTime = (this.startTime == null) ? '00:00:00' : this.startTime;
       var endTime = (this.endTime == null) ? '23:59:59' : this.endTime;
 
-      var startDate = moment(this.rangeDate[0]).format('YYYY-MM-DD') + ' ' + startTime;
-      var endDate = moment(this.rangeDate[1]).format('YYYY-MM-DD') + ' ' + endTime;
+      var startDate = moment(this.rangeDate[0]).format('YYYY-MM-DD');
+      var endDate = moment(this.rangeDate[1]).format('YYYY-MM-DD');
       const data = {
         startDate: startDate,
         endDate: endDate,
@@ -574,9 +574,9 @@ export default {
       // Loader.hide();
       this.offOn = false;
     },
-    async getWorkshifts(){
+    // async getWorkshifts(){
       
-    },
+    // },
     get_cafeteria(){// esto detecta si cafeteria esta activo
       let __a = false
       let cafeterria = ConfigHelper.Config().Modules
@@ -624,12 +624,12 @@ export default {
         var request = this.$store.getters['reports/getterCounters'];
         if(request){
           this.listCounter = [];
-
+          
           if(this.dataOptional){
             this.listCounter.push(
-              ['Ordenes totales',request.orders],
-              ['Unidades totales',request.quantityTotal],
-              ['Tipos de productos',request.typeProducts]
+              ['Ordenes totales',' '+request.orders],
+              ['Unidades totales',' '+request.quantityTotal],
+              ['Tipos de productos',' '+request.typeProducts]
             );
           }
           if(this.gananciaInstalled){
@@ -669,10 +669,11 @@ export default {
             );
           }
         }
-        this.countersChartData = this.listCounter.map(item => [
-          item[0], // Mantener el primer elemento sin cambios
-          // Number(item[1].substring(1)) // Eliminar el símbolo "$" y convertir el valor a número
-        ]);
+        this.countersChartData = request;
+        // this.countersChartData = this.listCounter.map(item => [
+        //   item[0], // Mantener el primer elemento sin cambios
+        //   Number(item[1].substring(1)) // Eliminar el símbolo "$" y convertir el valor a número
+        // ]);
         return this.listCounter;
       }
     },

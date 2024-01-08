@@ -545,7 +545,7 @@ export default {
       var endTime = (this.endTime == null) ? '23:59:59' : this.endTime;
 
       var startDate = moment(this.rangeDate[0]).format('YYYY-MM-DD');
-      var endDate = moment(this.rangeDate[1]).format('YYYY-MM-DD');
+      var endDate = moment(this.rangeDate[1]).format('YYYY-MM-DD')+' 23:59:59';
       const data = {
         startDate: startDate,
         endDate: endDate,
@@ -619,6 +619,12 @@ export default {
     settingTransferencia:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.transferencia') } },
     settingCheque:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.cheque') } },
     settingStateBank:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.banco') } },
+    settingRappi:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.rappi') } },
+    settingSodexo:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.sodexo') } },
+    settingCredito:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.nota_de_credito') } },
+    settingAmipass:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.amipass') } },
+    settingMulticaja:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.multicaja') } },
+
     getCounters: {
       get(){
         var request = this.$store.getters['reports/getterCounters'];
@@ -643,10 +649,11 @@ export default {
             if(this.settingBoletaLocal) this.listCounter.push( ['Efectivo', '$'+this.formatNumber(String(request.noSii))]);
 
             if(this.settingDebito) this.listCounter.push( ['Debito', '$'+this.formatNumber(String(request.debito))]);
-            if (this.settingDebito) this.listCounter.push(['Amipass', '$'+this.formatNumber(String(request.amipass))]);
-            if (this.settingDebito) this.listCounter.push(['Rappi', '$'+this.formatNumber(String(request.rappi))]);
-            if (this.settingDebito) this.listCounter.push(['Credito', '$'+this.formatNumber(String(request.credito))]);
-            if (this.settingDebito) this.listCounter.push(['Convenio Empresa', '$'+this.formatNumber(String(request.convenio_empresa))]);
+            if(this.settingAmipass) this.listCounter.push(['Amipass', '$'+this.formatNumber(String(request.amipass))]);
+            if(this.settingRappi) this.listCounter.push(['Rappi', '$'+this.formatNumber(String(request.rappi))]);
+            if(this.settingSodexo) this.listCounter.push(['Sodexo', '$'+this.formatNumber(String(request.sodexo))]);
+            if(this.settingCredito) this.listCounter.push(['Credito', '$'+this.formatNumber(String(request.credito))]);
+            if(this.settingDebito) this.listCounter.push(['Convenio Empresa', '$'+this.formatNumber(String(request.convenio_empresa))]);
             if(this.settingTransferencia) this.listCounter.push( ['Transferencia', '$'+this.formatNumber(String(request.transferencia))]);
             if(this.settingCheque) this.listCounter.push( ['Cheque', '$'+this.formatNumber(String(request.cheque))]);
             if(this.settingStateBank) this.listCounter.push( ['Trasnbank', '$'+this.formatNumber(String(request.banco))]);
@@ -665,7 +672,7 @@ export default {
           if(this.expensesInstalled){
             this.listCounter.push(
               ['Gastos del día', '$'+this.formatNumber(String(request.expenses_day))],
-              ['Total - Gastos', '$'+this.formatNumber(String(request.totalToExpenses))],
+              ['Resumen total', '$'+this.formatNumber(String(request.totalToExpenses))],
             );
           }
         }

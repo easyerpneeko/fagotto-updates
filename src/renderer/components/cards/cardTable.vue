@@ -31,6 +31,7 @@
             <!-- datos que vienen de mis props -->
             <td v-for="(dataTd, index2) in data" :key="index2" class="pa-auto py-2 text-capitallize" :class="((center && index2 != 0)) ? 'text-center' : ''" >
               {{dataTd}}
+              <i v-if="dataTd == 'Resumen total'" class="fas fa-info-circle" data-toggle="tooltip" data-placement="top" title="Informe diario: Ventas y gastos, detallando ingresos y costos descontados de la caja."></i>
             </td>
 
             <!-- botones -->

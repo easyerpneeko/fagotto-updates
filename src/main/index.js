@@ -7,6 +7,7 @@ import BaseUrl from '../renderer/helpers/baseUrl.js';
 const fs = require('fs');
 //const fetch = require('electron-fetch');
 import fetch from 'electron-fetch';
+import { log } from 'console';
 /**
  * Set `__static` path to static files in production
  * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-static-assets.html
@@ -43,6 +44,7 @@ async function createMainWindow() {/**/
   mainWindow.setMenuBarVisibility(false)
 
   mainWindow.once('ready-to-show', () => {
+    console.log('Cheking updates...');
     autoUpdater.checkForUpdatesAndNotify();
   });
 }
@@ -97,17 +99,21 @@ app.on('ready', () => {
  */
 
 ipcMain.on('app_version', (event) => {
+  console.log('app version in index.js');
   event.sender.send('app_version', { version: app.getVersion() });
 });
 
 autoUpdater.on('update-available', () => {
+  console.log('update available in index.js');
   mainWindow.webContents.send('update_available');
 });
 
 autoUpdater.on('update-downloaded', () => {
+  console.log('update downloaded in index.js');
   mainWindow.webContents.send('update_downloaded');
 });
 
 ipcMain.on('restart_app', () => {
+  console.log('Restart app');
   autoUpdater.quitAndInstall();
 });

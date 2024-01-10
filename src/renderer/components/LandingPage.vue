@@ -25,17 +25,16 @@
       </div>
       <br />
       <div class="gray-text-version" v-if="true">
-        App in {{ appInProduction }} || Versión {{ version }}
+        App in {{ appInProduction }} || <b id="version"></b>
       </div>
-      <p id="version"></p>
-      <div id="messages"></div>
+      
       <div id="notification" class="hidden">
         <p id="message"></p>
-        <button id="close-button" @click="closeNotification()">
-          Close
+        <button id="close-button" @click="closeNotification()" class="btn">
+          Cerrar
         </button>
-        <button id="restart-button" @click="restartApp()" class="hidden">
-          Restart
+        <button id="restart-button" @click="restartApp()" class="hidden btn btn-primary">
+          Reiniciar
         </button>
       </div>
     </div>
@@ -90,13 +89,13 @@ export default {
     ipcRenderer.on('update_available', () => {
       console.log('update available');
       ipcRenderer.removeAllListeners('update_available');
-      message.innerText = 'A new update is available. Downloading now...';
+      message.innerText = 'Una nueva version esta disponible. Descargando...';
       notification.classList.remove('hidden');
     });
     ipcRenderer.on('update_downloaded', () => {
       console.log('update downloaded');
       ipcRenderer.removeAllListeners('update_downloaded');
-      message.innerText = 'Update Downloaded. It will be installed on restart. Restart now?';
+      message.innerText = 'Nueva version descargada. Sera instalada al reiniciar el programa. Reiniciar Ahora mismo?';
       restartButton.classList.remove('hidden');
       notification.classList.remove('hidden');
     });
@@ -149,7 +148,7 @@ export default {
     position: fixed;
     bottom: 20px;
     left: 20px;
-    width: 200px;
+    width: 350px;
     padding: 20px;
     border-radius: 5px;
     background-color: white;

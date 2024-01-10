@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
-const { autoUpdater } = require('electron-updater');
+// const { autoUpdater } = require('electron-updater');
+import { autoUpdater } from "electron-updater"
 
 import ConfigHelper from '../renderer/helpers/ConfigHelper.js';
 import Connection from '../renderer/helpers/Connection.js';
@@ -15,6 +16,10 @@ import { log } from 'console';
 if (process.env.NODE_ENV !== 'development') {
   global.__static = require('path').join(__dirname, '/static').replace(/\\/g, '\\\\')
 }
+
+// autoUpdater.logger = log;
+// autoUpdater.logger.transports.file.level = 'info';
+// log.info('App starting...');
 
 let mainWindow;
 let appInitialized = false;
@@ -43,10 +48,7 @@ async function createMainWindow() {/**/
   // Set The Menu to the Main Window
   mainWindow.setMenuBarVisibility(false)
 
-  mainWindow.once('ready-to-show', () => {
-    console.log('Cheking updates...');
-    autoUpdater.checkForUpdatesAndNotify();
-  });
+
 }
 
 function initApp() {
@@ -63,7 +65,11 @@ function initApp() {
   createMainWindow();
 }
 
-app.on('ready', initApp);
+app.on('ready', ()=>{
+  initApp()
+   console.log('Cheking updates...');
+  autoUpdater.checkForUpdatesAndNotify();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -99,7 +105,7 @@ app.on('ready', () => {
  */
 
 ipcMain.on('app_version', (event) => {
-  console.log('app version in index.js');
+  console.log('app version in index.js: ',app.getVersion());
   event.sender.send('app_version', { version: app.getVersion() });
 });
 
@@ -117,3 +123,7 @@ ipcMain.on('restart_app', () => {
   console.log('Restart app');
   autoUpdater.quitAndInstall();
 });
+
+autoUpdater.on('error', (err) => {
+  mainWindow.webContents.send('Error in auto-updater. ' + err);
+})

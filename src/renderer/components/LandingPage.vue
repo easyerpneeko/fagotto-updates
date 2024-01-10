@@ -28,6 +28,7 @@
         App in {{ appInProduction }} || Versión {{ version }}
       </div>
       <p id="version"></p>
+      <div id="messages"></div>
       <div id="notification" class="hidden">
         <p id="message"></p>
         <button id="close-button" @click="closeNotification()">
@@ -99,6 +100,13 @@ export default {
       restartButton.classList.remove('hidden');
       notification.classList.remove('hidden');
     });
+
+    ipcRenderer.on('message', function(event, text) {
+      var container = document.getElementById('messages');
+      var message = document.createElement('div');
+      message.innerHTML = text;
+      container.appendChild(message);
+    })
 
   },
   methods: {

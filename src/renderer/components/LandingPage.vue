@@ -27,6 +27,16 @@
       <div class="gray-text-version" v-if="true">
         App in {{ appInProduction }} || Versión {{ version }}
       </div>
+      <p id="version"></p>
+      <div id="notification" class="hidden">
+        <p id="message"></p>
+        <button id="close-button" @click="this.closeNotification()">
+          Close
+        </button>
+        <button id="restart-button" @click="this.restartApp()" class="hidden">
+          Restart
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -39,6 +49,7 @@ import Loader from '@/helpers/Loader';
 const remote = require('electron').remote;
 const Inputmask = require('inputmask');
 const $ = require('jquery');
+const { ipcRenderer } = require('electron');
 
 export default {
   name: 'landing-page',
@@ -61,9 +72,32 @@ export default {
     });
   },
   mounted(){
-    var serialInput = document.getElementById("serialInput");
-    var im = new Inputmask("****-****-****-****-****");
-    im.mask(serialInput);
+    // var serialInput = document.getElementById("serialInput");
+    // var im = new Inputmask("****-****-****-****-****");
+    // im.mask(serialInput);
+
+    const version = document.getElementById('version');
+    ipcRenderer.send('app_version');
+    ipcRenderer.on('app_version', (event, arg) => {
+      ipcRenderer.removeAllListeners('app_version');
+      version.innerText = 'Version ' + arg.version;
+    });
+
+    const notification = document.getElementById('notification');
+    const message = document.getElementById('message');
+    const restartButton = document.getElementById('restart-button');
+    ipcRenderer.on('update_available', () => {
+      ipcRenderer.removeAllListeners('update_available');
+      message.innerText = 'A new update is available. Downloading now...';
+      notification.classList.remove('hidden');
+    });
+    ipcRenderer.on('update_downloaded', () => {
+      ipcRenderer.removeAllListeners('update_downloaded');
+      message.innerText = 'Update Downloaded. It will be installed on restart. Restart now?';
+      restartButton.classList.remove('hidden');
+      notification.classList.remove('hidden');
+    });
+
   },
   methods: {
     async sendSerial(){
@@ -86,6 +120,12 @@ export default {
         this.waitResponse = false;
         this.$awn.alert(request.data);
       }
+    },
+    closeNotification() {
+      notification.classList.add('hidden');
+    },
+    restartApp() {
+      ipcRenderer.send('restart_app');
     }
   }
 }
@@ -94,5 +134,18 @@ export default {
 <style media="screen">
   .gray-text-version {
     color: gray;
+  }
+  #notification {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 200px;
+    padding: 20px;
+    border-radius: 5px;
+    background-color: white;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  }
+  .hidden {
+    display: none;
   }
 </style>

@@ -65,12 +65,15 @@ function initApp() {
   createMainWindow();
 }
 
+// const configFile = fs.readFileSync('./gh_token.json', 'utf8');
+// const config = JSON.parse(configFile);
+
 autoUpdater.setFeedURL({
   provider: "github",
   owner: "orlandodaniel",
   repo: "FRONT-PROJECT-VUE-DEV",
   private: true,
-  token: '<personal-access-token>'
+  // token: config.githubToken
 });
 
 app.on('ready', ()=>{

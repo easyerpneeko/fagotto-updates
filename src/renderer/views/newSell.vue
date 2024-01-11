@@ -1343,17 +1343,7 @@
     
       }},
 
-     //Revisar mañana esta propiedad computada @jesus
-     stockInstalled:{ get(){ 
-        /*
-        if(ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_stock')){
-          return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_stock'); 
-        }else{
-          return false;
-        }
-        */
-       
-      }},
+     stockInstalled:{ get(){ return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_stock'); } },
 
      sellCreate:{ 
       get(){ 

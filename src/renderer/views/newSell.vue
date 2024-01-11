@@ -993,7 +993,7 @@
           return;
         }
         
-        if (result.stock != null) {
+        if (result.stock != null || this.settingVenderSinStock) {
           if (result.stock > 0 || this.settingVenderSinStock) {
             if (result.stock <= 10) {
               this.$awn.alert("Stock crítico de " + result.name + ", quedan " + result.stock);
@@ -1020,7 +1020,7 @@
      addProductQuantityTable() {
        var result = this.product_modal;
        console.log(result);
-       if (result.stock != null) {
+       if (result.stock != null || this.settingVenderSinStock) {
         if(result.stock > 0 || this.settingVenderSinStock){
           if (result.stock <= 10) {
             this.$awn.alert("Stock critico de "+result.name+", quedan "+result.stock)
@@ -1401,7 +1401,7 @@
           }
 
           if (findProduct) {
-            if (findProduct.stock != null) {
+            if (findProduct.stock != null || this.settingVenderSinStock) {
               if(findProduct.stock > 0 || this.settingVenderSinStock){
                 if (findProduct.stock <= 10) {
                   this.$awn.alert("Stock crítico de " + findProduct.name + ", quedan " + findProduct.stock);

@@ -91,7 +91,7 @@
       <div v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2" >
         <pie-chart :chart-data="countersChartData" :idTarget="randToken()" cardTitle="Contadores"></pie-chart>
       </div>
-      <div v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2" >
+      <div v-if="listOrder.length != 0 && cafeteriaInstalled" class="col-lg-6 col-12 my-2" >
         <column-chart :chart-data="getWaiters" :idTarget="randToken()" cardTitle="Mesas atendidas"></column-chart>
       </div>
 
@@ -647,6 +647,7 @@ export default {
             if(this.settingFactura) this.listCounter.push( ['Guia Despacho', '$'+this.formatNumber(String(request.guia_despacho))]);
 
             if(this.settingBoletaLocal) this.listCounter.push( ['Efectivo', '$'+this.formatNumber(String(request.noSii))]);
+            if(this.settingBoletaLocal) this.listCounter.push( ['Boleta Local', '$'+this.formatNumber(String(request.boleta_local))]);
 
             if(this.settingDebito) this.listCounter.push( ['Debito', '$'+this.formatNumber(String(request.debito))]);
             if(this.settingAmipass) this.listCounter.push(['Amipass', '$'+this.formatNumber(String(request.amipass))]);

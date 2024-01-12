@@ -5,7 +5,9 @@ import { autoUpdater } from "electron-updater"
 import ConfigHelper from '../renderer/helpers/ConfigHelper.js';
 import Connection from '../renderer/helpers/Connection.js';
 import BaseUrl from '../renderer/helpers/baseUrl.js';
-const fs = require('fs');
+// const fs = require('fs');
+import fs from 'fs';
+import path from 'path';
 //const fetch = require('electron-fetch');
 import fetch from 'electron-fetch';
 import { log } from 'console';
@@ -65,15 +67,16 @@ function initApp() {
   createMainWindow();
 }
 
-// const configFile = fs.readFileSync('./gh_token.json', 'utf8');
-// const config = JSON.parse(configFile);
+const tokenFilePath = path.resolve(__dirname, '..', '..', 'gh_token.json');
+const configFile = fs.readFileSync(tokenFilePath, 'utf8');
+const config = JSON.parse(configFile);
 
 autoUpdater.setFeedURL({
   provider: "github",
   owner: "orlandodaniel",
   repo: "FRONT-PROJECT-VUE-DEV",
   private: true,
-  // token: config.githubToken
+  token: config.githubToken
 });
 
 app.on('ready', ()=>{

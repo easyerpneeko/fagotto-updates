@@ -21,7 +21,7 @@
 export default {
     props: {
         chartData: {
-            type: Array,
+            // type: Array,
             required: true
         },
         cardTitle: '',

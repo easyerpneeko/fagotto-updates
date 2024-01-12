@@ -16,3 +16,4 @@ release-builds-production/*
 release-builds-production
 electron-builder.yml
 bootstrap/
+gh_token.json

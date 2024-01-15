@@ -614,7 +614,7 @@ export default {
     settingBoleta:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.boleta') } },
     settingFactura:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.factura') } },
     settingBoletaLocal:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.boleta_local') } },
-
+    settingConvenioEmpresa:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.convenio_empresa') } },
     settingDebito:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.debito') } },
     settingTransferencia:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.transferencia') } },
     settingCheque:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.cheque') } },
@@ -656,7 +656,7 @@ export default {
             if(this.settingRappi) this.listCounter.push(['Rappi', '$'+this.formatNumber(String(request.rappi))]);
             if(this.settingSodexo) this.listCounter.push(['Sodexo', '$'+this.formatNumber(String(request.sodexo))]);
             if(this.settingCredito) this.listCounter.push(['Credito', '$'+this.formatNumber(String(request.credito))]);
-            if(this.settingDebito) this.listCounter.push(['Convenio Empresa', '$'+this.formatNumber(String(request.convenio_empresa))]);
+            if(this.settingConvenioEmpresa) this.listCounter.push(['Convenio Empresa', '$'+this.formatNumber(String(request.convenio_empresa))]);
             if(this.settingTransferencia) this.listCounter.push( ['Transferencia', '$'+this.formatNumber(String(request.transferencia))]);
             if(this.settingCheque) this.listCounter.push( ['Cheque', '$'+this.formatNumber(String(request.cheque))]);
             if(this.settingStateBank) this.listCounter.push( ['Trasnbank', '$'+this.formatNumber(String(request.banco))]);

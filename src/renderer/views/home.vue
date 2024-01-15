@@ -23,6 +23,51 @@
         <feed-card :feed="feed" />
       </div>
     </div>
+
+    <div v-if="feeds != 'Failed to fetch' && feeds && feeds.length > 0" class="pt-5 pb-3 px-3 px-sm-5">
+      <h4 class="mb-4">Folios Disponibles</h4>
+
+      <div class="container">
+    <div class="row">
+        <div class="col-md-4 col-xl-3">
+            <div class="card bg-c-blue order-card">
+                <div class="card-block">
+                    <h6 class="m-b-20">Facturas</h6>
+                    <h2 class="text-right"><i class="fa fa-file-alt f-left"></i><span>{{ this.foliosFactura }}</span></h2>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 col-xl-3">
+            <div class="card bg-c-green order-card">
+                <div class="card-block">
+                    <h6 class="m-b-20">Boletas</h6>
+                    <h2 class="text-right"><i class="fa fa-file-contract f-left"></i><span>{{this.foliosBoleta}}</span></h2>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 col-xl-3">
+            <div class="card bg-c-yellow order-card">
+                <div class="card-block">
+                    <h6 class="m-b-20">Nota de credito</h6>
+                    <h2 class="text-right"><i class="fa fa-file-invoice f-left"></i><span>{{this.foliosNotaCredito}}</span></h2>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 col-xl-3">
+            <div class="card bg-c-pink order-card">
+                <div class="card-block">
+                    <h6 class="m-b-20">Guia de Despacho</h6>
+                    <h2 class="text-right"><i class="fa fa-file-import f-left"></i><span>{{this.foliosGuiaDespacho}}</span></h2>
+                </div>
+            </div>
+        </div>
+	</div>
+</div>
+    </div>
+
   </div>
 </template>
 
@@ -34,11 +79,20 @@ export default {
   name:'home',
   props:['value','feedsWatch'],
   components:{ feedCard },
+  data(){return {
+    foliosFactura:    0,
+    foliosBoleta:       0,
+    foliosNotaCredito:  0,
+    foliosGuiaDespacho: 0,
+  }},
   async mounted(){
     if(this.feedsWatch){
       this.offOn = true;
       Loader.dinamic();
         await this.$store.dispatch('main/getFeeds');
+        // this.app.Id
+        var request = await this.$store.dispatch('main/getFolios', 55);
+        this.countFolios(request);        
       Loader.hide();
       this.offOn = false;
     }else{
@@ -62,8 +116,22 @@ export default {
       if(val) {
         this.offOn = true;
           await this.$store.dispatch('main/getFeeds');
+          var request = await this.$store.dispatch('main/getFolios', 55);
+          this.countFolios(request);
         this.offOn = false;
       }
+    }
+  },
+  methods:{
+    countFolios(request){
+      if(request.data.length > 0){
+          request.data.map((item)=>{
+            if(item.type == 'factura') this.foliosFactura++;
+            if(item.type == 'boleta') this.foliosBoleta++;
+            if(item.type == 'nota_de_credito') this.foliosNotaCredito++;
+            if(item.type == 'guia_de_despacho') this.foliosGuiaDespacho++;
+          });
+        }
     }
   }
 }
@@ -114,5 +182,51 @@ export default {
 #close-bar {
   cursor: pointer;
   font-size: 20px;
+}
+.order-card {
+    color: #fff;
+}
+
+.bg-c-blue {
+  background: linear-gradient(45deg,#06192f,#4da0ff);
+}
+
+.bg-c-green {
+  background: linear-gradient(45deg,#006d1d,#4fc38e);
+}
+
+.bg-c-yellow {
+  background: linear-gradient(45deg,#a26000,#ffb54b);
+}
+
+.bg-c-pink {
+  background: linear-gradient(45deg,#731a22,#ec0000);
+}
+
+
+.card {
+    border-radius: 5px;
+    -webkit-box-shadow: 0 1px 2.94px 0.06px rgba(4,26,55,0.16);
+    box-shadow: 0 1px 2.94px 0.06px rgba(4,26,55,0.16);
+    border: none;
+    margin-bottom: 30px;
+    -webkit-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+}
+
+.card .card-block {
+    padding: 25px;
+}
+
+.order-card i {
+    font-size: 26px;
+}
+
+.f-left {
+    float: left;
+}
+
+.f-right {
+    float: right;
 }
 </style>

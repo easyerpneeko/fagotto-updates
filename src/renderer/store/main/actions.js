@@ -117,3 +117,9 @@ export function serchItem(context, params) {
 
   return context.state[keyState].find((type) => type[data.key] === data.value);
 }
+
+export async function getFolios (context, id) {
+  const url = BaseUrl.getUrl('api/folios/' + id);
+  const request = await Connection.request('get',url);
+  return request;
+}

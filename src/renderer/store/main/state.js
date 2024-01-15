@@ -16,6 +16,7 @@ export default {
   detailSells: [],
   versionNumber: '5.2 20/11/2023',
   feeds: null,
+  folios: null,
   pusherEnv: 'prod', // "dev" OR "prod"
 }
 

@@ -29,7 +29,8 @@
   },
   "build": {
     "extraResources": [
-      "./public/**"
+      "./public/**",
+      "./gh_token.json"
     ],
     "productName": "easy-erd-aplication",
     "appId": "com.example.yourapp",

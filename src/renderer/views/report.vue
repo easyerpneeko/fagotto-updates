@@ -643,11 +643,13 @@ export default {
           }
           if(this.siiInstalled){
             if(this.settingFactura) this.listCounter.push( ['Facturas', '$'+this.formatNumber(String(request.facturas))]);
-            if(this.settingBoleta) this.listCounter.push( ['Boletas', '$'+this.formatNumber(String(request.boletas))] );
+            // if(this.settingBoleta) this.listCounter.push( ['Boletas', '$'+this.formatNumber(String(request.boletas))] );
+            if(this.settingBoleta) this.listCounter.push( ['Boleta', '$'+this.formatNumber(String(request.boleta))] );
             if(this.settingFactura) this.listCounter.push( ['Guia Despacho', '$'+this.formatNumber(String(request.guia_despacho))]);
 
-            if(this.settingBoletaLocal) this.listCounter.push( ['Efectivo', '$'+this.formatNumber(String(request.noSii))]);
-            if(this.settingBoletaLocal) this.listCounter.push( ['Boleta Local', '$'+this.formatNumber(String(request.boleta_local))]);
+            // if(this.settingBoletaLocal) this.listCounter.push( ['Efectivo', '$'+this.formatNumber(String(request.noSii))]);
+            if(this.settingBoletaLocal) this.listCounter.push( ['Efectivo', '$'+this.formatNumber(String(request.efectivo))]);
+            // if(this.settingBoletaLocal) this.listCounter.push( ['Boleta Local', '$'+this.formatNumber(String(request.boleta_local))]);
 
             if(this.settingDebito) this.listCounter.push( ['Debito', '$'+this.formatNumber(String(request.debito))]);
             if(this.settingAmipass) this.listCounter.push(['Amipass', '$'+this.formatNumber(String(request.amipass))]);

@@ -208,7 +208,7 @@
                      <div class="row">
                        <div v-if="settingBoleta" :class="['p-0 pl-1', (settingFactura) ? 'col-6' : 'col-12']">
                          <button :disabled="offOn" type="button" class="btn-r0  btn btn-primary w-100" @click="verifyClient('boleta')">
-                         BOLETA</button>
+                         BOLETA (SII)</button>
                        </div>
  
                        <div v-if="settingFactura" :class="['p-0 pl-1', (settingBoleta) ? 'col-6' : 'col-12']">
@@ -222,7 +222,7 @@
                      <div class="row">
  
                        <div v-if="settingBoletaLocal" class="col-12 p-0 pl-1">
-                         <button :disabled="offOn" @click="verifyClient('boleta_local')" type="button" class="btn-r0 btn btn-success w-100 " >
+                         <button :disabled="offOn" @click="verifyClient('efectivo')" type="button" class="btn-r0 btn btn-success w-100 " >
                            Efectivo
                          </button>
                        </div>
@@ -651,7 +651,10 @@
        this.btnPago(false);
        if(type_sell == 'debito') this.other_type = type_sell;
        else this.type_sell = type_sell;
- 
+       
+       if(type_sell == 'efectivo') this.other_type = type_sell;
+       else this.type_sell = type_sell;
+
        if(this.clientsInstaller && type_sell == 'factura'){
          $('#clientCreate').modal('show');
        }else{

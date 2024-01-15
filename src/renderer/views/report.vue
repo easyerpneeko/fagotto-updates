@@ -638,9 +638,7 @@ export default {
               ['Tipos de productos',' '+request.typeProducts]
             );
           }
-          if(this.gananciaInstalled){
-            this.listCounter.push(['Ganancia total', '$'+this.formatNumber(String(request.gananciaTotal))]);
-          }
+          
           if(this.siiInstalled){
             if(this.settingFactura) this.listCounter.push( ['Facturas', '$'+this.formatNumber(String(request.facturas))]);
             // if(this.settingBoleta) this.listCounter.push( ['Boletas', '$'+this.formatNumber(String(request.boletas))] );
@@ -668,10 +666,14 @@ export default {
             );
           }
 
+          if(this.gananciaInstalled){
+            this.listCounter.push(['Ganancia total', '$'+this.formatNumber(String(request.gananciaTotal))]);
+          }
           this.listCounter.push(
             ['Saldo total', '$'+this.formatNumber(request.balanceTotal)],
-            ['Monto inicial', '$'+ this.formatNumber(String(this.deFormatNumber(String(request.init_money))))],
+            // ['Monto inicial', '$'+ this.formatNumber(String(this.deFormatNumber(String(request.init_money))))],
           );
+          
           if(this.expensesInstalled){
             this.listCounter.push(
               ['Gastos del día', '$'+this.formatNumber(String(request.expenses_day))],

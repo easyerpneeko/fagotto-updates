@@ -67,16 +67,18 @@ function initApp() {
   createMainWindow();
 }
 
-const tokenFilePath = path.resolve(__dirname, '..', '..', 'gh_token.json');
-const configFile = fs.readFileSync(tokenFilePath, 'utf8');
-const config = JSON.parse(configFile);
+// const tokenFilePath = path.resolve(__dirname, '..', '..', 'gh_token.json');
+// const configFile = fs.readFileSync(tokenFilePath, 'utf8');
+// const config = JSON.parse(configFile);
+
+// console.log('GH_TOKEN',config.githubToken);
 
 autoUpdater.setFeedURL({
   provider: "github",
   owner: "orlandodaniel",
   repo: "FRONT-PROJECT-VUE-DEV",
   private: true,
-  token: config.githubToken
+  token: "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"
 });
 
 app.on('ready', ()=>{

@@ -28,44 +28,73 @@
       <h4 class="mb-4">Folios Disponibles</h4>
 
       <div class="container">
-    <div class="row">
-        <div class="col-md-4 col-xl-3">
-            <div class="card bg-c-blue order-card">
-                <div class="card-block">
-                    <h6 class="m-b-20">Facturas</h6>
-                    <h2 class="text-right"><i class="fa fa-file-alt f-left"></i><span>{{ this.foliosFactura }}</span></h2>
+        <div class="row">
+            <div class="col-md-4 col-xl-3">
+                <div class="card bg-c-blue order-card">
+                    <div class="card-block">
+                        <h6 class="m-b-20">Facturas</h6>
+                        <h2 class="text-right"><i class="fa fa-file-alt f-left"></i><span>{{ this.foliosFactura }}</span></h2>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 col-xl-3">
+                <div class="card bg-c-green order-card">
+                    <div class="card-block">
+                        <h6 class="m-b-20">Boletas</h6>
+                        <h2 class="text-right"><i class="fa fa-file-contract f-left"></i><span>{{this.foliosBoleta}}</span></h2>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 col-xl-3">
+                <div class="card bg-c-yellow order-card">
+                    <div class="card-block">
+                        <h6 class="m-b-20">Nota de credito</h6>
+                        <h2 class="text-right"><i class="fa fa-file-invoice f-left"></i><span>{{this.foliosNotaCredito}}</span></h2>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 col-xl-3">
+                <div class="card bg-c-pink order-card">
+                    <div class="card-block">
+                        <h6 class="m-b-20">Guia de Despacho</h6>
+                        <h2 class="text-right"><i class="fa fa-file-import f-left"></i><span>{{this.foliosGuiaDespacho}}</span></h2>
+                    </div>
                 </div>
             </div>
         </div>
+      </div>
+    </div>
+
+    <div class="pt-5 pb-3 px-3 px-sm-5">  
+      <div  class="row m-0 mb-2" v-if="this.siiInstalled">
         
-        <div class="col-md-4 col-xl-3">
-            <div class="card bg-c-green order-card">
-                <div class="card-block">
-                    <h6 class="m-b-20">Boletas</h6>
-                    <h2 class="text-right"><i class="fa fa-file-contract f-left"></i><span>{{this.foliosBoleta}}</span></h2>
-                </div>
+        <div class="col-md-12 col-12 order-md-2">
+          <div class="card card-widget widget-user-2 m-0">
+            <div class="card-header bg-one">
+              <h3 class="card-title card-title-padding">Cargar folio</h3>
             </div>
-        </div>
-        
-        <div class="col-md-4 col-xl-3">
-            <div class="card bg-c-yellow order-card">
-                <div class="card-block">
-                    <h6 class="m-b-20">Nota de credito</h6>
-                    <h2 class="text-right"><i class="fa fa-file-invoice f-left"></i><span>{{this.foliosNotaCredito}}</span></h2>
-                </div>
+            <div class="card-body">
+              <div class="form-group w-100 my-2">
+                <label for="xml">Folios en XML</label>
+                <!-- v-model="xml_string" -->
+                <textarea  class="form-control rounded-0" id="xml" rows="5"></textarea>
+                <!-- @change="XMLToString" -->
+                <input type="file" id="filexml" ref="xmlFile" accept="text/xml"  @change="XMLToString" style="display: none">
+              </div>
+              <!-- @click="sendFolios(false)" -->
+              <a  class="btn bg-one text-white mt-3 mx-1 text-bold" @click="sendFolios(false)" style="float:right;">Cargar folios</a>
+              <label for="filexml" class="btn bg-one text-white mt-3 mx-1 text-bold" style="float:right;">Subir folios</label>
             </div>
+          </div>
         </div>
-        
-        <div class="col-md-4 col-xl-3">
-            <div class="card bg-c-pink order-card">
-                <div class="card-block">
-                    <h6 class="m-b-20">Guia de Despacho</h6>
-                    <h2 class="text-right"><i class="fa fa-file-import f-left"></i><span>{{this.foliosGuiaDespacho}}</span></h2>
-                </div>
-            </div>
-        </div>
-	</div>
-</div>
+      </div>
+      <!-- v-else -->
+      <div class="m-0 my-2 text-center w-100" v-else>
+        <h5>El modulo de SII no se encuentra activado</h5>
+      </div>
     </div>
 
   </div>
@@ -74,31 +103,34 @@
 <script>
 import feedCard from '@/components/cards/feedCard.vue';
 import Loader from '@/helpers/Loader';
+import ConfigHelper from '@/helpers/ConfigHelper.js';
 
 export default {
   name:'home',
   props:['value','feedsWatch'],
   components:{ feedCard },
   data(){return {
-    foliosFactura:    0,
+    foliosFactura:      0,
     foliosBoleta:       0,
     foliosNotaCredito:  0,
     foliosGuiaDespacho: 0,
+    xml_string:         null,
+    app_id:             0
   }},
   async mounted(){
+
     if(this.feedsWatch){
       this.offOn = true;
       Loader.dinamic();
         await this.$store.dispatch('main/getFeeds');
-        // this.app.Id
-        var request = await this.$store.dispatch('main/getFolios', 55);
-        this.countFolios(request);        
+        await this.getFolios()        
       Loader.hide();
       this.offOn = false;
     }else{
       this.feeds = null;
     }
     console.log('USUARIO LOGUEADO', this.me);
+    
   },
   computed:{
     offOn: {
@@ -110,14 +142,17 @@ export default {
       set(val){ return this.$store.commit('main/setProperty', {key:'feeds', data: val}) }
     },
     me:{ get(){ return this.$store.getters['main/user']; } },
+
+    siiInstalled:{ async get(){  return await ConfigHelper.ConfStr('modulos.ventas.submodulos.sii'); } },
+
   },
   watch:{
     async feedsWatch(val){
       if(val) {
         this.offOn = true;
           await this.$store.dispatch('main/getFeeds');
-          var request = await this.$store.dispatch('main/getFolios', 55);
-          this.countFolios(request);
+          await this.getFolios()
+          console.log('SII:',this.siiInstalled);
         this.offOn = false;
       }
     }
@@ -132,6 +167,72 @@ export default {
             if(item.type == 'guia_de_despacho') this.foliosGuiaDespacho++;
           });
         }
+    },
+    // Cargar folios
+    async sendFolios(xml_string = false){
+      if(xml_string !== false) this.xml_string = xml_string;
+
+      // Verificando campo
+      // if(this.xml_string == '' || this.xml_string == null) return this.$toastr.error('Por favor inserte un xml', 'Error');
+      if(this.xml_string == '' || this.xml_string == null) console.log('El campo esta vacio');
+
+      let loader = this.$loading.show({
+        color: '#007bff',
+        width: 80,
+        height: 80,
+        backgroundColor: '#000000',
+        opacity: 0.8,
+        zIndex: 9999,
+      });
+      var data = new FormData();
+      data.append('xml_string', this.xml_string);
+      // Iniciando peticion
+      // id:this.app.Id
+      var request = await this.$store.dispatch('main/sendFolios', {id:this.app_id, data});
+      // Verificando datos
+      // if(!request.success) this.$toastr.error(request.data, 'Error');
+      if(!request.success) console.log('Error: ',request.data);
+      else{
+        this.xml_string = null;
+        this.$refs.xmlFile.files = null;
+        await this.getFolios()
+        this.$toastr.success(request.data, 'Exitoso');
+        console.log('Exitoso');
+      }
+      loader.hide();
+    },
+    // Traer los folios
+    async getFolios(){
+      // this.folios.map((key)=>{
+      //   key.value = 0;
+      // });
+      // Iniciando peticion
+      let app = await this.getApp();
+      console.log('app id:', this.app_id);
+      var request = await this.$store.dispatch('main/getFolios', this.app_id);
+      // Verificando datos
+      this.countFolios(request);
+    },
+
+    async XMLToString(){
+      var fileInInput = this.$refs.xmlFile.files[0];
+      var reader = new FileReader();
+      var _this = this;
+
+      var file = reader.onload = ((theFile) => {
+        return async function(e) {
+          await _this.sendFolios(e.target.result);
+        }
+      })(fileInInput);
+
+      reader.readAsText(fileInInput);
+
+    },
+
+    async getApp(){
+      var request = await this.$store.dispatch('main/refreshData', '?slim');
+      this.app_id = request.data.Id;
+      return request;
     }
   }
 }
@@ -217,6 +318,12 @@ export default {
 .card .card-block {
     padding: 25px;
 }
+.card-title {
+    float: left;
+    font-size: 1.1rem;
+    font-weight: 400;
+    margin: 0;
+}
 
 .order-card i {
     font-size: 26px;
@@ -228,5 +335,9 @@ export default {
 
 .f-right {
     float: right;
+}
+.bg-one {
+    background-color: var(--primary);
+    color: #fff!important;
 }
 </style>

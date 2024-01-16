@@ -117,9 +117,23 @@ export function serchItem(context, params) {
 
   return context.state[keyState].find((type) => type[data.key] === data.value);
 }
-
+//Folios
 export async function getFolios (context, id) {
   const url = BaseUrl.getUrl('api/folios/' + id);
   const request = await Connection.request('get',url);
+  return request;
+}
+
+export async function sendFolios (context, data) {
+  const url = BaseUrl.getUrl('api/folios/' + data.id);
+  const request = await Connection.request('post',url,data.data);
+  return request;
+}
+
+export async function getAplication (context, id) {
+  const url = BaseUrl.getUrl('api/getAppById/' + id);
+  const request = await Connection.request('get',url);
+  context.commit('setProperty', { key: 'permisos', data: request.data.Permisos });
+  context.commit('setProperty', { key: 'app', data: request.data });
   return request;
 }

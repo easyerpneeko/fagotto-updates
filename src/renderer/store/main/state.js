@@ -14,7 +14,7 @@ export default {
   permisos: null,
   clients: [],
   detailSells: [],
-  versionNumber: '5.2 20/11/2023',
+  versionNumber: '',
   feeds: null,
   folios: null,
   pusherEnv: 'prod', // "dev" OR "prod"

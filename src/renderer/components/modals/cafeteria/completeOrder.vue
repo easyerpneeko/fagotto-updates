@@ -125,6 +125,10 @@
           <button v-if="settingCheque" @click="verifyClient('cheque')" type="button" class="btn bg-dark text-white">
             Cheque
           </button>
+
+          <button v-if="settingCheque" @click="verifyClient('cheque')" type="button" class="btn bg-dark text-white">
+            Credito
+          </button>
           
           <button v-if="settingFactura" @click="verifyClient('factura')" type="button" class="btn bg-primario text-white">
             Factura
@@ -728,6 +732,10 @@ export default {
     settingNotaCredito:{ get(){
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.nota_de_credito');
+    } },
+    settingCredito:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.credito');
     } },
     settingMulticaja:{ get(){
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;

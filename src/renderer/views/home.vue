@@ -196,7 +196,7 @@ export default {
         this.xml_string = null;
         this.$refs.xmlFile.files = null;
         await this.getFolios()
-        this.$toastr.success(request.data, 'Exitoso');
+        // this.$toastr.success(request.data, 'Exitoso');
         console.log('Exitoso');
       }
       loader.hide();

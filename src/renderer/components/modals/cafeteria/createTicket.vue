@@ -180,7 +180,7 @@ export default {
       // Iniciando peticion
       
       //Si es debito mando la data a otro endpoint
-      if(this.type_sell=='other' ||this.type_sell=='transferencia' ||this.type_sell=='rappi' ||this.type_sell=='credito'){
+      if(this.type_sell=='other' ||this.type_sell=='transferencia' ||this.type_sell=='rappi' ||this.type_sell=='credito' || this.type_sell=='amipass'){
         var request = await this.$store.dispatch("sells/newTicket", thing);
         console.log("RESPUESTA DE LA APIII CREARTICKET",request);
       }else{
@@ -197,7 +197,7 @@ export default {
         return false;
       }
 
-      if(this.turned_cafeteria && (this.type_sell == 'ticket_venta' || this.type_sell == 'boleta' || this.type_sell == 'factura' || this.type_sell == 'boleta_local')){
+      if(this.turned_cafeteria && (this.type_sell == 'ticket_venta' || this.type_sell == 'boleta' || this.type_sell == 'factura' || this.type_sell == 'boleta_local' || this.type_sell == 'amipass')){
         $('#modalTurned').modal('show');
         this.sell_total = this.value.total;
       }
@@ -290,6 +290,11 @@ export default {
     settingDebito:{ get(){
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.debito');
+    } },
+
+    settingAmipass:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.amipass');
     } },
 
     settingTransferencia:{ get(){

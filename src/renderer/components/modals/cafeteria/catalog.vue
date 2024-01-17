@@ -99,7 +99,10 @@
             <button v-if="settingRappi" @click="viewTicket('rappi')" type="button" class="btn bg-primario text-white">
               Ticket + Rappi
             </button>
-            <button v-if="settingNotaCredito" @click="viewTicket('credito')" type="button" class="btn bg-primario text-white">
+            <button v-if="settingNotaCredito" @click="viewTicket('nota_de_credito')" type="button" class="btn bg-primario text-white">
+              Ticket + Nota de Credito
+            </button>
+            <button v-if="settingCredito" @click="viewTicket('credito')" type="button" class="btn bg-primario text-white">
               Ticket + Credito
             </button>
             <button v-if="settingCheque" @click="viewTicket('cheque')" type="button" class="btn bg-primario text-white">
@@ -111,7 +114,7 @@
             <button v-if="settingSodexo" @click="viewTicket('sodexo')" type="button" class="btn bg-primario text-white">
               Ticket + Sodexo
             </button>
-            <button v-if="settingAmipass" @click="viewTicket('amipass')" type="button" class="btn bg-primario text-white">
+            <button v-if="ticket_sell && settingAmipass" @click="viewTicket('amipass')" type="button" class="btn bg-primario text-white">
               Ticket + Amipass
             </button>
             <button v-if="settingMulticaja" @click="viewTicket('multicaja')" type="button" class="btn bg-primario text-white">
@@ -729,6 +732,10 @@ export default {
     settingNotaCredito:{ get(){
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.nota_de_credito');
+    } },
+    settingCredito:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.credito');
     } },
     settingEfectivo:{ get(){
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;

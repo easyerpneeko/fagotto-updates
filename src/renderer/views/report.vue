@@ -49,7 +49,7 @@
         </div>
       </div>
     </div>
-    <!-- <div class="bg-white col-12 border-radius-4 elevation-1 mt-2">
+    <div class="bg-white col-12 border-radius-4 elevation-1 mt-2">
       <div class="row p-3">
         <div v-for="(item, index) in ckecks" :key="index" class="d-flex px-3">
           <div class="custom-control custom-checkbox mx-2 my-1">
@@ -58,7 +58,7 @@
           </div>
         </div>
       </div>
-    </div> -->
+    </div>
 
     <!-- Cards de resultados -->
     <div ref="loaderReport" class="vld-parent row mt-2">
@@ -195,15 +195,15 @@ export default {
       oldPage: 1,
       // checks
       ckecks:[
-        // {key:'factura',label:'Facturas', value:true},
-        // {key:'boleta',label:'Boletas', value:true},
-        // {key:'guia_despacho',label:'Guia despacho', value:true},
-        // {key:'fastSell',label:'Ventas rapidas', value:true},
-        // {key:'noSii',label:'No SII', value:true},
-        // {key:'amipass',label:'Amipass', value:true},
-        // {key:'credito',label:'Credito', value:true},
-        // {key:'rappi',label:'Rappi', value:true},
-        // {key:'convenio_empresa',label:'Convenio Empresa', value:true}
+        {key:'factura',label:'Facturas', value:true},
+        {key:'boleta',label:'Boletas', value:true},
+        {key:'guia_despacho',label:'Guia despacho', value:true},
+        {key:'fastSell',label:'Ventas rapidas', value:true},
+        {key:'noSii',label:'No SII', value:true},
+        {key:'amipass',label:'Amipass', value:true},
+        {key:'credito',label:'Credito', value:true},
+        {key:'rappi',label:'Rappi', value:true},
+        {key:'convenio_empresa',label:'Convenio Empresa', value:true}
       ]
     }
   },
@@ -223,6 +223,7 @@ export default {
       
     
     })
+    console.log('List order mounted: ', this.listOrder);
   },
   components:{
     cardTable,
@@ -349,6 +350,7 @@ export default {
           }
         }
       }
+      console.log('List order ', this.listOrder);
 
       // Culminando la funcion
       Loader.hide();
@@ -475,7 +477,7 @@ export default {
 
       var thing = new FormData();
       for (let key in data) if (data[key]) thing.append(key, data[key]);
-
+      console.log('checks:',this.ckecks);
       Loader.fullPage();
       var request = await this.$store.dispatch("reports/printPDF", {data:thing, params});
       console.log(request);
@@ -627,7 +629,8 @@ export default {
     settingStateBank:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.banco') } },
     settingRappi:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.rappi') } },
     settingSodexo:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.sodexo') } },
-    settingCredito:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.nota_de_credito') } },
+    settingNotaCredito:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.nota_de_credito') } },
+    settingCredito:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.credito') } },
     settingAmipass:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.amipass') } },
     settingMulticaja:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.multicaja') } },
 
@@ -660,6 +663,7 @@ export default {
             if(this.settingRappi) this.listCounter.push(['Rappi', '$'+this.formatNumber(String(request.rappi))]);
             if(this.settingSodexo) this.listCounter.push(['Sodexo', '$'+this.formatNumber(String(request.sodexo))]);
             if(this.settingCredito) this.listCounter.push(['Credito', '$'+this.formatNumber(String(request.credito))]);
+            if(this.settingNotaCredito) this.listCounter.push(['Nota de Credito', '$'+this.formatNumber(String(request.credito))]);
             if(this.settingConvenioEmpresa) this.listCounter.push(['Convenio Empresa', '$'+this.formatNumber(String(request.convenio_empresa))]);
             if(this.settingTransferencia) this.listCounter.push( ['Transferencia', '$'+this.formatNumber(String(request.transferencia))]);
             if(this.settingCheque) this.listCounter.push( ['Cheque', '$'+this.formatNumber(String(request.cheque))]);

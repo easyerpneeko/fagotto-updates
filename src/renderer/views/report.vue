@@ -49,7 +49,7 @@
         </div>
       </div>
     </div>
-    <div class="bg-white col-12 border-radius-4 elevation-1 mt-2">
+    <div class="bg-white col-12 border-radius-4 elevation-1 mt-2 d-none">
       <div class="row p-3">
         <div v-for="(item, index) in ckecks" :key="index" class="d-flex px-3">
           <div class="custom-control custom-checkbox mx-2 my-1">

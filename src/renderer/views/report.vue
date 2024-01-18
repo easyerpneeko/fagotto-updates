@@ -301,7 +301,8 @@ export default {
         this.$awn.alert('Error al finalizar el turno');
       }
       this.waitResponse = false;  
-      console.log(data);      
+      console.log(data);
+      this.printSells(false);    
     },
 
     async getSell_ext(ref = 'loaderReport'){    // Iniciando refrescamiento (carga y botones disabled)

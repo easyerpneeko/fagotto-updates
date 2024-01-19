@@ -67,36 +67,6 @@
         </div>
       </div>
     </div>
-
-    <div class="pt-5 pb-3 px-3 px-sm-5">  
-      <div  class="row m-0 mb-2" v-if="this.siiInstalled">
-        
-        <div class="col-md-12 col-12 order-md-2">
-          <div class="card card-widget widget-user-2 m-0">
-            <div class="card-header bg-one">
-              <h3 class="card-title card-title-padding">Cargar folio</h3>
-            </div>
-            <div class="card-body">
-              <div class="form-group w-100 my-2">
-                <label for="xml">Folios en XML</label>
-                <!-- v-model="xml_string" -->
-                <textarea  class="form-control rounded-0" id="xml" rows="5"></textarea>
-                <!-- @change="XMLToString" -->
-                <input type="file" id="filexml" ref="xmlFile" accept="text/xml"  @change="XMLToString" style="display: none">
-              </div>
-              <!-- @click="sendFolios(false)" -->
-              <a  class="btn bg-one text-white mt-3 mx-1 text-bold" @click="sendFolios(false)" style="float:right;">Cargar folios</a>
-              <label for="filexml" class="btn bg-one text-white mt-3 mx-1 text-bold" style="float:right;">Subir folios</label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- v-else -->
-      <div class="m-0 my-2 text-center w-100" v-else>
-        <h5>El modulo de SII no se encuentra activado</h5>
-      </div>
-    </div>
-
   </div>
 </template>
 

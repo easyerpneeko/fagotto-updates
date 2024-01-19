@@ -838,6 +838,7 @@ export default {
       get(){
         let request = this.$store.getters['reports/getterWorkshifts'];
         console.log('Turno',request);
+        let user = this.$store.getters['main/user'];
         if(request && request.length > 0){
           let myList = [];
           request.map((workshift)=>{
@@ -849,6 +850,13 @@ export default {
               workshift.end_workshift,
             ]);
           });
+          myList.push([
+              user.username,
+              '$' + localStorage.getItem('init_money'),
+              '$0',
+              localStorage.getItem('start_workshift'),
+              'No finalizado',
+            ]);
           return myList;
         }else return false;
       }

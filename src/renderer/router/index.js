@@ -83,6 +83,10 @@ export default new Router({
         {
           path: 'gastos',
           component: require('@/views/expenses.vue').default
+        },
+        {
+          path: 'folios',
+          component: require('@/views/folios.vue').default
         }
       ]
     },

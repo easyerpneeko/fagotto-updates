@@ -264,6 +264,7 @@ export default {
       var follows = ConfigHelper.ConfStr('modulos.seguimientos');
       var sells = ConfigHelper.ConfStr('modulos.ventas');
       var cafeteria = ConfigHelper.ConfStr('modulos.cafeteria');
+      var sii = ConfigHelper.ConfStr('modulos.ventas.submodulos.sii');
       const clientOrders = ConfigHelper.ConfStr('modulos.client_orders');
       // Submodulos
       var fastSell = ConfigHelper.ConfStr('modulos.ventas') && ConfigHelper.ConfStr('modulos.ventas.submodulos.sell_fast');
@@ -431,6 +432,16 @@ export default {
             }
           }
         }
+        
+        if(sii){
+          menu.push({
+            label: 'Cargar Folios',
+            // label: this.envs.name_panel_tickets.value,
+            route: '/inicio/folios',
+            icon: 'fa-file-upload'
+          });
+        }
+        
         console.log(menu);
         this.menu = menu;
       }, 500);

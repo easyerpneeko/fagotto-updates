@@ -22,7 +22,7 @@
         <div class="modal-footer">
           <!-- <button type="button" class="btn bg-secundario text-white" @click="backCatalog()">Volver</button> -->
 
-          <button v-if="!this.value.order && ticket_sell && settingBoletaLocal" type="button" class="btn bg-primario text-white" @click="createTicketSell('boleta_local')">Ticket + boleta local3</button>
+          <button v-if="!this.value.order && ticket_sell && settingBoletaLocal" type="button" class="btn bg-primario text-white" @click="createTicketSell('boleta_local')">Ticket + efectivo</button>
           <button v-if="!this.value.order && ticket_sell && settingBoleta" type="button" class="btn bg-dark text-white" @click="createTicketSell('boleta')">Ticket + boleta</button>
           <button v-if="!this.value.order && ticket_sell && settingFactura" type="button" class="btn bg-secundario text-white" @click="createTicketSell('factura')">Ticket + factura</button>
           <button v-if="!this.value.order && ticket_sell_close" type="button" class="btn bg-primario text-white" @click="viewTicket('ticket_venta')">

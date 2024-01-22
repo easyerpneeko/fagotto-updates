@@ -61,7 +61,7 @@
     </div>
 
     <!-- Cards de resultados -->
-    <div ref="loaderReport" class="vld-parent row mt-2">
+    <div class="vld-parent row mt-2">
       <!--  -->
       <div v-if="listOrder.length != 0" class="col-md-6 col-12 my-2">
         <cardTable
@@ -72,7 +72,7 @@
           :center="true"
         />
       </div>
-      <!-- v-if="listOrder.length != 0" -->
+
       <div v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2">
         <cardTable
           :cardTitle="'Estadisticas de productos'"
@@ -81,19 +81,19 @@
           :idTarget="randToken()"
         />
       </div>
-      <!-- v-if="listOrder.length != 0" -->
+
       <div  v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2" >
         <bar-chart :chart-data="topSellsChartData" :idTarget="randToken()" cardTitle="Top Ventas"></bar-chart>
       </div>
-      <!-- v-if="listOrder.length != 0" -->
+
       <div v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2" >
         <area-chart :chart-data="sellsByhourChartData" :idTarget="randToken()" cardTitle="Ventas por hora"></area-chart>
       </div>
-      <!-- v-if="listOrder.length != 0" -->
+
       <div v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2" >
         <pie-chart :chart-data="countersChartData" :idTarget="randToken()" cardTitle="Contadores"></pie-chart>
       </div>
-      <!-- v-if="listOrder.length != 0" -->
+
       <div v-if="listOrder.length != 0 && cafeteriaInstalled" class="col-lg-6 col-12 my-2" >
         <column-chart :chart-data="getWaiters" :idTarget="randToken()" cardTitle="Mesas atendidas"></column-chart>
       </div>
@@ -106,8 +106,8 @@
           :idTarget="randToken()"
         />
       </div>
-      <!-- v-if="getWorkshifts" -->
-      <div  class="col-lg-6 col-12 my-2">
+
+      <div class="col-lg-6 col-12 my-2">
         <cardTable
           cardTitle="Turnos del dia"
           :th="['Usuario', 'Monto Inicial', 'Total de Ventas', 'Inicio del turno', 'Fin del turno']"

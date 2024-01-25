@@ -266,6 +266,7 @@ export default {
       var cafeteria = ConfigHelper.ConfStr('modulos.cafeteria');
       var sii = ConfigHelper.ConfStr('modulos.ventas.submodulos.sii');
       const clientOrders = ConfigHelper.ConfStr('modulos.client_orders');
+      var pedidos = ConfigHelper.ConfStr('modulos.pedidos');
       // Submodulos
       var fastSell = ConfigHelper.ConfStr('modulos.ventas') && ConfigHelper.ConfStr('modulos.ventas.submodulos.sell_fast');
       const kitchenMode = ConfigHelper.ConfStr('modulos.cafeteria') && ConfigHelper.ConfStr('modulos.cafeteria.submodulos.modo_cocina');
@@ -441,8 +442,15 @@ export default {
             icon: 'fa-file-upload'
           });
         }
-        
-        console.log(menu);
+        if(pedidos){
+          menu.push({
+            label: 'Crear Pedido',
+            route: '/inicio/pedidos',
+            icon: 'fas fa-truck-loading'
+          });
+        }
+       
+        // console.log(menu);
         this.menu = menu;
       }, 500);
     },

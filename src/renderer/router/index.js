@@ -87,6 +87,10 @@ export default new Router({
         {
           path: 'folios',
           component: require('@/views/folios.vue').default
+        },
+        {
+          path: 'pedidos',
+          component: require('@/views/pedidos.vue').default
         }
       ]
     },

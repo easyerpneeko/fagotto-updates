@@ -21,7 +21,7 @@
                         <div class="d-flex row w-100 pt-4">
                             <div class="col-md-2 col-sm-4 col-12">
                                 <label for="app">Datos del negocio</label>
-                                <p>{{ this.app.data.Name }}</p>
+                                <p>{{ this.app.Name }}</p>
                             </div>
                             <div class="col-md-2 col-sm-4 col-12">
                                 <label for="date">Fecha del pedido</label>
@@ -30,7 +30,8 @@
 
                             <div class="col-md-2 col-sm-4 col-12">
                                 <label for="paymode">Metodo de pago</label>
-                                <select class="form-control" v-model="paymode" :disabled="this.disableForm" :class="{ 'invalid-input': submitted && !isValidPaymode}">
+                                <select class="form-control" v-model="paymode" :disabled="this.disableForm"
+                                    :class="{ 'invalid-input': submitted && !isValidPaymode }">
                                     <option :value="null" class="text-capitalize">Todas</option>
                                     <option :value="paymode.name" v-for="paymode in paymodes" :key="paymode.id"
                                         class="text-capitalize">
@@ -41,17 +42,17 @@
                             <div class="col-md-2 col-sm-4 col-12">
                                 <label for="contactName">Nombre</label>
                                 <input :disabled="this.disableForm" id="contactName" v-model="name" type="text"
-                                    class="form-control" :class="{ 'invalid-input': submitted && !isValidName}"/>
+                                    class="form-control" :class="{ 'invalid-input': submitted && !isValidName }" />
                             </div>
                             <div class="col-md-2 col-sm-4 col-12">
                                 <label for="contactPhone">Telefono</label>
                                 <input :disabled="this.disableForm" id="contactPhone" v-model="phone" type="text"
-                                    class="form-control" :class="{ 'invalid-input': submitted && !isValidPhone}" />
+                                    class="form-control" :class="{ 'invalid-input': submitted && !isValidPhone }" />
                             </div>
                             <div class="col-md-2 col-sm-4 col-12">
                                 <label for="comment">Comentario</label>
                                 <input :disabled="this.disableForm" id="comment" v-model="comment" type="text"
-                                    class="form-control" :class="{ 'invalid-input': submitted && !isValidComment}"/>
+                                    class="form-control" :class="{ 'invalid-input': submitted && !isValidComment }" />
                             </div>
                             <label for="voucher" class="m-1 btn bg-primario text-white text-capitalize">
                                 Cargar Comprobante
@@ -93,7 +94,7 @@
         <!-- <div v-if="requests && requests.items.length > 0" ref="loaderRequests" class="vld-parent px-2 mt-4"> -->
         <div v-if="requests" ref="loaderRequests" class="vld-parent px-2 mt-4">
             <customTable v-model="jsonTable" v-slot="props">
-                <a @click="openVerify(props.item)" class="py-1 px-2 text-center btn bg-primario" href="#">
+                <a @click="openProductsOrder(props.item)" class="py-1 px-2 text-center btn bg-primario" href="#">
                     <i class="fa fa-eye"></i>
                 </a>
             </customTable>
@@ -112,6 +113,76 @@
         <!-- modals -->
         <!-- @refresh="refreshData" -->
         <catalog :products="products" @update-products="updateProducts" />
+
+        <!-- modal productsOrders -->
+        <div class="modal fade modalForce" id="productsOrder" tabindex="-1" role="dialog" aria-labelledby="productsOrder"
+            aria-hidden="true" data-backdrop="false">
+            <div class="modal-dialog lg-modal modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-primario">
+                        <h5 class="modal-title text-capitalize">Pedido # - XXX</h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex flex-wrap boxCompleteOrder">
+                            <div class="col-md-9 col-12 d-flex flex-column justify-content-between">
+                                <div class="">
+                                    <customTable v-model="jsonTableProducts" @changeValue="changeValue" v-slot="props">
+                                        <a @click="removeProduct(props.index)" class="py-1 px-2 text-center btn bg-primario"
+                                            href="#">
+                                            <i class="fas fa-times"></i>
+                                        </a>
+                                    </customTable>
+                                    <!-- <div class="footerTableTicket d-flex justify-content-between">
+                                        <h5 class="">
+                                            SUBTOTAL
+                                        </h5>
+                                        <h5 id="SubTotal-On-CompleteOrder">
+                                            ${{ formatNumber(subtotal) }}
+                                        </h5>
+                                    </div> -->
+                                    <div class="footerTableTicket d-flex justify-content-between">
+                                        <h5 class="">
+                                            TOTAL
+                                        </h5>
+                                        <h5 id="Total-On-CompleteOrder">
+                                            ${{ formatNumber(total) }}
+                                        </h5>
+                                    </div>
+                                </div>
+                                <!-- <div class="d-flex flex-column w-100 displaymd mt-2">
+                                    <button @click="printOrderTotal" type="button"
+                                        class="btn mx-0 my-1 text-center bg-secundario text-white no-caps">Imprimir ticket
+                                        total</button>
+                                    <button @click="printTicket" type="button"
+                                        class="btn mx-0 my-1 text-center bg-dark text-white no-caps">Imprimir
+                                        ticket</button>
+                                    <button @click="addProducts" type="button"
+                                        class="btn mx-0 my-1 text-center bg-primario text-white no-caps">Agregar más
+                                        productos</button>
+                                    <button @click="changeWaiter" type="button"
+                                        class="btn mx-0 my-1 text-center bg-dark text-white no-caps">Cambiar mesero</button>
+                                    <button @click="changeBoard" type="button"
+                                        class="btn mx-0 my-1 text-center bg-primario text-white no-caps">Cambiar
+                                        mesa</button>
+                                </div> -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button @click="closeProductsOrder()" type="button" class="btn bg-primario text-white">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- <modal-client @sendInfo="sendInfo" /> -->
+            <!-- <modalVerify :propVerify="propVerify" @refreshData="refreshData" /> -->
+            <!-- <password-verify v-model="jsonPassword" @success="removeProduct" /> -->
+            <!-- <assignBoard /> -->
+        </div>
     </div>
 </template>
   
@@ -127,6 +198,9 @@ import ConfigHelper from '@/helpers/ConfigHelper.js';
 import BaseUrl from '@/helpers/baseUrl.js';
 import Loader from '@/helpers/Loader';
 import moment from 'moment';
+import FormatNumber from '@/helpers/FormatNumber.js';
+import Print from '@/helpers/Print.js';
+
 
 export default {
     name: 'pedidos',
@@ -156,7 +230,7 @@ export default {
             date: moment().format('YYYY-MM-DD HH:mm:ss'),
 
             disableForm: false,
-            submitted : false,
+            submitted: false,
 
             oldPage: '&page=1',
             requests: null,
@@ -187,12 +261,31 @@ export default {
                     { label: 'Comentario', class: 'default', permission: 'default', type: false },
                     { label: 'Detalles', class: 'th-sm text-center', permission: 'default', type: false },
                 ]
-            }
+            },
+            jsonTableProducts: {
+                btn: false,
+                items: null,
+                rows: [
+                    { key: 'name', class: '', permission: 'default' },
+                    { key: 'price', class: '', permission: 'default' },
+                    { key: 'quantity', class: '', permission: 'default' },
+                    { key: 'subtotal', class: '', permission: 'default' },
+                ],
+                titles: [
+                    { label: 'Nombre', class: '', permission: 'default', type: false },
+                    { label: 'Precio', class: '', permission: 'default', type: false },
+                    { label: 'Cantidad', class: '', permission: 'default', type: false },
+                    { label: 'Subtotal', class: '', permission: 'default', type: false },
+                    // { label: '', class: '', permission: 'default', type: false },
+                ]
+            },
+            subtotal: this.total,
+            total: 0,
         }
     },
     async mounted() {
         this.app = await this.getApp();
-        console.log(this.app.data.Name);
+        // console.log(this.app.data.Name);
         this.getRequests(false);
     },
     computed: {
@@ -222,7 +315,7 @@ export default {
     methods: {
         async getApp() {
             var request = await this.$store.dispatch('main/refreshData', '?slim');
-            return request;
+            return request.data;
         },
         async getRequests(page = false) {
 
@@ -245,15 +338,22 @@ export default {
             // this.jsonTable.items = request.data.items;
             this.jsonTable.items = request.data;
         },
-        openVerify(request) {
-            // this.propVerify = {
-            //     params: request.id,
-            //     title: 'Eliminar gasto',
-            //     text: '¿Usted esta seguro de querer eliminar el gasto ' + request.id + '?',
-            //     store: 'expenses/removeRequests',
-            //     success: 'Pedido eliminado exitosamente'
-            // };
-            // $('#verifyDelete').modal('show');
+        getTotal(products) {
+            this.total = 0;
+            products.map((product) => {
+                this.total += parseFloat(product.subtotal);
+            });
+            // this.subtotal = this.total;
+        },
+        openProductsOrder(request) {
+            this.jsonTableProducts.items = JSON.parse(request.products);
+            this.getTotal(this.jsonTableProducts.items);
+            $('#productsOrder').modal('show');
+
+        },
+        closeProductsOrder() {
+
+            $('#productsOrder').modal('hide');
         },
         async uploadVoucher(event) {
             const file = event.target.files[0];
@@ -312,20 +412,37 @@ export default {
             this.submitted = false;
         },
         validar_form() {
-            if(!this.isValidProducts){
+            if (!this.isValidProducts) {
                 this.$awn.alert("Es necesario agregar algun producto");
             }
             if (!this.isValidName || !this.isValidPhone || !this.isValidComment || !this.isValidPaymode) {
                 return false;
             }
             return true;
+        },
+        changeValue(value) {
+            // this.total = 0;
+            // value.map((product) => {
+            //     product.subtotal = parseFloat(product.price) * parseInt(product.quantity);
+            //     this.total += parseFloat(product.subtotal);
+            // });
+            // this.board.order.products = value;
+            console.log('Change value');
+
+        },
+        formatNumber(number) {
+            return FormatNumber.format(number);
         }
     }
 }
 </script>
 <style scoped>
-    .invalid-input{
+.invalid-input {
     border-color: red;
-    }
+}
+.boxCompleteOrder{
+  min-height: 450px;
+  justify-content: center;
+}
 </style>
   

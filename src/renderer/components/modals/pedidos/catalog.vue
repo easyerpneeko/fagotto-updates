@@ -303,7 +303,7 @@ export default {
       if (this.tickets && this.productsGet) {
         // Iniciando peticion
         if(!loaderTrue) Loader.dinamic();
-        var request = await this.$store.dispatch("products/getProductsOfSell");
+        var request = await this.$store.dispatch("requests/getProductsOfSell");
         if(!loaderTrue) Loader.hide();
         // Verificando respuesta
         if (request.success){

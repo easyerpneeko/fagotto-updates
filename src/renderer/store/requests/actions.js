@@ -24,3 +24,17 @@ export async function deleteRequests(context, id) {
   const request = await Connection.request("delete", url);
   return request;
 }
+
+export async function getProductsOfSell(context) {
+  let url = BaseUrl.getUrl('api/products/sell');
+  const request = await Connection.request('get',url);
+  return request;
+}
+
+
+// export async function index(context, params) {
+//   const url = BaseUrl.getUrl('api/products/' + params);
+//   const request = await Connection.request('get',url);
+//   context.commit('setProperty', {key:'products', data: request.data});
+//   return request;
+// }

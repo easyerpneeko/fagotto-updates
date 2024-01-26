@@ -173,7 +173,8 @@ export default {
     cursor: pointer;
   }
   .fieldEdit{
-    border: none;
+    border: 2px solid #192b5f;
+    border-radius: 5px;
     background: transparent;
     width: 100%;
     text-align: center;

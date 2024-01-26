@@ -9,7 +9,7 @@
         </button>
       </div>
       <div class="modal-body p-0" style="overflow: auto; max-height: 70vh;">
-        <div class="d-flex flex-wrap">
+        <div class="d-flex flex-wrap justify-content-space-around">
           <!-- <div v-if="(categoriesInstalled && Allcategories && Allcategories.length > 0)" class="col-md-3 boxCategories">
             <h5 class="text-primario my-2 text-center">
               Categorias
@@ -857,6 +857,9 @@ export default {
   .btnCategorieSelect:hover{
     background: var(--primary);
     color: #fff;
+  }
+  .justify-content-space-around{
+    justify-content: space-around;
   }
   @media (max-width: 767px){
     .boxCategories{

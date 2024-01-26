@@ -10,14 +10,14 @@
       </div>
       <div class="modal-body p-0" style="overflow: auto; max-height: 70vh;">
         <div class="d-flex flex-wrap">
-          <div v-if="(categoriesInstalled && Allcategories && Allcategories.length > 0)" class="col-md-3 boxCategories">
+          <!-- <div v-if="(categoriesInstalled && Allcategories && Allcategories.length > 0)" class="col-md-3 boxCategories">
             <h5 class="text-primario my-2 text-center">
               Categorias
             </h5>
             <div @click="changeCategorie(categorie.id)" :class="['btnCategorieSelect text-center', (categorieNow == categorie.id) ? 'btnCategorieSelect_active' : '' ]" v-for="(categorie, index) in Allcategories" :key="index">
               {{categorie.name}}
             </div>
-          </div>
+          </div> -->
           <div :class="['boxProducts mt-2 ', (categoriesInstalled && Allcategories && ((Allcategories.length > 0 && jsonTable.items.length == 0) || (Allcategories.length == 0 && jsonTable.items.length > 0))) ? 'col-md-9' : 'col-md-5' ]">
             <div class="d-flex flex-wrap">
               <div class="col-12">
@@ -43,9 +43,9 @@
 
               <custom-table v-model="jsonTable" v-slot="props" v-on:onBlur="FunctionBlurInputEditable">
                 <div style="display: inline-flex;">
-                  <a class="btn bg-primario text-black btnRemoveProduct mr-1" @click="openCommentProduct(props.item)">
+                  <!-- <a class="btn bg-primario text-black btnRemoveProduct mr-1" @click="openCommentProduct(props.item)">
                     <i class="far fa-comment"></i>
-                  </a>  
+                  </a>   -->
           
                   <a class="btn bg-danger text-white btnRemoveProduct" @click="removeProduct(props.item)">
                     <i class="fas fa-times"></i>
@@ -62,14 +62,14 @@
                 </h6>
               </div>
             </div>
-            <div class="descriptionTextContainer" v-on:keyup.enter="addCommentProduct(productComment)" v-if="product_comentario">
+            <!-- <div class="descriptionTextContainer" v-on:keyup.enter="addCommentProduct(productComment)" v-if="product_comentario">
               <label>Comentario</label>
               <textarea v-model="product_comentario_text"></textarea>
-            </div>
-            <div class="descriptionTextContainer" v-if="ticket_description">
+            </div> -->
+            <!-- <div class="descriptionTextContainer" v-if="ticket_description">
               <label>Descripcion</label>
               <textarea v-model="ticketDescription"></textarea>
-            </div>
+            </div> -->
 
           </div>
         </div>
@@ -153,12 +153,12 @@ export default {
         rows:[
           {key:'name', class:'', permission:'default'},
           {key:'quantity', class:'text-center', permission:'default', edit:true},
-          {key:'comment', class:'text-center', permission:'default'},
+          // {key:'comment', class:'text-center', permission:'default'},
         ],
         titles:[
           {label:'Nombre', class:'', permission:'default', type:false},
           {label:'Cantidad', class:'text-center w-30', permission:'default', type:false},
-          {label:'Cometarios', class:'text-center', permission:'default', type:false},
+          // {label:'Cometarios', class:'text-center', permission:'default', type:false},
           {label:'Acciones', class:'text-center', permission:'default', type:false},
         ]
       }

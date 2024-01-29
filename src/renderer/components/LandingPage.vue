@@ -33,7 +33,7 @@
         <button id="close-button" @click="closeNotification()" class="btn">
           Cerrar
         </button>
-        <button id="restart-button" @click="restartApp()" class="hidden btn btn-primary">
+        <button id="restart-button" @click="restartApp()" class="d-none btn btn-primary">
           Reiniciar
         </button>
       </div>
@@ -96,7 +96,7 @@ export default {
       console.log('update downloaded');
       ipcRenderer.removeAllListeners('update_downloaded');
       message.innerText = 'Nueva version descargada. Sera instalada al reiniciar el programa. Reiniciar Ahora mismo?';
-      restartButton.classList.remove('hidden');
+      restartButton.classList.remove('d-none');
       notification.classList.remove('hidden');
     });
 

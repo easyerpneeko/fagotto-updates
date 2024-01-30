@@ -879,7 +879,7 @@ export default {
     getAddtionWaiters:{
       get(){
         let request = this.$store.getters['reports/getterWaiters'];
-        if(request && request.length > 0 && this.addtionsWaiterInstalled){
+        if(request && request.length > 0){
           let myList = [];
           request.map((waiter)=>{
             myList.push([

@@ -13,8 +13,14 @@
         <h2 class="text-bienvenida">
           Bienvenido a tu mejor aplicación de gestión en negocios
         </h2>
+
       </div>
-    </div>    
+      <div class="gray-text-version" v-if="true">
+        <b id="version"></b>
+      </div>
+
+
+    </div>
 
     <div v-if="feeds != 'Failed to fetch' && feeds && feeds.length > 0" class="pt-5 pb-3 px-3 px-sm-5">
       <h4 class="mb-4">Ultimas notícias</h4>
@@ -29,122 +35,131 @@
 
       <div class="container">
         <div class="row">
-            <div class="col-md-4 col-xl-3">
-                <div class="card bg-c-blue order-card">
-                    <div class="card-block">
-                        <h6 class="m-b-20">Facturas</h6>
-                        <h2 class="text-right"><i class="fa fa-file-alt f-left"></i><span>{{ this.foliosFactura }}</span></h2>
-                    </div>
-                </div>
+          <div class="col-md-4 col-xl-3">
+            <div class="card bg-c-blue order-card">
+              <div class="card-block">
+                <h6 class="m-b-20">Facturas</h6>
+                <h2 class="text-right"><i class="fa fa-file-alt f-left"></i><span>{{ this.foliosFactura }}</span></h2>
+              </div>
             </div>
-            
-            <div class="col-md-4 col-xl-3">
-                <div class="card bg-c-green order-card">
-                    <div class="card-block">
-                        <h6 class="m-b-20">Boletas</h6>
-                        <h2 class="text-right"><i class="fa fa-file-contract f-left"></i><span>{{this.foliosBoleta}}</span></h2>
-                    </div>
-                </div>
+          </div>
+
+          <div class="col-md-4 col-xl-3">
+            <div class="card bg-c-green order-card">
+              <div class="card-block">
+                <h6 class="m-b-20">Boletas</h6>
+                <h2 class="text-right"><i class="fa fa-file-contract f-left"></i><span>{{ this.foliosBoleta }}</span></h2>
+              </div>
             </div>
-            
-            <div class="col-md-4 col-xl-3">
-                <div class="card bg-c-yellow order-card">
-                    <div class="card-block">
-                        <h6 class="m-b-20">Nota de credito</h6>
-                        <h2 class="text-right"><i class="fa fa-file-invoice f-left"></i><span>{{this.foliosNotaCredito}}</span></h2>
-                    </div>
-                </div>
+          </div>
+
+          <div class="col-md-4 col-xl-3">
+            <div class="card bg-c-yellow order-card">
+              <div class="card-block">
+                <h6 class="m-b-20">Nota de credito</h6>
+                <h2 class="text-right"><i class="fa fa-file-invoice f-left"></i><span>{{ this.foliosNotaCredito }}</span>
+                </h2>
+              </div>
             </div>
-            
-            <div class="col-md-4 col-xl-3">
-                <div class="card bg-c-pink order-card">
-                    <div class="card-block">
-                        <h6 class="m-b-20">Guia de Despacho</h6>
-                        <h2 class="text-right"><i class="fa fa-file-import f-left"></i><span>{{this.foliosGuiaDespacho}}</span></h2>
-                    </div>
-                </div>
+          </div>
+
+          <div class="col-md-4 col-xl-3">
+            <div class="card bg-c-pink order-card">
+              <div class="card-block">
+                <h6 class="m-b-20">Guia de Despacho</h6>
+                <h2 class="text-right"><i class="fa fa-file-import f-left"></i><span>{{ this.foliosGuiaDespacho }}</span>
+                </h2>
+              </div>
             </div>
+          </div>
         </div>
       </div>
     </div>
+    
+    <autoUpdate />
   </div>
+
+
 </template>
 
 <script>
 import feedCard from '@/components/cards/feedCard.vue';
 import Loader from '@/helpers/Loader';
 import ConfigHelper from '@/helpers/ConfigHelper.js';
+import autoUpdate from '../components/autoUpdate.vue';
 
 export default {
-  name:'home',
-  props:['value','feedsWatch'],
-  components:{ feedCard },
-  data(){return {
-    foliosFactura:      0,
-    foliosBoleta:       0,
-    foliosNotaCredito:  0,
-    foliosGuiaDespacho: 0,
-    xml_string:         null,
-    app_id:             0
-  }},
-  async mounted(){
+  name: 'home',
+  props: ['value', 'feedsWatch'],
+  components: { feedCard, autoUpdate },
+  data() {
+    return {
+      foliosFactura: 0,
+      foliosBoleta: 0,
+      foliosNotaCredito: 0,
+      foliosGuiaDespacho: 0,
+      xml_string: null,
+      app_id: 0,
+    }
+  },
+  async mounted() {
 
-    if(this.feedsWatch){
+    if (this.feedsWatch) {
       this.offOn = true;
       Loader.dinamic();
-        await this.$store.dispatch('main/getFeeds');
-        await this.getFolios()        
+      await this.$store.dispatch('main/getFeeds');
+      await this.getFolios()
       Loader.hide();
       this.offOn = false;
-    }else{
+    } else {
       this.feeds = null;
     }
     console.log('USUARIO LOGUEADO', this.me);
-    
+
   },
-  computed:{
+  computed: {
     offOn: {
       get() { return this.value },
-      set(offOn) { this.$emit('input',offOn) }
+      set(offOn) { this.$emit('input', offOn) }
     },
-    feeds:{
-      get(){ return this.$store.getters['main/getFeeds'] },
-      set(val){ return this.$store.commit('main/setProperty', {key:'feeds', data: val}) }
+    feeds: {
+      get() { return this.$store.getters['main/getFeeds'] },
+      set(val) { return this.$store.commit('main/setProperty', { key: 'feeds', data: val }) }
     },
-    me:{ get(){ return this.$store.getters['main/user']; } },
+    me: { get() { return this.$store.getters['main/user']; } },
 
-    siiInstalled:{ async get(){  return await ConfigHelper.ConfStr('modulos.ventas.submodulos.sii'); } },
+    siiInstalled: { async get() { return await ConfigHelper.ConfStr('modulos.ventas.submodulos.sii'); } },
 
   },
-  watch:{
-    async feedsWatch(val){
-      if(val) {
+  watch: {
+    async feedsWatch(val) {
+      if (val) {
         this.offOn = true;
-          await this.$store.dispatch('main/getFeeds');
-          await this.getFolios()
-          console.log('SII:',this.siiInstalled);
+        await this.$store.dispatch('main/getFeeds');
+        await this.getFolios()
+        console.log('SII:', this.siiInstalled);
         this.offOn = false;
       }
     }
   },
-  methods:{
-    countFolios(request){
-      if(request.data.length > 0){
-          request.data.map((item)=>{
-            if(item.type == 'factura') this.foliosFactura++;
-            if(item.type == 'boleta') this.foliosBoleta++;
-            if(item.type == 'nota_de_credito') this.foliosNotaCredito++;
-            if(item.type == 'guia_de_despacho') this.foliosGuiaDespacho++;
-          });
-        }
+  methods: {
+    countFolios(request) {
+      if (request.data.length > 0) {
+        request.data.map((item) => {
+          if (item.type == 'factura') this.foliosFactura++;
+          if (item.type == 'boleta') this.foliosBoleta++;
+          if (item.type == 'nota_de_credito') this.foliosNotaCredito++;
+          if (item.type == 'guia_de_despacho') this.foliosGuiaDespacho++;
+        });
+      }
     },
     // Cargar folios
-    async sendFolios(xml_string = false){
-      if(xml_string !== false) this.xml_string = xml_string;
+    async sendFolios(xml_string = false) {
+      if (xml_string !== false) this.xml_string = xml_string;
 
       // Verificando campo
       // if(this.xml_string == '' || this.xml_string == null) return this.$toastr.error('Por favor inserte un xml', 'Error');
-      if(this.xml_string == '' || this.xml_string == null) console.log('El campo esta vacio');
+      if (this.xml_string == '' || this.xml_string == null) console.log('El campo esta vacio');
 
       let loader = this.$loading.show({
         color: '#007bff',
@@ -158,11 +173,11 @@ export default {
       data.append('xml_string', this.xml_string);
       // Iniciando peticion
       // id:this.app.Id
-      var request = await this.$store.dispatch('main/sendFolios', {id:this.app_id, data});
+      var request = await this.$store.dispatch('main/sendFolios', { id: this.app_id, data });
       // Verificando datos
       // if(!request.success) this.$toastr.error(request.data, 'Error');
-      if(!request.success) console.log('Error: ',request.data);
-      else{
+      if (!request.success) console.log('Error: ', request.data);
+      else {
         this.xml_string = null;
         this.$refs.xmlFile.files = null;
         await this.getFolios()
@@ -172,7 +187,7 @@ export default {
       loader.hide();
     },
     // Traer los folios
-    async getFolios(){
+    async getFolios() {
       // this.folios.map((key)=>{
       //   key.value = 0;
       // });
@@ -184,13 +199,13 @@ export default {
       this.countFolios(request);
     },
 
-    async XMLToString(){
+    async XMLToString() {
       var fileInInput = this.$refs.xmlFile.files[0];
       var reader = new FileReader();
       var _this = this;
 
       var file = reader.onload = ((theFile) => {
-        return async function(e) {
+        return async function (e) {
           await _this.sendFolios(e.target.result);
         }
       })(fileInInput);
@@ -199,7 +214,7 @@ export default {
 
     },
 
-    async getApp(){
+    async getApp() {
       var request = await this.$store.dispatch('main/refreshData', '?slim');
       this.app_id = request.data.Id;
       return request;
@@ -209,7 +224,7 @@ export default {
 </script>
 <style scoped>
 #ofBar {
-  background-color: #192b5f ;
+  background-color: #192b5f;
   color: #fff;
   padding: 10px;
   text-align: center;
@@ -218,9 +233,12 @@ export default {
   left: 0;
   width: 100%;
   z-index: 1000;
-  display: flex; /* Cambio: Usar display flex para alinear elementos internos */
-  justify-content: space-between; /* Cambio: Espaciado uniforme entre elementos internos */
-  align-items: center; /* Cambio: Alinear elementos verticalmente al centro */
+  display: flex;
+  /* Cambio: Usar display flex para alinear elementos internos */
+  justify-content: space-between;
+  /* Cambio: Espaciado uniforme entre elementos internos */
+  align-items: center;
+  /* Cambio: Alinear elementos verticalmente al centro */
 }
 
 #ofBar-logo img {
@@ -229,7 +247,8 @@ export default {
 
 #ofBar-content {
   font-size: 18px;
-  flex: 1; /* Cambio: Permitir que el contenido ocupe el espacio restante */
+  flex: 1;
+  /* Cambio: Permitir que el contenido ocupe el espacio restante */
 }
 
 #ofBar-right {
@@ -242,7 +261,8 @@ export default {
   color: #fff;
   padding: 8px 15px;
   text-decoration: none;
-  margin-left: 10px; /* Cambio: Ajustar margen izquierdo para separar el botón del texto */
+  margin-left: 10px;
+  /* Cambio: Ajustar margen izquierdo para separar el botón del texto */
   border-radius: 5px;
 }
 
@@ -254,60 +274,63 @@ export default {
   cursor: pointer;
   font-size: 20px;
 }
+
 .order-card {
-    color: #fff;
+  color: #fff;
 }
 
 .bg-c-blue {
-  background: linear-gradient(45deg,#06192f,#4da0ff);
+  background: linear-gradient(45deg, #06192f, #4da0ff);
 }
 
 .bg-c-green {
-  background: linear-gradient(45deg,#006d1d,#4fc38e);
+  background: linear-gradient(45deg, #006d1d, #4fc38e);
 }
 
 .bg-c-yellow {
-  background: linear-gradient(45deg,#a26000,#ffb54b);
+  background: linear-gradient(45deg, #a26000, #ffb54b);
 }
 
 .bg-c-pink {
-  background: linear-gradient(45deg,#731a22,#ec0000);
+  background: linear-gradient(45deg, #731a22, #ec0000);
 }
 
 
 .card {
-    border-radius: 5px;
-    -webkit-box-shadow: 0 1px 2.94px 0.06px rgba(4,26,55,0.16);
-    box-shadow: 0 1px 2.94px 0.06px rgba(4,26,55,0.16);
-    border: none;
-    margin-bottom: 30px;
-    -webkit-transition: all 0.3s ease-in-out;
-    transition: all 0.3s ease-in-out;
+  border-radius: 5px;
+  -webkit-box-shadow: 0 1px 2.94px 0.06px rgba(4, 26, 55, 0.16);
+  box-shadow: 0 1px 2.94px 0.06px rgba(4, 26, 55, 0.16);
+  border: none;
+  margin-bottom: 30px;
+  -webkit-transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
 }
 
 .card .card-block {
-    padding: 25px;
+  padding: 25px;
 }
+
 .card-title {
-    float: left;
-    font-size: 1.1rem;
-    font-weight: 400;
-    margin: 0;
+  float: left;
+  font-size: 1.1rem;
+  font-weight: 400;
+  margin: 0;
 }
 
 .order-card i {
-    font-size: 26px;
+  font-size: 26px;
 }
 
 .f-left {
-    float: left;
+  float: left;
 }
 
 .f-right {
-    float: right;
+  float: right;
 }
+
 .bg-one {
-    background-color: var(--primary);
-    color: #fff!important;
+  background-color: var(--primary);
+  color: #fff !important;
 }
 </style>

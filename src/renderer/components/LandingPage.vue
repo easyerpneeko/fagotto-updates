@@ -28,15 +28,7 @@
         App in {{ appInProduction }} || <b id="version"></b>
       </div>
       
-      <div id="notification" class="hidden">
-        <p id="message"></p>
-        <button id="close-button" @click="closeNotification()" class="btn">
-          Cerrar
-        </button>
-        <button id="restart-button" @click="restartApp()" class="d-none btn btn-primary">
-          Reiniciar
-        </button>
-      </div>
+      <autoUpdate/>
     </div>
   </div>
 </template>
@@ -45,15 +37,16 @@
 
 import ConfigHelper from '../helpers/ConfigHelper.js';
 import Loader from '@/helpers/Loader';
+import autoUpdate from '../components/autoUpdate.vue';
 
 const remote = require('electron').remote;
 const Inputmask = require('inputmask');
 const $ = require('jquery');
-const { ipcRenderer } = require('electron');
+// const { ipcRenderer } = require('electron');
 
 export default {
   name: 'landing-page',
-  components: { },
+  components: {autoUpdate},
   data(){
     return{
       serial: '',
@@ -72,40 +65,37 @@ export default {
     });
   },
   mounted(){
-    // var serialInput = document.getElementById("serialInput");
-    // var im = new Inputmask("****-****-****-****-****");
-    // im.mask(serialInput);
-    console.log('mounted');
-    const version = document.getElementById('version');
-    ipcRenderer.send('app_version');
-    ipcRenderer.on('app_version', (event, arg) => {
-      ipcRenderer.removeAllListeners('app_version');
-      version.innerText = 'Version ' + arg.version;
-    });
+    //Para el auto actualizador
+    // const version = document.getElementById('version');
+    // ipcRenderer.send('app_version');
+    // ipcRenderer.on('app_version', (event, arg) => {
+    //   ipcRenderer.removeAllListeners('app_version');
+    //   version.innerText = 'Version ' + arg.version;
+    // });
 
-    const notification = document.getElementById('notification');
-    const message = document.getElementById('message');
-    const restartButton = document.getElementById('restart-button');
-    ipcRenderer.on('update_available', () => {
-      console.log('update available');
-      ipcRenderer.removeAllListeners('update_available');
-      message.innerText = 'Una nueva version esta disponible. Descargando...';
-      notification.classList.remove('hidden');
-    });
-    ipcRenderer.on('update_downloaded', () => {
-      console.log('update downloaded');
-      ipcRenderer.removeAllListeners('update_downloaded');
-      message.innerText = 'Nueva version descargada. Sera instalada al reiniciar el programa. Reiniciar Ahora mismo?';
-      restartButton.classList.remove('d-none');
-      notification.classList.remove('hidden');
-    });
+    // const notification = document.getElementById('notification');
+    // const message = document.getElementById('message');
+    // const restartButton = document.getElementById('restart-button');
+    // ipcRenderer.on('update_available', () => {
+    //   console.log('update available');
+    //   ipcRenderer.removeAllListeners('update_available');
+    //   message.innerText = 'Una nueva version esta disponible. Descargando...';
+    //   notification.classList.remove('hidden');
+    // });
+    // ipcRenderer.on('update_downloaded', () => {
+    //   console.log('update downloaded');
+    //   ipcRenderer.removeAllListeners('update_downloaded');
+    //   message.innerText = 'Nueva version descargada. Sera instalada al reiniciar el programa. Reiniciar Ahora mismo?';
+    //   restartButton.classList.remove('d-none');
+    //   notification.classList.remove('hidden');
+    // });
 
-    ipcRenderer.on('message', function(event, text) {
-      var container = document.getElementById('messages');
-      var message = document.createElement('div');
-      message.innerHTML = text;
-      container.appendChild(message);
-    })
+    // ipcRenderer.on('message', function(event, text) {
+    //   var container = document.getElementById('messages');
+    //   var message = document.createElement('div');
+    //   message.innerHTML = text;
+    //   container.appendChild(message);
+    // })
 
   },
   methods: {
@@ -130,12 +120,12 @@ export default {
         this.$awn.alert(request.data);
       }
     },
-    closeNotification() {
-      notification.classList.add('hidden');
-    },
-    restartApp() {
-      ipcRenderer.send('restart_app');
-    }
+    // closeNotification() {
+    //   notification.classList.add('hidden');
+    // },
+    // restartApp() {
+    //   ipcRenderer.send('restart_app');
+    // }
   }
 }
 </script>

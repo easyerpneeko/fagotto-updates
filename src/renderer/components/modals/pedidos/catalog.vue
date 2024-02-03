@@ -15,21 +15,25 @@
               <h5 class="modal-title">Elegir productos</h5>
               <hr>
               <div class="row d-flex">
-                <div class="col-md-12">
-                  <div class="btn-group btn-group-toggle" role="group" data-toggle="buttons">
-                    <label class="btn btn-secondary active">
-                      <input type="radio" name="options" id="option1" checked @click="calcularCantidades(1)">
-                      Vasos Pack (360)
-                    </label>
-                    <label class="btn btn-secondary">
-                      <input type="radio" name="options" id="option2" @click="calcularCantidades(2)">
-                      Vasos 1/2 Pack (180)
-                    </label>
+                <div class="col-md-12 mb-3">
+                  <div class="row d-flex justify-content-start">
+                    <label class="pr-2 pl-3 d-flex align-items-center"> Cantidad de Vasos: </label>
+                    <div class="btn-group btn-group-toggle d-flex align-items-center" role="group" data-toggle="buttons">
+                      <label class="btn btn-primary active">
+                        <input type="radio" name="options" id="option1" checked @click="calcularCantidades(1)">
+                        360
+                      </label>
+                      <label class="btn btn-primary">
+                        <input type="radio" name="options" id="option2" @click="calcularCantidades(2)">
+                        180
+                      </label>
+                    </div>
                   </div>
+
                 </div>
 
                 <div class="col-md-12">
-                  <table class="table">
+                  <table class="table table-borderless">
                     <thead>
                       <tr>
                         <th scope="col">Producto</th>
@@ -48,7 +52,7 @@
                   </table>
                 </div>
                 <div class="col-md-12">
-                  <table class="table">
+                  <table class="table table-borderless">
                     <thead>
                       <tr>
                         <th scope="col">Producto</th>
@@ -59,8 +63,8 @@
                     <tbody>
                       <tr v-for="(salsa, id) in salsasDisponibles" :key="id">
                         <td>
-                          <button type="button" @click="addSalsa(salsa)" class="btn btn-m btn-secondary">
-                            {{ salsa.nombre }}
+                          <button type="button" @click="addSalsa(salsa)" class="btn btn-m btn-outline-info">
+                            {{ salsa.nombre }} <i class="fa fa-plus"></i>
                           </button>
                         </td>
                         <td>{{ salsa.unidad }}kg</td>
@@ -257,8 +261,8 @@ export default {
       }
     },
     addProducts() {
-      console.log('Products pedido: ',this.productosPedido);
-      console.log('Salsas: ',this.salsasPedido);
+      console.log('Products pedido: ', this.productosPedido);
+      console.log('Salsas: ', this.salsasPedido);
 
       // if (this.productoSend.length == 0) {
       //   this.$awn.alert("Es necesario agregar algun producto");
@@ -287,10 +291,20 @@ export default {
 }
 
 .conteoVasos {
-  border: blue 2px solid;
   padding: 10px;
   font-weight: bold;
   border-radius: 5px;
   box-shadow: 0px 2px 4px rgb(0 0 0 / 20%), 0px 4px 8px rgb(0 0 0 / 10%);
+  background-color: #343a40;
+  color: white;
 }
-</style>
+
+table thead th {
+  vertical-align: bottom !important;
+  border-bottom: none !important;
+}
+
+.btn-outline-info {
+  padding-top: 0.3rem !important;
+  padding-bottom: 0.3rem !important;
+}</style>

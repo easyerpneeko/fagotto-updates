@@ -115,7 +115,7 @@
           :idTarget="randToken()"
         />
       </div>
-      <div v-if="getWaiters && cafeteriaInstalled && get_cafeteria()" class="col-lg-6 col-12 my-2">
+      <div v-if="getWaiters.length > 0 && cafeteriaInstalled && get_cafeteria()" class="col-lg-6 col-12 my-2">
         <cardTable
           cardTitle="Meseros"
           :th="['Mesero', 'Mesas atendidas', 'Total', 'Propina']"
@@ -159,10 +159,10 @@ import ConfigHelper from '@/helpers/ConfigHelper.js';
 import Print from '@/helpers/Print.js';
 import FormatNumber from '@/helpers/FormatNumber.js';
 import AllErrors from '@/helpers/AllErrors.js';
-import BaseUrl from '@/helpers/baseUrl.js';
+// import BaseUrl from '@/helpers/baseUrl.js';
 import Loader from '@/helpers/Loader';
 import moment from 'moment';
-import { get } from 'request';
+// import { get } from 'request';
 import CardReportMesero from '../components/cards/cardReportMesero.vue';
 import BarChart from '../components/charts/BarChart.vue';
 import AreaChart from '../components/charts/AreaChart.vue';
@@ -212,18 +212,18 @@ export default {
     //HavePermission
     //this.$store.commit('reports/clearOneWaiter');
     this.getSells();
-    this.getTopSells();
+    // this.getTopSells();
     this.getWaiter(1);
     this.$root.$on('getOneWaiter', (ev) => {
       if (this.waiter_id == $('#select-report-mesero').find(":selected").val()) return;
       this.$store.commit('reports/clearOneWaiter');
-      console.log(ev)
+      // console.log(ev)
       let waiter_id = $('#select-report-mesero').find(":selected").val();
       this.getWaiter(waiter_id);
       
     
     })
-    console.log('List order mounted: ', this.listOrder);
+    // console.log('List order mounted: ', this.listOrder);
   },
   components:{
     cardTable,
@@ -301,7 +301,7 @@ export default {
         this.$awn.alert('Error al finalizar el turno');
       }
       this.waitResponse = false;  
-      console.log(data);
+      // console.log(data);
       this.printSells(false);    
     },
 
@@ -313,7 +313,7 @@ export default {
         startDate: startDate,
         endDate: endDate,
       };
-      console.log("turno",data)
+      // console.log("turno",data)
 
       var thing = new FormData();
       for (let key in data) if (data[key]) thing.append(key, data[key]);
@@ -351,7 +351,7 @@ export default {
           }
         }
       }
-      console.log('List order ', this.listOrder);
+      // console.log('List order ', this.listOrder);
 
       // Culminando la funcion
       Loader.hide();
@@ -382,7 +382,7 @@ export default {
         startDate: startDate,
         endDate: endDate,
       };
-      console.log("original",data)
+      // console.log("original",data)
 
 
       var thing = new FormData();
@@ -402,9 +402,9 @@ export default {
         this.$awn.info('Ventas no encontradas');
       }else{
         this.sells = request.data;
-        console.log();
+
         this.titlesOrders = [];
-        console.log('Ganancia installed: ' ,this.gananciaInstalled);
+        // console.log('Ganancia installed: ' ,this.gananciaInstalled);
         this.listOrder = [];
         if(this.gananciaInstalled) this.titlesOrders = ["ID","Monto","Ganancia"];
         else this.titlesOrders = ["ID","Monto"];
@@ -451,7 +451,7 @@ export default {
       });
       await this.$store.dispatch("reports/getOneWaiter", {data:thing, params});
       this.waiter_id = waiter_id;
-      console.log("oneWaiter waiter_id:",this.waiter_id)
+      // console.log("oneWaiter waiter_id:",this.waiter_id)
     },
     // Imprimir en reporte
     async printSells(type = false){
@@ -478,10 +478,10 @@ export default {
 
       var thing = new FormData();
       for (let key in data) if (data[key]) thing.append(key, data[key]);
-      console.log('checks:',this.ckecks);
+      // console.log('checks:',this.ckecks);
       Loader.fullPage();
       var request = await this.$store.dispatch("reports/printPDF", {data:thing, params});
-      console.log(request);
+      // console.log(request);
 
       if (request.success) {
         var printPDF = await Print.printBase64(request.data);
@@ -531,7 +531,7 @@ export default {
         this.$awn.info('Top Ventas no encontradas');
       }else{
         let topVentas = request.data;
-        console.log('Top ventas: ', topVentas);
+        // console.log('Top ventas: ', topVentas);
         let topVentasArray = Object.values(topVentas);
         this.topSellsChartData = topVentasArray.map(item => [item.product_name, item.total_quantity]);
       }
@@ -576,7 +576,7 @@ export default {
         this.$awn.info('Ventas por hora no encontradas');
       }else{
         this.sellsByhourChartData = request.data;
-        console.log('Ventas por hora:', request.data);
+        // console.log('Ventas por hora:', request.data);
       }
 
       // Culminando la funcion
@@ -708,7 +708,7 @@ export default {
     getOneWaiter:{
       get(){
         
-        console.log("reportes.vue GetOneWaiter")
+        // console.log("reportes.vue GetOneWaiter")
         //await this.$store.commit('reports/clearOneWaiter');
         var request = this.$store.getters['reports/getterOneWaiter'];
         if(request){
@@ -776,7 +776,7 @@ export default {
           
           
           
-          console.log("reporte de mesero->",request)
+          // console.log("reporte de mesero->",request)
 
         }
         this.waiter_name = request.name;
@@ -837,7 +837,7 @@ export default {
     getWorkshifts:{
       get(){
         let request = this.$store.getters['reports/getterWorkshifts'];
-        console.log('Turno',request);
+        // console.log('Turno',request);
         let user = this.$store.getters['main/user'];
         if(request && request.length > 0){
           let myList = [];

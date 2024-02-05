@@ -21,7 +21,7 @@ export async function editStock(context, data) {
 }
 
 export async function getProductsOfSell(context) {
-  let url = BaseUrl.getUrl('api/local/products/sell');
+  let url = BaseUrl.getUrl('api/local/products/index');
   const request = await Connection.request('get',url);
   return request;
 }

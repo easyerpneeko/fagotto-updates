@@ -120,7 +120,7 @@
             <div class="modal-dialog lg-modal modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="modal-header bg-primario">
-                        <h5 class="modal-title text-capitalize">Pedido # - XXX</h5>
+                        <h5 class="modal-title text-capitalize">Pedido # - ###</h5>
                         <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -135,14 +135,6 @@
                                             <i class="fas fa-times"></i>
                                         </a>
                                     </customTable>
-                                    <!-- <div class="footerTableTicket d-flex justify-content-between">
-                                        <h5 class="">
-                                            SUBTOTAL
-                                        </h5>
-                                        <h5 id="SubTotal-On-CompleteOrder">
-                                            ${{ formatNumber(subtotal) }}
-                                        </h5>
-                                    </div> -->
                                     <div class="footerTableTicket d-flex justify-content-between">
                                         <h5 class="">
                                             TOTAL
@@ -152,22 +144,6 @@
                                         </h5>
                                     </div>
                                 </div>
-                                <!-- <div class="d-flex flex-column w-100 displaymd mt-2">
-                                    <button @click="printOrderTotal" type="button"
-                                        class="btn mx-0 my-1 text-center bg-secundario text-white no-caps">Imprimir ticket
-                                        total</button>
-                                    <button @click="printTicket" type="button"
-                                        class="btn mx-0 my-1 text-center bg-dark text-white no-caps">Imprimir
-                                        ticket</button>
-                                    <button @click="addProducts" type="button"
-                                        class="btn mx-0 my-1 text-center bg-primario text-white no-caps">Agregar más
-                                        productos</button>
-                                    <button @click="changeWaiter" type="button"
-                                        class="btn mx-0 my-1 text-center bg-dark text-white no-caps">Cambiar mesero</button>
-                                    <button @click="changeBoard" type="button"
-                                        class="btn mx-0 my-1 text-center bg-primario text-white no-caps">Cambiar
-                                        mesa</button>
-                                </div> -->
                             </div>
                         </div>
                     </div>
@@ -267,15 +243,15 @@ export default {
                 items: null,
                 rows: [
                     { key: 'name', class: '', permission: 'default' },
-                    { key: 'price', class: '', permission: 'default' },
+                    // { key: 'price', class: '', permission: 'default' },
                     { key: 'quantity', class: '', permission: 'default' },
-                    { key: 'subtotal', class: '', permission: 'default' },
+                    // { key: 'subtotal', class: '', permission: 'default' },
                 ],
                 titles: [
                     { label: 'Nombre', class: '', permission: 'default', type: false },
-                    { label: 'Precio', class: '', permission: 'default', type: false },
+                    // { label: 'Precio', class: '', permission: 'default', type: false },
                     { label: 'Cantidad', class: '', permission: 'default', type: false },
-                    { label: 'Subtotal', class: '', permission: 'default', type: false },
+                    // { label: 'Subtotal', class: '', permission: 'default', type: false },
                     // { label: '', class: '', permission: 'default', type: false },
                 ]
             },
@@ -375,41 +351,44 @@ export default {
                 this.$awn.alert('Hay errores en el formulario');
                 return;
             }
-            //Tranformar a Json
-            this.products = JSON.stringify(this.products);
-            const data = {
-                contact_name: this.name,
-                contact_phone: this.phone,
-                paymode: this.paymode,
-                voucher: this.voucherFile,
-                status: 'enviado',
-                products: this.products,
-                comment: this.comment,
-                app_id: '1',
-            };
-            //Se construye formdata
-            var formData = new FormData();
-            for (let key in data) if (data[key]) formData.append(key, data[key]);
+            if (this.products.length > 0) {
+                //Tranformar a Json
+                this.products = JSON.stringify(this.products);
+                const data = {
+                    contact_name: this.name,
+                    contact_phone: this.phone,
+                    paymode: this.paymode,
+                    voucher: this.voucherFile,
+                    status: 'enviado',
+                    products: this.products,
+                    comment: this.comment,
+                    app_id: '1',
+                };
+                //Se construye formdata
+                var formData = new FormData();
+                for (let key in data) if (data[key]) formData.append(key, data[key]);
 
-            this.waitResponse = true;
-            Loader.fullPage();
-            let request = await this.$store.dispatch('requests/newRequest', formData);
-            Loader.hide();
+                this.waitResponse = true;
+                Loader.fullPage();
+                let request = await this.$store.dispatch('requests/newRequest', formData);
+                Loader.hide();
 
-            if (request.success) {
-                this.$awn.success('Pedido enviado Exitosamente', { labels: { success: 'CORRECTO' } });
-                localStorage.clear();
-                this.logout();
-            } else {
-                console.log(request.data);
-                this.$awn.alert('Error al enviar el pedido');
+                if (request.success) {
+                    this.$awn.success('Pedido enviado Exitosamente', { labels: { success: 'CORRECTO' } });
+                } else {
+                    console.log(request.data);
+                    this.$awn.alert('Error al enviar el pedido');
+                }
+                this.waitResponse = false;
+                console.log(data);
+
+                //refrescar data
+                this.getRequests(false);
+                this.submitted = false;
+            }else{
+                this.$awn.alert('Error debes agregar productos al pedido');
             }
-            this.waitResponse = false;
-            console.log(data);
 
-            //refrescar data
-            this.getRequests(false);
-            this.submitted = false;
         },
         validar_form() {
             if (!this.isValidProducts) {
@@ -440,9 +419,10 @@ export default {
 .invalid-input {
     border-color: red;
 }
-.boxCompleteOrder{
-  min-height: 450px;
-  justify-content: center;
+
+.boxCompleteOrder {
+    min-height: 450px;
+    justify-content: center;
 }
 </style>
   

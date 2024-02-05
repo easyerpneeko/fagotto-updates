@@ -17,15 +17,15 @@
               <div class="row d-flex">
                 <div class="col-md-12 mb-3">
                   <div class="row d-flex justify-content-start">
-                    <label class="pr-2 pl-3 d-flex align-items-center"> Cantidad de Vasos: </label>
+                    <label class="pr-2 pl-3 d-flex align-items-center"> quantity de Vasos: </label>
                     <div class="btn-group btn-group-toggle d-flex align-items-center" role="group" data-toggle="buttons">
                       <label class="btn btn-primary active">
                         <input type="radio" name="options" id="option1" checked @click="calcularCantidades(1)">
-                        360
+                        320
                       </label>
                       <label class="btn btn-primary">
                         <input type="radio" name="options" id="option2" @click="calcularCantidades(2)">
-                        180
+                        160
                       </label>
                     </div>
                   </div>
@@ -37,16 +37,16 @@
                     <thead>
                       <tr>
                         <th scope="col">Producto</th>
-                        <th scope="col">Unidad</th>
-                        <th scope="col">Vasos</th>
+                        <th scope="col">quantity</th>
+                        <!-- <th scope="col">Vasos</th> -->
                       </tr>
                     </thead>
                     <tbody>
                       <tr v-for="(producto, id) in productosFijos" :key="id">
-                        <td>{{ producto.nombre }}</td>
-                        <td v-if="producto.nombre == 'Huevos'">{{ producto.unidad }}</td>
-                        <td v-else>{{ producto.unidad }}G</td>
-                        <td>{{ producto.vasos }}</td>
+                        <td>{{ producto.name }}</td>
+                        <td v-if="producto.name == 'Queso' || producto.name == 'Harina'">{{ producto.price }}G</td>
+                        <td v-else>{{ producto.price }}</td>
+                        <!-- <td>{{ producto.vasos }}</td> -->
                       </tr>
                     </tbody>
                   </table>
@@ -56,7 +56,7 @@
                     <thead>
                       <tr>
                         <th scope="col">Producto</th>
-                        <th scope="col">Unidad</th>
+                        <th scope="col">quantity</th>
                         <th scope="col">Vasos</th>
                       </tr>
                     </thead>
@@ -64,10 +64,10 @@
                       <tr v-for="(salsa, id) in salsasDisponibles" :key="id">
                         <td>
                           <button type="button" @click="addSalsa(salsa)" class="btn btn-m btn-outline-info">
-                            {{ salsa.nombre }} <i class="fa fa-plus"></i>
+                            {{ salsa.name }} <i class="fa fa-plus"></i>
                           </button>
                         </td>
-                        <td>{{ salsa.unidad }}kg</td>
+                        <td>{{ salsa.quantity }}kg</td>
                         <td>{{ salsa.vasos }}</td>
                       </tr>
                     </tbody>
@@ -84,15 +84,15 @@
                 <thead>
                   <tr>
                     <th scope="col">Producto</th>
-                    <th scope="col">Cantidad</th>
+                    <th scope="col">quantity</th>
 
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(producto, id) in productosPedido" :key="id">
-                    <td>{{ producto.nombre }}</td>
-                    <td v-if="(producto.nombre == 'Queso' || producto.nombre == 'Harina')">{{ producto.cantidad }}kg</td>
-                    <td v-else>{{ producto.cantidad }}</td>
+                    <td>{{ producto.name }}</td>
+                    <td v-if="(producto.name == 'Queso' || producto.name == 'Harina')">{{ producto.quantity }}kg</td>
+                    <td v-else>{{ producto.quantity }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -100,15 +100,15 @@
                 <thead>
                   <tr>
                     <th scope="col">Salsa</th>
-                    <th scope="col">Cantidad</th>
+                    <th scope="col">quantity</th>
                     <th scope="col">Vasos</th>
                     <th scope="col">Eliminar</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(salsa, index) in salsasPedido" :key="index">
-                    <td>{{ salsa.nombre }}</td>
-                    <td>{{ salsa.unidad }} kg</td>
+                    <td>{{ salsa.name }}</td>
+                    <td>{{ salsa.quantity }} kg</td>
                     <td>{{ salsa.vasos }}</td>
                     <td>
                       <button class="btn btn-danger btn-m" @click="removeSalsa(index)">
@@ -123,10 +123,10 @@
         </div>
 
         <div class="modal-footer justify-content-between ">
-          <div class="conteoVasos">Cantidad de Vasos {{ this.vasos }} - {{ this.vasosSalsas }} = {{ this.totalVasos }}
+          <div class="conteoVasos">quantity de Vasos {{ this.vasos }} - {{ this.vasosSalsas }} = {{ this.totalVasos }}
           </div>
           <div>
-            <button type="button" class="btn bg-dark text-white">
+            <button type="button" class="btn bg-dark text-white" @click="closeModal()">
               Cerrar
             </button>
             <button type="button" @click="addProducts()" class="btn bg-primario text-white">
@@ -150,7 +150,7 @@
 // Helpers y plugins
 // import ConfigHelper from '@/helpers/ConfigHelper.js';
 // import FormatNumber from '@/helpers/FormatNumber.js';
-// import Loader from '@/helpers/Loader';
+import Loader from '@/helpers/Loader';
 
 export default {
   products: {
@@ -159,58 +159,73 @@ export default {
   },
   data() {
     return {
-      vasos: 360,
+      vasos: 320,
       queso: 8,
       harina: 44,
       huevo: 360,
 
+      kiloAgg: false,
       //Para saber si el pedido es completo o medio 1= completo, 2 = medio
       tipoPedido: 1,
       vasosSalsas: 0,
       totalVasos: 0,
 
       productosPedido: {
-        1: { nombre: 'Vasos', cantidad: 360 },
-        2: { nombre: 'Huevos', cantidad: 360 },
-        3: { nombre: 'Harina', cantidad: 44 },
-        4: { nombre: 'Queso', cantidad: 8 },
+        1: { name: 'Vasos', quantity: 320, vasos: 1 },
+        2: { name: 'Huevos', quantity:360,vasos: 1 },
+        3: { name: 'Harina', quantity:44, vasos: 1 },
+        4: { name: 'Queso', quantity: 8,   vasos:1},
       },
+      salsasPedido: [],
 
       productosFijos: {
-        //Producto | Unidad | Vasos
-        1: { nombre: 'Huevos', unidad: 1, vasos: 1 },
-        2: { nombre: 'Harina', unidad: 122.222222, vasos: 1 },
-        3: { nombre: 'Queso', unidad: 22.222222, vasos: 1 },
+        // //Producto | quantity | Vasos
+        // 1: { name: 'Huevos', quantity: 1, vasos: 1 },
+        // 2: { name: 'Harina', quantity: 122.222222, vasos: 1 },
+        // 3: { name: 'Queso', quantity: 22.222222, vasos: 1 },
       },
 
       salsasDisponibles: {
-        1: { nombre: 'Alfredo', unidad: 5, vasos: 70 },
-        2: { nombre: 'boloñesa', unidad: 5, vasos: 70 },
-        3: { nombre: 'camaron', unidad: 5, vasos: 50 },
-        4: { nombre: 'champiñon', unidad: 5, vasos: 50 },
-        5: { nombre: 'pesto', unidad: 5, vasos: 70 }
+        1: { name: 'Alfredo', quantity: 5, vasos: 70 },
+        2: { name: 'boloñesa', quantity: 5, vasos: 70 },
+        3: { name: 'camaron', quantity: 5, vasos: 50 },
+        4: { name: 'champiñon', quantity: 5, vasos: 50 },
+        5: { name: 'pesto', quantity: 5, vasos: 70 }
       },
-      salsasPedido: [],
-      vasosSalsas: 0
+      vasosSalsas: 0,
+      kiloSalsas: 0,
+      productoSend: []
     }
   },
   components: {
 
   },
   mounted() {
-
+    this.getProducts();
 
   },
   methods: {
     closeModal(refresh = false) {
-      $('#modalCatalog').modal('hide');
+      //Volvemos los arreglos al estado inicial
+      this.productosPedido = {
+        1: { name: 'Vasos', quantity: 320 },
+        2: { name: 'Huevos', quantity: 360 },
+        3: { name: 'Harina', quantity: 44 },
+        4: { name: 'Queso', quantity: 8 },
+      },
+        this.tipoPedido = 1,
+        this.vasosSalsas = 0,
+        this.totalVasos = 0,
+        this.kiloSalsas = 0;
+      this.salsasPedido = [],
+        $('#modalCatalog').modal('hide');
     },
     addSalsa(salsa) {
-      const existingSalsa = this.salsasPedido.find((s) => s.nombre === salsa.nombre);
+      const existingSalsa = this.salsasPedido.find((s) => s.name === salsa.name);
       if (existingSalsa) {
-        existingSalsa.unidad *= 2;
+        existingSalsa.quantity *= 2;
         existingSalsa.vasos *= 2;
-        console.log(`Salsa ${salsa.nombre} ya existente. Se ha duplicado la unidad.`);
+        console.log(`Salsa ${salsa.name} ya existente. Se ha duplicado la quantity.`);
       } else {
         const salsaCopia = Object.assign({}, salsa); // O también puedes usar: const salsaCopia = { ...salsa };
         this.salsasPedido.push(salsaCopia);
@@ -229,13 +244,13 @@ export default {
         if (this.tipoPedido === 2 && opcion === 1) {
           this.vasos = 360;
           for (const key in this.productosPedido) {
-            this.productosPedido[key].cantidad *= 2;
+            this.productosPedido[key].quantity *= 2;
           }
           this.tipoPedido = opcion;
         } else if (this.tipoPedido === 1 && opcion === 2) {
           this.vasos = 180;
           for (const key in this.productosPedido) {
-            this.productosPedido[key].cantidad /= 2;
+            this.productosPedido[key].quantity /= 2;
           }
           this.tipoPedido = opcion;
           console.log("Tipo de pedido actualizado a 2");
@@ -244,10 +259,31 @@ export default {
 
     },
     calcularVasosSalsas() {
+
+      //Contamos los vasos 
       this.vasosSalsas = 0;
+      this.kiloSalsas = 0;
+
       this.salsasPedido.forEach((salsa) => {
         this.vasosSalsas += salsa.vasos;
+        //Contamos los kilos de salsa
+        this.kiloSalsas += salsa.quantity;
       });
+      console.log(this.kiloSalsas);
+      if (this.kiloSalsas > 25 && !this.kiloAgg) {
+        this.kiloAgg = true;
+        //vasos
+        this.productosPedido[1].quantity += 160;
+        //huevos
+        this.productosPedido[2].quantity += 180;
+
+      } else if (this.kiloSalsas < 25 && this.kiloAgg) {
+        this.kiloAgg = false;
+        //vasos
+        this.productosPedido[1].quantity -= 160;
+        //huevos
+        this.productosPedido[2].quantity -= 180;
+      }
 
       this.totalVasos = this.vasos - this.vasosSalsas;
 
@@ -261,16 +297,34 @@ export default {
       }
     },
     addProducts() {
-      console.log('Products pedido: ', this.productosPedido);
+      console.log('Productos pedido: ', this.productosPedido);
       console.log('Salsas: ', this.salsasPedido);
 
-      // if (this.productoSend.length == 0) {
-      //   this.$awn.alert("Es necesario agregar algun producto");
-      //   return false;
-      // }
-      // this.$emit('update-products', this.productoSend);
+      for (var key in this.productosPedido) {
+        this.salsasPedido.push(this.productosPedido[key]);
+      }
+      this.productoSend = this.salsasPedido
+      // console.log('Pedido: ', this.salsasPedido);
+
+      if (this.productoSend.length == 0) {
+        this.$awn.alert("Es necesario agregar algun producto");
+        return false;
+      }
+      this.$emit('update-products', this.productoSend);
       $('#modalCatalog').modal('hide');
-    }
+    },
+    async getProducts() {
+      // Iniciando peticion
+      // Loader.dinamic();
+      var request = await this.$store.dispatch("products/getProductsOfSell");
+      // Loader.hide();
+      // Verificando respuesta
+      if (request.success) {
+        this.productosFijos = request.data;
+      }
+      else this.$awn.alert('Error al obtener los productos');
+
+    },
   },
   computed: {
 
@@ -307,4 +361,5 @@ table thead th {
 .btn-outline-info {
   padding-top: 0.3rem !important;
   padding-bottom: 0.3rem !important;
-}</style>
+}
+</style>

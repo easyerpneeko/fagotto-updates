@@ -316,7 +316,7 @@ export default {
     async getProducts() {
       // Iniciando peticion
       // Loader.dinamic();
-      var request = await this.$store.dispatch("products/getProductsOfSell");
+      var request = await this.$store.dispatch("products/getProductsOfIndex");
       // Loader.hide();
       // Verificando respuesta
       if (request.success) {

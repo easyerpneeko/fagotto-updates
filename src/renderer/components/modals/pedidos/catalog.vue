@@ -123,7 +123,9 @@
         </div>
 
         <div class="modal-footer justify-content-between ">
-          <div class="conteoVasos">quantity de Vasos {{ this.vasos }} - {{ this.vasosSalsas }} = {{ this.totalVasos }}
+          <!-- <div class="conteoVasos">Cantidad de Vasos {{ this.vasos }} - {{ this.vasosSalsas }} = {{ this.totalVasos }}
+          </div> -->
+          <div class="conteoVasos">Precio del pedido = $ {{ this.vasos*this.precioVaso }}
           </div>
           <div>
             <button type="button" class="btn bg-dark text-white" @click="closeModal()">
@@ -163,7 +165,7 @@ export default {
       queso: 8,
       harina: 44,
       huevo: 360,
-
+      precioVaso :0,
       kiloAgg: false,
       //Para saber si el pedido es completo o medio 1= completo, 2 = medio
       tipoPedido: 1,
@@ -172,9 +174,9 @@ export default {
 
       productosPedido: {
         1: { name: 'Vasos', quantity: 320, vasos: 1 },
-        2: { name: 'Huevos', quantity:360,vasos: 1 },
-        3: { name: 'Harina', quantity:44, vasos: 1 },
-        4: { name: 'Queso', quantity: 8,   vasos:1},
+        2: { name: 'Huevos', quantity: 360, vasos: 1 },
+        3: { name: 'Harina', quantity: 44, vasos: 1 },
+        4: { name: 'Queso', quantity: 8, vasos: 1 },
       },
       salsasPedido: [],
 
@@ -200,8 +202,19 @@ export default {
   components: {
 
   },
-  mounted() {
-    this.getProducts();
+  async mounted() {
+    await this.getProducts();
+    console.log('prod: ', this.productosFijos)
+
+    for (const producto in this.productosFijos) {
+      if(this.productosFijos[producto].name ==='Vaso'){
+        this.precioVaso = this.productosFijos[producto].price;
+        break;
+      }
+    }
+
+
+    // console.log(objetoEncontrado);
 
   },
   methods: {
@@ -225,7 +238,7 @@ export default {
       if (existingSalsa) {
         existingSalsa.quantity *= 2;
         existingSalsa.vasos *= 2;
-        console.log(`Salsa ${salsa.name} ya existente. Se ha duplicado la quantity.`);
+        console.log(`Salsa ${salsa.name} ya existente. Se ha duplicado la cantidad.`);
       } else {
         const salsaCopia = Object.assign({}, salsa); // O también puedes usar: const salsaCopia = { ...salsa };
         this.salsasPedido.push(salsaCopia);
@@ -242,15 +255,15 @@ export default {
     calcularCantidades(opcion) {
       if (!(this.tipoPedido === opcion)) {
         if (this.tipoPedido === 2 && opcion === 1) {
-          this.vasos = 360;
+          this.vasos = 320;
           for (const key in this.productosPedido) {
-            this.productosPedido[key].quantity *= 2;
+            this.productosPedido[key].quantity = 320;
           }
           this.tipoPedido = opcion;
         } else if (this.tipoPedido === 1 && opcion === 2) {
-          this.vasos = 180;
+          this.vasos = 160;
           for (const key in this.productosPedido) {
-            this.productosPedido[key].quantity /= 2;
+            this.productosPedido[key].quantity = 160;
           }
           this.tipoPedido = opcion;
           console.log("Tipo de pedido actualizado a 2");

@@ -17,17 +17,18 @@
                 <div class="col-md-12">
                     <h2><span class="fa fa-edit"></span> Nuevo Pedido</h2>
                     <hr>
+                    <div class="row d-flex justify-content-start">
+                        <div class="col-md-4 col-sm-4 col-12">
+                            <label for="app">Datos del negocio</label>
+                            <p>{{ this.app.Name }}</p>
+                        </div>
+                        <div class="col-md-4 col-sm-4 col-12">
+                            <label for="date">Fecha del pedido</label>
+                            <p>{{ this.date }}</p>
+                        </div>
+                    </div>
                     <form class="form-horizontal" role="form" id="datos_pedido">
                         <div class="d-flex row w-100 pt-4">
-                            <div class="col-md-2 col-sm-4 col-12">
-                                <label for="app">Datos del negocio</label>
-                                <p>{{ this.app.Name }}</p>
-                            </div>
-                            <div class="col-md-2 col-sm-4 col-12">
-                                <label for="date">Fecha del pedido</label>
-                                <p>{{ this.date }}</p>
-                            </div>
-
                             <div class="col-md-2 col-sm-4 col-12">
                                 <label for="paymode">Metodo de pago</label>
                                 <select class="form-control" v-model="paymode" :disabled="this.disableForm"
@@ -41,24 +42,33 @@
                             </div>
                             <div class="col-md-2 col-sm-4 col-12">
                                 <label for="contactName">Nombre</label>
-                                <input :disabled="this.disableForm" id="contactName" v-model="name" type="text"
-                                    class="form-control" :class="{ 'invalid-input': submitted && !isValidName }" />
+                                <input placeholder="Nombre" :disabled="this.disableForm" id="contactName" v-model="name"
+                                    type="text" class="form-control"
+                                    :class="{ 'invalid-input': submitted && !isValidName }" />
                             </div>
                             <div class="col-md-2 col-sm-4 col-12">
                                 <label for="contactPhone">Telefono</label>
-                                <input :disabled="this.disableForm" id="contactPhone" v-model="phone" type="text"
-                                    class="form-control" :class="{ 'invalid-input': submitted && !isValidPhone }" />
+                                <input placeholder="+56 9 12345678" :disabled="this.disableForm" id="contactPhone"
+                                    v-model="phone" type="text" class="form-control"
+                                    :class="{ 'invalid-input': submitted && !isValidPhone }" />
+                            </div>
+                            <div class="col-md-2 col-sm-4 col-12">
+                                <label for="transaccion">Nro de Transaccion</label>
+                                <input placeholder="123456789" :disabled="this.disableForm" id="transaccion"
+                                    v-model="transaccion" type="text" class="form-control"
+                                    :class="{ 'invalid-input': submitted && !isValidTransaccion }" />
                             </div>
                             <div class="col-md-2 col-sm-4 col-12">
                                 <label for="comment">Comentario</label>
-                                <input :disabled="this.disableForm" id="comment" v-model="comment" type="text"
-                                    class="form-control" :class="{ 'invalid-input': submitted && !isValidComment }" />
+                                <input placeholder="Comentario adicional" :disabled="this.disableForm" id="comment"
+                                    v-model="comment" type="text" class="form-control"
+                                    :class="{ 'invalid-input': submitted && !isValidComment }" />
                             </div>
-                            <label for="voucher" class="m-1 btn bg-primario text-white text-capitalize">
+                            <!-- <label for="voucher" class="m-1 btn bg-primario text-white text-capitalize">
                                 Cargar Comprobante
                                 <input type="file" id="voucher" style="display: none;"
                                     accept="image/jpeg, image/png, application/pdf" @change="uploadVoucher">
-                            </label>
+                            </label> -->
                         </div>
                         <div class="d-flex row w-100 pt-4">
                             <div class="col-12">
@@ -89,25 +99,26 @@
             <div class="m-0 my-2 text-center w-100" v-else>
                 <h5>El modulo de SII no se encuentra activado</h5>
             </div>
-        </div>
-        <!-- Listado de pedidos -->
-        <!-- <div v-if="requests && requests.items.length > 0" ref="loaderRequests" class="vld-parent px-2 mt-4"> -->
-        <div v-if="requests" ref="loaderRequests" class="vld-parent px-2 mt-4">
-            <customTable v-model="jsonTable" v-slot="props">
-                <a @click="openProductsOrder(props.item)" class="py-1 px-2 text-center btn bg-primario" href="#">
-                    <i class="fa fa-eye"></i>
-                </a>
-            </customTable>
-
-            <!-- Paginacion -->
-            <!-- <paginate v-if="(requests && requests.pages > 1)" v-model="requests" :offOn="offOn" @getPage="getRequests" /> -->
-        </div>
-
-        <div ref="loaderProduct" v-else class="vld-parent px-2 mt-2">
-            <div class="box-false d-flex flex-center text-center p-2 w-100">
-                <h2>No existen pedidos actualmente</h2>
+            <!-- Listado de pedidos -->
+            <!-- <div v-if="requests && requests.items.length > 0" ref="loaderRequests" class="vld-parent px-2 mt-4"> -->
+            <div v-if="requests" ref="loaderRequests" class="vld-parent px-2 mt-4">
+                <customTable v-model="jsonTable" v-slot="props">
+                    <a @click="openProductsOrder(props.item)" class="py-1 px-2 text-center btn bg-primario" href="#">
+                        <i class="fa fa-eye"></i>
+                    </a>
+                </customTable>
+                <!-- Paginacion -->
+                <!-- <paginate v-if="(requests && requests.pages > 1)" v-model="requests" :offOn="offOn" @getPage="getRequests" /> -->
+            </div>
+            <div ref="loaderProduct" v-else class="vld-parent px-2 mt-2">
+                <div class="box-false d-flex flex-center text-center p-2 w-100">
+                    <h2>No existen pedidos actualmente</h2>
+                </div>
             </div>
         </div>
+
+
+
 
 
         <!-- modals -->
@@ -120,14 +131,25 @@
             <div class="modal-dialog lg-modal modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="modal-header bg-primario">
-                        <h5 class="modal-title text-capitalize">Pedido # - ###</h5>
+                        <h5 class="modal-title text-capitalize">Pedido # - {{ this.idRequest }}</h5>
                         <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
                         <div class="d-flex flex-wrap boxCompleteOrder">
-                            <div class="col-md-9 col-12 d-flex flex-column justify-content-between">
+                            <div class="p-3 col-md-6 col-12 d-flex flex-column justify-content-between">
+                                <div class="">
+                                    <img src="../assets/shop.png" alt="carrito" class="img-shop">
+                                    <h3>Productos</h3>
+                                    <p class="text">Este sistema está especialmente diseñado para brindar al franquiciado la
+                                        emocionante oportunidad de solicitar una amplia gama de productos de fagotto de
+                                        manera virtual, todo gracias al vibrante carrito de compras en línea. Una vez
+                                        solicitado, el pedido estará sujeto a aprobación, agregando un toque de expectativa
+                                        y dinamismo al proceso.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-12 d-flex flex-column justify-content-between">
                                 <div class="">
                                     <customTable v-model="jsonTableProducts" @changeValue="changeValue" v-slot="props">
                                         <a @click="removeProduct(props.index)" class="py-1 px-2 text-center btn bg-primario"
@@ -148,7 +170,12 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button @click="closeProductsOrder()" type="button" class="btn bg-primario text-white">
+                        <label for="voucher" class="m-1 btn bg-primario text-white text-capitalize">
+                            Cargar Comprobante
+                            <input type="file" id="voucher" style="display: none;"
+                                accept="image/jpeg, image/png, application/pdf" @change="uploadVoucher">
+                        </label>
+                        <button @click="closeProductsOrder()" type="button" class="ml-5 btn bg-primario text-white">
                             Cerrar
                         </button>
                     </div>
@@ -238,6 +265,7 @@ export default {
                     { label: 'Detalles', class: 'th-sm text-center', permission: 'default', type: false },
                 ]
             },
+            idRequest: 0,
             jsonTableProducts: {
                 btn: false,
                 items: null,
@@ -324,6 +352,7 @@ export default {
         openProductsOrder(request) {
             this.jsonTableProducts.items = JSON.parse(request.products);
             this.getTotal(this.jsonTableProducts.items);
+            this.idRequest = request.id;
             $('#productsOrder').modal('show');
 
         },
@@ -334,6 +363,28 @@ export default {
         async uploadVoucher(event) {
             const file = event.target.files[0];
             this.voucherFile = file;
+            const data = {
+                voucher: this.voucherFile,
+                // app_id: '1',
+            };
+
+            //Se construye formdata
+            var formData = new FormData();
+            for (let key in data) if (data[key]) formData.append(key, data[key]);
+
+            this.waitResponse = true;
+            Loader.fullPage();
+            let request = await this.$store.dispatch('requests/voucher', { id:this.idRequest, formData });
+            Loader.hide();
+
+            if (request.success) {
+                this.$awn.success('Pedido actualizado Exitosamente', { labels: { success: 'CORRECTO' } });
+            } else {
+                console.log(request.data);
+                this.$awn.alert('Error al enviar el pedido');
+            }
+            this.waitResponse = false;
+            console.log(data);
         },
         async openCatalog() {
             Loader.fullPage();
@@ -362,6 +413,7 @@ export default {
                     status: 'enviado',
                     products: this.products,
                     comment: this.comment,
+                    transaccion: this.transaccion,
                     app_id: '1',
                 };
                 //Se construye formdata
@@ -385,7 +437,7 @@ export default {
                 //refrescar data
                 this.getRequests(false);
                 this.submitted = false;
-            }else{
+            } else {
                 this.$awn.alert('Error debes agregar productos al pedido');
             }
 
@@ -423,6 +475,21 @@ export default {
 .boxCompleteOrder {
     min-height: 450px;
     justify-content: center;
+}
+
+.img-shop {
+    max-width: 250px;
+}
+
+.text {
+    font-size: 14px;
+    color: rgb(116, 116, 116);
+}
+
+.form-control {
+    background-color: #ffffff;
+    border-radius: 5px;
+    box-shadow: inset -1px 1px 20px 11px rgb(193 193 193 / 28%);
 }
 </style>
   

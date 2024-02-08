@@ -7,6 +7,12 @@ export async function newRequest(context, data) {
   return request;
 }
 
+export async function voucher(context, data) {
+  let url = BaseUrl.getUrl("api/local/request/voucher/"+data.id);
+  const request = await Connection.request("put", url, data.formData);
+  return request;
+}
+
 export async function getRequests(context, params) {
   let url = BaseUrl.getUrl('api/local/requests' + params);
   const request = await Connection.request('get',url);

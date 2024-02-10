@@ -15,9 +15,9 @@
         </h2>
 
       </div>
-      <div class="gray-text-version" v-if="true">
+      <!-- <div class="gray-text-version" v-if="true">
         <b id="version"></b>
-      </div>
+      </div> -->
 
 
     </div>

@@ -171,7 +171,7 @@ export default {
       tipoPedido: 1,
       vasosSalsas: 0,
       totalVasos: 0,
-
+      totalPrice:0,
       productosPedido: {
         1: { name: 'Vasos', quantity: 320, vasos: 1 },
         2: { name: 'Huevos', quantity: 360, vasos: 1 },
@@ -323,8 +323,18 @@ export default {
         this.$awn.alert("Es necesario agregar algun producto");
         return false;
       }
+
+      this.totalPrice = this.vasos*this.precioVaso;
+
       this.$emit('update-products', this.productoSend);
+      this.$emit('update-total', this.totalPrice);
+
       $('#modalCatalog').modal('hide');
+
+      this.productoSend = [];
+      // this.productosPedido = {};
+      this.salsasPedido = []
+      this.totalPrice = 0;
     },
     async getProducts() {
       // Iniciando peticion

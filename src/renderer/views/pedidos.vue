@@ -103,6 +103,15 @@
             <!-- <div v-if="requests && requests.items.length > 0" ref="loaderRequests" class="vld-parent px-2 mt-4"> -->
             <div v-if="requests" ref="loaderRequests" class="vld-parent px-2 mt-4">
                 <customTable v-model="jsonTable" v-slot="props">
+                    <a v-if="props.item.status == 'aprobado'" class="py-1 px-2 text-center btn bg-success" href="#">
+                        <i class="fa fa-check"></i>
+                    </a>
+                    <a v-else-if="props.item.status == 'rechazado'" class="py-1 px-2 text-center btn bg-danger" href="#">
+                        <i class="fa fa-ban"></i>
+                    </a>
+                    <a v-else class="py-1 px-2 text-center btn" href="#">
+                        <i class="fas fa-hourglass-start"></i>
+                    </a>
                     <a @click="openProductsOrder(props.item)" class="py-1 px-2 text-center btn bg-primario" href="#">
                         <i class="fa fa-eye"></i>
                     </a>
@@ -123,7 +132,7 @@
 
         <!-- modals -->
         <!-- @refresh="refreshData" -->
-        <catalog :products="products" @update-products="updateProducts" />
+        <catalog :products="products" @update-products="updateProducts" @update-total="updateTotal" />
 
         <!-- modal productsOrders -->
         <div class="modal fade modalForce" id="productsOrder" tabindex="-1" role="dialog" aria-labelledby="productsOrder"
@@ -152,17 +161,17 @@
                             <div class="col-md-6 col-12 d-flex flex-column justify-content-between">
                                 <div class="">
                                     <customTable v-model="jsonTableProducts" @changeValue="changeValue" v-slot="props">
-                                        <a @click="removeProduct(props.index)" class="py-1 px-2 text-center btn bg-primario"
+                                        <!-- <a @click="removeProduct(props.index)" class="py-1 px-2 text-center btn bg-primario"
                                             href="#">
                                             <i class="fas fa-times"></i>
-                                        </a>
+                                        </a> -->
                                     </customTable>
                                     <div class="footerTableTicket d-flex justify-content-between">
                                         <h5 class="">
                                             TOTAL
                                         </h5>
                                         <h5 id="Total-On-CompleteOrder">
-                                            ${{ formatNumber(total) }}
+                                            ${{ this.total }}
                                         </h5>
                                     </div>
                                 </div>
@@ -170,11 +179,10 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <label for="voucher" class="m-1 btn bg-primario text-white text-capitalize">
-                            Cargar Comprobante
-                            <input type="file" id="voucher" style="display: none;"
-                                accept="image/jpeg, image/png, application/pdf" @change="uploadVoucher">
-                        </label>
+                        <a href="#" @click="openURL()">
+                            Pagar
+                        </a>
+
                         <button @click="closeProductsOrder()" type="button" class="ml-5 btn bg-primario text-white">
                             Cerrar
                         </button>
@@ -204,6 +212,7 @@ import moment from 'moment';
 import FormatNumber from '@/helpers/FormatNumber.js';
 import Print from '@/helpers/Print.js';
 
+const { shell } = require('electron');
 
 export default {
     name: 'pedidos',
@@ -227,7 +236,11 @@ export default {
             phone: '',
             comment: '',
             paymode: '',
+            transaccion: '',
             voucherFile: null,
+            url_linkify: 'https://app.linkify.cl/pay/QXyLMKgplXOzBJl/remote/',
+            url_payment: '',
+            totalPrice: 0,
 
             appName: 'Negocio de prueba',
             date: moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -253,14 +266,16 @@ export default {
                     { key: 'contact_name', class: '', permission: 'default' },
                     { key: 'contact_phone', class: '', permission: 'default' },
                     { key: 'paymode', class: '', permission: 'default' },
-                    { key: 'status', class: '', permission: 'default' },
+                    { key: 'transaccion', class: '', permission: 'default' },
+                    // { key: 'status', class: '', permission: 'default' },
                     { key: 'comment', class: '', permission: 'default' },
                 ],
                 titles: [
                     { label: 'Nombre', class: '', permission: 'default', type: false },
                     { label: 'Telefono', class: '', permission: 'default', type: false },
                     { label: 'Metodo de pago', class: 'default', permission: 'default', type: false },
-                    { label: 'Estado', class: 'default', permission: 'default', type: false },
+                    { label: 'Nro Transaccion', class: 'default', permission: 'default', type: false },
+                    // { label: 'Estado', class: 'default', permission: 'default', type: false },
                     { label: 'Comentario', class: 'default', permission: 'default', type: false },
                     { label: 'Detalles', class: 'th-sm text-center', permission: 'default', type: false },
                 ]
@@ -343,16 +358,21 @@ export default {
             this.jsonTable.items = request.data;
         },
         getTotal(products) {
-            this.total = 0;
-            products.map((product) => {
-                this.total += parseFloat(product.subtotal);
-            });
+            // this.total = 0;
+            // products.map((product) => {
+            //     this.total += parseFloat(product.subtotal);
+            // });
             // this.subtotal = this.total;
         },
         openProductsOrder(request) {
             this.jsonTableProducts.items = JSON.parse(request.products);
-            this.getTotal(this.jsonTableProducts.items);
+            // this.getTotal(this.jsonTableProducts.items);
             this.idRequest = request.id;
+            this.total = request.price;
+            this.payment = request.payment;
+
+            this.url_payment = this.url_linkify + 1 + 'i' + this.payment.id
+
             $('#productsOrder').modal('show');
 
         },
@@ -374,7 +394,7 @@ export default {
 
             this.waitResponse = true;
             Loader.fullPage();
-            let request = await this.$store.dispatch('requests/voucher', { id:this.idRequest, formData });
+            let request = await this.$store.dispatch('requests/voucher', { id: this.idRequest, formData });
             Loader.hide();
 
             if (request.success) {
@@ -396,6 +416,10 @@ export default {
             this.products = newProducts;
             console.log('Productos pedidos:', this.products);
         },
+        updateTotal(newTotal) {
+            this.totalPrice = newTotal;
+            console.log('Total Price:', this.totalPrice);
+        },
         async newRequest() {
             this.submitted = true;
             if (!this.validar_form()) {
@@ -413,6 +437,7 @@ export default {
                     status: 'enviado',
                     products: this.products,
                     comment: this.comment,
+                    price: this.totalPrice,
                     transaccion: this.transaccion,
                     app_id: '1',
                 };
@@ -463,6 +488,10 @@ export default {
         },
         formatNumber(number) {
             return FormatNumber.format(number);
+        },
+        openURL() {
+            const url = this.url_payment;
+            shell.openExternal(url);
         }
     }
 }

@@ -321,9 +321,6 @@ export default {
             this.board.order.tip = this.propina;
             
         })
-         $(function () {
-          $('[data-toggle="tooltip"]').tooltip()
-        })
     },
     calcularDescuento() {
         console.log(":::::::calcularDescuento::::::::")

@@ -52,12 +52,12 @@
                                     v-model="phone" type="text" class="form-control"
                                     :class="{ 'invalid-input': submitted && !isValidPhone }" />
                             </div>
-                            <div class="col-md-2 col-sm-4 col-12">
+                            <!-- <div class="col-md-2 col-sm-4 col-12">
                                 <label for="transaccion">Nro de Transaccion</label>
                                 <input placeholder="123456789" :disabled="this.disableForm" id="transaccion"
                                     v-model="transaccion" type="text" class="form-control"
                                     :class="{ 'invalid-input': submitted && !isValidTransaccion }" />
-                            </div>
+                            </div> -->
                             <div class="col-md-2 col-sm-4 col-12">
                                 <label for="comment">Comentario</label>
                                 <input placeholder="Comentario adicional" :disabled="this.disableForm" id="comment"
@@ -103,13 +103,28 @@
             <!-- <div v-if="requests && requests.items.length > 0" ref="loaderRequests" class="vld-parent px-2 mt-4"> -->
             <div v-if="requests" ref="loaderRequests" class="vld-parent px-2 mt-4">
                 <customTable v-model="jsonTable" v-slot="props">
-                    <a v-if="props.item.status == 'aprobado'" class="py-1 px-2 text-center btn bg-success" href="#">
+                    <i class="fas fa-info-circle" data-toggle="tooltip" data-placement="top"
+                        title="Icono $ : Azul = 'Pagado', Gris = 'Impagado', Icono Check Verde = 'Aprobado', Icono Restriccion rojo = 'Rechazado', Icono Relog de arena= 'En espera'">
+                    </i>
+                    <!-- Estado del pago -->
+                    <a v-if="props.item.status_payment == 'impagado'"
+                        class="py-1 px-2 text-center rounded-pill bg-secondary" href="#">
+                        <i class="fas fa-dollar-sign"></i>
+                    </a>
+                    <a v-else="props.item.status_payment == 'pagado'" class="py-1 px-2 text-center rounded-pill bg-info"
+                        href="#">
+                        <i class="fas fa-dollar-sign"></i>
+                    </a>
+                    <!-- Estado del pedido -->
+                    <a v-if="props.item.status == 'aprobado'" class="py-1 px-2 text-center rounded-pill bg-success"
+                        href="#">
                         <i class="fa fa-check"></i>
                     </a>
-                    <a v-else-if="props.item.status == 'rechazado'" class="py-1 px-2 text-center btn bg-danger" href="#">
+                    <a v-else-if="props.item.status == 'rechazado'" class="py-1 px-2 text-center rounded-pill bg-danger"
+                        href="#">
                         <i class="fa fa-ban"></i>
                     </a>
-                    <a v-else class="py-1 px-2 text-center btn" href="#">
+                    <a v-else class="py-1 px-2 text-center rounded-pill" href="#">
                         <i class="fas fa-hourglass-start"></i>
                     </a>
                     <a @click="openProductsOrder(props.item)" class="py-1 px-2 text-center btn bg-primario" href="#">
@@ -179,8 +194,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <a href="#" @click="openURL()">
-                            Pagar
+                        <a href="#" class="py-1 px-2 text-center btn bg-primario" @click="openURL()">
+                            Pagar <i class="fas fa-dollar-sign"></i>
                         </a>
 
                         <button @click="closeProductsOrder()" type="button" class="ml-5 btn bg-primario text-white">
@@ -236,7 +251,7 @@ export default {
             phone: '',
             comment: '',
             paymode: '',
-            transaccion: '',
+            // transaccion: '',
             voucherFile: null,
             url_linkify: 'https://app.linkify.cl/pay/QXyLMKgplXOzBJl/remote/',
             url_payment: '',
@@ -266,7 +281,7 @@ export default {
                     { key: 'contact_name', class: '', permission: 'default' },
                     { key: 'contact_phone', class: '', permission: 'default' },
                     { key: 'paymode', class: '', permission: 'default' },
-                    { key: 'transaccion', class: '', permission: 'default' },
+                    // { key: 'transaccion', class: '', permission: 'default' },
                     // { key: 'status', class: '', permission: 'default' },
                     { key: 'comment', class: '', permission: 'default' },
                 ],
@@ -274,7 +289,7 @@ export default {
                     { label: 'Nombre', class: '', permission: 'default', type: false },
                     { label: 'Telefono', class: '', permission: 'default', type: false },
                     { label: 'Metodo de pago', class: 'default', permission: 'default', type: false },
-                    { label: 'Nro Transaccion', class: 'default', permission: 'default', type: false },
+                    // { label: 'Nro Transaccion', class: 'default', permission: 'default', type: false },
                     // { label: 'Estado', class: 'default', permission: 'default', type: false },
                     { label: 'Comentario', class: 'default', permission: 'default', type: false },
                     { label: 'Detalles', class: 'th-sm text-center', permission: 'default', type: false },
@@ -306,6 +321,10 @@ export default {
         this.app = await this.getApp();
         // console.log(this.app.data.Name);
         this.getRequests(false);
+        // Para los toltips
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
     },
     computed: {
         offOn: {
@@ -434,11 +453,11 @@ export default {
                     contact_phone: this.phone,
                     paymode: this.paymode,
                     voucher: this.voucherFile,
-                    status: 'enviado',
+                    status: 'impagado',
                     products: this.products,
                     comment: this.comment,
                     price: this.totalPrice,
-                    transaccion: this.transaccion,
+                    // transaccion: this.transaccion,
                     app_id: '1',
                 };
                 //Se construye formdata

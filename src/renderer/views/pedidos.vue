@@ -194,7 +194,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <a href="#" class="py-1 px-2 text-center btn bg-primario" @click="openURL()">
+                        <a v-if="this.status_payment != 'pagado'" href="#" class="py-1 px-2 text-center btn bg-primario" @click="openURL()">
                             Pagar <i class="fas fa-dollar-sign"></i>
                         </a>
 
@@ -266,7 +266,7 @@ export default {
             oldPage: '&page=1',
             requests: null,
             app: null,
-
+            status_payment:'',
             paymodes: [
                 { id: 1, name: 'Transferencia' },
                 { id: 2, name: 'Credito' },
@@ -389,7 +389,7 @@ export default {
             this.idRequest = request.id;
             this.total = request.price;
             this.payment = request.payment;
-
+            this.status_payment = request.status_payment;
             this.url_payment = this.url_linkify + 1 + 'i' + this.payment.id
 
             $('#productsOrder').modal('show');

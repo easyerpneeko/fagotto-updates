@@ -953,32 +953,40 @@
         //     if(mounted) this.$refs.productAutocomplete.$refs.input.focus();
      },
      search(input) {
-      console.log('search input', input);
-
-      if (input == null || input == '' || input.length < 3) {
-        clearTimeout(this.timeoutT2);
-        this.productSearch = '';
-        return [];
-      }
-
-      clearTimeout(this.timeoutT2);
-      this.timeoutT2 = setTimeout(() => {
-        this.productSearch = input;
-      }, 500);
-
-      const inputLower = input.toLowerCase();
-      const maxProductFindLength = 100;
-
-      const productsFind = this.products.filter(product => {
-        if (product.cecina == true) return false;
-
-        const productNameLower = product.name.toLowerCase();
-        const startIndex = productNameLower.indexOf(inputLower);
-        return startIndex !== -1 && startIndex <= 2; // Limitar la búsqueda a los primeros 3 caracteres
-      });
-
-      return productsFind.slice(0, maxProductFindLength);
-    },
+       //console.log('SEARCH EXECUTES');
+       console.log('search input', input);
+ 
+       // Ahorramos la primera busqueda
+       if (input == null || input == '') return [];
+       // Ahorramos una busqueda cuando sea menor que 1
+       if (input.length < 1) return [];
+ 
+       clearTimeout(this.timeoutT2);
+       this.timeoutT2 = setTimeout(() => {
+         // Establecemos la busqueda en segundo plano
+         this.productSearch = input;
+       }, 1500);
+ 
+       const inputLower = input.toLowerCase();
+       const maxProductFindLength = 100;
+ 
+       const productsFind = this.products.filter(product => {
+         if (product.cecina == true) return false;
+ 
+         var index = 0;
+         const productNameLower = product.name.toLowerCase();
+         for (var i = 0; i < productNameLower.length; i++) {
+           if (productNameLower.startsWith(inputLower, i)) {
+             index = i;
+             break;
+           };
+         }
+ 
+         return productNameLower.startsWith(inputLower, index);
+       });
+ 
+       return productsFind.splice(0, maxProductFindLength);
+     },
  
      getSearchValue(result) {
        console.log("Llamando getSearchhh", result);

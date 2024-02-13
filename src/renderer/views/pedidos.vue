@@ -360,7 +360,7 @@ export default {
         // Para los toltips
         $(function () {
             $('[data-toggle="tooltip"]').tooltip()
-        })
+        });
     },
     computed: {
         offOn: {

@@ -20,7 +20,7 @@
                     <label class="pr-2 pl-3 d-flex align-items-center">Cantidad de Vasos: </label>
                     <div class="btn-group btn-group-toggle d-flex align-items-center" role="group" data-toggle="buttons">
                       <label class="btn btn-primary ">
-                        <input type="radio" name="options" id="option1"  @click="calcularCantidades(1)">
+                        <input type="radio" name="options" id="option1" @click="calcularCantidades(1)">
                         320
                       </label>
                       <label class="btn btn-primary active">
@@ -125,7 +125,7 @@
         <div class="modal-footer justify-content-between ">
           <!-- <div class="conteoVasos">Cantidad de Vasos {{ this.vasos }} - {{ this.vasosSalsas }} = {{ this.totalVasos }}
           </div> -->
-          <div class="conteoVasos">Precio del pedido = $ {{ formatearMonto(this.vasos*this.precioVaso) }}
+          <div class="conteoVasos">Precio del pedido = $ {{ formatearMonto(this.vasos * this.precioVaso) }}
           </div>
           <div>
             <button type="button" class="btn bg-dark text-white" @click="closeModal()">
@@ -162,21 +162,21 @@ export default {
   data() {
     return {
       vasos: 160,
-      queso: 4,
-      harina: 22,
-      huevo: 180,
-      precioVaso :0,
+      // queso: 4,
+      // harina: 22,
+      // huevo: 180,
+      precioVaso: 0,
       kiloAgg: false,
       //Para saber si el pedido es completo o medio 1= completo, 2 = medio
       tipoPedido: 2,
       vasosSalsas: 0,
       totalVasos: 0,
-      totalPrice:0,
+      totalPrice: 0,
       productosPedido: {
-        1: { name: 'Vasos', quantity: 160, vasos: 1 },
-        2: { name: 'Huevos', quantity: 180, vasos: 1 },
-        3: { name: 'Harina', quantity: 22, vasos: 1 },
-        4: { name: 'Queso', quantity: 4, vasos: 1 },
+        // 1: { name: 'Vasos', quantity: 160, vasos: 1 },
+        // 2: { name: 'Huevos', quantity: 180, vasos: 1 },
+        // 3: { name: 'Harina', quantity: 22, vasos: 1 },
+        // 4: { name: 'Queso', quantity: 4, vasos: 1 },
       },
       salsasPedido: [],
 
@@ -203,30 +203,15 @@ export default {
 
   },
   async mounted() {
-    await this.getProducts();
-    console.log('prod: ', this.productosFijos)
-
-    for (const producto in this.productosFijos) {
-      if(this.productosFijos[producto].name ==='Vaso'){
-        this.precioVaso = this.productosFijos[producto].price;
-        break;
-      }
-    }
-
-
-    // console.log(objetoEncontrado);
+    //Trae los productos fijo de db 
+    await this.cargarProductosFijos();
 
   },
   methods: {
-    closeModal(refresh = false) {
+    async closeModal(refresh = false) {
       //Volvemos los arreglos al estado inicial
-      this.productosPedido = {
-        1: { name: 'Vasos', quantity: 320 },
-        2: { name: 'Huevos', quantity: 360 },
-        3: { name: 'Harina', quantity: 44 },
-        4: { name: 'Queso', quantity: 8 },
-      },
-        this.tipoPedido = 1,
+      await this.cargarProductosFijos();
+      this.tipoPedido = 1,
         this.vasosSalsas = 0,
         this.totalVasos = 0,
         this.kiloSalsas = 0;
@@ -254,9 +239,9 @@ export default {
     },
     calcularCantidades(opcion) {
       if (!(this.tipoPedido === opcion)) {
-       
+
         if (this.tipoPedido === 2 && opcion === 1) {
-          
+
           this.vasos = 320;
           for (const key in this.productosPedido) {
             this.productosPedido[key].quantity *= 2;
@@ -264,7 +249,7 @@ export default {
           this.tipoPedido = opcion;
 
         } else if (this.tipoPedido === 1 && opcion === 2) {
-          
+
           this.vasos = 160;
           for (const key in this.productosPedido) {
             this.productosPedido[key].quantity /= 2;
@@ -290,16 +275,16 @@ export default {
       if (this.kiloSalsas > 25 && !this.kiloAgg) {
         this.kiloAgg = true;
         //vasos
-        this.productosPedido[1].quantity += 160;
+        this.productosPedido[2].quantity += 160;
         //huevos
-        this.productosPedido[2].quantity += 180;
+        this.productosPedido[3].quantity += 180;
 
       } else if (this.kiloSalsas < 25 && this.kiloAgg) {
         this.kiloAgg = false;
         //vasos
-        this.productosPedido[1].quantity -= 160;
+        this.productosPedido[2].quantity -= 160;
         //huevos
-        this.productosPedido[2].quantity -= 180;
+        this.productosPedido[3].quantity -= 180;
       }
 
       this.totalVasos = this.vasos - this.vasosSalsas;
@@ -328,7 +313,7 @@ export default {
         return false;
       }
 
-      this.totalPrice = this.vasos*this.precioVaso;
+      this.totalPrice = this.vasos * this.precioVaso;
 
       this.$emit('update-products', this.productoSend);
       this.$emit('update-total', this.totalPrice);
@@ -363,6 +348,44 @@ export default {
 
       // Formatear con miles y decimales
       return `${montoSinDecimales.toLocaleString()}.${parteDecimal}`;
+    },
+    async cargarProductosFijos() {
+
+      await this.getProducts();
+      for (const producto in this.productosFijos) {
+
+        if (this.productosFijos[producto].name == 'Queso' || this.productosFijos[producto].name == 'Harina') {
+          const nuevoProductoPedido = {
+            name: this.productosFijos[producto].name,
+            quantity: this.convertirAKilogramosYRedondear(this.productosFijos[producto].price, this.vasos),
+            vasos: 1,
+          };
+          this.$set(this.productosPedido, producto, nuevoProductoPedido);
+        
+        } else if (this.productosFijos[producto].name === 'Huevo') {
+          const nuevoProductoPedido = {
+            name: this.productosFijos[producto].name,
+            quantity: (this.productosFijos[producto].price * this.vasos) + 20,
+            vasos: 1,
+          };
+          this.$set(this.productosPedido, producto, nuevoProductoPedido);
+
+        } else if (this.productosFijos[producto].name === 'Vaso') {
+          const nuevoProductoPedido = {
+            name: this.productosFijos[producto].name,
+            quantity: this.vasos,
+            vasos: 1,
+          };
+          this.$set(this.productosPedido, producto, nuevoProductoPedido);
+
+          //para obtener el precio del vaso
+          this.precioVaso = this.productosFijos[producto].price;
+        }
+      }
+    },
+    convertirAKilogramosYRedondear(gramos, multiplicador) {
+      const kilogramos = (gramos * multiplicador) / 1000;
+      return Math.ceil(kilogramos * 1000) / 1000;
     }
   },
   computed: {

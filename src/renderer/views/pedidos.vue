@@ -140,8 +140,12 @@
             <!-- <div v-if="requests && requests.items.length > 0" ref="loaderRequests" class="vld-parent px-2 mt-4"> -->
             <div v-if="requests" ref="loaderRequests" class="vld-parent px-2 mt-4">
                 <customTable v-model="jsonTable" v-slot="props">
-                    <i class="fas fa-info-circle" data-toggle="tooltip" data-placement="top"
-                        title="Icono $ : Azul = 'Pagado', Gris = 'Impagado', Icono Check Verde = 'Aprobado', Icono Restriccion rojo = 'Rechazado', Icono Relog de arena= 'En espera'">
+                    <i class="fas fa-info-circle" data-toggle="tooltip" data-placement="top" title="Los íconos representan estados:
+Azul ($): Pagado.
+Gris ($): Impagado.
+Verde (Check): Aprobado.
+Rojo (Restricción): Rechazado.
+Reloj de arena: En espera.">
                     </i>
                     <!-- Estado del pago -->
                     <a v-if="props.item.status_payment == 'impagado'"
@@ -167,6 +171,11 @@
                     <a @click="openProductsOrder(props.item)" class="py-1 px-2 text-center btn bg-primario" href="#">
                         <i class="fa fa-eye"></i>
                     </a>
+                    <!-- Condicion solo si es admin -->
+                    <a v-if="isAdmin" @click="openVerify(props.item)" class="py-1 px-2 text-center btn bg-danger"
+                        href="#">
+                        <i class="fa fa-trash"></i>
+                    </a>
                 </customTable>
                 <!-- Paginacion -->
                 <!-- <paginate v-if="(requests && requests.pages > 1)" v-model="requests" :offOn="offOn" @getPage="getRequests" /> -->
@@ -185,7 +194,7 @@
         <!-- modals -->
         <!-- @refresh="refreshData" -->
         <catalog :products="products" @update-products="updateProducts" @update-total="updateTotal" />
-
+        <verify-modal :propVerify="propVerify" @refreshData="getRequests" />
         <!-- modal productsOrders -->
         <div class="modal fade modalForce" id="productsOrder" tabindex="-1" role="dialog" aria-labelledby="productsOrder"
             aria-hidden="true" data-backdrop="false">
@@ -212,16 +221,32 @@
                             </div>
                             <div class="col-md-6 col-12 d-flex flex-column justify-content-between">
                                 <div class="">
-                                    <customTable v-model="jsonTableProducts" @changeValue="changeValue" v-slot="props">
-                                        
-                                    </customTable>
+                                    <!-- <customTable v-model="jsonTableProducts" @changeValue="changeValue" v-slot="props">
+
+                                    </customTable> -->
+
+                                    <table class="table table-borderless">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Producto</th>
+                                                <th scope="col">Cantidad</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="(producto, id) in jsonTableProducts.items" :key="id">
+                                                <td>{{ producto.name }}</td>
+                                                <td>{{ (producto.name != 'Vaso' && producto.name != 'Huevo') ?
+                                                    producto.quantity + 'kg' : producto.quantity }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                     <div class="footerTableTicket d-flex justify-content-between">
                                         <h5 class="">
                                             TOTAL
                                         </h5>
                                         <h5 id="Total-On-CompleteOrder">
                                             <!-- Se hace la operacion para que la variable sea numerica y no string  -->
-                                            ${{ formatearMonto(this.total*this.total/this.total)}}
+                                            ${{ formatearMonto(this.total * this.total / this.total) }}
                                         </h5>
                                     </div>
                                 </div>
@@ -254,7 +279,6 @@ import paginate from '@/components/MPage.vue';
 import verifyModal from '@/components/modals/verifyDelete.vue';
 import customTable from '@/components/tables/table.vue';
 import catalog from '@/components/modals/pedidos/catalog.vue';
-
 // Helpers
 import ConfigHelper from '@/helpers/ConfigHelper.js';
 import BaseUrl from '@/helpers/baseUrl.js';
@@ -351,16 +375,17 @@ export default {
             },
             subtotal: this.total,
             total: 0,
+            propVerify: null
         }
     },
     async mounted() {
         this.app = await this.getApp();
-        // console.log(this.app.data.Name);
+
         this.getRequests(false);
+        // this.user = this.me;
+        console.log("user:", this.isAdmin);
         // Para los toltips
-        $(function () {
-            $('[data-toggle="tooltip"]').tooltip()
-        });
+        $('[data-toggle="tooltip"]').tooltip()
     },
     computed: {
         offOn: {
@@ -382,6 +407,8 @@ export default {
         isValidProducts: {
             get() { return this.products.length > 0 }
         },
+
+        isAdmin: { get() { return (this.$store.getters['main/user'].role == 1) } },
     },
     watch: {
 
@@ -494,7 +521,7 @@ export default {
                     comment: this.comment,
                     price: this.totalPrice,
                     // transaccion: this.transaccion,
-                    app_id: '1',
+                    app_id: this.app.Id,
                 };
                 //Se construye formdata
                 var formData = new FormData();
@@ -559,6 +586,16 @@ export default {
 
             // Formatear con miles y decimales
             return `${montoSinDecimales.toLocaleString()}.${parteDecimal}`;
+        },
+        openVerify(pedido){
+            this.propVerify = {
+                params: pedido.id,
+                title: 'Eliminar Pedido',
+                text: '¿Usted esta seguro de eliminar el pedido #' + pedido.id + '?',
+                store: 'requests/removeRequest',
+                success: 'Gasto eliminado exitosamente'
+            };
+            $('#verifyDelete').modal('show');
         }
     }
 }
@@ -1028,6 +1065,10 @@ export default {
     text-align: center;
 }
 
+.table td {
+    padding: 0.6rem;
+}
+
 @media screen and (max-width: 420px) {
 
     #firstDigit #mathfirstnum,
@@ -1044,5 +1085,6 @@ export default {
     #contactForm span.sub-text {
         right: 30px;
     }
-}</style>
+}
+</style>
   

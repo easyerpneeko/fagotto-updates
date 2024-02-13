@@ -37,7 +37,11 @@ export async function getProductsOfSell(context) {
   return request;
 }
 
-
+export async function removeRequest(context, id) {
+  let url = BaseUrl.getUrl('api/local/request/' + id);
+  const request = await Connection.request('delete',url);
+  return request;
+}
 // export async function index(context, params) {
 //   const url = BaseUrl.getUrl('api/products/' + params);
 //   const request = await Connection.request('get',url);

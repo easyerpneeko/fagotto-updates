@@ -53,12 +53,6 @@
                 <div v-if="key.key == 'stock'" class="m-0">
                   {{ (item[key.key]) ? item[key.key] : 0 }}
                 </div>
-                
-                <!-- Campo especial para mostrar cantidades en pedidos -->
-                <!-- <div v-if="key.key == 'quantity'" class="m-0">
-                   {{ (item[key.key]) ? item[key.key]+'kg' : 0  }}
-                  {{ (item[key.key])  }}
-                </div> -->
 
                 <!-- Campo especial para mostrar estadoss -->
                 <div v-if="key.key == 'state'" :class="['m-0 text-bold text-capitalize',(item[key.key] == 'ocupado' || item[key.key] == 'ocupada') ? 'text-dark' : (item[key.key] == 'libre') ? 'text-primario' : 'text-secundario' ]">

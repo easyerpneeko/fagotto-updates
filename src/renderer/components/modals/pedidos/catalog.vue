@@ -17,14 +17,14 @@
               <div class="row d-flex">
                 <div class="col-md-12 mb-3">
                   <div class="row d-flex justify-content-start">
-                    <label class="pr-2 pl-3 d-flex align-items-center"> quantity de Vasos: </label>
+                    <label class="pr-2 pl-3 d-flex align-items-center">Cantidad de Vasos: </label>
                     <div class="btn-group btn-group-toggle d-flex align-items-center" role="group" data-toggle="buttons">
-                      <label class="btn btn-primary active">
-                        <input type="radio" name="options" id="option1" checked @click="calcularCantidades(1)">
+                      <label class="btn btn-primary ">
+                        <input type="radio" name="options" id="option1"  @click="calcularCantidades(1)">
                         320
                       </label>
-                      <label class="btn btn-primary">
-                        <input type="radio" name="options" id="option2" @click="calcularCantidades(2)">
+                      <label class="btn btn-primary active">
+                        <input type="radio" name="options" id="option2" checked @click="calcularCantidades(2)">
                         160
                       </label>
                     </div>
@@ -37,7 +37,7 @@
                     <thead>
                       <tr>
                         <th scope="col">Producto</th>
-                        <th scope="col">quantity</th>
+                        <th scope="col">Cantidad</th>
                         <!-- <th scope="col">Vasos</th> -->
                       </tr>
                     </thead>
@@ -56,7 +56,7 @@
                     <thead>
                       <tr>
                         <th scope="col">Producto</th>
-                        <th scope="col">quantity</th>
+                        <th scope="col">Cantidad</th>
                         <th scope="col">Vasos</th>
                       </tr>
                     </thead>
@@ -84,7 +84,7 @@
                 <thead>
                   <tr>
                     <th scope="col">Producto</th>
-                    <th scope="col">quantity</th>
+                    <th scope="col">Cantidad</th>
 
                   </tr>
                 </thead>
@@ -100,7 +100,7 @@
                 <thead>
                   <tr>
                     <th scope="col">Salsa</th>
-                    <th scope="col">quantity</th>
+                    <th scope="col">Cantidad</th>
                     <th scope="col">Vasos</th>
                     <th scope="col">Eliminar</th>
                   </tr>
@@ -125,7 +125,7 @@
         <div class="modal-footer justify-content-between ">
           <!-- <div class="conteoVasos">Cantidad de Vasos {{ this.vasos }} - {{ this.vasosSalsas }} = {{ this.totalVasos }}
           </div> -->
-          <div class="conteoVasos">Precio del pedido = $ {{ this.vasos*this.precioVaso }}
+          <div class="conteoVasos">Precio del pedido = $ {{ formatearMonto(this.vasos*this.precioVaso) }}
           </div>
           <div>
             <button type="button" class="btn bg-dark text-white" @click="closeModal()">
@@ -161,22 +161,22 @@ export default {
   },
   data() {
     return {
-      vasos: 320,
-      queso: 8,
-      harina: 44,
-      huevo: 360,
+      vasos: 160,
+      queso: 4,
+      harina: 22,
+      huevo: 180,
       precioVaso :0,
       kiloAgg: false,
       //Para saber si el pedido es completo o medio 1= completo, 2 = medio
-      tipoPedido: 1,
+      tipoPedido: 2,
       vasosSalsas: 0,
       totalVasos: 0,
       totalPrice:0,
       productosPedido: {
-        1: { name: 'Vasos', quantity: 320, vasos: 1 },
-        2: { name: 'Huevos', quantity: 360, vasos: 1 },
-        3: { name: 'Harina', quantity: 44, vasos: 1 },
-        4: { name: 'Queso', quantity: 8, vasos: 1 },
+        1: { name: 'Vasos', quantity: 160, vasos: 1 },
+        2: { name: 'Huevos', quantity: 180, vasos: 1 },
+        3: { name: 'Harina', quantity: 22, vasos: 1 },
+        4: { name: 'Queso', quantity: 4, vasos: 1 },
       },
       salsasPedido: [],
 
@@ -236,8 +236,8 @@ export default {
     addSalsa(salsa) {
       const existingSalsa = this.salsasPedido.find((s) => s.name === salsa.name);
       if (existingSalsa) {
-        existingSalsa.quantity *= 2;
-        existingSalsa.vasos *= 2;
+        existingSalsa.quantity += 5;
+        existingSalsa.vasos += 70;
         console.log(`Salsa ${salsa.name} ya existente. Se ha duplicado la cantidad.`);
       } else {
         const salsaCopia = Object.assign({}, salsa); // O también puedes usar: const salsaCopia = { ...salsa };
@@ -254,16 +254,20 @@ export default {
     },
     calcularCantidades(opcion) {
       if (!(this.tipoPedido === opcion)) {
+       
         if (this.tipoPedido === 2 && opcion === 1) {
+          
           this.vasos = 320;
           for (const key in this.productosPedido) {
-            this.productosPedido[key].quantity = 320;
+            this.productosPedido[key].quantity *= 2;
           }
           this.tipoPedido = opcion;
+
         } else if (this.tipoPedido === 1 && opcion === 2) {
+          
           this.vasos = 160;
           for (const key in this.productosPedido) {
-            this.productosPedido[key].quantity = 160;
+            this.productosPedido[key].quantity /= 2;
           }
           this.tipoPedido = opcion;
           console.log("Tipo de pedido actualizado a 2");
@@ -348,6 +352,18 @@ export default {
       else this.$awn.alert('Error al obtener los productos');
 
     },
+    formatearMonto(monto) {
+      const montoSinDecimales = Math.floor(monto);
+      const parteDecimal = monto.toFixed(2).split(".")[1];
+
+      // Eliminar "00" si son los dos últimos decimales
+      if (parteDecimal === "00") {
+        return montoSinDecimales.toLocaleString();
+      }
+
+      // Formatear con miles y decimales
+      return `${montoSinDecimales.toLocaleString()}.${parteDecimal}`;
+    }
   },
   computed: {
 

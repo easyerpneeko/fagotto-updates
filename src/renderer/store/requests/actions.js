@@ -42,6 +42,12 @@ export async function removeRequest(context, id) {
   const request = await Connection.request('delete',url);
   return request;
 }
+
+export async function update(context, data) {
+  let url = BaseUrl.getUrl('api/local/request/review/' + data.id);
+  const request = await Connection.request('put',url, data.data);
+  return request;
+}
 // export async function index(context, params) {
 //   const url = BaseUrl.getUrl('api/products/' + params);
 //   const request = await Connection.request('get',url);

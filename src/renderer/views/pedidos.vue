@@ -168,12 +168,14 @@ Reloj de arena: En espera.">
                     <a v-else class="py-1 px-2 text-center rounded-pill" href="#">
                         <i class="fas fa-hourglass-start"></i>
                     </a>
+                    <a @click="openReview(props.item)" class="py-1 px-2 text-center btn bg-info" href="#">
+                        <i class="fa fa-edit"></i>
+                    </a>
                     <a @click="openProductsOrder(props.item)" class="py-1 px-2 text-center btn bg-primario" href="#">
                         <i class="fa fa-eye"></i>
                     </a>
                     <!-- Condicion solo si es admin -->
-                    <a v-if="isAdmin" @click="openVerify(props.item)" class="py-1 px-2 text-center btn bg-danger"
-                        href="#">
+                    <a v-if="isAdmin" @click="openVerify(props.item)" class="py-1 px-2 text-center btn bg-danger" href="#">
                         <i class="fa fa-trash"></i>
                     </a>
                 </customTable>
@@ -270,6 +272,37 @@ Reloj de arena: En espera.">
             <!-- <password-verify v-model="jsonPassword" @success="removeProduct" /> -->
             <!-- <assignBoard /> -->
         </div>
+
+        <!-- modal comentario -->
+        <div class="modal fade" id="modalReview" tabindex="-1" role="dialog" aria-labelledby="modalReview"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-primario">
+                        <h5 class="modal-title">Reseñar Pedido</h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex row flex-wrap">
+                            <div class="form-group col-12">
+                                <label for="review">Reseña: </label>
+                                <textarea  v-model="review" @keyup.enter="sendReview" id="review" type="text" class="form-control" placeholder="Comentario sobre el estado del pedido"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn bg-secundario text-white" data-dismiss="modal">
+                            Cerrar
+                        </button>
+                        <button type="button" class="btn bg-primario text-white" @click="sendReview">
+                            Reseñar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
   
@@ -311,6 +344,7 @@ export default {
             phone: '',
             comment: '',
             paymode: 'Metodo de pago',
+            review:'',
             // transaccion: '',
             voucherFile: null,
             url_linkify: 'https://app.linkify.cl/pay/QXyLMKgplXOzBJl/remote/',
@@ -587,7 +621,7 @@ export default {
             // Formatear con miles y decimales
             return `${montoSinDecimales.toLocaleString()}.${parteDecimal}`;
         },
-        openVerify(pedido){
+        openVerify(pedido) {
             this.propVerify = {
                 params: pedido.id,
                 title: 'Eliminar Pedido',
@@ -596,6 +630,26 @@ export default {
                 success: 'Gasto eliminado exitosamente'
             };
             $('#verifyDelete').modal('show');
+        },
+        openReview(request){
+            this.idRequest = request.id;
+            $('#modalReview').modal('show');
+        },
+        async sendReview(){
+            console.log(this.idRequest,this.review);
+            if(this.review.length > 0){
+                let data = new FormData();
+                data.append('review',this.review);
+                if (this.review != null) var request = await this.$store.dispatch("requests/update",{id:this.idRequest,data});
+                
+                if(request.success){
+                    this.$awn.success("Reseña creada correctamente");
+                }
+                $('#modalReview').modal('hide');
+            }else{
+                this.$awn.alert("Es necesario escribir un comentario");
+            }
+
         }
     }
 }
@@ -740,7 +794,7 @@ export default {
 
 .modal-header {
     border: none;
-    padding: 15px 5px 0;
+    /* padding: 15px 5px 0; */
     text-align: center;
 }
 

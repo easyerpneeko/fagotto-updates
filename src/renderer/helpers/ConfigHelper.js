@@ -193,6 +193,11 @@ export default class ConfigHelper {
   }
 
   static ConfSubmodule(module, keyname) {
+    if (!module || !module.sub) {
+      // Handle the case where `module` or `module.sub` is null or undefined
+      console.error("Module or submodule is null/undefined");
+      return null; // Or return a default value or throw an error
+    }  
 
     var submodules = module.sub;
 

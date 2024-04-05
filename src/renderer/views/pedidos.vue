@@ -487,7 +487,7 @@ export default {
             this.total = request.price;
             this.payment = request.payment;
             this.status_payment = request.status_payment;
-            this.url_payment = this.url_linkify + 1 + 'i' + this.payment.id
+            this.url_payment = this.url_linkify + this.app.Id + 'i' + this.payment.id
 
             $('#productsOrder').modal('show');
 

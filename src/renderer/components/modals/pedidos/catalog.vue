@@ -1,6 +1,6 @@
 <template>
-  <div class="modal fade" id="modalCatalog" tabindex="-1" role="dialog" aria-labelledby="modalCatalog" aria-hidden="true"
-    data-backdrop="false">
+  <div class="modal fade" id="modalCatalog" tabindex="-1" role="dialog" aria-labelledby="modalCatalog"
+    aria-hidden="true" data-backdrop="false">
     <div class="modal-dialog lg-modal modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header bg-primario">
@@ -18,13 +18,16 @@
                 <div class="col-md-12 mb-3">
                   <div class="row d-flex justify-content-start">
                     <label class="pr-2 pl-3 d-flex align-items-center">Cantidad de Vasos: </label>
-                    <div class="btn-group btn-group-toggle d-flex align-items-center" role="group" data-toggle="buttons">
+                    <div class="btn-group btn-group-toggle d-flex align-items-center" role="group"
+                      data-toggle="buttons">
                       <label class="btn btn-primary ">
-                        <input type="radio" name="options" id="option1" @click="calcularCantidades(1)">
+                        <input type="radio" name="options" id="option1" v-bind:checked="opcionSeleccionada"
+                          @click="calcularCantidades(1)">
                         320
                       </label>
                       <label class="btn btn-primary active">
-                        <input type="radio" name="options" id="option2" checked @click="calcularCantidades(2)">
+                        <input type="radio" name="options" id="option2" v-bind:checked="opcionSeleccionada"
+                          @click="calcularCantidades(2)">
                         160
                       </label>
                     </div>
@@ -56,8 +59,8 @@
                     <thead>
                       <tr>
                         <th scope="col">Producto</th>
-                        <th scope="col">Cantidad</th>
-                        <th scope="col">Vasos</th>
+                        <!-- <th scope="col">Cantidad</th> -->
+                        <!-- <th scope="col">Vasos</th> -->
                       </tr>
                     </thead>
                     <tbody>
@@ -67,8 +70,8 @@
                             {{ salsa.name }} <i class="fa fa-plus"></i>
                           </button>
                         </td>
-                        <td>{{ salsa.quantity }}kg</td>
-                        <td>{{ salsa.vasos }}</td>
+                        <!-- <td>{{ salsa.quantity }}gr</td> -->
+                        <!-- <td>{{ salsa.vasos }}</td> -->
                       </tr>
                     </tbody>
                   </table>
@@ -108,8 +111,11 @@
                 <tbody>
                   <tr v-for="(salsa, index) in salsasPedido" :key="index">
                     <td>{{ salsa.name }}</td>
-                    <td>{{ salsa.quantity }} kg</td>
-                    <td>{{ salsa.vasos }}</td>
+                    <td>{{ salsa.quantity = (salsa.vasos*100) }} gr</td>
+                    <td> 
+                      <input min="0" @keyup="$emit('changeValue', salsa.vasos)" @blur="$emit('onBlur', salsa)" class="fieldEdit" type="number" v-model="salsa.vasos" />
+                      </td>
+                    <!-- <td>{{ salsa.vasos }}</td> -->
                     <td>
                       <button class="btn btn-danger btn-m" @click="removeSalsa(index)">
                         <i class="fa fa-times-circle"></i>
@@ -188,11 +194,11 @@ export default {
       },
 
       salsasDisponibles: {
-        1: { name: 'Alfredo', quantity: 5, vasos: 70 },
-        2: { name: 'boloñesa', quantity: 5, vasos: 70 },
-        3: { name: 'camaron', quantity: 5, vasos: 50 },
-        4: { name: 'champiñon', quantity: 5, vasos: 50 },
-        5: { name: 'pesto', quantity: 5, vasos: 70 }
+        1: { name: 'Alfredo', quantity: 100, vasos: 1 },
+        2: { name: 'boloñesa', quantity: 100, vasos: 1 },
+        3: { name: 'camaron', quantity: 100, vasos: 1 },
+        4: { name: 'champiñon', quantity: 100, vasos: 1 },
+        5: { name: 'pesto', quantity: 100, vasos: 1 }
       },
       vasosSalsas: 0,
       kiloSalsas: 0,
@@ -221,8 +227,8 @@ export default {
     addSalsa(salsa) {
       const existingSalsa = this.salsasPedido.find((s) => s.name === salsa.name);
       if (existingSalsa) {
-        existingSalsa.quantity += 5;
-        existingSalsa.vasos += 70;
+        // existingSalsa.quantity += 100;
+        // existingSalsa.vasos += 1;
         console.log(`Salsa ${salsa.name} ya existente. Se ha duplicado la cantidad.`);
       } else {
         const salsaCopia = Object.assign({}, salsa); // O también puedes usar: const salsaCopia = { ...salsa };
@@ -247,6 +253,7 @@ export default {
             this.productosPedido[key].quantity *= 2;
           }
           this.tipoPedido = opcion;
+          console.log("Tipo de pedido actualizado a 1");
 
         } else if (this.tipoPedido === 1 && opcion === 2) {
 
@@ -301,6 +308,12 @@ export default {
     addProducts() {
       console.log('Productos pedido: ', this.productosPedido);
       console.log('Salsas: ', this.salsasPedido);
+      console.log('kilos Salsas:',this.kiloSalsas);
+
+      // if (this.kiloSalsas < 16000 || this.kiloSalsas > 32000) {
+      //   this.$awn.alert("La cantidad de salsas no llena la cantidad de vasos ");
+      //   return false;
+      // }
 
       for (var key in this.productosPedido) {
         this.salsasPedido.push(this.productosPedido[key]);
@@ -361,7 +374,7 @@ export default {
             vasos: 1,
           };
           this.$set(this.productosPedido, producto, nuevoProductoPedido);
-        
+
         } else if (this.productosFijos[producto].name === 'Huevo') {
           const nuevoProductoPedido = {
             name: this.productosFijos[producto].name,
@@ -389,7 +402,9 @@ export default {
     }
   },
   computed: {
-
+    opcionSeleccionada() {
+      return false ? true : false; // Si miCondicion es true, selecciona la opción 1, sino la 2
+    }
   },
 }
 </script>

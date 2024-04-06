@@ -47,7 +47,7 @@
                     <tbody>
                       <tr v-for="(producto, id) in productosFijos" :key="id">
                         <td>{{ producto.name }}</td>
-                        <td v-if="producto.name == 'Queso' || producto.name == 'Harina'">{{ producto.price }}G</td>
+                        <td v-if="producto.name == 'Queso' || producto.name == 'Harina'">{{ producto.price }}gr</td>
                         <td v-else>{{ producto.price }}</td>
                         <!-- <td>{{ producto.vasos }}</td> -->
                       </tr>
@@ -125,20 +125,42 @@
                   </tr>
                 </tbody>
               </table>
+              <table class="table table-bordered">
+                <thead class="thead-dark">
+                  <tr>
+                    <th scope="col">Descripcion</th>
+                    <th scope="col">Monto</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Despacho</td>
+                    <td>${{ formatearMonto((this.vasos * this.precioVaso) * 0.02) }}</td>
+                  </tr>
+                  <tr>
+                    <td>IVA</td>
+                    <td>${{ formatearMonto((this.vasos * this.precioVaso) * 0.19) }}</td>
+                  </tr>
+                  <tr>
+                    <td>Total</td>
+                    <td>${{ formatearMonto(this.vasos * this.precioVaso) }}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
 
-        <div class="modal-footer justify-content-between ">
+        <div class="modal-footer justify-content-end ">
           <!-- <div class="conteoVasos">Cantidad de Vasos {{ this.vasos }} - {{ this.vasosSalsas }} = {{ this.totalVasos }}
           </div> -->
-          <div class="conteoVasos">
+          <!-- <div class="conteoVasos">
             Despacho = $ {{ formatearMonto((this.vasos * this.precioVaso) * 0.02) }}
             <br>
             IVA = $ {{ formatearMonto((this.vasos * this.precioVaso) * 0.19) }}
             <br>
             <b>Total = $ {{ formatearMonto(this.vasos * this.precioVaso) }}</b>
-          </div>
+          </div> -->
           <div>
             <button type="button" class="btn bg-dark text-white" @click="closeModal()">
               Cerrar
@@ -431,10 +453,11 @@ export default {
             quantity: this.productosFijos[producto].price,
             vasos: 1,
           };
+
           this.$set(this.salsasDisponibles, producto, salsaDisponible);
 
-          //para obtener el precio del vaso
-          this.precioVaso = this.productosFijos[producto].price;
+          this.productosFijos[producto] = {}; // Opcional: Eliminar el elemento de productosFijos
+
         }
         console.log('salsas : ', this.salsasDisponibles);
       }

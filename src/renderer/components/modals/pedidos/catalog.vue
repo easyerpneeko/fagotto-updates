@@ -134,16 +134,24 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Despacho</td>
-                    <td>${{ formatearMonto((this.vasos * this.precioVaso) * 0.02) }}</td>
+                    <td>Monto neto</td>
+                    <td>${{ formatearMonto((this.vasos * this.precioVaso)) }}</td>
                   </tr>
                   <tr>
-                    <td>IVA</td>
-                    <td>${{ formatearMonto((this.vasos * this.precioVaso) * 0.19) }}</td>
+                    <td>Despacho {{this.despacho*100}}%</td>
+                    <td>${{ formatearMonto((this.vasos * this.precioVaso) * this.despacho) }}</td>
+                  </tr>
+                  <tr>
+                    <td>IVA 19%</td>
+                    <td>${{ formatearMonto((this.vasos * this.precioVaso) * this.iva) }}</td>
                   </tr>
                   <tr>
                     <td>Total</td>
-                    <td>${{ formatearMonto(this.vasos * this.precioVaso) }}</td>
+                    <td>${{ formatearMonto(
+                            this.vasos * this.precioVaso
+                            + ((this.vasos * this.precioVaso) * this.iva)
+                            + ((this.vasos * this.precioVaso) * this.despacho)
+                          ) }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -152,15 +160,6 @@
         </div>
 
         <div class="modal-footer justify-content-end ">
-          <!-- <div class="conteoVasos">Cantidad de Vasos {{ this.vasos }} - {{ this.vasosSalsas }} = {{ this.totalVasos }}
-          </div> -->
-          <!-- <div class="conteoVasos">
-            Despacho = $ {{ formatearMonto((this.vasos * this.precioVaso) * 0.02) }}
-            <br>
-            IVA = $ {{ formatearMonto((this.vasos * this.precioVaso) * 0.19) }}
-            <br>
-            <b>Total = $ {{ formatearMonto(this.vasos * this.precioVaso) }}</b>
-          </div> -->
           <div>
             <button type="button" class="btn bg-dark text-white" @click="closeModal()">
               Cerrar
@@ -173,7 +172,6 @@
       </div>
 
     </div>
-  </div>
   </div>
 </template>
 
@@ -231,7 +229,12 @@ export default {
       },
       vasosSalsas: 0,
       kiloSalsas: 0,
-      productoSend: []
+      productoSend: [],
+      montoNeto: 0,
+      despacho: 0,
+      iva: 0.19,
+      montoTotal: 0
+
     }
   },
   components: {
@@ -456,10 +459,13 @@ export default {
 
           this.$set(this.salsasDisponibles, producto, salsaDisponible);
 
-          this.productosFijos[producto] = {}; // Opcional: Eliminar el elemento de productosFijos
+          this.productosFijos[producto] = []; // Opcional: Eliminar el elemento de productosFijos
 
+        } else if (this.productosFijos[producto].name === 'Despacho') {
+          //Obteniendo el precio de despacho
+          this.despacho = this.productosFijos[producto].price;
         }
-        console.log('salsas : ', this.salsasDisponibles);
+        // console.log('salsas : ', this.salsasDisponibles);
       }
     },
     convertirAKilogramosYRedondear(gramos, multiplicador) {

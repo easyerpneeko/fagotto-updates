@@ -111,10 +111,11 @@
                 <tbody>
                   <tr v-for="(salsa, index) in salsasPedido" :key="index">
                     <td>{{ salsa.name }}</td>
-                    <td>{{ salsa.quantity = (salsa.vasos*100) }} gr</td>
-                    <td> 
-                      <input min="0" @keyup="$emit('changeValue', salsa.vasos)" @blur="$emit('onBlur', salsa)" class="fieldEdit" type="number" v-model="salsa.vasos" />
-                      </td>
+                    <td>{{ salsa.quantity }}kg</td>
+                    <td>
+                      <input min="1" @change="calcularVasosSalsas()" class="fieldEdit" type="number"
+                        v-model="salsa.vasos" />
+                    </td>
                     <!-- <td>{{ salsa.vasos }}</td> -->
                     <td>
                       <button class="btn btn-danger btn-m" @click="removeSalsa(index)">
@@ -131,7 +132,12 @@
         <div class="modal-footer justify-content-between ">
           <!-- <div class="conteoVasos">Cantidad de Vasos {{ this.vasos }} - {{ this.vasosSalsas }} = {{ this.totalVasos }}
           </div> -->
-          <div class="conteoVasos">Precio del pedido = $ {{ formatearMonto(this.vasos * this.precioVaso) }}
+          <div class="conteoVasos">
+            Despacho = $ {{ formatearMonto((this.vasos * this.precioVaso) * 0.02) }}
+            <br>
+            IVA = $ {{ formatearMonto((this.vasos * this.precioVaso) * 0.19) }}
+            <br>
+            <b>Total = $ {{ formatearMonto(this.vasos * this.precioVaso) }}</b>
           </div>
           <div>
             <button type="button" class="btn bg-dark text-white" @click="closeModal()">
@@ -142,9 +148,10 @@
             </button>
           </div>
         </div>
-
       </div>
+
     </div>
+  </div>
   </div>
 </template>
 
@@ -194,11 +201,11 @@ export default {
       },
 
       salsasDisponibles: {
-        1: { name: 'Alfredo', quantity: 100, vasos: 1 },
-        2: { name: 'boloñesa', quantity: 100, vasos: 1 },
-        3: { name: 'camaron', quantity: 100, vasos: 1 },
-        4: { name: 'champiñon', quantity: 100, vasos: 1 },
-        5: { name: 'pesto', quantity: 100, vasos: 1 }
+        // 1: { name: 'Alfredo', quantity: 70, vasos: 1 },
+        // 2: { name: 'boloñesa', quantity: 70, vasos: 1 },
+        // 3: { name: 'camaron', quantity: 100, vasos: 1 },
+        // 4: { name: 'champiñon', quantity: 100, vasos: 1 },
+        // 5: { name: 'pesto', quantity: 70, vasos: 1 }
       },
       vasosSalsas: 0,
       kiloSalsas: 0,
@@ -229,11 +236,11 @@ export default {
       if (existingSalsa) {
         // existingSalsa.quantity += 100;
         // existingSalsa.vasos += 1;
-        console.log(`Salsa ${salsa.name} ya existente. Se ha duplicado la cantidad.`);
+        console.log(`Salsa ${salsa.name} ya existente.`);
       } else {
         const salsaCopia = Object.assign({}, salsa); // O también puedes usar: const salsaCopia = { ...salsa };
         this.salsasPedido.push(salsaCopia);
-        console.log(this.salsasPedido);
+        // console.log(this.salsasPedido);
       }
       this.calcularVasosSalsas()
     },
@@ -274,41 +281,54 @@ export default {
       this.kiloSalsas = 0;
 
       this.salsasPedido.forEach((salsa) => {
-        this.vasosSalsas += salsa.vasos;
-        //Contamos los kilos de salsa
-        this.kiloSalsas += salsa.quantity;
+        //Contamos los vasos de salsa
+        this.vasosSalsas += +salsa.vasos;
+        let salsaDisponible;
+        for (var key in this.salsasDisponibles) {
+          if (this.salsasDisponibles[key].name == salsa.name) {
+            salsaDisponible = this.salsasDisponibles[key];
+          }
+        }
+
+        salsa.quantity = (salsa.vasos * salsaDisponible.quantity) / 1000;
       });
-      console.log(this.kiloSalsas);
-      if (this.kiloSalsas > 25 && !this.kiloAgg) {
-        this.kiloAgg = true;
-        //vasos
-        this.productosPedido[2].quantity += 160;
-        //huevos
-        this.productosPedido[3].quantity += 180;
-
-      } else if (this.kiloSalsas < 25 && this.kiloAgg) {
-        this.kiloAgg = false;
-        //vasos
-        this.productosPedido[2].quantity -= 160;
-        //huevos
-        this.productosPedido[3].quantity -= 180;
+      //Cambiar la cantatida para que alcancen los vasos
+      if (this.vasosSalsas > 160) {
+        this.calcularCantidades(1);
+      } else if (this.vasosSalsas < 160) {
+        this.calcularCantidades(2);
       }
+      // console.log(this.vasosSalsas);
+      // if (this.kiloSalsas > 25 && !this.kiloAgg) {
+      //   this.kiloAgg = true;
+      //   //vasos
+      //   this.productosPedido[2].quantity += 160;
+      //   //huevos
+      //   this.productosPedido[3].quantity += 180;
 
-      this.totalVasos = this.vasos - this.vasosSalsas;
+      // } else if (this.kiloSalsas < 25 && this.kiloAgg) {
+      //   this.kiloAgg = false;
+      //   //vasos
+      //   this.productosPedido[2].quantity -= 160;
+      //   //huevos
+      //   this.productosPedido[3].quantity -= 180;
+      // }
 
-      const rangoInferior = this.vasos - 50;
-      const rangoSuperior = this.vasos + 50;
+      // this.totalVasos = this.vasos - this.vasosSalsas;
 
-      if (this.totalVasos >= rangoInferior && this.totalVasos <= rangoSuperior) {
-        console.log("El valor de totalVasos está dentro del intervalo de ±50 unidades con respecto a this.vasos.");
-      } else {
-        console.log("El valor de totalVasos está fuera del intervalo de ±50 unidades con respecto a this.vasos.");
-      }
+      // const rangoInferior = this.vasos - 50;
+      // const rangoSuperior = this.vasos + 50;
+
+      // if (this.totalVasos >= rangoInferior && this.totalVasos <= rangoSuperior) {
+      //   console.log("El valor de totalVasos está dentro del intervalo de ±50 unidades con respecto a this.vasos.");
+      // } else {
+      //   console.log("El valor de totalVasos está fuera del intervalo de ±50 unidades con respecto a this.vasos.");
+      // }
     },
     addProducts() {
       console.log('Productos pedido: ', this.productosPedido);
       console.log('Salsas: ', this.salsasPedido);
-      console.log('kilos Salsas:',this.kiloSalsas);
+      console.log('kilos Salsas:', this.kiloSalsas);
 
       // if (this.kiloSalsas < 16000 || this.kiloSalsas > 32000) {
       //   this.$awn.alert("La cantidad de salsas no llena la cantidad de vasos ");
@@ -346,6 +366,17 @@ export default {
       // Verificando respuesta
       if (request.success) {
         this.productosFijos = request.data;
+
+        // Filtrar elementos y agregarlos a salsasDisponibles
+        // for (var key in this.productosFijos) {
+        //   if (this.productosFijos.hasOwnProperty(key)) {
+        //     var producto = this.productosFijos[key];
+        //     if (producto.category === 2) {
+        //       this.salsasDisponibles[key] = producto;
+        //       // delete productosFijos[key]; // Opcional: Eliminar el elemento de productosFijos
+        //     }
+        //   }
+        // }
       }
       else this.$awn.alert('Error al obtener los productos');
 
@@ -393,7 +424,19 @@ export default {
 
           //para obtener el precio del vaso
           this.precioVaso = this.productosFijos[producto].price;
+
+        } else if (this.productosFijos[producto].category === 2) {
+          const salsaDisponible = {
+            name: this.productosFijos[producto].name,
+            quantity: this.productosFijos[producto].price,
+            vasos: 1,
+          };
+          this.$set(this.salsasDisponibles, producto, salsaDisponible);
+
+          //para obtener el precio del vaso
+          this.precioVaso = this.productosFijos[producto].price;
         }
+        console.log('salsas : ', this.salsasDisponibles);
       }
     },
     convertirAKilogramosYRedondear(gramos, multiplicador) {
@@ -423,7 +466,8 @@ export default {
 
 .conteoVasos {
   padding: 10px;
-  font-weight: bold;
+  /* font-weight: bold; */
+  font-size: 14px;
   border-radius: 5px;
   box-shadow: 0px 2px 4px rgb(0 0 0 / 20%), 0px 4px 8px rgb(0 0 0 / 10%);
   background-color: #343a40;

@@ -12,8 +12,8 @@
         <div class="modal-body p-0" style="overflow: auto; max-height: 70vh;">
           <div class="d-flex flex-wrap justify-content-space-beetwen">
             <div class="col-md-6">
-              <h5 class="modal-title">Elegir productos</h5>
-              <hr>
+              <!-- <h5 class="modal-title">Elegir productos</h5> -->
+              <!-- <hr> -->
               <div class="row d-flex">
                 <div class="col-md-12 mb-3">
                   <div class="row d-flex justify-content-start">
@@ -37,7 +37,7 @@
 
                 <div class="col-md-12">
                   <table class="table table-borderless">
-                    <thead>
+                    <thead class="thead-dark">
                       <tr>
                         <th scope="col">Producto</th>
                         <th scope="col">Cantidad</th>
@@ -58,20 +58,16 @@
                   <table class="table table-borderless">
                     <thead>
                       <tr>
-                        <th scope="col">Producto</th>
-                        <!-- <th scope="col">Cantidad</th> -->
-                        <!-- <th scope="col">Vasos</th> -->
+                        <th scope="col">Agregar Salsas</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(salsa, id) in salsasDisponibles" :key="id">
-                        <td>
-                          <button type="button" @click="addSalsa(salsa)" class="btn btn-m btn-outline-info">
+                      <tr>
+                        <td v-for="(salsa, id) in salsasDisponibles" :key="id">
+                          <button type="button" @click="addSalsa(salsa)" class="btn btn-m btn-info">
                             {{ salsa.name }} <i class="fa fa-plus"></i>
                           </button>
                         </td>
-                        <!-- <td>{{ salsa.quantity }}gr</td> -->
-                        <!-- <td>{{ salsa.vasos }}</td> -->
                       </tr>
                     </tbody>
                   </table>
@@ -84,7 +80,7 @@
               <h5 class="modal-title">Detallado del pedido</h5>
               <hr>
               <table class="table">
-                <thead>
+                <thead class="thead-dark">
                   <tr>
                     <th scope="col">Producto</th>
                     <th scope="col">Cantidad</th>
@@ -100,7 +96,7 @@
                 </tbody>
               </table>
               <table class="table table-bordered">
-                <thead>
+                <thead class="thead-dark">
                   <tr>
                     <th scope="col">Salsa</th>
                     <th scope="col">Cantidad</th>
@@ -113,7 +109,7 @@
                     <td>{{ salsa.name }}</td>
                     <td>{{ salsa.quantity }}kg</td>
                     <td>
-                      <input min="1" @change="calcularVasosSalsas()" class="fieldEdit" type="number"
+                      <input min="10" @change="calcularVasosSalsas()" class="fieldEdit" type="number"
                         v-model="salsa.vasos" />
                     </td>
                     <!-- <td>{{ salsa.vasos }}</td> -->
@@ -323,6 +319,8 @@ export default {
       } else if (this.vasosSalsas < 160) {
         this.calcularCantidades(2);
       }
+
+
       // console.log(this.vasosSalsas);
       // if (this.kiloSalsas > 25 && !this.kiloAgg) {
       //   this.kiloAgg = true;
@@ -371,6 +369,11 @@ export default {
         return false;
       }
 
+      if (this.vasosSalsas < 160) {
+        this.$awn.alert("El pedido debe ser de minimo 160 vasos");
+        return false;
+      }
+
       this.totalPrice = this.vasos * this.precioVaso;
 
       this.$emit('update-products', this.productoSend);
@@ -407,16 +410,16 @@ export default {
 
     },
     formatearMonto(monto) {
-      const montoSinDecimales = Math.floor(monto);
-      const parteDecimal = monto.toFixed(2).split(".")[1];
+      const montoSinDecimales = Math.ceil(monto);
+      // const parteDecimal = monto.toFixed(2).split(".")[1];
 
-      // Eliminar "00" si son los dos últimos decimales
-      if (parteDecimal === "00") {
-        return montoSinDecimales.toLocaleString();
-      }
+      // // Eliminar "00" si son los dos últimos decimales
+      // if (parteDecimal === "00") {
+      //   return montoSinDecimales.toLocaleString();
+      // }
 
       // Formatear con miles y decimales
-      return `${montoSinDecimales.toLocaleString()}.${parteDecimal}`;
+      return `${montoSinDecimales.toLocaleString()}`;
     },
     async cargarProductosFijos() {
 

@@ -17,8 +17,10 @@
               <div class="row d-flex">
                 <div class="col-md-12 mb-3">
                   <div class="row d-flex justify-content-start">
-                    <label class="pr-2 pl-3 d-flex align-items-center">Cantidad de Vasos: </label>
-                    <div class="btn-group btn-group-toggle d-flex align-items-center" role="group"
+                    <h5 class="modal-title">Detallado del pedido</h5>
+                    <hr>
+                    <!-- <label class="pr-2 pl-3 d-flex align-items-center">Productos disponibles: </label> -->
+                    <!-- <div class="btn-group btn-group-toggle d-flex align-items-center" role="group"
                       data-toggle="buttons">
                       <label class="btn btn-primary ">
                         <input type="radio" name="options" id="option1" v-bind:checked="opcionSeleccionada"
@@ -30,7 +32,7 @@
                           @click="calcularCantidades(2)">
                         160
                       </label>
-                    </div>
+                    </div> -->
                   </div>
 
                 </div>
@@ -134,7 +136,7 @@
                     <td>${{ formatearMonto((this.vasos * this.precioVaso)) }}</td>
                   </tr>
                   <tr>
-                    <td>Despacho {{this.despacho*100}}%</td>
+                    <td>Despacho {{ this.despacho * 100 }}%</td>
                     <td>${{ formatearMonto((this.vasos * this.precioVaso) * this.despacho) }}</td>
                   </tr>
                   <tr>
@@ -144,10 +146,10 @@
                   <tr>
                     <td>Total</td>
                     <td>${{ formatearMonto(
-                            this.vasos * this.precioVaso
-                            + ((this.vasos * this.precioVaso) * this.iva)
-                            + ((this.vasos * this.precioVaso) * this.despacho)
-                          ) }}</td>
+            this.vasos * this.precioVaso
+            + ((this.vasos * this.precioVaso) * this.iva)
+            + ((this.vasos * this.precioVaso) * this.despacho)
+          ) }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -245,13 +247,13 @@ export default {
     async closeModal(refresh = false) {
       //Volvemos los arreglos al estado inicial
       await this.cargarProductosFijos();
-        this.tipoPedido = 1;
-        this.vasosSalsas = 0;
-        this.totalVasos = 0;
-        this.kiloSalsas = 0;
-        this.salsasPedido = [];
-        this.totalPrice = 0;
-        $('#modalCatalog').modal('hide');
+      this.tipoPedido = 1;
+      this.vasosSalsas = 0;
+      this.totalVasos = 0;
+      this.kiloSalsas = 0;
+      this.salsasPedido = [];
+      this.totalPrice = 0;
+      $('#modalCatalog').modal('hide');
     },
     addSalsa(salsa) {
       const existingSalsa = this.salsasPedido.find((s) => s.name === salsa.name);
@@ -374,14 +376,14 @@ export default {
         this.$awn.alert("Es necesario agregar algun producto");
         return false;
       }
-      
 
-      this.totalPrice =  this.vasos * this.precioVaso
-                                    + ((this.vasos * this.precioVaso) * this.iva)
-                                    + ((this.vasos * this.precioVaso) * this.despacho);
+
+      this.totalPrice = this.vasos * this.precioVaso
+        + ((this.vasos * this.precioVaso) * this.iva)
+        + ((this.vasos * this.precioVaso) * this.despacho);
 
       this.$emit('update-products', this.productoSend);
-      this.$emit('update-total',  Math.ceil((this.totalPrice)));
+      this.$emit('update-total', Math.ceil((this.totalPrice)));
 
       $('#modalCatalog').modal('hide');
 

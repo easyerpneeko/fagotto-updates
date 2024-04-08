@@ -75,8 +75,8 @@
                                             <div class="form-group col-sm-12"
                                                 :class="{ 'has-error': submitted && !isValidPaymode }">
                                                 <div class="help-block with-errors"></div>
-                                                <select class="form-control" v-model="paymode" :disabled="this.disableForm"
-                                                    placeholder="Metodo de pago">
+                                                <select class="form-control" v-model="paymode"
+                                                    :disabled="this.disableForm" placeholder="Metodo de pago">
                                                     <option disabled selected class="text-capitalize">Todas</option>
                                                     <option :value="paymode.name" v-for="paymode in paymodes"
                                                         :key="paymode.id" class="text-capitalize">
@@ -94,8 +94,9 @@
                                                     </ul>
                                                 </div> -->
                                                 <textarea v-model="comment" rows="3" name="comment" id="comment"
-                                                    :disabled="this.disableForm" placeholder="Escribe tu comentario aquí*"
-                                                    class="form-control" required=""></textarea>
+                                                    :disabled="this.disableForm"
+                                                    placeholder="Escribe tu comentario aquí*" class="form-control"
+                                                    required=""></textarea>
                                                 <!-- <textarea rows="3" name="message" id="message"
                                                     placeholder="Escribe tu comentario aquí*" class="form-control"
                                                     required="" data-error="Por favor ingresa un mensaje"></textarea> -->
@@ -175,7 +176,8 @@ Reloj de arena: En espera.">
                         <i class="fa fa-eye"></i>
                     </a>
                     <!-- Condicion solo si es admin -->
-                    <a v-if="isAdmin" @click="openVerify(props.item)" class="py-1 px-2 text-center btn bg-danger" href="#">
+                    <a v-if="isAdmin" @click="openVerify(props.item)" class="py-1 px-2 text-center btn bg-danger"
+                        href="#">
                         <i class="fa fa-trash"></i>
                     </a>
                 </customTable>
@@ -198,8 +200,8 @@ Reloj de arena: En espera.">
         <catalog :products="products" @update-products="updateProducts" @update-total="updateTotal" />
         <verify-modal :propVerify="propVerify" @refreshData="getRequests" />
         <!-- modal productsOrders -->
-        <div class="modal fade modalForce" id="productsOrder" tabindex="-1" role="dialog" aria-labelledby="productsOrder"
-            aria-hidden="true" data-backdrop="false">
+        <div class="modal fade modalForce" id="productsOrder" tabindex="-1" role="dialog"
+            aria-labelledby="productsOrder" aria-hidden="true" data-backdrop="false">
             <div class="modal-dialog lg-modal modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="modal-header bg-primario">
@@ -214,10 +216,12 @@ Reloj de arena: En espera.">
                                 <div class="">
                                     <img src="../assets/shop.png" alt="carrito" class="img-shop">
                                     <h3>Productos</h3>
-                                    <p class="text">Este sistema está especialmente diseñado para brindar al franquiciado la
+                                    <p class="text">Este sistema está especialmente diseñado para brindar al
+                                        franquiciado la
                                         emocionante oportunidad de solicitar una amplia gama de productos de fagotto de
                                         manera virtual, todo gracias al vibrante carrito de compras en línea. Una vez
-                                        solicitado, el pedido estará sujeto a aprobación, agregando un toque de expectativa
+                                        solicitado, el pedido estará sujeto a aprobación, agregando un toque de
+                                        expectativa
                                         y dinamismo al proceso.</p>
                                 </div>
                             </div>
@@ -238,18 +242,44 @@ Reloj de arena: En espera.">
                                             <tr v-for="(producto, id) in jsonTableProducts.items" :key="id">
                                                 <td>{{ producto.name }}</td>
                                                 <td>{{ (producto.name != 'Vaso' && producto.name != 'Huevo') ?
-                                                    producto.quantity + 'kg' : producto.quantity }}</td>
+                producto.quantity + 'kg' : producto.quantity }}</td>
+                                                <!-- <td>{{ }}</td> -->
                                             </tr>
                                         </tbody>
                                     </table>
                                     <div class="footerTableTicket d-flex justify-content-between">
-                                        <h5 class="">
-                                            TOTAL
-                                        </h5>
-                                        <h5 id="Total-On-CompleteOrder">
-                                            <!-- Se hace la operacion para que la variable sea numerica y no string  -->
-                                            ${{ formatearMonto(this.total * this.total / this.total) }}
-                                        </h5>
+                                        <table class="table table-bordered">
+                                            <thead class="thead-dark">
+                                                <tr>
+                                                    <th scope="col">Descripcion</th>
+                                                    <th scope="col">Monto</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>Monto neto</td>
+                                                    <td>${{ formatearMonto((this.vasos * this.precioVaso)) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Despacho {{ this.despacho * 100 }}%</td>
+                                                    <td>${{ formatearMonto((this.vasos * this.precioVaso) *
+                this.despacho) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>IVA 19%</td>
+                                                    <td>${{ formatearMonto((this.vasos * this.precioVaso) * this.iva) }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Total</td>
+                                                    <td>${{ formatearMonto(
+                this.vasos * this.precioVaso
+                + ((this.vasos * this.precioVaso) * this.iva)
+                + ((this.vasos * this.precioVaso) * this.despacho)
+            ) }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -288,7 +318,8 @@ Reloj de arena: En espera.">
                         <div class="d-flex row flex-wrap">
                             <div class="form-group col-12">
                                 <label for="review">Reseña: </label>
-                                <textarea  v-model="review" @keyup.enter="sendReview" id="review" type="text" class="form-control" placeholder="Comentario sobre el estado del pedido"></textarea>
+                                <textarea v-model="review" @keyup.enter="sendReview" id="review" type="text"
+                                    class="form-control" placeholder="Comentario sobre el estado del pedido"></textarea>
                             </div>
                         </div>
                     </div>
@@ -305,7 +336,7 @@ Reloj de arena: En espera.">
         </div>
     </div>
 </template>
-  
+
 <script>
 // Components
 import paginate from '@/components/MPage.vue';
@@ -344,7 +375,7 @@ export default {
             phone: '',
             comment: '',
             paymode: 'Metodo de pago',
-            review:'',
+            review: '',
             // transaccion: '',
             voucherFile: null,
             url_linkify: 'https://app.linkify.cl/pay/QXyLMKgplXOzBJl/remote/',
@@ -409,13 +440,19 @@ export default {
             },
             subtotal: this.total,
             total: 0,
-            propVerify: null
+            propVerify: null,
+            productosFijos: {},
+            despacho: 0,
+            iva:0.19,
+            precioVaso:0,
+            vasos:0
         }
     },
     async mounted() {
         this.app = await this.getApp();
 
         this.getRequests(false);
+        this.getDespacho();
         // this.user = this.me;
         console.log("user:", this.isAdmin);
         // Para los toltips
@@ -488,6 +525,13 @@ export default {
             this.payment = request.payment;
             this.status_payment = request.status_payment;
             this.url_payment = this.url_linkify + this.app.Id + 'i' + this.payment.id
+
+            for (const producto in this.jsonTableProducts.items) {
+                if (this.jsonTableProducts.items[producto].name === 'Vaso') {
+                    //Obteniendo el precio de despacho
+                    this.vasos = this.jsonTableProducts.items[producto].quantity;
+                }
+            }            
 
             $('#productsOrder').modal('show');
 
@@ -631,26 +675,62 @@ export default {
             };
             $('#verifyDelete').modal('show');
         },
-        openReview(request){
+        openReview(request) {
             this.idRequest = request.id;
             $('#modalReview').modal('show');
         },
-        async sendReview(){
-            console.log(this.idRequest,this.review);
-            if(this.review.length > 0){
+        async sendReview() {
+            console.log(this.idRequest, this.review);
+            if (this.review.length > 0) {
                 let data = new FormData();
-                data.append('review',this.review);
-                if (this.review != null) var request = await this.$store.dispatch("requests/update",{id:this.idRequest,data});
-                
-                if(request.success){
+                data.append('review', this.review);
+                if (this.review != null) var request = await this.$store.dispatch("requests/update", { id: this.idRequest, data });
+
+                if (request.success) {
                     this.$awn.success("Reseña creada correctamente");
                 }
                 $('#modalReview').modal('hide');
-            }else{
+            } else {
                 this.$awn.alert("Es necesario escribir un comentario");
             }
 
-        }
+        },
+        async getDespacho() {
+            // Iniciando peticion
+            // Loader.dinamic();
+            var request2 = await this.$store.dispatch("products/getProductsOfIndex");
+            // Loader.hide();
+            // Verificando respuesta
+            if (request2.success) {
+                this.productosFijos = request2.data;
+            }
+            else this.$awn.alert('Error al obtener los productos');
+
+            for (const producto in this.productosFijos) {
+                if (this.productosFijos[producto].name === 'Despacho') {
+                    //Obteniendo el precio de despacho
+                    this.despacho = this.productosFijos[producto].price;
+                }
+                if (this.productosFijos[producto].name === 'Vaso') {
+                    //Obteniendo el precio de despacho
+                    this.precioVaso = this.productosFijos[producto].price;
+                }
+            }
+            console.log(this.precioVaso);
+            console.log(this.despacho);
+        },
+        formatearMonto(monto) {
+            const montoSinDecimales = Math.ceil(monto);
+            // const parteDecimal = monto.toFixed(2).split(".")[1];
+
+            // // Eliminar "00" si son los dos últimos decimales
+            // if (parteDecimal === "00") {
+            //   return montoSinDecimales.toLocaleString();
+            // }
+
+            // Formatear con miles y decimales
+            return `${montoSinDecimales.toLocaleString()}`;
+        },
     }
 }
 </script>
@@ -1141,4 +1221,3 @@ export default {
     }
 }
 </style>
-  

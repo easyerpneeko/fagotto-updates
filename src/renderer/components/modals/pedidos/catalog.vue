@@ -259,7 +259,8 @@ export default {
         // existingSalsa.vasos += 1;
         console.log(`Salsa ${salsa.name} ya existente.`);
       } else {
-        const salsaCopia = Object.assign({}, salsa); // O también puedes usar: const salsaCopia = { ...salsa };
+        const salsaCopia = Object.assign({}, salsa);
+        salsaCopia.vasos = 10; // O también puedes usar: const salsaCopia = { ...salsa };
         this.salsasPedido.push(salsaCopia);
         // console.log(this.salsasPedido);
       }
@@ -357,7 +358,11 @@ export default {
       //   this.$awn.alert("La cantidad de salsas no llena la cantidad de vasos ");
       //   return false;
       // }
-
+      if (this.vasosSalsas < 160) {
+        this.$awn.alert("El pedido debe ser de minimo 160 vasos");
+        return false;
+      }
+      
       for (var key in this.productosPedido) {
         this.salsasPedido.push(this.productosPedido[key]);
       }
@@ -366,11 +371,6 @@ export default {
 
       if (this.productoSend.length == 0) {
         this.$awn.alert("Es necesario agregar algun producto");
-        return false;
-      }
-
-      if (this.vasosSalsas < 160) {
-        this.$awn.alert("El pedido debe ser de minimo 160 vasos");
         return false;
       }
 

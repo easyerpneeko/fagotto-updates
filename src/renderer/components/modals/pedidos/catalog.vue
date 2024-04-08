@@ -245,11 +245,12 @@ export default {
     async closeModal(refresh = false) {
       //Volvemos los arreglos al estado inicial
       await this.cargarProductosFijos();
-      this.tipoPedido = 1,
-        this.vasosSalsas = 0,
-        this.totalVasos = 0,
+        this.tipoPedido = 1;
+        this.vasosSalsas = 0;
+        this.totalVasos = 0;
         this.kiloSalsas = 0;
-      this.salsasPedido = [],
+        this.salsasPedido = [];
+        this.totalPrice = 0;
         $('#modalCatalog').modal('hide');
     },
     addSalsa(salsa) {
@@ -359,10 +360,10 @@ export default {
       //   return false;
       // }
       if (this.vasosSalsas < 160) {
-        this.$awn.alert("El pedido debe ser de minimo 160 vasos");
+        this.$awn.info("El pedido debe ser de minimo 160 vasos");
         return false;
       }
-      
+
       for (var key in this.productosPedido) {
         this.salsasPedido.push(this.productosPedido[key]);
       }
@@ -373,11 +374,14 @@ export default {
         this.$awn.alert("Es necesario agregar algun producto");
         return false;
       }
+      
 
-      this.totalPrice = this.vasos * this.precioVaso;
+      this.totalPrice =  this.vasos * this.precioVaso
+                                    + ((this.vasos * this.precioVaso) * this.iva)
+                                    + ((this.vasos * this.precioVaso) * this.despacho);
 
       this.$emit('update-products', this.productoSend);
-      this.$emit('update-total', this.totalPrice);
+      this.$emit('update-total',  Math.ceil((this.totalPrice)));
 
       $('#modalCatalog').modal('hide');
 

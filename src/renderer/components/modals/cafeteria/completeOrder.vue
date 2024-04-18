@@ -117,7 +117,9 @@
           <button v-if="settingSodexo" @click="verifyClient('convenio_empresa')" type="button" class="btn bg-primario text-white">
             Sodexo
           </button>
-
+          <button v-if="settingRappi" @click="verifyClient('rappi')" type="button" class="btn bg-primario text-white">
+            Rappi
+          </button>
           <button v-if="settingDebito" @click="verifyClient('debito')" type="button" class="btn bg-primario text-white">
             Debito
           </button>
@@ -745,6 +747,10 @@ export default {
     settingAmipass:{ get(){
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.amipass');
+    } },
+    settingRappi:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.rappi');
     } },
   },
 }

@@ -384,7 +384,7 @@ export default {
         // Cafetaria
         if (cafeteria){
           menu.push({
-            label: this.envs.name_panel_tickets.value,
+            label: 'Cafeteria',
             route: '/inicio/cafeteria',
             icon: 'fa-coffee'
           });

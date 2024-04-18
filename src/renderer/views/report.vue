@@ -178,7 +178,7 @@ export default {
       countersChartData:[],
       waiterChartData:[],
       rangeDate: [new Date(), new Date()],
-      startTime: '06:00:00',
+      startTime: '00:00:00',
       endTime: '23:59:59',
 
       titlesOrders: ["ID","Monto"],
@@ -203,6 +203,7 @@ export default {
         {key:'amipass',label:'Amipass', value:true},
         {key:'credito',label:'Credito', value:true},
         {key:'rappi',label:'Rappi', value:true},
+        {key:'uber',label:'Uber', value:true},
         {key:'convenio_empresa',label:'Convenio Empresa', value:true}
       ]
     }
@@ -629,11 +630,13 @@ export default {
     settingCheque:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.cheque') } },
     settingStateBank:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.banco') } },
     settingRappi:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.rappi') } },
+    settingUber:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.uber') } },
     settingSodexo:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.sodexo') } },
     settingNotaCredito:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.nota_de_credito') } },
     settingCredito:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.credito') } },
     settingAmipass:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.amipass') } },
     settingMulticaja:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.multicaja') } },
+    settingEdenred:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.edenred') } },
 
     getCounters: {
       get(){
@@ -662,13 +665,16 @@ export default {
             if(this.settingDebito) this.listCounter.push( ['Debito', '$'+this.formatNumber(String(request.debito))]);
             if(this.settingAmipass) this.listCounter.push(['Amipass', '$'+this.formatNumber(String(request.amipass))]);
             if(this.settingRappi) this.listCounter.push(['Rappi', '$'+this.formatNumber(String(request.rappi))]);
+            if(this.settingUber) this.listCounter.push(['Uber', '$'+this.formatNumber(String(request.uber))]);
             if(this.settingSodexo) this.listCounter.push(['Sodexo', '$'+this.formatNumber(String(request.sodexo))]);
             if(this.settingCredito) this.listCounter.push(['Credito', '$'+this.formatNumber(String(request.credito))]);
-            if(this.settingNotaCredito) this.listCounter.push(['Nota de Credito', '$'+this.formatNumber(String(request.credito))]);
+            // if(this.settingNotaCredito) this.listCounter.push(['Nota de Credito', '$'+this.formatNumber(String(request.credito))]);
+            if(this.settingMulticaja) this.listCounter.push(['Multicaja', '$'+this.formatNumber(String(request.multicaja))]);
             if(this.settingConvenioEmpresa) this.listCounter.push(['Convenio Empresa', '$'+this.formatNumber(String(request.convenio_empresa))]);
             if(this.settingTransferencia) this.listCounter.push( ['Transferencia', '$'+this.formatNumber(String(request.transferencia))]);
             if(this.settingCheque) this.listCounter.push( ['Cheque', '$'+this.formatNumber(String(request.cheque))]);
             if(this.settingStateBank) this.listCounter.push( ['Trasnbank', '$'+this.formatNumber(String(request.banco))]);
+            if(this.settingEdenred) this.listCounter.push( ['Edenred', '$'+this.formatNumber(String(request.edenred))]);
             
           }
           if(this.fastSellInstalled){

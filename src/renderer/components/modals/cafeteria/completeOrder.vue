@@ -106,7 +106,7 @@
             Multicaja
           </button>
           
-          <button v-if="settingBank" @click="verifyClient('edenred')" type="button" class="btn bg-primario text-white">
+          <button v-if="settingEdenred" @click="verifyClient('edenred')" type="button" class="btn bg-primario text-white">
             Edenred 
           </button> 
           
@@ -114,11 +114,19 @@
             Transferencia
           </button>
           
-          <button v-if="settingSodexo" @click="verifyClient('convenio_empresa')" type="button" class="btn bg-primario text-white">
+          <button v-if="settingSodexo" @click="verifyClient('sodexo')" type="button" class="btn bg-primario text-white">
             Sodexo
           </button>
+          
+          <button v-if="settingConvenio" @click="verifyClient('convenio_empresa')" type="button" class="btn bg-primario text-white">
+            Convenio
+          </button>
+
           <button v-if="settingRappi" @click="verifyClient('rappi')" type="button" class="btn bg-primario text-white">
             Rappi
+          </button>
+          <button v-if="settingUber" @click="verifyClient('uber')" type="button" class="btn bg-primario text-white">
+            Uber
           </button>
           <button v-if="settingDebito" @click="verifyClient('debito')" type="button" class="btn bg-primario text-white">
             Debito
@@ -128,7 +136,7 @@
             Cheque
           </button>
 
-          <button v-if="settingCheque" @click="verifyClient('cheque')" type="button" class="btn bg-dark text-white">
+          <button v-if="settingCredito" @click="verifyClient('credito')" type="button" class="btn bg-dark text-white">
             Credito
           </button>
           
@@ -728,6 +736,10 @@ export default {
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.banco');
     } },
+    settingEdenred:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.edenred');
+    } },
     settingNotaCredito:{ get(){
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.nota_de_credito');
@@ -751,6 +763,14 @@ export default {
     settingRappi:{ get(){
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.rappi');
+    } },
+    settingUber:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.uber');
+    } },
+    settingConvenio:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.convenio_empresa');
     } },
   },
 }

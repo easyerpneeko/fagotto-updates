@@ -99,6 +99,9 @@
             <button v-if="settingRappi" @click="viewTicket('rappi')" type="button" class="btn bg-primario text-white">
               Ticket + Rappi
             </button>
+            <button v-if="settingUber" @click="viewTicket('uber')" type="button" class="btn bg-primario text-white">
+              Ticket + Uber
+            </button>
             <button v-if="settingNotaCredito" @click="viewTicket('nota_de_credito')" type="button" class="btn bg-primario text-white">
               Ticket + Nota de Credito
             </button>
@@ -116,6 +119,12 @@
             </button>
             <button v-if="ticket_sell && settingAmipass" @click="viewTicket('amipass')" type="button" class="btn bg-primario text-white">
               Ticket + Amipass
+            </button>
+            <button v-if="settingEdenred" @click="viewTicket('edenred')" type="button" class="btn bg-primario text-white">
+              Ticket + Edenred
+            </button>
+            <button v-if="settingConvenio" @click="viewTicket('convenio_empresa')" type="button" class="btn bg-primario text-white">
+              Ticket + Convenio
             </button>
             <button v-if="settingMulticaja" @click="viewTicket('multicaja')" type="button" class="btn bg-primario text-white">
               Ticket + Multicaja
@@ -729,6 +738,10 @@ export default {
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.rappi');
     } },
+    settingUber:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.uber');
+    } },
     settingNotaCredito:{ get(){
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.nota_de_credito');
@@ -774,6 +787,14 @@ export default {
     settingMulticaja:{ get(){
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.multicaja');
+    } },
+    settingEdenred:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.edenred');
+    } },
+    settingConvenio:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.convenio_empresa');
     } },
 
 

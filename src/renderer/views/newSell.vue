@@ -1108,6 +1108,8 @@
         }
 
         this.$refs.productAutocomplete.setValue('');
+        //para borrar focus
+        this.inputElement.blur();
       },
      //agregar productos a tabla
      addProductQuantityTable() {

@@ -12,7 +12,23 @@
            <div class="col-12 p-0 space-between-search-and-create">
             
              <div class="input-group input-group-sm mb-3 ">
-               <autocomplete :search="search" class="w-50" placeholder="Buscar" :getResultValue="getSearchValue" @submit="submitAutocomplete" ref="productAutocomplete" ></autocomplete>
+               <autocomplete :search="search" class="w-50" placeholder="Buscar" :getResultValue="getSearchValue" @submit="submitAutocomplete" ref="productAutocomplete" >
+                <template #result="{ result, props }" @click="submitAutocomplete(result)">
+                  <div v-if="props['data-result-index'] == 0" class="d-flex" style="padding: 10px; margin-left:20px; background-color: #dee2e6; color:#5e6fad">
+                    <div style="width: 50px;" ><i class="fab fa-sistrix"></i></div>
+                    <div style="width: 250px;"><b>NOMBRE</b></div>
+                    <div v-if="stockInstalled" style="width: 100px;"><b>STOCK</b></div>
+                    <div style="width: 100px;"><b>PRECIO</b></div>
+                  </div>
+                  <div class="d-flex" style="padding: 10px; margin-left:20px" @click="submitAutocomplete(result)">
+                    <div style="width: 50px;" ><i class="fab fa-sistrix"></i></div>
+                    <div style="width: 250px;">{{ result.name }}</div>
+                    <div v-if="stockInstalled" style="width: 100px;">{{ result.stock }}</div>
+                    <div style="width: 100px;" ><b>{{formatNumber(deFormatNumber(result.price))}}$   </b></div>
+                  </div>
+                  <hr style="margin: 0;" />
+                </template>
+              </autocomplete>
              </div>
            </div>
  
@@ -59,44 +75,56 @@
                  <tr class="Jtable-tr table-light" v-for="(product,index) in productoSend" :key="index">
                    
                    <td class="py-3 px-1 text-center " :class="{ 'bgVentaMayorClass': activeRows[index] }">
-                     <p class="text-capitalize">
+                     <span class="text-capitalize">
                        {{product.name}}
-                     </p>
+                     </span>
                    </td>
  
-                   <td class="py-3 px-3 text-center" :class="{ 'bgVentaMayorClass': activeRows[index] }">
-                     <h6>{{product.stock}}</h6>
+                   <td class="py-3 px-3 text-center" :class="{ 'bgVentaMayorClass': activeRows[index] }"  >
+                     <span :class="product.stock <= 0 ? 'easy-badge-danger' : 'easy-badge-success'">{{product.stock}}</span>
                    </td>
  
                    <!-- <td v-if="(priceUnitaryInstalled && priceUnitary)" class="" :class="{ 'bgVentaMayorClass': activeRows[index] }"> -->
-                    <td class="" :class="{ 'bgVentaMayorClass': activeRows[index] }">
+                    <td class="text-center" :class="{ 'bgVentaMayorClass': activeRows[index] }">
                      <!-- #fere-warp1 -->
                      <input
-                       class="Jinput-border-none btn shadow-icon "
+                       class="Jinput-border-none btn shadow-icon m-0"
                        type="number"
                        :id="product.id"
                       autofocus
-                       @change="calculatePlus(index, product, true)"
-                       v-model="product.price" name="unitary" :min="product.price"
+                       @change="calculatePlus(index, product, true)" v-model="product.price" name="unitary" :min="product.price"
                        @keydown.capture="keydownEvent($event,index)"
                        @input="handleInput"
                      />
                    </td>
                    
  
-                     <td class=" " v-if="cantidadDecimalesSubModules" :class="{ 'bgVentaMayorClass': activeRows[index] }">
-                       <input class="Jinput-border-none btn shadow-icon "  type="number" :id="product.id"
-                       @keypress="isFloat($event)"
-                       @keydown.capture="keydownEvent($event,index)"
-                       @change="calculatePlus(index, product, (priceUnitaryInstalled && priceUnitary)?true:false)" v-model="product.quantity" name="quantity" min="1">
+                     <td class="text-center" v-if="cantidadDecimalesSubModules" :class="{ 'bgVentaMayorClass': activeRows[index] }">
+                      <div class="btn-group">
+                        <button class="m-0 px-3 btn-quantity" @click="decreaseQuantity(index, product)">-</button>
+                        
+                        <input class="Jinput-border-none btn shadow-icon m-0"  type="number" :id="product.id"
+                        @keypress="isFloat($event)"
+                        @keydown.capture="keydownEvent($event,index)"
+                        @change="calculatePlus(index, product, (priceUnitaryInstalled && priceUnitary)?true:false)" v-model="product.quantity" name="quantity" min="1">
+                        
+                        <button class="m-0 px-3 btn-quantity" @click="increaseQuantity(index, product)">+</button>
+                      </div>
+
                      </td>
- 
-                     <td class="" v-else  :class="{ 'bgVentaMayorClass': activeRows[index] }">
-                       <input class="Jinput-border-none btn shadow-icon  " type="number" :id="product.id"
-                       @keypress="isInteger($event)"
-                       @keydown.capture="keydownEvent($event,index)"
-                       @change="calculatePlus(index, product, (priceUnitaryInstalled && priceUnitary)?true:false)" v-model="product.quantity" name="quantity" min="1">
-                     </td>
+                     <td class="text-center" v-else  :class="{ 'bgVentaMayorClass': activeRows[index] }">
+                        <div class="btn-group">
+                        <button class="m-0 px-3 btn-quantity" @click="decreaseQuantity(index, product),calculatePlus(index, product, (priceUnitaryInstalled && priceUnitary)?true:false)">-</button>
+
+                            <input class="Jinput-border-none btn shadow-icon  m-0" type="number" :id="product.id"
+                            @keypress="isInteger($event)"
+                            @keydown.capture="keydownEvent($event,index)"
+                            @change="calculatePlus(index, product, (priceUnitaryInstalled && priceUnitary)?true:false)" v-model="product.quantity" name="quantity" min="1">
+                        
+                        <button class="m-0 px-3 btn-quantity" @click="increaseQuantity(index, product),calculatePlus(index, product, (priceUnitaryInstalled && priceUnitary)?true:false)">+</button>
+                        </div>
+                    </td>
+                     
  
                    <td class="py-3 px-3 text-center " :class="{ 'bgVentaMayorClass': activeRows[index] }">
                      <p class=" fs-4">{{formatNumber(product.subtotal)}}$</p>
@@ -106,9 +134,9 @@
  
                    
  
-                   <td class=" text-right " :class="{ 'bgVentaMayorClass': activeRows[index] }">
-                     <a @click="deleteProduct(index)" href="#" class="btn shadow-icon">
-                       <i class="fas fa-ban"></i>
+                   <td class=" text-center " :class="{ 'bgVentaMayorClass': activeRows[index] }">
+                     <a @click="deleteProduct(index)" href="#" class="btn shadow-icon m-0" style="font-size: 12px;">
+                       <i class="fas fa-trash"></i>
                      </a>
                    </td>
  
@@ -146,8 +174,14 @@
     <!--!(html)__( 'grid 2' )-->
     <!--!==========================================================================================================================-->
     
-     <div class="col-3 Jfondo-2 Jnavi d-flex align-items-end flex-column">
+     <div class="col-3 Jfondo-2 Jnavi d-flex align-items-start flex-column">
        <div><hr></div>
+       <div style="margin-right:auto;padding:5px;margin-left: auto;font-weight: bold;color: #808080;font-size: 14px;">
+            <span><i class="fas fa-user"></i> {{ this.me.fullname }}</span>
+            <!-- <span> - {{ this.app.Name }}</span> -->
+            <span> - App name ***</span>
+        </div>
+
        <div class="row">
          <div class="col-12 col-md-6">
            <button @click="newTicket()" type="button" v-if="(ticketInstaller && tickets)" :disabled="editOrder" class="btn-r0 w-100 Jbutton-ticket m-1 btn" >
@@ -165,11 +199,34 @@
            </button>
          </div>
        </div>
+       <div><hr></div>
+
+       <div class="row" v-if="settingPermitirDescuento">
+        <div class="col-12">
+          <h6>DESCUENTOS</h6>
+        </div>
+        <div><hr></div>
+        
+        <div v-for="(discount, index) in discounts" :key="id" class="col-12 col-md-3">
+          <button @click="toDiscount(discount)" type="button" class="fs-4 text-info btn-r0 w-100 btn btn-white fw-bold" >
+             {{discount.text+'%'}}
+           </button>
+        </div>
+       </div>
+       
        <div class="mt-auto">
          <div v-if="productsIsDefined" class="">
            
  
              <div class="row">
+              <div  class="col-12">
+                 <div class="d-flex justify-content-between mb-3 " v-if="settingPermitirDescuento">
+                     <p  class="m-0 fw-light">Descuento:</p>
+                     <p  class="m-0 fw-light"> {{formatNumber(this.discount)}}$</p>
+                 </div>
+                 
+                 <hr>
+               </div>
  
                <div  class="col-12">
                  <div class="d-flex justify-content-between mb-3 ">
@@ -186,13 +243,13 @@
                      <p  class="m-0 fw-light"> {{formatNumber(this.total - Math.round(this.total/1.19))}}$</p>
                  </div>
  
-                 <hr style="height:1px;border:none;color:#333;background-color:#333;" />
+                 <hr style="height:1px;color:#333;background-color:#333;" />
                </div>
  
                <div  class="col-12">
                  <div class="d-flex justify-content-between mb-3" >
                      <h5  class="m-0 Jtext-total">Total:</h5>
-                     <h5  class="m-0 Jtext-total "> {{formatNumber(this.total)}}$</h5>
+                     <h5  class="m-0 Jtext-total "> {{formatNumber(this.total-this.discount)}}$</h5>
                  </div>
                  
                </div>
@@ -227,6 +284,11 @@
                          </button>
                        </div>
  
+                       <div v-if="settingCredito" class="col-12 p-0 pl-1">
+                         <button :disabled="offOn" @click="verifyClient('credito')" type="button" class="btn-r0 btn btn-info w-100 " >
+                           Credito
+                         </button>
+                       </div>
                        <div v-if="settingDebito" class="col-12 p-0 pl-1">
                          <button :disabled="offOn" @click="verifyClient('debito')" type="button" class="btn-r0 btn btn-primary w-100 " >
                            Debito
@@ -284,7 +346,7 @@
               <div class="row">
                 <div class="col-12 text-center">
                   <span><strong>Escriba el nombre del producto</strong></span>
-                  <Select2 v-model="itemSelect" :options="productsSelect" :settings="{ dropdownParent: '#modalProductStock', width: '100%' }" @change="thisProduct($event)" @select="thisProductEvent($event)"/>
+                  <!-- <Select2 v-model="this.itemSelect" :options="this.productsSelect" :settings="{ dropdownParent: '#modalProductStock', width: '100%' }" @change="thisProduct($event)" @select="thisProductEvent($event)"/> -->
                   <br>
                   <div v-if="stock_first">
                     <span><strong>{{stock_first}}</strong></span>
@@ -336,7 +398,7 @@
  import Loader from '@/helpers/Loader';
  import Print from '@/helpers/Print.js';
  import $ from 'jquery'; window.jQuery = window.$ = $;
- import Select2 from 'select2'; window.Select2=Select2;
+//  import Select2 from 'select2'; window.Select2=Select2;
     
  
  
@@ -371,18 +433,26 @@
        itemSelect: '',
        productsSelect: [],
        inputElement:'',
-       activeRows: []
+       activeRows: [],
+       app:null,
+       discount:0,
+       discounts:{
+        1:{id:1,percentage:0.05,text:'5'},
+        2:{id:2,percentage:0.1,text:'10'},
+        3:{id:3,percentage:0.15,text:'15'},
+        4:{id:4,percentage:0.2,text:'20'},
+       }
      }
    },
  
  
  
  
-   mounted(){
+   async mounted(){
      //HavePermission
 
      console.log("[newSell] mounted.")
-     
+    
 
      this.inputElement = document.querySelectorAll("[role='combobox']")[0];
 
@@ -408,7 +478,7 @@
             this.modalProductStock();
         }
     });
-    
+    //  this.app = await this.getApp();
    },
   
    components:{
@@ -421,7 +491,7 @@
      ticket,
      assignWaiterAndBoard,
      modalTurned,
-     Select2
+    //  Select2
    },
    props:{
      value: {
@@ -431,7 +501,10 @@
    },
  
    methods:{
-    
+      async getApp() {
+          var request = await this.$store.dispatch('main/refreshData', '?slim');
+          return request.data;
+      },
       keydownEvent(event,index) {
         if (event.key === 'F10') {
           //Obtenemos ID del elemento resaltado = Input de precio con el foco
@@ -574,6 +647,7 @@
            var data = {
              products: JSON.stringify(this.productoSend),
              total: this.deFormatNumber(this.total, false),
+             discount: this.deFormatNumber(this.discount, false),
              gananciaTotal: (this.gananciaInstalled) ? this.deFormatNumber(this.gananciaTotal,false) : 0
            };
            if(this.cafeteriaInstaller){
@@ -600,6 +674,7 @@
            this.order = false;
            this.editOrder = false;
            this.productoSend = [];
+           this.discount = 0,
            this.total = 0;
            this.$awn.success("Orden guardada exitosamente",{labels:{success:'CORRECTO'}});
            this.imprimir(request.data.ticket);
@@ -626,6 +701,7 @@
          this.editOrder = true;
          this.productoSend = JSON.parse(request.data.products);
          this.total = this.deFormatNumber(request.data.total, true);
+         this.discount = this.deFormatNumber(request.data.discount, true);
          this.gananciaTotal = request.data.gananciaTotal;
        },
      crearGuiaDespacho() {
@@ -653,6 +729,9 @@
        else this.type_sell = type_sell;
        
        if(type_sell == 'efectivo') this.other_type = type_sell;
+       else this.type_sell = type_sell;
+
+       if(type_sell == 'credito') this.other_type = type_sell;
        else this.type_sell = type_sell;
 
        if(this.clientsInstaller && type_sell == 'factura'){
@@ -703,6 +782,7 @@
          para su posterior uso.
        */
        this.productoSend = [];
+       this.discount = 0;
        this.total = 0;
        this.order = false;
        this.editOrder = false;
@@ -804,6 +884,7 @@
          var data = {
            products: JSON.stringify(this.productoSend),
            total: this.deFormatNumber(this.total, false),
+           discount: this.deFormatNumber(this.discount,false),
            name: client.name,
            lastname: client.lastname,
            rut: client.rut,
@@ -823,6 +904,7 @@
          var data = {
            products: JSON.stringify(this.productoSend),
            total: this.deFormatNumber(this.total, false),
+           discount: this.deFormatNumber(this.discount,false),
            gananciaTotal: (this.gananciaInstalled) ? this.deFormatNumber(this.gananciaTotal,false) : 0
          };
          if(this.order) data.order = this.order.id;
@@ -930,8 +1012,8 @@
  
        if (!notRefreshCart)
          this.productoSend = [];
- 
-       this.total = 0;
+        this.discount = 0;
+        this.total = 0;
        if ((this.sellCreate || this.tickets) && this.productsGet) {
          // Iniciando peticion
          var request = await this.$store.dispatch("products/getProductsOfSell");
@@ -1272,6 +1354,7 @@
  
      },
      calculateTotal(){
+        this.discount = 0;
        this.total = 0;
        this.gananciaTotal = 0;
        for (var i = 0; i < this.productoSend.length; i++) {
@@ -1305,6 +1388,18 @@
        console.log("focus 10 borrar-focus");
        this.inputElement.focus();
      },
+     increaseQuantity(index, product) {
+      this.productoSend[index].quantity++;
+    },
+    decreaseQuantity(index, product) {
+      this.productoSend[index].quantity;
+      if (this.productoSend[index].quantity > 1) {
+        this.productoSend[index].quantity--;
+      }
+    },
+    toDiscount(discount){
+      this.discount = this.total*discount.percentage;     
+    }
    },
  
    computed:{
@@ -1335,12 +1430,16 @@
        if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
        return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.debito');
      } },
+     settingCredito:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.credito') } },
      cantidadDecimalesSubModules:{ get(){
        if (!ConfigHelper.ConfStr('modulos.ventas')) return false;
        return ConfigHelper.ConfStr('modulos.ventas.submodulos.cantidades_float');
      } },
      settingVenderSinStock:{ get(){
         return ConfigHelper.ConfStr('modulos.ventas.ajustes.permitir_venta_sin_stock');
+     } },
+     settingPermitirDescuento:{ get(){
+        return ConfigHelper.ConfStr('modulos.ventas.ajustes.permitir_descuento');
      } },
      lastSell:{ get(){ return this.$store.getters['sells/sellPast']; } },
      
@@ -1473,8 +1572,8 @@
      },
      haveProducts: {
        get(){ return this.productsIsDefined && this.products.length; }
-     }
-
+     },
+     me: { get() { return this.$store.getters['main/user']; } },
      
    }
  }
@@ -1558,6 +1657,7 @@
  .Jtext-total{
    color:#2a3f6e;
    font-size: 1.4rem;
+   font-weight: bold;
  }
  
  
@@ -1710,5 +1810,25 @@
    .bgVentaMayorClass{
     background-color: #e5eefa;
    }
- </style>
+   .easy-badge-success{
+    background-color: palegreen;
+    padding: 4px;
+    border-radius: 5px;
+    color: green;
+   }
+   .easy-badge-danger{
+    background-color: #ff6e6e;
+    padding: 4px;
+    border-radius: 5px;
+    color: #770d17;
+   }
+   .btn-quantity{
+    background-color: #e5eefa;
+    border: none;
+    color: #4285f4;
+    font-weight: bold;
+    font-size: 18px;
+    box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
+   }
+</style>
  

@@ -233,8 +233,8 @@
  
                <div  class="col-12">
                  <div class="d-flex justify-content-between mb-3 ">
-                     <p  class="m-0 fw-light">Subtotal:</p>
-                     <p  class="m-0 fw-light"> {{formatNumber(this.total/1.19)}}$</b></p>
+                     <p  class="m-0 fw-light"><b>Subtotal:</b></p>
+                     <p  class="m-0 fw-light"><b> {{formatNumber(this.total/1.19)}}$</b></p>
                  </div>
                  
                  <hr>
@@ -242,7 +242,7 @@
  
                <div  class="col-12">
                  <div class="d-flex justify-content-between mb-3 ">
-                     <p  class="m-0 fw-light">IVA(19%):</p>
+                     <p  class="m-0 fw-light"><b>IVA(19%):</b></p>
                      <p  class="m-0 fw-light"><b> {{formatNumber(this.total - Math.round(this.total/1.19))}}$</b></p>
                  </div>
  

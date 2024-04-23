@@ -99,7 +99,7 @@
                    </td>
                    
  
-                     <td class="text-center" v-if="cantidadDecimalesSubModules" :class="{ 'bgVentaMayorClass': activeRows[index] }">
+                     <td class="text-left" v-if="cantidadDecimalesSubModules" :class="{ 'bgVentaMayorClass': activeRows[index] }">
                       <div class="btn-group">
                         <button class="m-0 px-3 btn-quantity" @click="decreaseQuantity(index, product)">-</button>
                         
@@ -112,7 +112,7 @@
                       </div>
 
                      </td>
-                     <td class="text-center" v-else  :class="{ 'bgVentaMayorClass': activeRows[index] }">
+                     <td class="text-left" v-else  :class="{ 'bgVentaMayorClass': activeRows[index] }">
                         <div class="btn-group">
                         <button class="m-0 px-3 btn-quantity" @click="decreaseQuantity(index, product),calculatePlus(index, product, (priceUnitaryInstalled && priceUnitary)?true:false)">-</button>
 
@@ -126,7 +126,7 @@
                     </td>
                      
  
-                   <td class="py-3 px-3 text-center " :class="{ 'bgVentaMayorClass': activeRows[index] }">
+                   <td class="py-3 px-0 text-center " :class="{ 'bgVentaMayorClass': activeRows[index] }">
                      <p class=" fs-4">{{formatNumber(product.subtotal)}}$</p>
                    </td>
  

@@ -12,21 +12,21 @@
            <div class="col-12 p-0 space-between-search-and-create">
             
              <div class="input-group input-group-sm mb-3 ">
-               <autocomplete :search="search" class="w-50" placeholder="Buscar" :getResultValue="getSearchValue" @submit="submitAutocomplete" ref="productAutocomplete" >
-                <template #result="{ result, props }" @click="submitAutocomplete(result)">
-                  <div v-if="props['data-result-index'] == 0" class="d-flex" style="padding: 10px; margin-left:20px; background-color: #dee2e6; color:#5e6fad">
+              <autocomplete :search="search" class="w-50" placeholder="Buscar" :getResultValue="getSearchValue" @submit="submitAutocomplete" ref="productAutocomplete" >
+                <template #result="{ result, props }">
+                  <!-- <div class="d-flex" style="padding: 10px; margin-left:20px; background-color: #dee2e6; color:#5e6fad">
                     <div style="width: 50px;" ><i class="fab fa-sistrix"></i></div>
                     <div style="width: 250px;"><b>NOMBRE</b></div>
                     <div v-if="stockInstalled" style="width: 100px;"><b>STOCK</b></div>
                     <div style="width: 100px;"><b>PRECIO</b></div>
+                  </div> -->
+                  <div class="d-flex list-item" :class="result.class ? result.class : ''" @click="submitAutocomplete(result)">
+                    <div style="width: 50px;" ><b><i class="fab fa-sistrix"></i></b></div>
+                    <div style="width: 300px;"><b>{{ result.name }}</b></div>
+                    <div v-if="stockInstalled" style="width: 100px;"><b>{{ result.stock }}</b></div>
+                    <div style="width: 100px;" ><b>{{ result.price != 'PRICE' ? formatNumber(deFormatNumber(result.price)) +'$': 'PRICE'}} </b></div>
                   </div>
-                  <div class="d-flex" style="padding: 10px; margin-left:20px" @click="submitAutocomplete(result)">
-                    <div style="width: 50px;" ><i class="fab fa-sistrix"></i></div>
-                    <div style="width: 250px;">{{ result.name }}</div>
-                    <div v-if="stockInstalled" style="width: 100px;">{{ result.stock }}</div>
-                    <div style="width: 100px;" ><b>{{formatNumber(deFormatNumber(result.price))}}$   </b></div>
-                  </div>
-                  <hr style="margin: 0;" />
+                  <!-- <hr style="margin: 0;" /> -->
                 </template>
               </autocomplete>
              </div>
@@ -176,11 +176,14 @@
     
      <div class="col-3 Jfondo-2 Jnavi d-flex align-items-start flex-column">
        <div><hr></div>
-       <div style="margin-right:auto;padding:5px;margin-left: auto;font-weight: bold;color: #808080;font-size: 14px;">
-            <span><i class="fas fa-user"></i> {{ this.me.fullname }}</span>
-            <!-- <span> - {{ this.app.Name }}</span> -->
-            <span> - App name ***</span>
+      <!-- <div class="row">
+        <div class="col-12">
+            <div style="margin-right:auto;padding:5px;margin-left: auto;font-weight: bold;color: #808080;font-size: 14px;">
+              <span><i class="fas fa-user"></i> {{ this.me.fullname }}</span>
+              <span> - App name </span>
+            </div>
         </div>
+      </div> -->
 
        <div class="row">
          <div class="col-12 col-md-6">
@@ -231,7 +234,7 @@
                <div  class="col-12">
                  <div class="d-flex justify-content-between mb-3 ">
                      <p  class="m-0 fw-light">Subtotal:</p>
-                     <p  class="m-0 fw-light"> {{formatNumber(this.total/1.19)}}$</p>
+                     <p  class="m-0 fw-light"> {{formatNumber(this.total/1.19)}}$</b></p>
                  </div>
                  
                  <hr>
@@ -240,7 +243,7 @@
                <div  class="col-12">
                  <div class="d-flex justify-content-between mb-3 ">
                      <p  class="m-0 fw-light">IVA(19%):</p>
-                     <p  class="m-0 fw-light"> {{formatNumber(this.total - Math.round(this.total/1.19))}}$</p>
+                     <p  class="m-0 fw-light"><b> {{formatNumber(this.total - Math.round(this.total/1.19))}}$</b></p>
                  </div>
  
                  <hr style="height:1px;color:#333;background-color:#333;" />
@@ -441,7 +444,8 @@
         2:{id:2,percentage:0.1,text:'10'},
         3:{id:3,percentage:0.15,text:'15'},
         4:{id:4,percentage:0.2,text:'20'},
-       }
+       },
+       showHeader: true
      }
    },
  
@@ -749,7 +753,7 @@
        }
        return dataError;
      },
-     JnewPago:true,
+    //  JnewPago:true,
  
      btnPago(metho){
        if(metho)
@@ -1036,12 +1040,12 @@
      },
      search(input) {
        //console.log('SEARCH EXECUTES');
-       console.log('search input', input);
+      //  console.log('search input', input);
  
        // Ahorramos la primera busqueda
        if (input == null || input == '') return [];
-       // Ahorramos una busqueda cuando sea menor que 1
-       if (input.length < 1) return [];
+       // Ahorramos una busqueda cuando sea menor que 2
+       if (input.length < 2) return [];
  
        clearTimeout(this.timeoutT2);
        this.timeoutT2 = setTimeout(() => {
@@ -1050,28 +1054,21 @@
        }, 1500);
  
        const inputLower = input.toLowerCase();
-       const maxProductFindLength = 100;
+       const maxProductFindLength = 50;
  
-       const productsFind = this.products.filter(product => {
-         if (product.cecina == true) return false;
- 
-         var index = 0;
-         const productNameLower = product.name.toLowerCase();
-         for (var i = 0; i < productNameLower.length; i++) {
-           if (productNameLower.startsWith(inputLower, i)) {
-             index = i;
-             break;
-           };
-         }
- 
-         return productNameLower.startsWith(inputLower, index);
-       });
- 
-       return productsFind.splice(0, maxProductFindLength);
-     },
+       const productsFind = this.products
+        .filter(product => !product.cecina)
+        .filter(product => product.name.toLowerCase().includes(inputLower))
+        .splice(0, maxProductFindLength);
+        
+        productsFind.unshift({ name: 'NOMBRE', stock: 'STOCK', price: 'PRICE', class: 'header-list' });
+
+        return productsFind.splice(0, maxProductFindLength);
+
+      },
  
      getSearchValue(result) {
-       console.log("Llamando getSearchhh", result);
+      //  console.log("Llamando getSearchhh", result);
        return result.name + '';
      },
  
@@ -1247,7 +1244,7 @@
  
        //addGainSubTotalVariantPrice(index, data.cecina, precioActual, cantidad, gananciaActual);
        //index ---> this.productoSend[index]
-       //isCecina
+       //isCecina>=
        //precioActual
        //cantidad
        //gananciaActual
@@ -1831,6 +1828,12 @@
     font-weight: bold;
     font-size: 18px;
     box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
+   }
+   .header-list{
+    padding: 10px; margin-left:20px; background-color: #dee2e6; color:#5e6fad
+   }
+   .list-item{
+    padding: 10px; margin-left:20px
    }
 </style>
  

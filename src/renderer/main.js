@@ -17,7 +17,8 @@ import router from './router';
 import store from './store';
 import JQuery from 'jquery';
 import DatePicker from 'vue2-datepicker';
-import Autocomplete from '@trevoreyre/autocomplete-vue'
+import Autocomplete from '@trevoreyre/autocomplete-vue';
+import vSelect from 'vue-select';
 
 import '@trevoreyre/autocomplete-vue/dist/style.css'
 Vue.use(Autocomplete)
@@ -36,11 +37,14 @@ import "mdbootstrap/js/bootstrap.min.js";
 import "./css/adminlte.css";
 import "vue-multiselect/dist/vue-multiselect.min.css";
 import 'vue2-datepicker/index.css';
+import 'vue-select/dist/vue-select.css';
+
 import EchoHelper, { $pusher, $echo } from './helpers/EchoHelper';
 import Chartkick from 'vue-chartkick'
 import Chart from 'chart.js'
 
 Vue.use(Chartkick.use(Chart))
+Vue.component('v-select', vSelect)
 // import "mdbootstrap/js/mdb.min.js"
 Vue.use(require('bootstrap'))
 

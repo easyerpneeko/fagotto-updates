@@ -344,6 +344,7 @@
                 <div class="col-12 text-center">
                   <span><strong>Escriba el nombre del producto</strong></span>
                   <!-- <Select2 v-model="this.itemSelect" :options="this.productsSelect" :settings="{ dropdownParent: '#modalProductStock', width: '100%' }" @change="thisProduct($event)" @select="thisProductEvent($event)"/> -->
+                  <v-select v-model="itemSelect" :options="this.productsSelect" @input="thisProductEvent" label="text"/>
                   <br>
                   <div v-if="stock_first">
                     <span><strong>{{stock_first}}</strong></span>
@@ -395,8 +396,7 @@
  import Loader from '@/helpers/Loader';
  import Print from '@/helpers/Print.js';
  import $ from 'jquery'; window.jQuery = window.$ = $;
-//  import Select2 from 'select2'; window.Select2=Select2;
-    
+ 
  
  
  export default {
@@ -579,7 +579,8 @@
             console.log(productos);
             if (this.barcodeInstalled) { 
               $.each(productos, function(key, val) { 
-                  productsSelect.push({"id":val.id, "text":val.barcode+ ' '+val.name+ ' - stock '+val.stock });
+                  // productsSelect.push({"id":val.id, "text":val.barcode+ ' '+val.name+ ' - stock '+val.stock });
+                  productsSelect.push({"id":val.id, "text":val.name+ ' - stock '+val.stock });
               });
             }
             if (!this.barcodeInstalled) {

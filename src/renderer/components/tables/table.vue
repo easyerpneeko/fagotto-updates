@@ -38,6 +38,21 @@
                 <div v-if="(key.key == 'total' || key.key == 'price' || key.key == 'totalPrice' || key.key == 'balance')" class="m-0">
                   ${{formatNumber(deFormatNumber(item[key.key]))}} <span v-if="(item[key.subKey] && getPermission(key.subPermission))">/KG</span>
                 </div>
+                 <!-- Campo especial para mostrar el tipo de actualizacion en historial de productos -->
+                <div v-if="(key.key == 'type')" class="m-0">
+                  <span class="text-info" v-if="item.type == 'updated'">Actualizacion</span>
+                  <span class="text-info" v-if="item.type == 'created'">Creacion</span>
+                  <span class="text-info" v-if="item.type == 'deleted'">Eliminacion</span>
+                  <span class="text-info" v-if="item.type == 'stock'"  >Stock</span>
+                </div>
+                <!-- Campo especial para mostrar el campo afectado de actualizacion en historial de productos -->
+                <div v-if="(key.key == 'field_afected')" class="m-0">
+                  <span v-if="item.field_afected == 'name'">Nombre</span>
+                  <span v-if="item.field_afected == 'price'">Precio de Venta</span>
+                  <span v-if="item.field_afected == 'compra'">Precio de compra</span>
+                  <span v-if="item.field_afected == 'ganancia'"  >Ganancia</span>
+                  <span v-if="item.field_afected == 'stock'"  >Stock</span>
+                </div>
 
                 <!-- Campo especial para mostrar precios por unidad -->
                 <div v-if="key.key == 'unitary_price'" class="m-0">
@@ -67,7 +82,7 @@
                 </div>
 
                 <!-- Campo predeterminado -->
-                <div v-else-if="(key.key != 'balance' && key.key != 'state' && key.key != 'subtotal' && key.key != 'stock' && key.key != 'total' && key.key != 'price' && key.key != 'client_rut' && key.key != 'client_name' && key.key != 'unitary_price' && key.key != 'totalPrice')" class="m-0">
+                <div v-else-if="(key.key != 'balance' && key.key != 'state' && key.key != 'subtotal' && key.key != 'stock' && key.key != 'total' && key.key != 'price' && key.key != 'client_rut' && key.key != 'client_name' && key.key != 'unitary_price' && key.key != 'totalPrice' && key.key != 'type' && key.key != 'field_afected')" class="m-0">
                   {{(item[key.key]) ? item[key.key] : '-' }}
                 </div>
               </span>

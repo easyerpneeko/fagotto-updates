@@ -14,19 +14,12 @@
              <div class="input-group input-group-sm mb-3 ">
               <autocomplete :search="search" class="w-50" placeholder="Buscar" :getResultValue="getSearchValue" @submit="submitAutocomplete" ref="productAutocomplete" >
                 <template #result="{ result, props }">
-                  <!-- <div class="d-flex" style="padding: 10px; margin-left:20px; background-color: #dee2e6; color:#5e6fad">
-                    <div style="width: 50px;" ><i class="fab fa-sistrix"></i></div>
-                    <div style="width: 250px;"><b>NOMBRE</b></div>
-                    <div v-if="stockInstalled" style="width: 100px;"><b>STOCK</b></div>
-                    <div style="width: 100px;"><b>PRECIO</b></div>
-                  </div> -->
                   <div class="d-flex list-item" :class="result.class ? result.class : ''" @click="submitAutocomplete(result)">
                     <div style="width: 50px;" ><b><i class="fab fa-sistrix"></i></b></div>
                     <div style="width: 300px;"><b>{{ result.name }}</b></div>
                     <div v-if="stockInstalled" style="width: 100px;"><b>{{ result.stock }}</b></div>
                     <div style="width: 100px;" ><b>{{ result.price != 'PRICE' ? formatNumber(deFormatNumber(result.price)) +'$': 'PRICE'}} </b></div>
                   </div>
-                  <!-- <hr style="margin: 0;" /> -->
                 </template>
               </autocomplete>
              </div>
@@ -175,45 +168,46 @@
     <!--!==========================================================================================================================-->
     
      <div class="col-3 Jfondo-2 Jnavi d-flex align-items-start flex-column">
-       <div><hr></div>
-      <!-- <div class="row">
-        <div class="col-12">
-            <div style="margin-right:auto;padding:5px;margin-left: auto;font-weight: bold;color: #808080;font-size: 14px;">
-              <span><i class="fas fa-user"></i> {{ this.me.fullname }}</span>
-              <span> - App name </span>
-            </div>
+       <div><hr class="mt-0"></div>
+      <div class="row d-flex w-100">
+        <div class="col-12"style="padding: 15px;padding-top: 0px;font-weight: 900;color: #b1b1b1">
+            <p class="m-0"><i class="fas fa-user"></i> {{ this.me.fullname.toUpperCase() }} - {{ this.appName.toUpperCase() }}</p>
+            <span>{{ this.fechaActual }}</span>
+            <span>{{ this.horaActual }}</span>
         </div>
-      </div> -->
+      </div>
 
        <div class="row">
-         <div class="col-12 col-md-6">
-           <button @click="newTicket()" type="button" v-if="(ticketInstaller && tickets)" :disabled="editOrder" class="btn-r0 w-100 Jbutton-ticket m-1 btn" >
+         <div class="col-md-12">
+           <button @click="newTicket()" type="button" v-if="(ticketInstaller && tickets)" :disabled="editOrder" class="btn-r0 w-100 Jbutton-ticket m-1 btn btn-primary" >
              Crear ticket
            </button>
          </div>
-         <div class="col-12 col-md-6">
-           <button type="button" v-if="(permitir_add_producto && newProductSell)" class="btn-r0 w-100 btn btn-success text-capitalize" data-toggle="modal" data-target="#newProductModal">
+         <div class="col-md-12">
+           <button type="button" v-if="(permitir_add_producto && newProductSell)" class="btn-r0 w-100 btn btn-danger" data-toggle="modal" data-target="#newProductModal">
              Añadir Producto
            </button>
          </div>
-         <div class="col-12">
-           <button v-if="settingFactura" type="button" class="fs-4 text-info btn-r0 w-100 btn btn-white fw-bold" @click="crearGuiaDespacho()">
+         <div class="col-md-12">
+           <button v-if="settingFactura" type="button" class="fs-4 btn-r0 w-100 btn btn-warning fw-bold" @click="crearGuiaDespacho()">
              GUIA DE DESPACHO
            </button>
          </div>
        </div>
        <div><hr></div>
 
-       <div class="row" v-if="settingPermitirDescuento">
-        <div class="col-12">
-          <h6>DESCUENTOS</h6>
-        </div>
-        <div><hr></div>
-        
-        <div v-for="(discount, index) in discounts" :key="id" class="col-12 col-md-3">
-          <button @click="toDiscount(discount)" type="button" class="fs-4 text-info btn-r0 w-100 btn btn-white fw-bold" >
-             {{discount.text+'%'}}
-           </button>
+       <div v-if="settingPermitirDescuento"> 
+        <div class="row d-flex">
+          <div class="col-12">
+            <h6>DESCUENTOS</h6>
+          </div>
+        </div>      
+        <div class="row d-flex justify-content-between ">
+          <div v-for="(discount, index) in discounts" :key="discount.id" class="col-md-3">
+            <button @click="toDiscount(discount)" type="button" class="text-info w-100 btn btn-white fw-bold" >
+              {{discount.text+'%'}}
+            </button>
+          </div>
         </div>
        </div>
        
@@ -224,8 +218,8 @@
              <div class="row">
               <div  class="col-12">
                  <div class="d-flex justify-content-between mb-3 " v-if="settingPermitirDescuento">
-                     <p  class="m-0 fw-light">Descuento:</p>
-                     <p  class="m-0 fw-light"> {{formatNumber(this.discount)}}$</p>
+                     <p  class="m-0 fw-light"><b>Descuento:</b></p>
+                     <p  class="m-0 fw-light"><b> {{formatNumber(this.discount)}}$</b></p>
                  </div>
                  
                  <hr>
@@ -445,7 +439,11 @@
         3:{id:3,percentage:0.15,text:'15'},
         4:{id:4,percentage:0.2,text:'20'},
        },
-       showHeader: true
+       showHeader: true,
+       app:null,
+       fechaActual: '',
+       horaActual: '',
+       appName:'' 
      }
    },
  
@@ -453,7 +451,14 @@
  
  
    async mounted(){
-     //HavePermission
+     //Get app
+    var request = await this.$store.dispatch('main/refreshData', '?slim');
+    this.app = request.data;
+    this.appName = this.app.Name;
+    //Para actualizar la hora y fecha
+    setInterval(() => {
+      this.obtenerFechaHoraActual();
+    }, 1000);
 
      console.log("[newSell] mounted.")
     
@@ -464,12 +469,6 @@
      console.log("Componente montadoooo", this.inputElement);
      this.refreshData(false, true);
 
-    
-     //cerrar div de newPago js
-     //$('#newPago').hide();
-
-    
-     console.log("[newSell] mounted2.")
      document.addEventListener("keydown", (e) => {
         if (e.keyCode == 27) {
             this.productSearch = '';
@@ -482,7 +481,6 @@
             this.modalProductStock();
         }
     });
-    //  this.app = await this.getApp();
    },
   
    components:{
@@ -729,13 +727,19 @@
          return false;
        }
        this.btnPago(false);
-       if(type_sell == 'debito') this.other_type = type_sell;
-       else this.type_sell = type_sell;
+      if(type_sell == 'debito') {
+        this.other_type = type_sell;
+      }else{ 
+        this.type_sell = type_sell; 
+      }
        
        if(type_sell == 'efectivo') this.other_type = type_sell;
        else this.type_sell = type_sell;
 
        if(type_sell == 'credito') this.other_type = type_sell;
+       else this.type_sell = type_sell;
+
+       if(type_sell == 'boleta') this.other_type = type_sell;
        else this.type_sell = type_sell;
 
        if(this.clientsInstaller && type_sell == 'factura'){
@@ -1398,6 +1402,11 @@
     },
     toDiscount(discount){
       this.discount = this.total*discount.percentage;     
+    },
+    obtenerFechaHoraActual() {
+      const fecha = new Date();
+      this.fechaActual = fecha.toLocaleDateString();
+      this.horaActual = fecha.toLocaleTimeString();
     }
    },
  

@@ -241,27 +241,28 @@ export default {
         rows:[
 
           {key:'created_at', class:'', permission:'default'},
-          {key:'fullname', class:'', permission:'default'},
           {key:'name', class:'', permission:'default'},
-          {key:'type', class:'', permission:'default'},
-          {key:'name_old', class:'', permission:'default'},
-          {key:'name_new', class:'', permission:'default'},
-          {key:'stock_old', class:'', permission:'default'},
-          {key:'stock_new', class:'', permission:'default'},
           {key:'namecategory', class:'', permission:'default'},
-          
+          {key:'type', class:'', permission:'default'},
+          {key:'field_afected', class:'', permission:'default'},
+          {key:'old_value', class:'', permission:'default'},
+          {key:'new_value', class:'', permission:'default'},
+          {key:'fullname', class:'', permission:'default'},
+          // {key:'name_old', class:'', permission:'default'},
+          // {key:'name_new', class:'', permission:'default'},
+          // {key:'stock_old', class:'', permission:'default'},
+          // {key:'stock_new', class:'', permission:'default'},
         ],
 
         titles:[
-          {label:'Hora de la edicion', class:'', permission:'default', type:'false', orderBy: false},
-          {label:'Nombre del mesero', class:'', permission:'default', type:'false', orderBy: false},
-          {label:'Nombre del producto', class:'', permission:'default', type:'false', orderBy: false},
-          {label:'Nombre Anterior', class:'', permission:'default', type:'false', orderBy: false},
-          {label:'Nombre Nuevo', class:'', permission:'default', type:'false', orderBy: false},
-          {label:'Tipo de cambio', class:'', permission:'default', type:'false', orderBy: false},
-          {label:'Stock Anterior', class:'', permission:'default', type:'false', orderBy: false},
-          {label:'Stock Nuevo', class:'', permission:'default', type:'false', orderBy: false},
+          {label:'Fecha y hora', class:'', permission:'default', type:'false', orderBy: false},
+          {label:'Producto', class:'', permission:'default', type:'false', orderBy: false},
           {label:'Categoria', class:'', permission:'default', type:'false', orderBy: false},
+          {label:'Tipo', class:'', permission:'default', type:'false', orderBy: false},
+          {label:'Campo', class:'', permission:'default', type:'false', orderBy: false},
+          {label:'Valor Anterior', class:'', permission:'default', type:'false', orderBy: false},
+          {label:'Valor Nuevo', class:'', permission:'default', type:'false', orderBy: false},
+          {label:'Usuario', class:'', permission:'default', type:'false', orderBy: false},
         ]
       }
     }

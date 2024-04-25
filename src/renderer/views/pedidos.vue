@@ -381,8 +381,6 @@ export default {
             url_linkify: 'https://app.linkify.cl/pay/QXyLMKgplXOzBJl/remote/',
             url_payment: '',
             totalPrice: 0,
-
-            appName: 'Negocio de prueba',
             date: moment().format('YYYY-MM-DD HH:mm:ss'),
 
             disableForm: false,
@@ -448,9 +446,12 @@ export default {
             vasos:0
         }
     },
+    async beforeCreate() {
+        var request = await this.$store.dispatch('main/refreshData', '?slim');
+        this.app = request.data;
+    },
     async mounted() {
-        this.app = await this.getApp();
-
+        
         this.getRequests(false);
         this.getDespacho();
         // this.user = this.me;

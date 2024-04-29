@@ -443,6 +443,7 @@ export default {
             icon: 'fa-file-upload'
           });
         }
+        //Modulo de pedidos
         if(pedidos){
           menu.push({
             label: 'Crear Pedido',
@@ -450,11 +451,11 @@ export default {
             icon: 'fas fa-truck-loading'
           });
         }
-
+        //Modulo de operaciones
         if(operations){
           menu.push({
             label: 'Crear Operacion',
-            route: '/inicio/operations',
+            route: '/inicio/operaciones',
             icon: 'fas fa-cogs'
           });
         }

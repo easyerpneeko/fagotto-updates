@@ -11,6 +11,7 @@ import sells from './sells';
 import reports from './reports';
 import expenses from './expenses';
 import requests from './requests';
+import operations from './operations';
 // Modulo de cafeteria
 import cafeteria from './cafeteria/cafeteria';
 import waiters from './cafeteria/waiters';
@@ -33,6 +34,7 @@ export default new Vuex.Store({
     reports,
     expenses,
     requests,
+    operations,
     'cafeteria/kitchen': cafeteria_kitchen,
     'client_orders/mobile_devices': co_mobile_devices,
     clients,

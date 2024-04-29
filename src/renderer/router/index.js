@@ -91,6 +91,10 @@ export default new Router({
         {
           path: 'pedidos',
           component: require('@/views/pedidos.vue').default
+        },
+        {
+          path: 'operaciones',
+          component: require('@/views/operations.vue').default
         }
       ]
     },

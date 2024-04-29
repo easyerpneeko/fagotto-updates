@@ -267,6 +267,7 @@ export default {
       var sii = ConfigHelper.ConfStr('modulos.ventas.submodulos.sii');
       const clientOrders = ConfigHelper.ConfStr('modulos.client_orders');
       var pedidos = ConfigHelper.ConfStr('modulos.pedidos');
+      var operations = ConfigHelper.ConfStr('modulos.operations');
       // Submodulos
       var fastSell = ConfigHelper.ConfStr('modulos.ventas') && ConfigHelper.ConfStr('modulos.ventas.submodulos.sell_fast');
       const kitchenMode = ConfigHelper.ConfStr('modulos.cafeteria') && ConfigHelper.ConfStr('modulos.cafeteria.submodulos.modo_cocina');
@@ -447,6 +448,14 @@ export default {
             label: 'Crear Pedido',
             route: '/inicio/pedidos',
             icon: 'fas fa-truck-loading'
+          });
+        }
+
+        if(operations){
+          menu.push({
+            label: 'Crear Operacion',
+            route: '/inicio/operations',
+            icon: 'fas fa-cogs'
           });
         }
        

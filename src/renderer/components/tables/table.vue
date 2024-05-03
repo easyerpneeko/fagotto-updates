@@ -34,6 +34,14 @@
                   {{ (item.client != null) ? item.client.rut : '-'}}
                 </div>
 
+                <div v-else-if="key.key == 'category'" class="m-0">
+                  {{ item.category.name }}
+                </div>
+
+                <div v-else-if="key.key == 'subcategory'" class="m-0">
+                  {{ item.subcategory.name }}
+                </div>
+
                 <!-- Campo especial para mostrar cantidades de pesos y cecina -->
                 <div v-if="(key.key == 'total' || key.key == 'price' || key.key == 'totalPrice' || key.key == 'balance')" class="m-0">
                   ${{formatNumber(deFormatNumber(item[key.key]))}} <span v-if="(item[key.subKey] && getPermission(key.subPermission))">/KG</span>
@@ -82,7 +90,7 @@
                 </div>
 
                 <!-- Campo predeterminado -->
-                <div v-else-if="(key.key != 'balance' && key.key != 'state' && key.key != 'subtotal' && key.key != 'stock' && key.key != 'total' && key.key != 'price' && key.key != 'client_rut' && key.key != 'client_name' && key.key != 'unitary_price' && key.key != 'totalPrice' && key.key != 'type' && key.key != 'field_afected')" class="m-0">
+                <div v-else-if="(key.key != 'balance' && key.key != 'state' && key.key != 'subtotal' && key.key != 'stock' && key.key != 'total' && key.key != 'price' && key.key != 'client_rut' && key.key != 'client_name' && key.key != 'unitary_price' && key.key != 'totalPrice' && key.key != 'type' && key.key != 'field_afected' && key.key != 'category' && key.key != 'subcategory')" class="m-0">
                   {{(item[key.key]) ? item[key.key] : '-' }}
                 </div>
               </span>

@@ -46,7 +46,7 @@
                                                 :class="{ 'has-error': submitted && !isValidName }">
                                                 <div class="help-block with-errors"></div>
                                                 <input v-model="name" :disabled="this.disableForm" name="name"
-                                                    id="contactName" placeholder="Tu nombre*" class="form-control"
+                                                    id="contactName" placeholder="Tu nombre" class="form-control"
                                                     type="text" required="" data-error="Por favor ingresa tu nombre">
                                                 <div class="input-group-icon"><i class="fa fa-user"></i></div>
 
@@ -90,6 +90,34 @@
                                                 <div class="input-group-icon"><i class="fas fa-dollar-sign"></i></div>
                                             </div><!-- end form-group -->
 
+                                            <div class="form-group col-sm-6" :class="{ 'has-error': submitted }">
+                                                <div class="help-block with-errors"></div>
+                                                <select class="form-control" v-model="category"
+                                                    @change="loadSubcategories" :disabled="this.disableForm"
+                                                    placeholder="Categorias">
+                                                    <option disabled selected class="text-capitalize">Todas</option>
+                                                    <option :value="category" v-for="category in categories"
+                                                        :key="category.id" class="text-capitalize">
+                                                        {{ category.name }}
+                                                    </option>
+                                                </select>
+                                                <div class="input-group-icon"><i class="fas fa-bars"></i></div>
+                                            </div><!-- end form-group -->
+
+                                            <div class="form-group col-sm-6" :class="{ 'has-error': submitted }">
+                                                <div class="help-block with-errors"></div>
+                                                <select class="form-control" v-model="subcategory"
+                                                    :disabled="this.disableForm" placeholder="Subcategorias">
+                                                    <option disabled selected class="text-capitalize">Todas</option>
+                                                    <option :value="subcategory"
+                                                        v-for="subcategory in filtersubcategories" :key="subcategory.id"
+                                                        class="text-capitalize">
+                                                        {{ subcategory.name }}
+                                                    </option>
+                                                </select>
+                                                <div class="input-group-icon"><i class="fas fa-stream"></i></div>
+                                            </div><!-- end form-group -->
+
                                             <div class="form-group last col-sm-12">
                                                 <button type="button"
                                                     class="m-1 btn-width btn bg-primario text-white text-capitalize"
@@ -113,32 +141,39 @@
         <!-- Filtros de operaciones -->
         <!-- v-if="productsGet" -->
         <div class="d-flex row w-100 pt-4 px-5">
-            <div class="col-md-4 col-sm-6 col-12">
-                <label for="ProductName">Buscar</label>
-                <input :disabled="this.disableCategory" id="ProductName" v-model="OperationName" type="text"
+            <div class="col-md-2 col-sm-4 col-12">
+                <label for="OperationName">Buscar</label>
+                <input :disabled="this.disableCategory" id="OperationName" v-model="OperationName" type="text"
                     class="form-control" @keypress.enter="getOperations" />
             </div>
             <!-- v-if="categoriesInstalled && productsGet" -->
             <div class="col-md-4 col-sm-6 col-12">
                 <label for="Category">Categoria</label>
-                <select class="form-control" v-model="category" @change="getOperations" :disabled="disableCategory">
+                <select class="form-control" v-model="category" @change="loadSubcategories" :disabled="disableCategory">
                     <option :value="null" class="text-capitalize">Todas</option>
-                    <option :value="category.id" v-for="category in categories" v-if="category.status === 0"
-                        :key="category.id" class="text-capitalize">{{ category.name }}</option>
+                    <option :value="category" v-for="category in categories" :key="category.id" class="text-capitalize">
+                        {{ category.name }}</option>
                 </select>
             </div>
-            <!-- <div v-if="downloadExcelInstaller"
-                class="col-lg-2 col-md-4 col-sm-6 col-12 d-flex justify-content-md-end align-items-end">
-                <a @click="downloadExcel"
-                    :class="['mt-2 mb-0 mx-0 w-100 btn bg-primario text-white text-capitalize', { 'disabled': offOn }]">
-                    Inventario
-                </a>
-            </div> -->
+            <div class="col-md-4 col-sm-6 col-12">
+                <label for="Subcategory">Subcategorias</label>
+                <select class="form-control" v-model="subcategory" :disabled="disableSubcategory">
+                    <option :value="null" class="text-capitalize">Todas</option>
+                    <option :value="subcategory" v-for="subcategory in filtersubcategories" :key="subcategory.id"
+                        class="text-capitalize">{{ subcategory.name }}</option>
+                </select>
+            </div>
+            <div class="col-md-2 col-sm-6 col-12 d-flex justify-content-md-end align-items-end">
+                <button type="button" data-toggle="modal" data-target="#balancesModal"
+                    class="m-1 btn-width btn bg-dark text-white text-capitalize">
+                    Balances
+                </button>
+            </div>
         </div>
 
         <!-- Listado de operaciones-->
         <!-- v-if="(operations && operations.items.length > 0)" -->
-        <div ref="loaderProduct" class="vld-parent px-5 mt-2">
+        <div ref="loaderOperation" v-if="(jsonTable.items.length > 0)" class="vld-parent px-5 mt-2">
             <!-- tabla -->
             <customTable v-if="operationTable" v-model="jsonTable" @orderBy="orderBy" v-slot="props">
                 <!-- <a @click="selectOperation(props.item)" class="py-1 px-2 text-center btn bg-secundario" href="#"
@@ -156,22 +191,103 @@
             <div v-if="!operationTable" class="row">
                 <div v-for="(product, index) in operations.items" :key="'operation-' + index" class="products__col">
                     <card-product v-if="operation.category_status === 0" :operation="operation" @edit="selectOperation"
-                        @remove="openVerify"></card-product>
+                        @remove="b"></card-product>
                 </div>
             </div> -->
 
             <!-- Paginacion -->
-            <paginate v-if="(operations && operations.pages > 1)" v-model="operations" :offOn="offOn"
-                @getPage="getOperations" />
+            <paginate v-if="(operations && operations.pages > 1)" v-model="operations" :offOn="offOn" @getPage="getOperations" />
         </div>
         <!-- v-else -->
-        <div ref="loaderProduct" class="vld-parent px-2 mt-2">
+        <div ref="loaderOperation" v-else class="vld-parent px-2 mt-2">
             <div class="box-false d-flex flex-center text-center p-2 w-100">
                 <h2>No existen operaciones actualmente</h2>
             </div>
         </div>
 
         <!-- Modales -->
+
+        <div class="modal fade" id="balancesModal" tabindex="-1" role="dialog" aria-labelledby="balancesModal"
+            aria-hidden="true" data-backdrop="false">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-primario">
+                        <h5 class="modal-title">Balances</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body p-0">
+
+                        <table class="table">
+                            <thead class="thead-dark">
+                                <tr class="">
+                                    <th scope="col" colspan="3">CATEGORIA A</th>
+                                </tr>
+                                <tr>
+                                    <th scope="col">SUBCATEGORIA</th>
+                                    <th scope="col">OPERACIONES</th>
+                                    <th scope="col">TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">SUB CATEOGERY A</th>
+                                    <td>3</td>
+                                    <td>20000$</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">SUB CATEOGERY B</th>
+                                    <td>3</td>
+                                    <td>20000$</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">SUB CATEOGERY C</th>
+                                    <td>3</td>
+                                    <td>20000$</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table class="table">
+                            <thead class="thead-dark">
+                                <tr class="">
+                                    <th scope="col" colspan="3">CATEGORIA A</th>
+                                </tr>
+                                <tr>
+                                    <th scope="col">SUBCATEGORIA</th>
+                                    <th scope="col">OPERACIONES</th>
+                                    <th scope="col">TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">SUB CATEOGERY A</th>
+                                    <td>3</td>
+                                    <td>20000$</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">SUB CATEOGERY B</th>
+                                    <td>3</td>
+                                    <td>20000$</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">SUB CATEOGERY C</th>
+                                    <td>3</td>
+                                    <td>20000$</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn bg-secundario text-white" data-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <verify-modal :propVerify="propVerify" @refreshData="getOperations" />
         <categories />
         <sub-categories />
     </div>
@@ -214,46 +330,48 @@ export default {
             total: 0,
 
             disableCategory: false,
+            disableSubcategory: true,
             disableForm: false,
             submitted: false,
-
+            waitResponse: false,
+            propVerify: null,
+            oldPage:1,
             category: null,
-
+            subcategory: null,
+            filtersubcategories: [],
             OperationName: '',
 
-            categories: {
-                0: { id: '1', status: 0, name: 'Cat 1' },
-                1: { id: '2', status: 0, name: 'Cat 2' },
-                2: { id: '3', status: 0, name: 'Cat 3' },
-            },
+            // categories: {},
+
+            AllSubcategories: [],
 
             operations: {
-                items: {
-                    0: { name: '1', company_name: 'Company Name A', rut: 'Cat A', factura: '1', created_at: '1', total: '1', },
-                }
+                items: {}
             },
 
             jsonTable: {
                 btn: true,
-                items: {
-                    0: { name: 'Orlando', company_name: 'Company Name A', rut: '12345678-0', factura: '1', created_at: '2024-04-25 17:52:37', total: '100', },
-                    1: { name: 'Jimmy', company_name: 'Company Name B', rut: '12345678-0', factura: '2', created_at: '2024-04-25 17:52:37', total: '2000', },
-                    2: { name: 'Maria', company_name: 'Company Name C', rut: '12345678-0', factura: '3', created_at: '2024-04-25 17:52:37', total: '3000', },
-                },
+                items: {},
                 rows: [
+                    { key: 'id', class: '', permission: 'default' },
                     { key: 'name', class: '', permission: 'default' },
-                    { key: 'company_name', class: '', permission: 'default', subKey: 'cecina', subPermission: 'cecinaInstalled', },
-                    { key: 'rut', class: '', permission: 'categoriesInstalled' },
-                    { key: 'factura', class: '', permission: 'stockInstalled' },
-                    { key: 'created_at', class: '', permission: 'stockInstalled' },
-                    { key: 'total', class: '', permission: 'stockInstalled' },
+                    { key: 'company_name', class: '', permission: 'default' },
+                    { key: 'rut', class: '', permission: 'default' },
+                    { key: 'factura', class: '', permission: 'default' },
+                    { key: 'created_at', class: '', permission: 'default' },
+                    { key: 'category', class: '', permission: 'default' },
+                    { key: 'subcategory', class: '', permission: 'default' },
+                    { key: 'total', class: '', permission: 'default' },
                 ],
                 titles: [
+                    { label: '#', class: 'th-sm', permission: 'default', type: false, orderBy: false },
                     { label: 'Nombre', class: 'th-sm', permission: 'default', type: 'orderBy', orderBy: false },
-                    { label: 'Empresa', class: 'th-sm', permission: 'categoriesInstalled', type: false },
+                    { label: 'Empresa', class: 'th-sm', permission: 'categoriesInstalled', type: 'orderBy' },
                     { label: 'RUT', class: 'th-sm', permission: 'default', type: false },
                     { label: 'Factura', class: 'th-sm', permission: 'default', type: false },
                     { label: 'Fecha', class: 'th-sm', permission: 'default', type: false },
+                    { label: 'Categoria', class: 'th-sm', permission: 'default', type: 'orderBy' },
+                    { label: 'Subcategoria', class: 'th-sm', permission: 'default', type: 'orderBy' },
                     { label: 'Total', class: 'th-sm', permission: 'default', type: false },
                     { label: 'Acciones', class: 'th-sm text-center', permission: 'default', type: false },
                 ]
@@ -265,22 +383,171 @@ export default {
         this.app = request.data;
     },
     async mounted() {
-
+        await this.getCategories();
+        await this.getSubcategories()
+        await this.getOperations(this.oldPage, true);
     },
     computed: {
         // operationTable:{ get(){ return ConfigHelper.ConfStr('modulos.productos.ajustes.productos_tabla'); } },
         operationTable: { get() { return true; } },
+        categories: {
+            get() {
+                return this.$store.getters['operations/categories'];
+            }
+        },
+        offOn: {
+            get() { return this.value },
+            set(offOn) { this.$emit('input', offOn) }
+        },
+        isValidName: {
+            get() { return this.name.length > 0 }
+        },
+        isValidRut: {
+            get() { return this.rut.length > 9 }
+        },
+        isValidFactura: {
+            get() { return this.factura.length > 0 }
+        },
+        isValidTotal: {
+            get() { return this.total > 0 }
+        },
+        isValidCompanyName: {
+            get() { return this.company_name.length > 0 }
+        }
+
     },
     methods: {
-        newOperation() {
+        loadSubcategories() {
+            console.log(this.category);
+
+            // Filtrar las subcategorías basándose en la categoría seleccionada
+            if (this.category) {
+                this.filtersubcategories = this.AllSubcategories.filter(subcategory => subcategory.operations_categories_id === this.category.id);
+                this.disableSubcategory = false; // Habilitar el select de subcategorías
+            } else {
+                this.filtersubcategories = this.AllSubcategories;
+                this.disableSubcategory = true; // Mantener el select de subcategorías deshabilitado
+            }
+
+            console.log(this.filtersubcategories);
+            console.log(this.AllSubcategories);
+        },
+        async getCategories() {
+            this.waitResponse = true;
+            await this.$store.dispatch("operations/getCategories");
+            this.waitResponse = false;
+        },
+        async getSubcategories() {
+            this.waitResponse = true;
+            let request = await this.$store.dispatch("operations/getSubcategories");
+            if (request.success) {
+                this.AllSubcategories = request.data;
+                console.log(request.data);
+            }
+            this.waitResponse = false;
+        },
+        async newOperation() {
+            this.submitted = true;
+            if (!this.validar_form()) {
+                this.$awn.alert('Hay errores en el formulario');
+                return;
+            }
+            const data = {
+                name: this.name,
+                rut: this.rut,
+                company_name: this.company_name,
+                factura: this.factura,
+                total: this.total,
+                operations_categories_id: this.category.id,
+                operations_subcategories_id: this.subcategory.id
+            };
+
+            console.log('data', data);
+            //Se construye formdata
+            var formData = new FormData();
+            for (let key in data) if (data[key]) formData.append(key, data[key]);
+
+            this.waitResponse = true;
+            Loader.fullPage();
+            let request = await this.$store.dispatch('operations/newOperation', formData);
+            Loader.hide();
+
+            if (request.success) {
+                this.$awn.success('Operacion creada Exitosamente', { labels: { success: 'CORRECTO' } });
+            } else {
+                console.log(request.data);
+                this.$awn.alert('Error al enviar el pedido');
+            }
+            this.waitResponse = false;
+            console.log(data);
+
+            //refrescar data
+            this.getOperations(false);
+            this.submitted = false;
 
         },
-        async getOperations(page = false, isRefresh = false) {
+        async getOperations(page = false, isRefresh = true) {
+            if (!isRefresh) {
+                this.disableCategory = true;
+                Loader.containe(this.$refs.loaderOperation);
+            }
 
+            var params = '?params=true';
+            if (page !== false) this.oldPage = '&page=' + page;
+            params += this.oldPage;
+
+            // if (this.category != null && this.category != '') params += '&categoryOfProduct=' + this.category;
+
+            if (this.OperationName != null && this.OperationName != '') params += '&nameOfOperation=' + this.OperationName;
+            // Iniciando peticion
+            this.offOn = true;
+            Loader.containe(this.$refs.loaderRequests);
+            var request = await this.$store.dispatch("operations/getOperations", params);
+            console.log('Operaciones: ', request);
+            Loader.hide();
+            this.offOn = false;
+            // Verificando respuesta
+            // if (!request.success) return this.$awn.alert(request.data);
+            if (!request.success) console.log('Error: ', request.data);
+
+            this.requests = request.data;
+            this.jsonTable.items = request.data;
+        },
+        // Refrescando productos
+        async refreshData(loading = false) {
+            // Iniciando refrescamiento (carga y botones disabled)
+            // this.offOn = true;
+            // this.disableCategory = true;
+            // if (loading) Loader.containe(this.$refs.loaderProduct);
+            // else Loader.dinamic();
+            // await this.getOperations(this.oldPage, true);
+            // // Culminando la funcion
+            // Loader.hide();
+            // this.disableCategory = false;
+            // this.offOn = false;
         },
         orderBy() {
             this.jsonTable.titles[0].orderBy = !this.jsonTable.titles[0].orderBy;
             // this.refreshData();
+        },
+        openVerify(operation) {
+            this.propVerify = {
+                params: operation.id,
+                title: 'Eliminar Operacion',
+                text: '¿Usted esta seguro de eliminar la operacion #' + operation.id + '?',
+                store: 'operations/removeOperation',
+                success: 'Operacion eliminada exitosamente'
+            };
+            $('#verifyDelete').modal('show');
+        },
+        validar_form() {
+            // if (!this.isValidProducts) {
+            //     this.$awn.alert("Es necesario agregar algun producto");
+            // }
+            // if (!this.isValidName) {
+            //     return false;
+            // }
+            return true;
         },
     }
 }
@@ -328,12 +595,12 @@ export default {
 }
 
 /* .item-wrap {
-        border: 2px solid #ccc;
-        border-radius: 5px;
-        margin: 20px auto;
-        padding: 30px 15px 0;
-        width: 100%;
-    } */
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    margin: 20px auto;
+    padding: 30px 15px 0;
+    width: 100%;
+} */
 
 .item-image img {
     border: 1px solid #ccc;
@@ -498,8 +765,8 @@ export default {
     background-color: white;
     display: inline-block;
     box-sizing: border-box;
-    /* -webkit-appearance: none; */
-    /* -moz-appearance: none; */
+    -webkit-appearance: none;
+    -moz-appearance: none;
     background-image: linear-gradient(45deg, transparent 50%, #304f6f 50%), linear-gradient(135deg, #304f6f 50%, transparent 50%), radial-gradient(transparent 66%, transparent 66%);
     background-position: calc(100% - 18px) calc(1em + 2px), calc(100% - 13px) calc(1em + 2px), calc(100% - .5em) .5em;
     background-size: 5px 6px, 6px 5px, 1.5em 1.5em;

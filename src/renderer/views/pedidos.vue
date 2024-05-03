@@ -176,8 +176,7 @@ Reloj de arena: En espera.">
                         <i class="fa fa-eye"></i>
                     </a>
                     <!-- Condicion solo si es admin -->
-                    <a v-if="isAdmin" @click="openVerify(props.item)" class="py-1 px-2 text-center btn bg-danger"
-                        href="#">
+                    <a v-if="isAdmin" @click="openVerify(props.item)" class="py-1 px-2 text-center btn bg-danger" href="#">
                         <i class="fa fa-trash"></i>
                     </a>
                 </customTable>

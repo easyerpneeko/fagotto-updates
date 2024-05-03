@@ -36,3 +36,47 @@ export async function updateOperation(context, data) {
   const request = await Connection.request('put',url, data.data);
   return request;
 }
+
+//CATEGORIAS
+export async function getCategories(context) {
+  let url = BaseUrl.getUrl('api/local/operation/categories');
+  const request = await Connection.request('get',url);
+  if (request.success){
+    context.commit('setProperty',{ key:'categories' , data: request.data });
+  }
+  return request;
+}
+
+export async function removeCategory(context, data) {
+  let url = BaseUrl.getUrl('api/local/operation/categories/' + data);
+  const request = await Connection.request('delete',url, data);
+  return request;
+}
+
+export async function newCategory(context, data) {
+  let url = BaseUrl.getUrl("api/local/operation/categories");
+  const request = await Connection.request("post", url, data);
+  return request;
+}
+
+//SUBCATEGORIAS
+export async function getSubcategories(context) {
+  let url = BaseUrl.getUrl('api/local/operation/subcategories');
+  const request = await Connection.request('get',url);
+  if (request.success){
+    context.commit('setProperty',{ key:'subcategories' , data: request.data });
+  }
+  return request;
+}
+
+export async function removeSubcategory(context, data) {
+  let url = BaseUrl.getUrl('api/local/operation/subcategories/' + data);
+  const request = await Connection.request('delete',url, data);
+  return request;
+}
+
+export async function newSubcategory(context, data) {
+  let url = BaseUrl.getUrl("api/local/operation/subcategories");
+  const request = await Connection.request("post", url, data);
+  return request;
+}

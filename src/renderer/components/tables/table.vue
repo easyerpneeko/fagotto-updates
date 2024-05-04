@@ -34,12 +34,12 @@
                   {{ (item.client != null) ? item.client.rut : '-'}}
                 </div>
 
-                <div v-else-if="key.key == 'category'" class="m-0">
-                  {{ item.category.name }}
+                <div v-else-if="key.key == 'categories'" class="m-0">
+                  {{ item.categories.name }}
                 </div>
 
-                <div v-else-if="key.key == 'subcategory'" class="m-0">
-                  {{ item.subcategory.name }}
+                <div v-else-if="key.key == 'subcategories'" class="m-0">
+                  {{ item.subcategories.name }}
                 </div>
 
                 <!-- Campo especial para mostrar cantidades de pesos y cecina -->
@@ -90,7 +90,7 @@
                 </div>
 
                 <!-- Campo predeterminado -->
-                <div v-else-if="(key.key != 'balance' && key.key != 'state' && key.key != 'subtotal' && key.key != 'stock' && key.key != 'total' && key.key != 'price' && key.key != 'client_rut' && key.key != 'client_name' && key.key != 'unitary_price' && key.key != 'totalPrice' && key.key != 'type' && key.key != 'field_afected' && key.key != 'category' && key.key != 'subcategory')" class="m-0">
+                <div v-else-if="(key.key != 'balance' && key.key != 'state' && key.key != 'subtotal' && key.key != 'stock' && key.key != 'total' && key.key != 'price' && key.key != 'client_rut' && key.key != 'client_name' && key.key != 'unitary_price' && key.key != 'totalPrice' && key.key != 'type' && key.key != 'field_afected' && key.key != 'categories' && key.key != 'subcategories')" class="m-0">
                   {{(item[key.key]) ? item[key.key] : '-' }}
                 </div>
               </span>

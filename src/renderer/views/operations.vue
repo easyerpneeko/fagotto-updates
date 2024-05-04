@@ -149,7 +149,7 @@
             <!-- v-if="categoriesInstalled && productsGet" -->
             <div class="col-md-4 col-sm-6 col-12">
                 <label for="Category">Categoria</label>
-                <select class="form-control" v-model="category" @change="loadSubcategories" :disabled="disableCategory">
+                <select class="form-control" v-model="categoryName" @change="getOperations" :disabled="disableCategory">
                     <option :value="null" class="text-capitalize">Todas</option>
                     <option :value="category" v-for="category in categories" :key="category.id" class="text-capitalize">
                         {{ category.name }}</option>
@@ -157,14 +157,14 @@
             </div>
             <div class="col-md-4 col-sm-6 col-12">
                 <label for="Subcategory">Subcategorias</label>
-                <select class="form-control" v-model="subcategory" :disabled="disableSubcategory">
+                <select class="form-control" v-model="subCategoryName" @change="getOperations">
                     <option :value="null" class="text-capitalize">Todas</option>
-                    <option :value="subcategory" v-for="subcategory in filtersubcategories" :key="subcategory.id"
+                    <option :value="subcategory" v-for="subcategory in AllSubcategories" :key="subcategory.id"
                         class="text-capitalize">{{ subcategory.name }}</option>
                 </select>
             </div>
             <div class="col-md-2 col-sm-6 col-12 d-flex justify-content-md-end align-items-end">
-                <button type="button" data-toggle="modal" data-target="#balancesModal"
+                <button type="button" data-toggle="modal" data-target="#balancesModal" @click="getBalances"
                     class="m-1 btn-width btn bg-dark text-white text-capitalize">
                     Balances
                 </button>
@@ -196,7 +196,8 @@
             </div> -->
 
             <!-- Paginacion -->
-            <paginate v-if="(operations && operations.pages > 1)" v-model="operations" :offOn="offOn" @getPage="getOperations" />
+            <paginate v-if="(operations && operations.pages > 1)" v-model="operations" :offOn="offOn"
+                @getPage="getOperations" />
         </div>
         <!-- v-else -->
         <div ref="loaderOperation" v-else class="vld-parent px-2 mt-2">
@@ -218,66 +219,44 @@
                         </button>
                     </div>
                     <div class="modal-body p-0">
-
-                        <table class="table">
-                            <thead class="thead-dark">
-                                <tr class="">
-                                    <th scope="col" colspan="3">CATEGORIA A</th>
-                                </tr>
-                                <tr>
-                                    <th scope="col">SUBCATEGORIA</th>
-                                    <th scope="col">OPERACIONES</th>
-                                    <th scope="col">TOTAL</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <th scope="row">SUB CATEOGERY A</th>
-                                    <td>3</td>
-                                    <td>20000$</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">SUB CATEOGERY B</th>
-                                    <td>3</td>
-                                    <td>20000$</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">SUB CATEOGERY C</th>
-                                    <td>3</td>
-                                    <td>20000$</td>
-                                </tr>
-                            </tbody>
-                        </table>
-
-                        <table class="table">
-                            <thead class="thead-dark">
-                                <tr class="">
-                                    <th scope="col" colspan="3">CATEGORIA A</th>
-                                </tr>
-                                <tr>
-                                    <th scope="col">SUBCATEGORIA</th>
-                                    <th scope="col">OPERACIONES</th>
-                                    <th scope="col">TOTAL</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <th scope="row">SUB CATEOGERY A</th>
-                                    <td>3</td>
-                                    <td>20000$</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">SUB CATEOGERY B</th>
-                                    <td>3</td>
-                                    <td>20000$</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">SUB CATEOGERY C</th>
-                                    <td>3</td>
-                                    <td>20000$</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <!-- title -->
+                        <div class="w-100 p-2">
+                            <h4 class="text-primario">Lista de totales por categoria</h4>
+                            <hr class="borderTitleCafeteria w-100" />
+                        </div>
+                        <div class="scroll-table px-2">
+                            <table class="m-0 table table-striped table-bordered table-sm w-100">
+                                <template v-for="category in balances">
+                                    <template v-if="category.operations_count > 0">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center border-0" colspan="3">{{ category.name }}</th>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-bold th-sm">Subcategoria</th>
+                                                <th class="text-bold th-sm"># Operaciones</th>
+                                                <th class="text-bold th-sm">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="subcategory in category.subcategories" :key="subcategory.id">
+                                                <td>
+                                                    <span class="m-0 p-0">{{ subcategory.name }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="m-0 p-0">{{ subcategory.operations_count }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="m-0 p-0">
+                                                        {{ subcategory.operations.length > 0 ? '$' + formatNumber(deFormatNumber(subcategory.operations[0].operations_sum_total)) : '-' }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </template>
+                                </template>
+                            </table>
+                        </div>
 
                     </div>
                     <div class="modal-footer">
@@ -335,15 +314,18 @@ export default {
             submitted: false,
             waitResponse: false,
             propVerify: null,
-            oldPage:1,
+            oldPage: 1,
             category: null,
             subcategory: null,
             filtersubcategories: [],
             OperationName: '',
 
+            categoryName: null,
+            subCategoryName: null,
             // categories: {},
 
             AllSubcategories: [],
+            balances: null,
 
             operations: {
                 items: {}
@@ -359,8 +341,8 @@ export default {
                     { key: 'rut', class: '', permission: 'default' },
                     { key: 'factura', class: '', permission: 'default' },
                     { key: 'created_at', class: '', permission: 'default' },
-                    { key: 'category', class: '', permission: 'default' },
-                    { key: 'subcategory', class: '', permission: 'default' },
+                    { key: 'categories', class: '', permission: 'default' },
+                    { key: 'subcategories', class: '', permission: 'default' },
                     { key: 'total', class: '', permission: 'default' },
                 ],
                 titles: [
@@ -493,10 +475,12 @@ export default {
             }
 
             var params = '?params=true';
-            if (page !== false) this.oldPage = '&page=' + page;
-            params += this.oldPage;
+            // if (page !== false) this.oldPage = '&page=' + page;
+            // params += this.oldPage;
 
-            // if (this.category != null && this.category != '') params += '&categoryOfProduct=' + this.category;
+            if (this.categoryName != null && this.categoryName != '') params += '&categoryOfProduct=' + this.categoryName.id;
+
+            if (this.subCategoryName != null && this.subCategoryName != '') params += '&categoryOfProduct=' + this.subCategoryName.id;
 
             if (this.OperationName != null && this.OperationName != '') params += '&nameOfOperation=' + this.OperationName;
             // Iniciando peticion
@@ -548,6 +532,27 @@ export default {
             //     return false;
             // }
             return true;
+        },
+        async getBalances() {
+            this.waitResponse = true;
+            let request = await this.$store.dispatch("operations/getBalances");
+            if (request.success) {
+                this.balances = request.data;
+                console.log('Balances:', request.data);
+            }
+            this.waitResponse = false;
+        },
+        formatNumber(number) {
+
+            return FormatNumber.format(String(number));
+        },
+        deFormatNumber(number, backend = true) {
+            if (backend) {
+                //JC    console.log("--------------------------hola",number)
+                return FormatNumber.deFormatBackend(String(number));
+            } else {
+                return FormatNumber.deFormat(String(number));
+            }
         },
     }
 }
@@ -1037,5 +1042,47 @@ export default {
     #contactForm span.sub-text {
         right: 30px;
     }
+}
+
+.scroll-table {
+    overflow: auto;
+    height: 100%;
+}
+
+.scroll-table::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+.scroll-table::-webkit-scrollbar-track {
+    background: #c0c0c0;
+    border-radius: 50px;
+    height: 5px;
+}
+
+.scroll-table::-webkit-scrollbar-thumb {
+    background: #000000;
+    border-radius: 50px;
+    height: 5px;
+}
+
+.footer_class {
+    margin-right: 1px;
+}
+
+.btnOrderBy {
+    cursor: pointer;
+}
+
+.fieldEdit {
+    border: 2px solid #192b5f;
+    border-radius: 5px;
+    background: transparent;
+    width: 100%;
+    text-align: center;
+}
+
+.fieldEditTd {
+    width: 100px;
 }
 </style>

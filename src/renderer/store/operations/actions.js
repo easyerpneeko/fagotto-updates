@@ -80,3 +80,9 @@ export async function newSubcategory(context, data) {
   const request = await Connection.request("post", url, data);
   return request;
 }
+
+export async function getBalances(context, params) {
+  let url = BaseUrl.getUrl('api/local/operations/balances');
+  const request = await Connection.request('get',url);
+  return request;
+}

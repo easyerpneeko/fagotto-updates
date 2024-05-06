@@ -225,6 +225,9 @@
                             <hr class="borderTitleCafeteria w-100" />
                         </div>
                         <div class="scroll-table px-2">
+                            <template>
+                                <b class="p-2">Total de operaciones: ${{ formatNumber(deFormatNumber(this.total_operaciones)) }}</b>
+                            </template>
                             <table class="m-0 table table-striped table-bordered table-sm w-100">
                                 <template v-for="category in balances">
                                     <template v-if="category.operations_count > 0">
@@ -248,14 +251,23 @@
                                                 </td>
                                                 <td>
                                                     <span class="m-0 p-0">
-                                                        {{ subcategory.operations.length > 0 ? '$' + formatNumber(deFormatNumber(subcategory.operations[0].operations_sum_total)) : '-' }}
+                                                        {{ subcategory.operations.length > 0 ? '$' +
+                                                    formatNumber(deFormatNumber(subcategory.operations[0].operations_sum_total))
+                                                    : '-' }}
                                                     </span>
                                                 </td>
                                             </tr>
+                                            <tr>
+                                                <th class="border-0">Total: {{ category.operations.length > 0 ? '$' +
+                                                    formatNumber(deFormatNumber(category.operations[0].operations_sum_total))
+                                                    : '-' }}</th>
+                                            </tr>
                                         </tbody>
+
                                     </template>
                                 </template>
                             </table>
+
                         </div>
 
                     </div>
@@ -319,7 +331,7 @@ export default {
             subcategory: null,
             filtersubcategories: [],
             OperationName: '',
-
+            total_operaciones: 0,
             categoryName: null,
             subCategoryName: null,
             // categories: {},
@@ -539,6 +551,9 @@ export default {
             if (request.success) {
                 this.balances = request.data;
                 console.log('Balances:', request.data);
+                this.balances.forEach(balance => {
+                    this.total_operaciones += parseFloat(balance.operations[0].operations_sum_total);
+                });
             }
             this.waitResponse = false;
         },

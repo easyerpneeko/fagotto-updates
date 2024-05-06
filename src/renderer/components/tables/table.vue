@@ -35,11 +35,11 @@
                 </div>
 
                 <div v-else-if="key.key == 'categories'" class="m-0">
-                  {{ item.categories.name }}
+                  {{ (item.categories != null) ? item.categories.name: '-' }}
                 </div>
 
                 <div v-else-if="key.key == 'subcategories'" class="m-0">
-                  {{ item.subcategories.name }}
+                  {{ (item.subcategories != null) ? item.subcategories.name: '-' }}
                 </div>
 
                 <!-- Campo especial para mostrar cantidades de pesos y cecina -->

@@ -81,8 +81,20 @@ export async function newSubcategory(context, data) {
   return request;
 }
 
+export async function getSubcategoriesByCategory(context, data) {
+  console.log(data);
+  let url = BaseUrl.getUrl('api/local/operation/subcategories/'+data);
+  const request = await Connection.request('get',url);
+  // if (request.success){
+  //   context.commit('setProperty',{ key:'subcategories' , data: request.data });
+  // }
+  return request;
+}
+
+//Balances
 export async function getBalances(context, params) {
   let url = BaseUrl.getUrl('api/local/operations/balances');
   const request = await Connection.request('get',url);
   return request;
 }
+

@@ -150,7 +150,7 @@
             <div class="col-md-4 col-sm-6 col-12">
                 <label for="Category">Categoria</label>
                 <select class="form-control" v-model="categoryName" @change="getOperations" :disabled="disableCategory">
-                    <option :value="null" class="text-capitalize">Todas</option>
+                    <option :value="null" class="text-capitalize" @click="this.subCategoryName == null">Todas</option>
                     <option :value="category" v-for="category in categories" :key="category.id" class="text-capitalize">
                         {{ category.name }}</option>
                 </select>
@@ -159,7 +159,7 @@
                 <label for="Subcategory">Subcategorias</label>
                 <select class="form-control" v-model="subCategoryName" @change="getOperations">
                     <option :value="null" class="text-capitalize">Todas</option>
-                    <option :value="subcategory" v-for="subcategory in AllSubcategories" :key="subcategory.id"
+                    <option :value="subcategory" v-for="subcategory in filtersubcategories" :key="subcategory.id"
                         class="text-capitalize">{{ subcategory.name }}</option>
                 </select>
             </div>
@@ -226,7 +226,8 @@
                         </div>
                         <div class="scroll-table px-2">
                             <template>
-                                <b class="p-2">Total de operaciones: ${{ formatNumber(deFormatNumber(this.total_operaciones)) }}</b>
+                                <b class="p-2">Total de operaciones: ${{
+                                                    formatNumber(deFormatNumber(this.total_operaciones)) }}</b>
                             </template>
                             <table class="m-0 table table-striped table-bordered table-sm w-100">
                                 <template v-for="category in balances">
@@ -423,7 +424,16 @@ export default {
                 this.disableSubcategory = true; // Mantener el select de subcategorías deshabilitado
             }
 
-            console.log(this.filtersubcategories);
+            // Filtrar las subcategorías basándose en la categoría seleccionada
+            if (this.categoryName) {
+                this.filtersubcategories = this.AllSubcategories.filter(subcategory => subcategory.operations_categories_id === this.categoryName.id);
+                this.disableSubcategory = false; // Habilitar el select de subcategorías
+            } else {
+                this.filtersubcategories = this.AllSubcategories;
+                this.disableSubcategory = true; // Mantener el select de subcategorías deshabilitado
+            }
+
+            console.log('filtrado:', this.filtersubcategories);
             console.log(this.AllSubcategories);
         },
         async getCategories() {
@@ -485,14 +495,14 @@ export default {
                 this.disableCategory = true;
                 Loader.containe(this.$refs.loaderOperation);
             }
-
+            this.loadSubcategories();
             var params = '?params=true';
             // if (page !== false) this.oldPage = '&page=' + page;
             // params += this.oldPage;
 
             if (this.categoryName != null && this.categoryName != '') params += '&categoryOfProduct=' + this.categoryName.id;
 
-            if (this.subCategoryName != null && this.subCategoryName != '') params += '&categoryOfProduct=' + this.subCategoryName.id;
+            if (this.subCategoryName != null && this.subCategoryName != '') params += '&subcategoryOfProduct=' + this.subCategoryName.id;
 
             if (this.OperationName != null && this.OperationName != '') params += '&nameOfOperation=' + this.OperationName;
             // Iniciando peticion

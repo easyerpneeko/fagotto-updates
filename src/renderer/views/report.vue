@@ -801,7 +801,7 @@ export default {
                   request[i][1],
                   request[i][2],
                   '$'+this.formatNumber(request[i][4]/(request[i][2])),
-                  '$'+this.formatNumber(request[i][5]),
+                  '$'+FormatNumber.format(request[i][4]),
                   '$'+this.formatNumber(request[i][4]),
                 ],
               );

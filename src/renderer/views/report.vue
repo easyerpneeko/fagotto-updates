@@ -653,7 +653,7 @@ export default {
           }
           
           if(this.siiInstalled){
-            if(this.settingFactura) this.listCounter.push( ['Facturas', '$'+this.formatNumber(String(request.facturas))]);
+            if(this.settingFactura) this.listCounter.push( ['Facturas', '$'+this.formatNumber(String(request.factura))]);
             // if(this.settingBoleta) this.listCounter.push( ['Boletas', '$'+this.formatNumber(String(request.boletas))] );
             if(this.settingBoleta) this.listCounter.push( ['Boleta', '$'+this.formatNumber(String(request.boleta))] );
             if(this.settingFactura) this.listCounter.push( ['Guia Despacho', '$'+this.formatNumber(String(request.guia_despacho))]);
@@ -800,9 +800,9 @@ export default {
                 [
                   request[i][1],
                   request[i][2],
-                  '$'+this.formatNumber(request[i][3]),
+                  '$'+this.formatNumber(request[i][4]/(request[i][2])),
+                  '$'+this.formatNumber(request[i][5]),
                   '$'+this.formatNumber(request[i][4]),
-                  '$'+this.formatNumber(request[i][5])
                 ],
               );
             } else {

@@ -196,7 +196,7 @@ Reloj de arena: En espera.">
 
         <!-- modals -->
         <!-- @refresh="refreshData" -->
-        <catalog :products="products" @update-products="updateProducts" @update-total="updateTotal" />
+        <catalog :products="products" @update-products="updateProducts" @update-total="updateTotal" @update-montoOpcionales="updateMontoOpcionales" />
         <verify-modal :propVerify="propVerify" @refreshData="getRequests" />
         <!-- modal productsOrders -->
         <div class="modal fade modalForce" id="productsOrder" tabindex="-1" role="dialog"
@@ -240,7 +240,12 @@ Reloj de arena: En espera.">
                                         <tbody>
                                             <tr v-for="(producto, id) in jsonTableProducts.items" :key="id">
                                                 <td>{{ producto.name }}</td>
-                                                <td>{{ (producto.name != 'Vaso' && producto.name != 'Huevo') ?
+                                                <td>{{ (producto.name != 'Vaso' 
+                                                && producto.name != 'Huevo' 
+                                                && producto.name != 'Sandwich' 
+                                                && producto.name != 'Aceite de oliva 5kg' 
+                                                && producto.name != 'Aceite Vegetal 1L' 
+                                                && producto.name != 'Bolsa') ?
                 producto.quantity + 'kg' : producto.quantity }}</td>
                                                 <!-- <td>{{ }}</td> -->
                                             </tr>
@@ -257,7 +262,7 @@ Reloj de arena: En espera.">
                                             <tbody>
                                                 <tr>
                                                     <td>Monto neto</td>
-                                                    <td>${{ formatearMonto((this.vasos * this.precioVaso)) }}</td>
+                                                    <td>${{ formatearMonto((this.vasos * this.precioVaso)  + (this.montoOpcionales)) }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td>Despacho {{ this.despacho * 100 }}%</td>
@@ -275,6 +280,7 @@ Reloj de arena: En espera.">
                 this.vasos * this.precioVaso
                 + ((this.vasos * this.precioVaso) * this.iva)
                 + ((this.vasos * this.precioVaso) * this.despacho)
+                + (this.montoOpcionales)
             ) }}</td>
                                                 </tr>
                                             </tbody>
@@ -442,6 +448,7 @@ export default {
             despacho: 0,
             iva:0.19,
             precioVaso:0,
+            montoOpcionales:0,
             vasos:0
         }
     },
@@ -579,6 +586,10 @@ export default {
         updateTotal(newTotal) {
             this.totalPrice = newTotal;
             console.log('Total Price:', this.totalPrice);
+        },
+        updateMontoOpcionales(newMonto) {
+            this.montoOpcionales = newMonto;
+            console.log('montoOpcionales Price:', this.montoOpcionales);
         },
         async newRequest() {
             this.submitted = true;

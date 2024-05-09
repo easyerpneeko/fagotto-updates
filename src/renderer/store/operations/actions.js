@@ -59,6 +59,12 @@ export async function newCategory(context, data) {
   return request;
 }
 
+export async function editCategory(context, data) {
+  let url = BaseUrl.getUrl("api/local/operation/categories/edit/"+data.id);
+  const request = await Connection.request("put", url, data.data);
+  return request;
+}
+
 //SUBCATEGORIAS
 export async function getSubcategories(context) {
   let url = BaseUrl.getUrl('api/local/operation/subcategories');
@@ -72,6 +78,12 @@ export async function getSubcategories(context) {
 export async function removeSubcategory(context, data) {
   let url = BaseUrl.getUrl('api/local/operation/subcategories/' + data);
   const request = await Connection.request('delete',url, data);
+  return request;
+}
+
+export async function editSubcategory(context, data) {
+  let url = BaseUrl.getUrl("api/local/operation/subcategories/edit/"+data.id);
+  const request = await Connection.request("put", url, data.data);
   return request;
 }
 

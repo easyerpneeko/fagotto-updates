@@ -17,6 +17,10 @@
               <li class="list-group-item d-flex justify-content-between" v-for="category in categories">
                 <span class="pt-2 text-capitalize">{{ category.name }}</span>
                 <div class="btn-group">
+                  <button type="button" class="btn bg-info text-white px-1 py-1 text-sm q-btn-sm" data-toggle="modal"
+                    data-target="#categoriesCrudModal" :disabled="waitResponse" @click="editCategory(category)">
+                    <i class="fa fa-pencil-alt"></i>
+                  </button>
                   <button type="button" class="btn bg-danger text-white px-1 py-1 text-sm q-btn-sm"
                     :disabled="waitResponse" @click="deleteCategory(category.id)">
                     <i class="fa fa-trash"></i>
@@ -30,7 +34,7 @@
           <button type="button" class="btn bg-secundario text-white" data-dismiss="modal"
             :disabled="waitResponse">Cerrar</button>
           <button type="button" class="btn bg-primario text-white" :disabled="waitResponse" data-toggle="modal"
-            data-target="#categoriesCrudModal">Crear</button>
+            data-target="#categoriesCrudModal" @click="selectCategory">Crear</button>
         </div>
       </div>
     </div>
@@ -47,7 +51,7 @@
           </div>
           <div class="modal-body">
             <div class="d-flex flex-column px-2 mb-2">
-              <h6 class="font-weight-bold">Añadir Categoria</h6>
+              <h5 class="modal-title">{{ (!this.isEdit) ? 'Nueva Categoria' : 'Editar Categoria' }}</h5>
               <div class="form-group my-1">
                 <input type="text" class="form-control" placeholder="Nombre" :disabled="waitResponse" v-model="name"
                   @keyup.enter="newCategory">
@@ -57,8 +61,14 @@
           <div class="modal-footer">
             <button type="button" class="btn bg-secundario text-white" @click="closeModal"
               :disabled="waitResponse">Cerrar</button>
-            <button type="button" class="btn bg-primario px-2 align-self-end" :disabled="waitResponse"
-              @click="newCategory">Añadir</button>
+            <template>
+              <button v-if="this.isEdit" type="button" class="btn bg-primario px-2 align-self-end"
+                :disabled="waitResponse" @click="newCategory()">Editar</button>
+
+              <button v-else type="button" class="btn bg-primario px-2 align-self-end" :disabled="waitResponse"
+                @click="newCategory()">Crear</button>
+            </template>
+
           </div>
         </div>
       </div>
@@ -79,6 +89,8 @@ export default {
     return {
       waitResponse: false,
       name: '',
+      id: 0,
+      isEdit: false
     }
   },
   mounted() {
@@ -86,6 +98,7 @@ export default {
   },
   methods: {
     closeModal() {
+      this.isEdit = false;
       $('#categoriesCrudModal').modal('hide');
     },
     async refreshData() {
@@ -117,14 +130,22 @@ export default {
       }
       this.waitResponse = true;
       Loader.fullPage();
-      var request = await this.$store.dispatch("operations/newCategory", fd);
-      console.log(request);
+      if (this.isEdit) {
+        console.log('Ediat', this.category);
+        request = await this.$store.dispatch('operations/editCategory', { id: this.category.id, data: fd });
+      } else {
+        var request = await this.$store.dispatch("operations/newCategory", fd);
+      }
       if (request.success) {
-        this.$awn.success('Categoria Creada Exitosamente', { labels: { success: 'CORRECTO' } });
+        if (this.isEdit) {
+          this.$awn.success('Categoria Creada Exitosamente', { labels: { success: 'CORRECTO' } });
+        } else {
+          this.$awn.success('Categoria Modificada Exitosamente', { labels: { success: 'CORRECTO' } });
+        }
         for (var field of fields) {
           this[field] = '';
         }
-        $('#categoriesCrudModal').modal('hide');
+        this.closeModal();
         this.refreshData();
       } else {
         console.log(request.data);
@@ -143,7 +164,22 @@ export default {
       }
       this.waitResponse = false;
       Loader.hide();
-    }
+    },
+    async editCategory(category) {
+      if (category) {
+        this.isEdit = true;
+      }
+      this.name = category.name;
+      this.id = category.id;
+      this.category = category;
+      $('#categoriesCrudModal').modal('show');
+    },
+    selectCategory() {
+      this.isEdit = false;
+      this.name = '';
+      this.id = 0;
+      // this.$emit('closeEdit');
+    },
   },
   computed: {
     categories: {

@@ -26,6 +26,11 @@
               <li class="list-group-item d-flex justify-content-between" v-for="subcategory in subcategoriesByCategory">
                 <span class="pt-2 text-capitalize">{{ subcategory.name }}</span>
                 <div class="btn-group">
+                  <button type="button" class="btn bg-info text-white px-1 py-1 text-sm q-btn-sm" data-toggle="modal"
+                    data-target="#subcategoriesCrudModal" :disabled="waitResponse"
+                    @click="editSubcategory(subcategory)">
+                    <i class="fa fa-pencil-alt"></i>
+                  </button>
                   <button type="button" class="btn bg-danger text-white px-1 py-1 text-sm q-btn-sm"
                     :disabled="waitResponse" @click="deleteSubcategory(subcategory.id)">
                     <i class="fa fa-trash"></i>
@@ -44,7 +49,7 @@
           <button type="button" class="btn bg-secundario text-white" data-dismiss="modal"
             :disabled="waitResponse">Cerrar</button>
           <button type="button" class="btn bg-primario text-white" :disabled="waitResponse" data-toggle="modal"
-            data-target="#subcategoriesCrudModal">Crear Subcategoria</button>
+            data-target="#subcategoriesCrudModal" @click="selectSubcategory">Crear Subcategoria</button>
         </div>
       </div>
     </div>
@@ -60,7 +65,7 @@
           </div>
           <div class="modal-body">
             <div class="d-flex flex-column px-2 mb-2">
-              <h6 class="font-weight-bold">Añadir Subcategoria</h6>
+              <h6 class="font-weight-bold">{{ (!this.isEdit) ? 'Añador Subcategoria' : 'Editar Subcategoria' }}</h6>
               <div class="form-group my-1">
                 <input type="text" class="form-control" placeholder="Nombre" :disabled="waitResponse" v-model="name"
                   @keyup.enter="newSubcategory">
@@ -70,8 +75,12 @@
           <div class="modal-footer">
             <button type="button" class="btn bg-secundario text-white" @click="closeModal"
               :disabled="waitResponse">Cerrar</button>
-            <button type="button" class="btn bg-primario px-2 align-self-end" :disabled="waitResponse"
-              @click="newSubcategory">Añadir</button>
+            <template>
+              <button v-if="this.isEdit" type="button" class="btn bg-primario px-2 align-self-end"
+                :disabled="waitResponse" @click="newSubcategory()">Editar</button>
+              <button v-else type="button" class="btn bg-primario px-2 align-self-end" :disabled="waitResponse"
+                @click="newSubcategory()">Crear</button>
+            </template>
           </div>
         </div>
       </div>
@@ -92,10 +101,12 @@ export default {
     return {
       waitResponse: false,
       name: '',
-      category_id:null,
+      category_id: null,
       category: null,
       disableCategory: false,
       subcategoriesByCategory: [],
+      id: 0,
+      isEdit: false
     }
   },
   mounted() {
@@ -103,6 +114,7 @@ export default {
   },
   methods: {
     closeModal() {
+      this.isEdit = false;
       $('#subcategoriesCrudModal').modal('hide');
     },
     async refreshData() {
@@ -130,11 +142,18 @@ export default {
 
       this.waitResponse = true;
       Loader.fullPage();
-      var request = await this.$store.dispatch("operations/newSubcategory", fd);
-      console.log(request);
+      if (this.isEdit) {
+        var request = await this.$store.dispatch("operations/editSubcategory", { id: this.subcategory.id, data: fd });
+      } else {
+        var request = await this.$store.dispatch("operations/editSubcategory", fd);
+      }
       if (request.success) {
-        this.$awn.success('Subcategoria Creada Exitosamente', { labels: { success: 'CORRECTO' } });
-        $('#subcategoriesCrudModal').modal('hide');
+        if (this.isEdit) {
+          this.$awn.success('Subcategoria Creada Exitosamente', { labels: { success: 'CORRECTO' } });
+        } else {
+          this.$awn.success('Subcategoria Modificada Exitosamente', { labels: { success: 'CORRECTO' } });
+        }
+        this.closeModal();
         this.refreshData();
       } else {
         console.log(request.data);
@@ -153,6 +172,21 @@ export default {
       }
       this.waitResponse = false;
       Loader.hide();
+    },
+    async editSubcategory(subcategory) {
+      if (subcategory) {
+        this.isEdit = true;
+      }
+      this.name = subcategory.name;
+      this.id = subcategory.id;
+      this.subcategory = subcategory;
+      $('#categoriesCrudModal').modal('show');
+    },
+    selectSubcategory() {
+      this.isEdit = false;
+      this.name = '';
+      this.id = 0;
+      // this.$emit('closeEdit');
     },
     async getSubcategoriesByCategory(id) {
       this.waitResponse = true;

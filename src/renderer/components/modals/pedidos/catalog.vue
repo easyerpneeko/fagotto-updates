@@ -220,9 +220,9 @@
 // import modalVerify from '@/components/modals/verifyDelete.vue';
 
 // Helpers y plugins
-// import ConfigHelper from '@/helpers/ConfigHelper.js';
+import ConfigHelper from '@/helpers/ConfigHelper.js';
 import FormatNumber from '@/helpers/FormatNumber.js';
-import Loader from '@/helpers/Loader';
+// import Loader from '@/helpers/Loader';
 
 export default {
   products: {
@@ -528,7 +528,12 @@ export default {
 
         } else if (this.productosFijos[producto].name === 'Despacho') {
           //Obteniendo el precio de despacho
-          this.despacho = this.productosFijos[producto].price;
+          if(this.isDespachoGratis){
+            this.despacho = 0;
+          }else{
+            this.despacho = this.productosFijos[producto].price;
+          }
+          
         } else if (this.productosFijos[producto].category === 3) {
           const opcionalDisponible = {
             name: this.productosFijos[producto].name,
@@ -550,9 +555,7 @@ export default {
     }
   },
   computed: {
-    opcionSeleccionada() {
-      return false ? true : false; // Si miCondicion es true, selecciona la opción 1, sino la 2
-    }
+    isDespachoGratis: { get(){ return ConfigHelper.ConfStr('modulos.pedidos.ajustes.despacho_gratis'); }}
   },
 }
 </script>

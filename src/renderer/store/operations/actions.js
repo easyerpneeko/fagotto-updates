@@ -31,11 +31,11 @@ export async function removeOperation(context, id) {
   return request;
 }
 
-export async function updateOperation(context, data) {
-  let url = BaseUrl.getUrl('api/local/operation/review/' + data.id);
-  const request = await Connection.request('put',url, data.data);
-  return request;
-}
+// export async function updateOperation(context, data) {
+//   let url = BaseUrl.getUrl('api/local/operation/review/' + data.id);
+//   const request = await Connection.request('put',url, data.data);
+//   return request;
+// }
 
 //CATEGORIAS
 export async function getCategories(context) {

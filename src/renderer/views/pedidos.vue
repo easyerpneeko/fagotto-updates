@@ -8,6 +8,12 @@
                         <span>Realizar pedidos de productos</span>
                     </div>
                 </div>
+                <div class="col-md-4 col-sm-4 col-12 d-flex flex-column">
+                    <button type="button" data-toggle="modal" data-target="#pedidoUrgente"
+                        class="m-1 btn-width btn bg-primario text-white text-capitalize">
+                        Pedido Urgente
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -104,19 +110,29 @@
                                                 </div>
                                             </div><!-- end form-group -->
 
-                                            <div class="form-group last col-sm-12">
-                                                <!-- <button type="submit" id="submit" class="btn btn-custom disabled"><i
-                                                        class="fa fa-envelope"></i> Enviar</button> -->
-                                                <button type="button" data-toggle="modal" data-target="#modalCatalog"
-                                                    @click="openCatalog"
-                                                    class="m-1 btn-width btn bg-secundario  text-white text-capitalize">
-                                                    Añadir Productos
-                                                </button>
-                                                <button type="button"
-                                                    class="m-1 btn-width btn bg-primario text-white text-capitalize"
-                                                    @click="newRequest">
-                                                    <i class="fas fa-check"></i> Crear Pedido
-                                                </button>
+                                            <div class="form-group row d-flex justify-content-between col-sm-12">
+                                                <div class="">
+                                                    <span v-if="this.products.length > 0" class="text-info d-flex justify-content-between align-items-center p-1">
+                                                        <span>Productos Agregados </span>
+                                                        <i class="fas fa-check m-1"></i>
+                                                    </span>
+                                                    <span v-else class="text-danger d-flex justify-content-between align-items-center p-1">
+                                                        <span>Sin Productos </span>
+                                                        <i class="fas fa-times m-1"></i>
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <button type="button" data-toggle="modal"
+                                                        data-target="#modalCatalog" @click="openCatalog"
+                                                        class="m-1 btn-width btn bg-secundario  text-white text-capitalize">
+                                                        Añadir Productos
+                                                    </button>
+                                                    <button type="button"
+                                                        class="m-1 btn-width btn bg-primario text-white text-capitalize"
+                                                        @click="newRequest">
+                                                        <i class="fas fa-check"></i> Crear Pedido
+                                                    </button>
+                                                </div>
                                             </div><!-- end form-group -->
 
                                             <!-- <span class="sub-text">* Campos requeridos</span> -->
@@ -176,7 +192,8 @@ Reloj de arena: En espera.">
                         <i class="fa fa-eye"></i>
                     </a>
                     <!-- Condicion solo si es admin -->
-                    <a v-if="isAdmin" @click="openVerify(props.item)" class="py-1 px-2 text-center btn bg-danger" href="#">
+                    <a v-if="isAdmin" @click="openVerify(props.item)" class="py-1 px-2 text-center btn bg-danger"
+                        href="#">
                         <i class="fa fa-trash"></i>
                     </a>
                 </customTable>
@@ -196,7 +213,10 @@ Reloj de arena: En espera.">
 
         <!-- modals -->
         <!-- @refresh="refreshData" -->
-        <catalog :products="products" @update-products="updateProducts" @update-total="updateTotal" @update-montoOpcionales="updateMontoOpcionales" />
+        <catalog :products="products" @update-products="updateProducts" @update-total="updateTotal"
+            @update-montoOpcionales="updateMontoOpcionales" />
+        <pedido-urgente :products="products" @update-products="updateProducts" @update-total="updateTotal"
+            @update-montoOpcionales="updateMontoOpcionales" />
         <verify-modal :propVerify="propVerify" @refreshData="getRequests" />
         <!-- modal productsOrders -->
         <div class="modal fade modalForce" id="productsOrder" tabindex="-1" role="dialog"
@@ -240,12 +260,12 @@ Reloj de arena: En espera.">
                                         <tbody>
                                             <tr v-for="(producto, id) in jsonTableProducts.items" :key="id">
                                                 <td>{{ producto.name }}</td>
-                                                <td>{{ (producto.name != 'Vaso' 
-                                                && producto.name != 'Huevo' 
-                                                && producto.name != 'Sandwich' 
-                                                && producto.name != 'Aceite de oliva 5kg' 
-                                                && producto.name != 'Aceite Vegetal 1L' 
-                                                && producto.name != 'Bolsa') ?
+                                                <td>{{ (producto.name != 'Vaso'
+                && producto.name != 'Huevo'
+                && producto.name != 'Sandwich'
+                && producto.name != 'Aceite de oliva 5kg'
+                && producto.name != 'Aceite Vegetal 1L'
+                && producto.name != 'Bolsa') ?
                 producto.quantity + 'kg' : producto.quantity }}</td>
                                                 <!-- <td>{{ }}</td> -->
                                             </tr>
@@ -262,26 +282,20 @@ Reloj de arena: En espera.">
                                             <tbody>
                                                 <tr>
                                                     <td>Monto neto</td>
-                                                    <td>${{ formatearMonto((this.vasos * this.precioVaso)  + (this.montoOpcionales)) }}</td>
+                                                    <td>${{ formatearMonto((this.total)) }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td>Despacho {{ this.despacho * 100 }}%</td>
-                                                    <td>${{ formatearMonto((this.vasos * this.precioVaso) *
-                this.despacho) }}</td>
+                                                    <td>${{ formatearMonto((this.total) * this.despacho) }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td>IVA 19%</td>
-                                                    <td>${{ formatearMonto((this.vasos * this.precioVaso) * this.iva) }}
+                                                    <td>${{ formatearMonto((this.total) * this.iva) }}
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td>Total</td>
-                                                    <td>${{ formatearMonto(
-                this.vasos * this.precioVaso
-                + ((this.vasos * this.precioVaso) * this.iva)
-                + ((this.vasos * this.precioVaso) * this.despacho)
-                + (this.montoOpcionales)
-            ) }}</td>
+                                                    <td>${{ formatearMonto(this.total)}}</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -348,13 +362,14 @@ import paginate from '@/components/MPage.vue';
 import verifyModal from '@/components/modals/verifyDelete.vue';
 import customTable from '@/components/tables/table.vue';
 import catalog from '@/components/modals/pedidos/catalog.vue';
+import pedidoUrgente from '@/components/modals/pedidos/pedidoUrgente.vue';
 // Helpers
-import ConfigHelper from '@/helpers/ConfigHelper.js';
-import BaseUrl from '@/helpers/baseUrl.js';
+// import ConfigHelper from '@/helpers/ConfigHelper.js';
+// import BaseUrl from '@/helpers/baseUrl.js';
 import Loader from '@/helpers/Loader';
 import moment from 'moment';
 import FormatNumber from '@/helpers/FormatNumber.js';
-import Print from '@/helpers/Print.js';
+// import Print from '@/helpers/Print.js';
 
 const { shell } = require('electron');
 
@@ -370,7 +385,8 @@ export default {
         verifyModal,
         paginate,
         customTable,
-        catalog
+        catalog,
+        pedidoUrgente
     },
     data() {
         return {
@@ -446,10 +462,12 @@ export default {
             propVerify: null,
             productosFijos: {},
             despacho: 0,
-            iva:0.19,
-            precioVaso:0,
-            montoOpcionales:0,
-            vasos:0
+            iva: 0.19,
+            precioVaso: 0,
+            montoOpcionales: 0,
+            vasos: 0,
+
+            request: null
         }
     },
     async beforeCreate() {
@@ -457,7 +475,7 @@ export default {
         this.app = request.data;
     },
     async mounted() {
-        
+
         this.getRequests(false);
         this.getDespacho();
         // this.user = this.me;
@@ -538,7 +556,7 @@ export default {
                     //Obteniendo el precio de despacho
                     this.vasos = this.jsonTableProducts.items[producto].quantity;
                 }
-            }            
+            }
 
             $('#productsOrder').modal('show');
 

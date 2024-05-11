@@ -1,0 +1,353 @@
+<template>
+    <div class="modal fade" id="pedidoUrgente" tabindex="-1" role="dialog" aria-labelledby="pedidoUrgente"
+        aria-hidden="true" data-backdrop="false">
+        <div class="modal-dialog lg-modal modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primario">
+                    <h5 class="modal-title">Preparar pedido</h5>
+                    <button type="button" class="close text-white" @click="closeModal(false)" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-0" style="overflow: auto; max-height: 70vh;">
+                    <div class="d-flex flex-wrap justify-content-space-beetwen">
+                        <div class="col-md-5">
+                            <div class="row d-flex">
+                                <div class="col-md-12 mb-3">
+                                    <div class="row d-flex justify-content-start">
+                                        <h5 class="modal-title p-2 m-1">Detallado del pedido</h5>
+                                        <hr>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12 p-2 m-1">
+                                    <div class="row">
+                                        <span class="m-0 p-0">
+                                            <template v-for="(producto, index) in productos">
+                                                <button v-if="producto.name != 'Despacho'" type="button"
+                                                    @click="addProduct(producto)"
+                                                    class="m-1 btn-width btn bg-primario text-white text-capitalize col-md-5">
+                                                    {{ producto.name.toUpperCase() }} <i class="fa fa-plus"></i>
+                                                </button>
+                                            </template>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-7">
+                            <h5 class="modal-title p-2 m-1">Detallado del pedido</h5>
+                            <hr>
+                            <table class="table">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th scope="col">Producto</th>
+                                        <th scope="col">Cantidad</th>
+                                        <th scope="col">Precio Unitario</th>
+                                        <th scope="col">Precio Total</th>
+                                        <th scope="col">Remover</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(producto, index) in productosPedido" :key="index">
+                                        <td>{{ producto.name }}</td>
+                                        <td v-if="(producto.name == 'Queso' || producto.name == 'Harina')">
+                                            <input min="0" class="fieldEdit" type="number" v-model="producto.quantity"
+                                                @change="calcularMontos()" />
+                                            kg
+                                        </td>
+                                        <td v-else>
+                                            <input min="0" class="fieldEdit" type="number" v-model="producto.quantity"
+                                                @change="calcularMontos()" />
+                                        </td>
+                                        <td>
+                                            <input min="0" class="fieldEdit" type="number" v-model="producto.price"
+                                                @change="calcularMontos()" />
+                                        </td>
+                                        <td>
+                                            ${{ formatNumber(producto.quantity * producto.price) }}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger btn-m" @click="removeProduct(index)">
+                                                <i class="fa fa-times-circle"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <table class="table table-bordered">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th scope="col">Descripcion</th>
+                                        <th scope="col">Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Monto neto</td>
+                                        <td>${{ formatNumber(this.montoNeto) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Despacho {{ this.despacho * 100 }}%</td>
+
+                                        <td>${{ formatNumber((this.despacho * this.montoNeto)) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>IVA {{ this.iva * 100 }}%</td>
+
+                                        <td>${{ formatNumber((this.montoNeto * this.iva)) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Total</td>
+                                        <td>${{
+                        formatNumber(this.montoNeto + (this.despacho * this.montoNeto) +
+                            (this.montoNeto * this.iva) +
+                            this.montoOpcionales)
+                                            }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer justify-content-end ">
+                    <div>
+                        <button type="button" class="btn bg-dark text-white" @click="closeModal()">
+                            Cerrar
+                        </button>
+                        <button type="button" @click="addProducts()" class="btn bg-primario text-white">
+                            Agregar Productos
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</template>
+
+<script>
+// Componentes
+// import customTable from '@/components/tables/table.vue';
+// import modalVerify from '@/components/modals/verifyDelete.vue';
+
+// Helpers y plugins
+import ConfigHelper from '@/helpers/ConfigHelper.js';
+import FormatNumber from '@/helpers/FormatNumber.js';
+// import Loader from '@/helpers/Loader';
+
+export default {
+    products: {
+        type: Array,
+        required: true
+    },
+    data() {
+        return {
+            // vasos: 160,
+            // queso: 4,
+            // harina: 22,
+            // huevo: 180,
+            // precioVaso: 0,
+            // kiloAgg: false,
+            //Para saber si el pedido es completo o medio 1= completo, 2 = medio
+            // tipoPedido: 2,
+            // vasosSalsas: 0,
+            // totalVasos: 0,
+            totalPrice: 0,
+            productosPedido: [
+                // 1: { name: 'Vasos', quantity: 160, vasos: 1 },
+            ],
+            salsasPedido: [],
+            opcionalPedido: [],
+            productos: {
+                // //Producto | quantity | Vasos
+                // 1: { name: 'Huevos', quantity: 1, vasos: 1 },
+            },
+
+            // salsasDisponibles: {
+            //     // 1: { name: 'Alfredo', quantity: 70, vasos: 1 },
+            // },
+            // opcionalesDisponibles: {
+
+            // },
+            // vasosSalsas: 0,
+            // kiloSalsas: 0,
+            productoSend: [],
+            montoNeto: 0,
+            despacho: 0,
+            iva: 0.19,
+            montoDespacho:0,
+            montoIva:0,
+            montoTotal: 0,
+            montoOpcionales: 0
+
+        }
+    },
+    components: {
+
+    },
+    async mounted() {
+        //Trae los productos fijo de db 
+        await this.getProducts();
+
+    },
+    methods: {
+        async closeModal(refresh = false) {
+            //Volvemos los arreglos al estado inicial
+            // await this.getProducts();
+            // this.tipoPedido = 1;
+            // this.vasosSalsas = 0;
+            // this.totalVasos = 0;
+            // this.kiloSalsas = 0;
+            // this.salsasPedido = [];
+            // this.opcionalPedidoPedido = [];
+            this.montoDespacho=0;
+            this.montoIva=0;
+            this.montoTotal=0;
+            this.montoNeto=0;
+            this.productosPedido = [];
+            this.productoSend =[];
+            this.totalPrice = 0;
+            // this.vasos = 0;
+            $('#pedidoUrgente').modal('hide');
+        },
+        addProduct(producto) {
+            const existingProduct = this.productosPedido.find((p) => p.name === producto.name);
+            if (existingProduct) {
+                console.log(`Salsa ${producto.name} ya existente.`);
+            } else {
+                const productoCopia = Object.assign({}, producto);
+                productoCopia.quantity = 1;
+                this.productosPedido.push(productoCopia);
+            }
+            this.calcularMontos();
+        },
+        removeProduct(index) {
+            if (index >= 0 && index < this.productosPedido.length) {
+                this.productosPedido.splice(index, 1);
+            }
+            this.calcularMontos();
+        },
+        formatNumber(number) {
+            return FormatNumber.format(number);
+        },
+        calcularMontos() {
+            //monto neto
+            this.montoNeto = 0;
+            for (var index in this.productosPedido) {
+                this.montoNeto += parseFloat(this.productosPedido[index].price * this.productosPedido[index].quantity);
+            }
+
+        },
+        addProducts() {
+            console.log('Productos pedido: ', this.productosPedido);
+
+            this.productoSend = this.productosPedido;
+
+            if (this.productoSend.length == 0) {
+                this.$awn.alert("Es necesario agregar algun producto");
+                return false;
+            }
+
+            this.montoDespacho = this.despacho * this.montoNeto;
+            this.montoIva = this.iva * this.montoNeto;
+
+            this.totalPrice = this.montoNeto + this.montoDespacho + this.montoIva;
+
+            console.log('Total price', this.totalPrice);
+            
+            this.$emit('update-products', this.productoSend);
+            this.$emit('update-total', Math.ceil((this.totalPrice)));
+            this.$emit('update-montoOpcionales', Math.ceil((this.montoOpcionales)));
+
+            this.productoSend = [];
+            this.productosPedido = [];
+            this.montoOpcionales = 0;
+            this.montoDespacho = 0;
+            this.montoIva = 0;
+            this.totalPrice = 0;
+
+            $('#pedidoUrgente').modal('hide');
+        },
+        async getProducts() {
+            // Iniciando peticion
+            // Loader.dinamic();
+            var request = await this.$store.dispatch("products/getProductsOfIndex");
+
+            // Loader.hide();
+            // Verificando respuesta
+            if (request.success) {
+                this.productos = request.data;
+
+                for (const producto in this.productos) {
+                    if (this.productos[producto].name === 'Despacho') {
+                        if (this.isDespachoGratis) {
+                            this.despacho = 0;
+                        } else {
+                            this.despacho = this.productos[producto].price;
+                        }
+                    }
+                }
+            }
+            else this.$awn.alert('Error al obtener los productos');
+
+        },
+        // formatearMonto(monto) {
+        //     const montoSinDecimales = Math.ceil(monto);
+        //     // const parteDecimal = monto.toFixed(2).split(".")[1];
+
+        //     // // Eliminar "00" si son los dos últimos decimales
+        //     // if (parteDecimal === "00") {
+        //     //   return montoSinDecimales.toLocaleString();
+        //     // }
+
+        //     // Formatear con miles y decimales
+        //     return `${montoSinDecimales.toLocaleString()}`;
+        // },
+        convertirAKilogramosYRedondear(gramos, multiplicador) {
+            const kilogramos = (gramos * multiplicador) / 1000;
+            return Math.ceil(kilogramos * 1000) / 1000;
+        }
+    },
+    computed: {
+        isDespachoGratis: { get() { return ConfigHelper.ConfStr('modulos.pedidos.ajustes.despacho_gratis'); } }
+    },
+}
+</script>
+
+<style scoped media="screen">
+.table td,
+.table th {
+    padding: 0.5rem;
+}
+
+.btn-m {
+    margin: 0rem;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+.conteoVasos {
+    padding: 10px;
+    /* font-weight: bold; */
+    font-size: 14px;
+    border-radius: 5px;
+    box-shadow: 0px 2px 4px rgb(0 0 0 / 20%), 0px 4px 8px rgb(0 0 0 / 10%);
+    background-color: #343a40;
+    color: white;
+}
+
+table thead th {
+    vertical-align: bottom !important;
+    border-bottom: none !important;
+}
+
+.btn-outline-info {
+    padding-top: 0.3rem !important;
+    padding-bottom: 0.3rem !important;
+}
+</style>

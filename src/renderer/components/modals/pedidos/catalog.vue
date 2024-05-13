@@ -179,7 +179,7 @@
                   </tr>
                   <tr>
                     <td>IVA 19%</td>
-                    <td>${{ formatearMonto(this.montoIva = (this.vasos * this.precioVaso) * this.iva) }}</td>
+                    <td>${{ formatearMonto(this.montoIva = (this.montoNeto * this.iva)) }}</td>
                   </tr>
                   <tr>
                     <td>Total</td>

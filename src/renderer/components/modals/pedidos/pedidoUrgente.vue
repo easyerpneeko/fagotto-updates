@@ -44,34 +44,56 @@
                                     <tr>
                                         <th scope="col">Producto</th>
                                         <th scope="col">Cantidad</th>
+                                        <th scope="col"></th>
                                         <th scope="col">Precio Unitario</th>
                                         <th scope="col">Precio Total</th>
                                         <th scope="col">Remover</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(producto, index) in productosPedido" :key="index">
+                                    <tr v-if="productosPedido.length > 0" v-for="(producto, index) in productosPedido" :key="index">
                                         <td>{{ producto.name }}</td>
-                                        <td v-if="(producto.name == 'Queso' || producto.name == 'Harina')">
-                                            <input min="0" class="fieldEdit" type="number" v-model="producto.quantity"
-                                                @change="calcularMontos()" />
-                                            kg
+                                        
+                                        <!-- Cantidad -->
+                                        <td v-if="( producto.category == 4)">
+                                            <input min="1" class="fieldEdit" type="number" v-model="producto.quantity" @change="calcularMontos()" />
+                                            Kg
                                         </td>
-                                        <td v-else>
-                                            <input min="0" class="fieldEdit" type="number" v-model="producto.quantity"
-                                                @change="calcularMontos()" />
+                                        <td v-if="(producto.category == 3 || producto.name == 'Huevo' || producto.name == 'Vaso')">
+                                            <input min="1" class="fieldEdit" type="number" v-model="producto.quantity" @change="calcularMontos()" />
+                                            {{ (producto.name == 'Huevo' ? 'Caja(s)': 'Unidad(es)') }}
                                         </td>
+                                        <td v-if="(producto.category == 2 )">
+                                            <input min="10" class="fieldEdit" type="number" v-model="producto.vasos" @change="calcularMontos()" />
+                                            Vasos
+                                        </td>
+
+                                        <!-- Kilos de salsa -->
+                                        <td v-if="(producto.category == 2 )">
+                                            {{(producto.quantity = producto.vasos * producto.price)/1000}} kg
+                                        </td>
+                                        <td v-if="(producto.category != 2 )">
+                                            
+                                        </td>
+
+                                        <!-- Precio unitario -->
                                         <td>
-                                            <input min="0" class="fieldEdit" type="number" v-model="producto.price"
-                                                @change="calcularMontos()" />
+                                            ${{ (producto.compra * 1) }}
                                         </td>
+                                        <!-- Precio Total -->
                                         <td>
-                                            ${{ formatNumber(producto.quantity * producto.price) }}
+                                            ${{(producto.vasos * producto.compra)}}
                                         </td>
+                                        <!-- Remover -->
                                         <td>
                                             <button class="btn btn-danger btn-m" @click="removeProduct(index)">
                                                 <i class="fa fa-times-circle"></i>
                                             </button>
+                                        </td>
+                                    </tr>
+                                    <tr v-else>
+                                        <td colspan="5">
+                                            No hay productos añadidos
                                         </td>
                                     </tr>
                                 </tbody>
@@ -180,10 +202,11 @@ export default {
             montoNeto: 0,
             despacho: 0,
             iva: 0.19,
-            montoDespacho:0,
-            montoIva:0,
+            montoDespacho: 0,
+            montoIva: 0,
             montoTotal: 0,
-            montoOpcionales: 0
+            montoOpcionales: 0,
+            vasoxsalsa:1
 
         }
     },
@@ -205,12 +228,12 @@ export default {
             // this.kiloSalsas = 0;
             // this.salsasPedido = [];
             // this.opcionalPedidoPedido = [];
-            this.montoDespacho=0;
-            this.montoIva=0;
-            this.montoTotal=0;
-            this.montoNeto=0;
+            this.montoDespacho = 0;
+            this.montoIva = 0;
+            this.montoTotal = 0;
+            this.montoNeto = 0;
             this.productosPedido = [];
-            this.productoSend =[];
+            this.productoSend = [];
             this.totalPrice = 0;
             // this.vasos = 0;
             $('#pedidoUrgente').modal('hide');
@@ -218,10 +241,13 @@ export default {
         addProduct(producto) {
             const existingProduct = this.productosPedido.find((p) => p.name === producto.name);
             if (existingProduct) {
-                console.log(`Salsa ${producto.name} ya existente.`);
+                console.log(`Producto ${producto.name} ya existente.`);
             } else {
                 const productoCopia = Object.assign({}, producto);
                 productoCopia.quantity = 1;
+                if(productoCopia.category == 2){
+                    productoCopia.vasos = 10;
+                }
                 this.productosPedido.push(productoCopia);
             }
             this.calcularMontos();
@@ -239,7 +265,7 @@ export default {
             //monto neto
             this.montoNeto = 0;
             for (var index in this.productosPedido) {
-                this.montoNeto += parseFloat(this.productosPedido[index].price * this.productosPedido[index].quantity);
+                this.montoNeto += parseFloat(this.productosPedido[index].compra * this.productosPedido[index].quantity);
             }
 
         },
@@ -259,7 +285,7 @@ export default {
             this.totalPrice = this.montoNeto + this.montoDespacho + this.montoIva;
 
             console.log('Total price', this.totalPrice);
-            
+
             this.$emit('update-products', this.productoSend);
             this.$emit('update-total', Math.ceil((this.totalPrice)));
             this.$emit('update-montoOpcionales', Math.ceil((this.montoOpcionales)));
@@ -296,18 +322,6 @@ export default {
             else this.$awn.alert('Error al obtener los productos');
 
         },
-        // formatearMonto(monto) {
-        //     const montoSinDecimales = Math.ceil(monto);
-        //     // const parteDecimal = monto.toFixed(2).split(".")[1];
-
-        //     // // Eliminar "00" si son los dos últimos decimales
-        //     // if (parteDecimal === "00") {
-        //     //   return montoSinDecimales.toLocaleString();
-        //     // }
-
-        //     // Formatear con miles y decimales
-        //     return `${montoSinDecimales.toLocaleString()}`;
-        // },
         convertirAKilogramosYRedondear(gramos, multiplicador) {
             const kilogramos = (gramos * multiplicador) / 1000;
             return Math.ceil(kilogramos * 1000) / 1000;
@@ -349,5 +363,8 @@ table thead th {
 .btn-outline-info {
     padding-top: 0.3rem !important;
     padding-bottom: 0.3rem !important;
+}
+.fieldEdit{
+    width: 80px;
 }
 </style>

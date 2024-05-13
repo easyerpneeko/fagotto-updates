@@ -81,8 +81,11 @@
                                             ${{ (producto.compra * 1) }}
                                         </td>
                                         <!-- Precio Total -->
-                                        <td>
+                                        <td v-if="(producto.category == 2)">
                                             ${{(producto.vasos * producto.compra)}}
+                                        </td>
+                                        <td v-else>
+                                            ${{(producto.quantity * producto.compra)}}
                                         </td>
                                         <!-- Remover -->
                                         <td>

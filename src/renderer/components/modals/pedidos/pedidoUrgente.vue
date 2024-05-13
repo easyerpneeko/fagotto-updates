@@ -70,7 +70,7 @@
 
                                         <!-- Kilos de salsa -->
                                         <td v-if="(producto.category == 2 )">
-                                            {{(producto.quantity = producto.vasos * producto.price)/1000}} kg
+                                            {{(producto.quantity = (producto.vasos * producto.price)/1000)}} kg
                                         </td>
                                         <td v-if="(producto.category != 2 )">
                                             
@@ -82,10 +82,10 @@
                                         </td>
                                         <!-- Precio Total -->
                                         <td v-if="(producto.category == 2)">
-                                            ${{(producto.vasos * producto.compra)}}
+                                            ${{(formatNumber(producto.vasos * producto.compra))}}
                                         </td>
                                         <td v-else>
-                                            ${{(producto.quantity * producto.compra)}}
+                                            ${{(formatNumber(producto.quantity * producto.compra))}}
                                         </td>
                                         <!-- Remover -->
                                         <td>
@@ -172,16 +172,6 @@ export default {
     },
     data() {
         return {
-            // vasos: 160,
-            // queso: 4,
-            // harina: 22,
-            // huevo: 180,
-            // precioVaso: 0,
-            // kiloAgg: false,
-            //Para saber si el pedido es completo o medio 1= completo, 2 = medio
-            // tipoPedido: 2,
-            // vasosSalsas: 0,
-            // totalVasos: 0,
             totalPrice: 0,
             productosPedido: [
                 // 1: { name: 'Vasos', quantity: 160, vasos: 1 },
@@ -193,14 +183,6 @@ export default {
                 // 1: { name: 'Huevos', quantity: 1, vasos: 1 },
             },
 
-            // salsasDisponibles: {
-            //     // 1: { name: 'Alfredo', quantity: 70, vasos: 1 },
-            // },
-            // opcionalesDisponibles: {
-
-            // },
-            // vasosSalsas: 0,
-            // kiloSalsas: 0,
             productoSend: [],
             montoNeto: 0,
             despacho: 0,
@@ -224,13 +206,7 @@ export default {
     methods: {
         async closeModal(refresh = false) {
             //Volvemos los arreglos al estado inicial
-            // await this.getProducts();
-            // this.tipoPedido = 1;
-            // this.vasosSalsas = 0;
-            // this.totalVasos = 0;
-            // this.kiloSalsas = 0;
-            // this.salsasPedido = [];
-            // this.opcionalPedidoPedido = [];
+
             this.montoDespacho = 0;
             this.montoIva = 0;
             this.montoTotal = 0;
@@ -238,7 +214,7 @@ export default {
             this.productosPedido = [];
             this.productoSend = [];
             this.totalPrice = 0;
-            // this.vasos = 0;
+
             $('#pedidoUrgente').modal('hide');
         },
         addProduct(producto) {
@@ -268,7 +244,13 @@ export default {
             //monto neto
             this.montoNeto = 0;
             for (var index in this.productosPedido) {
-                this.montoNeto += parseFloat(this.productosPedido[index].compra * this.productosPedido[index].quantity);
+                if(this.productosPedido[index].category == 2){
+                    this.productosPedido[index].costo = this.productosPedido[index].vasos * this.productosPedido[index].compra;
+                }else{
+                    this.productosPedido[index].costo =  this.productosPedido[index].quantity * this.productosPedido[index].compra;
+                }
+
+                this.montoNeto += parseFloat(this.productosPedido[index].costo);
             }
 
         },
@@ -291,6 +273,10 @@ export default {
 
             this.$emit('update-products', this.productoSend);
             this.$emit('update-total', Math.ceil((this.totalPrice)));
+            this.$emit('update-subtotal', Math.ceil((this.montoNeto)));
+            this.$emit('update-monto-iva', Math.ceil((this.montoIva)));
+            this.$emit('update-monto-despacho', Math.ceil((this.montoDespacho)));
+            
             this.$emit('update-montoOpcionales', Math.ceil((this.montoOpcionales)));
 
             this.productoSend = [];
@@ -320,6 +306,8 @@ export default {
                             this.despacho = this.productos[producto].price;
                         }
                     }
+                    //Para agregar la variable costo en cada producto
+                    this.productos[producto].costo = 0;
                 }
             }
             else this.$awn.alert('Error al obtener los productos');

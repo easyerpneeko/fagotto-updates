@@ -112,11 +112,13 @@
 
                                             <div class="form-group row d-flex justify-content-between col-sm-12">
                                                 <div class="">
-                                                    <span v-if="this.products.length > 0" class="text-info d-flex justify-content-between align-items-center p-1">
+                                                    <span v-if="this.products.length > 0"
+                                                        class="text-info d-flex justify-content-between align-items-center p-1">
                                                         <span>Productos Agregados </span>
                                                         <i class="fas fa-check m-1"></i>
                                                     </span>
-                                                    <span v-else class="text-danger d-flex justify-content-between align-items-center p-1">
+                                                    <span v-else
+                                                        class="text-danger d-flex justify-content-between align-items-center p-1">
                                                         <span>Sin Productos </span>
                                                         <i class="fas fa-times m-1"></i>
                                                     </span>
@@ -214,9 +216,12 @@ Reloj de arena: En espera.">
         <!-- modals -->
         <!-- @refresh="refreshData" -->
         <catalog :products="products" @update-products="updateProducts" @update-total="updateTotal"
-            @update-montoOpcionales="updateMontoOpcionales" />
+            @update-subtotal="updateSubtotal" @update-monto-iva="updateMontoIva"
+            @update-monto-despacho="updateMontoDespacho" @update-montoOpcionales="updateMontoOpcionales" />
+
         <pedido-urgente :products="products" @update-products="updateProducts" @update-total="updateTotal"
-            @update-montoOpcionales="updateMontoOpcionales" />
+            @update-subtotal="updateSubtotal" @update-monto-iva="updateMontoIva"
+            @update-monto-despacho="updateMontoDespacho" @update-montoOpcionales="updateMontoOpcionales" />
         <verify-modal :propVerify="propVerify" @refreshData="getRequests" />
         <!-- modal productsOrders -->
         <div class="modal fade modalForce" id="productsOrder" tabindex="-1" role="dialog"
@@ -282,20 +287,20 @@ Reloj de arena: En espera.">
                                             <tbody>
                                                 <tr>
                                                     <td>Monto neto</td>
-                                                    <td>${{ formatearMonto((this.total)) }}</td>
+                                                    <td>${{ formatearMonto(this.requestSubtotal) }}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td>Despacho {{ this.despacho * 100 }}%</td>
-                                                    <td>${{ formatearMonto((this.total) * this.despacho) }}</td>
+                                                    <td>Despacho {{ this.porcentajeDespacho * 100 }}%</td>
+                                                    <td>${{ formatearMonto(this.requestDespacho) }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td>IVA 19%</td>
-                                                    <td>${{ formatearMonto((this.total) * this.iva) }}
+                                                    <td>${{ formatearMonto(this.requestIva) }}
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td>Total</td>
-                                                    <td>${{ formatearMonto(this.total)}}</td>
+                                                    <td>${{ formatearMonto(this.requestPrice)}}</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -445,29 +450,32 @@ export default {
                 items: null,
                 rows: [
                     { key: 'name', class: '', permission: 'default' },
-                    // { key: 'price', class: '', permission: 'default' },
                     { key: 'quantity', class: '', permission: 'default' },
-                    // { key: 'subtotal', class: '', permission: 'default' },
+
                 ],
                 titles: [
                     { label: 'Nombre', class: '', permission: 'default', type: false },
-                    // { label: 'Precio', class: '', permission: 'default', type: false },
                     { label: 'Cantidad', class: '', permission: 'default', type: false },
-                    // { label: 'Subtotal', class: '', permission: 'default', type: false },
-                    // { label: '', class: '', permission: 'default', type: false },
+
                 ]
             },
-            subtotal: this.total,
+            subtotal: 0,
             total: 0,
+            montoIva: 0,
+            montoDespacho: 0,
             propVerify: null,
             productosFijos: {},
-            despacho: 0,
+            porcentajeDespacho: 0,
             iva: 0.19,
             precioVaso: 0,
             montoOpcionales: 0,
             vasos: 0,
 
-            request: null
+            request: null,
+            requestPrice: 0,
+            requestSubtotal: 0,
+            requestIva: 0,
+            requestDespacho: 0
         }
     },
     async beforeCreate() {
@@ -536,24 +544,25 @@ export default {
             this.jsonTable.items = request.data;
         },
         getTotal(products) {
-            // this.total = 0;
-            // products.map((product) => {
-            //     this.total += parseFloat(product.subtotal);
-            // });
-            // this.subtotal = this.total;
+
         },
         openProductsOrder(request) {
             this.jsonTableProducts.items = JSON.parse(request.products);
             // this.getTotal(this.jsonTableProducts.items);
             this.idRequest = request.id;
-            this.total = request.price;
+            this.requestPrice = request.price;
+            this.requestSubtotal = request.subtotal;
+            this.requestIva = request.iva;
+            this.requestDespacho = request.despacho;
+
+
             this.payment = request.payment;
             this.status_payment = request.status_payment;
             this.url_payment = this.url_linkify + this.app.Id + 'i' + this.payment.id
 
             for (const producto in this.jsonTableProducts.items) {
                 if (this.jsonTableProducts.items[producto].name === 'Vaso') {
-                    //Obteniendo el precio de despacho
+                    //Obteniendo el precio del vaso
                     this.vasos = this.jsonTableProducts.items[producto].quantity;
                 }
             }
@@ -605,6 +614,16 @@ export default {
             this.totalPrice = newTotal;
             console.log('Total Price:', this.totalPrice);
         },
+        updateSubtotal(newSubtotal) {
+            this.subtotal = newSubtotal;
+            console.log('Sub total Price:', this.subtotal);
+        },
+        updateMontoIva(newMontoIva) {
+            this.montoIva = newMontoIva;
+        },
+        updateMontoDespacho(newMontoDespacho) {
+            this.montoDespacho = newMontoDespacho;
+        },
         updateMontoOpcionales(newMonto) {
             this.montoOpcionales = newMonto;
             console.log('montoOpcionales Price:', this.montoOpcionales);
@@ -627,6 +646,9 @@ export default {
                     products: this.products,
                     comment: this.comment,
                     price: this.totalPrice,
+                    subtotal: this.subtotal,
+                    iva: this.montoIva,
+                    despacho: this.montoDespacho,
                     // transaccion: this.transaccion,
                     app_id: this.app.Id,
                 };
@@ -738,7 +760,7 @@ export default {
             for (const producto in this.productosFijos) {
                 if (this.productosFijos[producto].name === 'Despacho') {
                     //Obteniendo el precio de despacho
-                    this.despacho = this.productosFijos[producto].price;
+                    this.porcentajeDespacho = this.productosFijos[producto].price;
                 }
                 if (this.productosFijos[producto].name === 'Vaso') {
                     //Obteniendo el precio de despacho
@@ -746,7 +768,7 @@ export default {
                 }
             }
             console.log(this.precioVaso);
-            console.log(this.despacho);
+            console.log(this.porcentajeDespacho);
         },
         formatearMonto(monto) {
             const montoSinDecimales = Math.ceil(monto);

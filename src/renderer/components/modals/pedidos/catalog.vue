@@ -171,15 +171,15 @@
                 <tbody>
                   <tr>
                     <td>Monto neto</td>
-                    <td>${{ formatearMonto((this.vasos * this.precioVaso) + (this.montoOpcionales)) }}</td>
+                    <td>${{ formatearMonto(this.montoNeto = (this.vasos * this.precioVaso) + (this.montoOpcionales)) }}</td>
                   </tr>
                   <tr>
                     <td>Despacho {{ this.despacho * 100 }}%</td>
-                    <td>${{ formatearMonto((this.vasos * this.precioVaso) * this.despacho) }}</td>
+                    <td>${{ formatearMonto(this.montoDespacho = (this.vasos * this.precioVaso) * this.despacho) }}</td>
                   </tr>
                   <tr>
                     <td>IVA 19%</td>
-                    <td>${{ formatearMonto((this.vasos * this.precioVaso) * this.iva) }}</td>
+                    <td>${{ formatearMonto(this.montoIva = (this.vasos * this.precioVaso) * this.iva) }}</td>
                   </tr>
                   <tr>
                     <td>Total</td>
@@ -271,6 +271,8 @@ export default {
       kiloSalsas: 0,
       productoSend: [],
       montoNeto: 0,
+      montoIva:0,
+      montoDespacho:0,
       despacho: 0,
       iva: 0.19,
       montoTotal: 0,
@@ -444,6 +446,11 @@ export default {
 
       this.$emit('update-products', this.productoSend);
       this.$emit('update-total', Math.ceil((this.totalPrice)));
+
+      this.$emit('update-subtotal', Math.ceil((this.montoNeto)));
+      this.$emit('update-monto-iva', Math.ceil((this.montoIva)));
+      this.$emit('update-monto-despacho', Math.ceil((this.montoDespacho)));
+
       this.$emit('update-montoOpcionales', Math.ceil((this.montoOpcionales)));
 
       $('#modalCatalog').modal('hide');

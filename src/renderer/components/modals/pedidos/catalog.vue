@@ -244,25 +244,16 @@ export default {
       totalPrice: 0,
       productosPedido: {
         // 1: { name: 'Vasos', quantity: 160, vasos: 1 },
-        // 2: { name: 'Huevos', quantity: 180, vasos: 1 },
-        // 3: { name: 'Harina', quantity: 22, vasos: 1 },
-        // 4: { name: 'Queso', quantity: 4, vasos: 1 },
       },
       salsasPedido: [],
       opcionalPedido: [],
       productosFijos: {
         // //Producto | quantity | Vasos
         // 1: { name: 'Huevos', quantity: 1, vasos: 1 },
-        // 2: { name: 'Harina', quantity: 122.222222, vasos: 1 },
-        // 3: { name: 'Queso', quantity: 22.222222, vasos: 1 },
       },
 
       salsasDisponibles: {
         // 1: { name: 'Alfredo', quantity: 70, vasos: 1 },
-        // 2: { name: 'boloñesa', quantity: 70, vasos: 1 },
-        // 3: { name: 'camaron', quantity: 100, vasos: 1 },
-        // 4: { name: 'champiñon', quantity: 100, vasos: 1 },
-        // 5: { name: 'pesto', quantity: 70, vasos: 1 }
       },
       opcionalesDisponibles: {
 
@@ -348,11 +339,11 @@ export default {
       }
       this.calcularVasosSalsas();
     },
-    calcularCantidades(opcion) {
+    calcularCantidades() {
 
       if (this.vasosSalsas > 160) {
         this.vasos = this.vasosSalsas;
-        this.productosPedido[2].quantity = this.vasos;
+        this.productosPedido[1].quantity = this.vasos;
       } else if (this.vasosSalsas <= 160) {
         this.vasos = 160;
         this.productosPedido[2].quantity = this.vasos;

@@ -663,6 +663,17 @@ export default {
 
                 if (request.success) {
                     this.$awn.success('Pedido enviado Exitosamente', { labels: { success: 'CORRECTO' } });
+
+                    this.name = "";
+                    this.phone = "";
+                    this.paymode = null;
+                    // this.status = null;
+                    this.products = [];
+                    this.comment ="";
+                    this.totalPrice = 0;
+                    this.subtotal = 0;
+                    this.montoIva = 0;
+                    this.montoDespacho = 0;
                 } else {
                     console.log(request.data);
                     this.$awn.alert('Error al enviar el pedido');

@@ -96,7 +96,8 @@
                                                     @change="loadSubcategories" :disabled="this.disableForm"
                                                     placeholder="Categorias">
                                                     <!-- <option disabled selected class="text-capitalize">Todas</option> -->
-                                                    <option :value="category" v-for="category in categories" :key="category.id" class="text-capitalize">
+                                                    <option :value="category" v-for="category in categories"
+                                                        :key="category.id" class="text-capitalize">
                                                         {{ category.name }}
                                                     </option>
                                                 </select>
@@ -108,7 +109,8 @@
                                                 <select class="form-control" v-model="subcategory"
                                                     :disabled="this.disableForm" placeholder="Subcategorias">
                                                     <!-- <option disabled selected class="text-capitalize">Todas</option> -->
-                                                    <option :value="subcategory" v-for="subcategory in filtersubcategories" :key="subcategory.id"
+                                                    <option :value="subcategory"
+                                                        v-for="subcategory in filtersubcategories" :key="subcategory.id"
                                                         class="text-capitalize">
                                                         {{ subcategory.name }}
                                                     </option>
@@ -292,16 +294,16 @@
                             <div class="col-sm-12">
                             </div><!--End col -->
                             <div class="col-md-12">
-                                <form id="contactForm2" name="contactform2" data-toggle="validator" class="popup-form" novalidate="true">
+                                <form id="contactForm2" name="contactform2" data-toggle="validator" class="popup-form"
+                                    novalidate="true">
                                     <div class="row">
 
                                         <div class="form-group col-sm-6"
                                             :class="{ 'has-error': submitted && !isValidName }">
                                             <div class="help-block with-errors"></div>
-                                            <input v-model="operation.name" :disabled="this.disableForm"
-                                                name="name" id="operationName" placeholder="Tu nombre"
-                                                class="form-control" type="text" required=""
-                                                data-error="Por favor ingresa tu nombre">
+                                            <input v-model="operation.name" :disabled="this.disableForm" name="name"
+                                                id="operationName" placeholder="Tu nombre" class="form-control"
+                                                type="text" required="" data-error="Por favor ingresa tu nombre">
                                             <div class="input-group-icon"><i class="fa fa-user"></i></div>
 
                                         </div><!-- end form-group -->
@@ -345,8 +347,12 @@
                                         </div><!-- end form-group -->
                                         <div class="form-group col-sm-6" :class="{ 'has-error': submitted }">
                                             <div class="help-block with-errors"></div>
-                                            <select class="form-control" v-model="operation.operations_categories_id" @change="loadSubcategories" :disabled="this.disableForm" placeholder="Categorias">
-                                                <option :value="category.id" v-for="category in categories" :selected="operation.operations_categories_id.id === category.id" :key="category.id" class="text-capitalize">
+                                            <select class="form-control" v-model="operation.operations_categories_id"
+                                                @change="loadSubcategories" :disabled="this.disableForm"
+                                                placeholder="Categorias">
+                                                <option :value="category.id" v-for="category in categories"
+                                                    :selected="operation.operations_categories_id.id === category.id"
+                                                    :key="category.id" class="text-capitalize">
                                                     {{ category.name }}
                                                 </option>
                                             </select>
@@ -357,7 +363,8 @@
                                             <div class="help-block with-errors"></div>
                                             <select class="form-control" v-model="operation.operations_subcategories_id"
                                                 :disabled="this.disableForm" placeholder="Subcategorias">
-                                                <option :value="subcategory.id" v-for="subcategory in filtersubcategories"
+                                                <option :value="subcategory.id"
+                                                    v-for="subcategory in filtersubcategories"
                                                     :selected="operation.operations_subcategories_id === subcategory.id"
                                                     :key="subcategory.id" class="text-capitalize">
                                                     {{ subcategory.name }}
@@ -577,6 +584,14 @@ export default {
 
             if (request.success) {
                 this.$awn.success('Operacion creada Exitosamente', { labels: { success: 'CORRECTO' } });
+
+                this.name = "";
+                this.rut = null;
+                this.company_name = "";
+                this.factura = "";
+                this.total = 0;
+                this.category = null;
+                this.subcategory = null;
             } else {
                 console.log(request.data);
                 this.$awn.alert('Error al enviar el pedido');
@@ -690,7 +705,7 @@ export default {
             fd.append('operations_categories_id', this.operation.operations_categories_id);
             fd.append('operations_subcategories_id', this.operation.operations_subcategories_id);
             console.log(this.operation.operations_subcategories_id);
-            
+
             let request = await this.$store.dispatch('operations/editOperation', { id: this.operation.id, data: fd });
 
             Loader.hide();

@@ -303,7 +303,7 @@ export default {
                         if (this.isDespachoGratis) {
                             this.despacho = 0;
                         } else {
-                            this.despacho = this.productos[producto].price;
+                            this.despacho = this.productos[producto].compra;
                         }
                     }
                     //Para agregar la variable costo en cada producto

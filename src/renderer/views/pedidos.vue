@@ -81,11 +81,8 @@
                                             <div class="form-group col-sm-12"
                                                 :class="{ 'has-error': submitted && !isValidPaymode }">
                                                 <div class="help-block with-errors"></div>
-                                                <select class="form-control" v-model="paymode"
-                                                    :disabled="this.disableForm" placeholder="Metodo de pago">
-                                                    <option disabled selected class="text-capitalize">Todas</option>
-                                                    <option :value="paymode.name" v-for="paymode in paymodes"
-                                                        :key="paymode.id" class="text-capitalize">
+                                                <select class="form-control" v-model="paymode" :disabled="this.disableForm" placeholder="Metodo de pago">
+                                                    <option v-for="paymode in paymodes" :selected="paymode.id === 1" :value="paymode.name"  :key="paymode.id" class="text-capitalize">
                                                         {{ paymode.name }}
                                                     </option>
                                                 </select>
@@ -112,16 +109,16 @@
 
                                             <div class="form-group row d-flex justify-content-between col-sm-12">
                                                 <div class="">
-                                                    <span v-if="this.products.length > 0"
-                                                        class="text-info d-flex justify-content-between align-items-center p-1">
-                                                        <span>Productos Agregados </span>
-                                                        <i class="fas fa-check m-1"></i>
-                                                    </span>
-                                                    <span v-else
-                                                        class="text-danger d-flex justify-content-between align-items-center p-1">
-                                                        <span>Sin Productos </span>
-                                                        <i class="fas fa-times m-1"></i>
-                                                    </span>
+                                                    <button v-if="this.products.length > 0" class="m-1 btn-width btn bg-success text-white text-capitalize">
+                                                        Productos Agregados al pedido
+                                                        <i class="fas fa-shopping-cart"></i>
+                                                        <span class="badge badge-light">{{this.products.length}}</span>
+                                                    </button>
+                                                    <button v-else class="m-1 btn-width btn bg-danger text-white text-capitalize">
+                                                        Sin productos en el pedido
+                                                        <i class="fas fa-shopping-cart"></i>
+                                                        <span class="badge badge-light">0</span>
+                                                    </button>
                                                 </div>
                                                 <div>
                                                     <button type="button" data-toggle="modal"
@@ -489,9 +486,12 @@ export default {
         // this.user = this.me;
         console.log("user:", this.isAdmin);
         // Para los toltips
-        $('[data-toggle="tooltip"]').tooltip()
+        $('[data-toggle="tooltip"]').tooltip();
+
+        this.name = this.me.fullname;
     },
     computed: {
+        me: { get() { return this.$store.getters['main/user']; } },
         offOn: {
             get() { return this.value },
             set(offOn) { this.$emit('input', offOn) }
@@ -693,7 +693,7 @@ export default {
             if (!this.isValidProducts) {
                 this.$awn.alert("Es necesario agregar algun producto");
             }
-            if (!this.isValidName || !this.isValidPhone || !this.isValidComment || !this.isValidPaymode) {
+            if (!this.isValidName || !this.isValidPhone ||  !this.isValidPaymode) {
                 return false;
             }
             return true;

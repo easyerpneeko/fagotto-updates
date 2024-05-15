@@ -346,7 +346,7 @@ export default {
         this.productosPedido[1].quantity = this.vasos;
       } else if (this.vasosSalsas <= 160) {
         this.vasos = 160;
-        this.productosPedido[2].quantity = this.vasos;
+        this.productosPedido[1].quantity = this.vasos;
       }
 
       for (const key in this.productosPedido) {
@@ -354,7 +354,7 @@ export default {
           if (this.productosPedido[key].name != "Huevo") {
             this.productosPedido[key].quantity = (this.productosPedido[key].price * this.vasos) / 1000;
           }else if(this.productosPedido[key].name == "Huevo"){
-            this.productosPedido[key].quantity += Math.ceil(parseFloat(this.productosPedido[key].price));
+            this.productosPedido[key].quantity = Math.ceil((this.productosPedido[key].price * this.vasos));
           }
         }
 
@@ -494,7 +494,7 @@ export default {
         } else if (this.productosFijos[producto].name === 'Huevo') {
           const nuevoProductoPedido = {
             name: this.productosFijos[producto].name,
-            quantity: (this.productosFijos[producto].price * this.vasos) + 20,
+            quantity: (this.productosFijos[producto].price * this.vasos),
             vasos: 1,
             price: this.productosFijos[producto].price
           };

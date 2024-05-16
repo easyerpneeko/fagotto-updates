@@ -26,7 +26,7 @@ export default {
         ipcRenderer.send('app_version');
         ipcRenderer.on('app_version', (event, arg) => {
             ipcRenderer.removeAllListeners('app_version');
-            // version.innerText = 'Version ' + arg.version;
+            version.innerText = 'Version ' + arg.version;
         });
 
         const notification = document.getElementById('notification');

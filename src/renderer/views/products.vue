@@ -167,6 +167,34 @@
         </div>
       </div>
     </div>
+
+    <div v-if="stockInstalled && productsSelect" class="modal fade " id="modalProductStock" tabindex="-1" role="dialog"
+      aria-labelledby="modalProductStock" aria-hidden="true" data-backdrop="false">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header bg-primario">
+            <h5 class="modal-title">Producto Stock</h5>
+          </div>
+          <div class="modal-body" ref="loaderStockProduct">
+            <div class="row">
+              <div class="col-12 text-center">
+                <span><strong>Escriba el nombre del producto</strong></span>
+                <!-- <Select2 v-model="this.itemSelect" :options="this.productsSelect" :settings="{ dropdownParent: '#modalProductStock', width: '100%' }" @change="thisProduct($event)" @select="thisProductEvent($event)"/> -->
+                <v-select v-model="itemSelect" :options="this.productsSelect" @input="thisProductEvent" label="text" />
+                <br>
+                <div v-if="stock_first">
+                  <span><strong>{{ stock_first }}</strong></span>
+                  <input class="Jinput-border-none btn" type="number" v-model="product_stock"
+                    v-on:keyup.enter="productStockAdd()" name="product_stock" ref="product_Stock_counter"
+                    id="product_stock" min="1" autofocus />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <categories v-if="categoriesInstalled" />
     <verify-modal :propVerify="propVerify" @refreshData="refreshData" />
     <new-product @refresh="refreshData" ref="newProduct" @closeEdit="selectProduct" />
@@ -263,12 +291,23 @@ export default {
           { label: 'Valor Nuevo', class: '', permission: 'default', type: 'false', orderBy: false },
           { label: 'Usuario', class: '', permission: 'default', type: 'false', orderBy: false },
         ]
-      }
+      },
+
+      productsSelect: [],
+      itemSelect: '',
+      stock_first: '',
+      product_stock: '',
     }
   },
   async mounted() {
     //HavePermission
     this.refreshData(true);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.keyCode == 115) {
+        this.modalProductStock();
+      }
+    });
   },
   components: {
     newProduct,
@@ -472,7 +511,63 @@ export default {
       Loader.hide();
 
       document.getElementById('importProducts').value = null;
-    }
+    },
+    async modalProductStock() {
+      if (this.productsGet) {
+        // Iniciando peticion
+        var request = await this.$store.dispatch("products/getProductsOfSell");
+        // Verificando respuesta
+        if (request.success) {
+          let productsSelect = [];
+          var productos = (request.data.length == 0) ? false : request.data;
+          console.log(productos);
+          if (this.barcodeInstalled) {
+            $.each(productos, function (key, val) {
+              // productsSelect.push({"id":val.id, "text":val.barcode+ ' '+val.name+ ' - stock '+val.stock });
+              productsSelect.push({ "id": val.id, "text": val.name + ' - stock ' + val.stock });
+            });
+          }
+          if (!this.barcodeInstalled) {
+            $.each(productos, function (key, val) {
+              productsSelect.push({ "id": val.id, "text": val.name + ' - stock ' + val.stock });
+            });
+          }
+          this.productsSelect = productsSelect;
+          $('#modalProductStock').modal('show');
+        } else {
+          this.$awn.alert('Error al obtener los productos');
+        }
+      }
+    },
+    thisProductEvent({ id, text }) {
+      text = text.replace('-', '\n\n');
+      this.stock_first = text;
+      this.product_id = id;
+      console.log("focus 2 borrar-focus");
+      setTimeout(() => { this.$refs.product_Stock_counter.focus(); }, 500);
+    },
+    async productStockAdd() {
+      if (this.product_id > 0) {
+        Loader.fullPage();
+        let data = new FormData();
+        data.append('id', this.product_id);
+        data.append('stock', this.product_stock);
+        var request = await this.$store.dispatch("products/editStock", data);
+        if (request.success) {
+          this.$awn.success(request.data, { labels: { success: 'CORRECTO' } });
+          $('#modalProductStock').modal('hide');
+          setTimeout(() => {
+            this.productSearch = '';
+          }, 500);
+        } else {
+          this.$awn.alert('Error al actualizar el stock');
+        }
+      }
+      Loader.hide();
+    },
+    getSearchValue(result) {
+      return result.name + '';
+    },
   },
   computed: {
     // v-model
@@ -487,6 +582,18 @@ export default {
     productTable: { get() { return ConfigHelper.ConfStr('modulos.productos.ajustes.productos_tabla'); } },
     categoriesInstalled: { get() { return ConfigHelper.ConfStr('modulos.productos.submodulos.categorias'); } },
     downloadExcelInstaller: { get() { return ConfigHelper.ConfStr('modulos.productos.ajustes.donwload_inventory'); } },
+    stockInstalled: { get() { return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_stock'); } },
+    productsGet: {
+      get() {
+
+        if (ConfigHelper.HavePermission('productos_obtener')) {
+          return ConfigHelper.HavePermission('productos_obtener');
+        } else {
+          return false;
+        }
+
+      }
+    },
   }
 }
 </script>

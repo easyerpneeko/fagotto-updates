@@ -51,29 +51,34 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-if="productosPedido.length > 0" v-for="(producto, index) in productosPedido" :key="index">
+                                    <tr v-if="productosPedido.length > 0" v-for="(producto, index) in productosPedido"
+                                        :key="index">
                                         <td>{{ producto.name }}</td>
-                                        
+
                                         <!-- Cantidad -->
-                                        <td v-if="( producto.category == 4)">
-                                            <input min="1" class="fieldEdit" type="number" v-model="producto.quantity" @change="calcularMontos()" />
+                                        <td v-if="(producto.category == 4)">
+                                            <input min="1" class="fieldEdit" type="number" v-model="producto.quantity"
+                                                @change="calcularMontos()" />
                                             Kg
                                         </td>
-                                        <td v-if="(producto.category == 3 || producto.name == 'Huevo' || producto.name == 'Vaso')">
-                                            <input min="1" class="fieldEdit" type="number" v-model="producto.quantity" @change="calcularMontos()" />
-                                            {{ (producto.name == 'Huevo' ? 'Caja(s)': 'Unidad(es)') }}
+                                        <td
+                                            v-if="(producto.category == 3 || producto.name == 'Huevo' || producto.name == 'Vaso')">
+                                            <input min="1" class="fieldEdit" type="number" v-model="producto.quantity"
+                                                @change="calcularMontos()" />
+                                            {{ (producto.name == 'Huevo' ? 'Caja(s)' : 'Unidad(es)') }}
                                         </td>
-                                        <td v-if="(producto.category == 2 )">
-                                            <input min="10" class="fieldEdit" type="number" v-model="producto.vasos" @change="calcularMontos()" />
+                                        <td v-if="(producto.category == 2)">
+                                            <input min="10" class="fieldEdit" type="number" v-model="producto.vasos"
+                                                @change="calcularMontos()" />
                                             Vasos
                                         </td>
 
                                         <!-- Kilos de salsa -->
-                                        <td v-if="(producto.category == 2 )">
-                                            {{(producto.quantity = (producto.vasos * producto.price)/1000)}} kg
+                                        <td v-if="(producto.category == 2)">
+                                            {{ (producto.quantity = (producto.vasos * producto.price) / 1000) }} kg
                                         </td>
-                                        <td v-if="(producto.category != 2 )">
-                                            
+                                        <td v-if="(producto.category != 2)">
+
                                         </td>
 
                                         <!-- Precio unitario -->
@@ -82,10 +87,10 @@
                                         </td>
                                         <!-- Precio Total -->
                                         <td v-if="(producto.category == 2)">
-                                            ${{(formatNumber(producto.vasos * producto.compra))}}
+                                            ${{ (formatNumber(producto.vasos * producto.compra)) }}
                                         </td>
                                         <td v-else>
-                                            ${{(formatNumber(producto.quantity * producto.compra))}}
+                                            ${{ (formatNumber(producto.quantity * producto.compra)) }}
                                         </td>
                                         <!-- Remover -->
                                         <td>
@@ -117,20 +122,16 @@
                                     <tr>
                                         <td>Despacho {{ this.despacho * 100 }}%</td>
 
-                                        <td>${{ formatNumber((this.despacho * this.montoNeto)) }}</td>
+                                        <td>${{ formatNumber(this.montoDespacho) }}</td>
                                     </tr>
                                     <tr>
                                         <td>IVA {{ this.iva * 100 }}%</td>
 
-                                        <td>${{ formatNumber((this.montoNeto * this.iva)) }}</td>
+                                        <td>${{ formatNumber(this.montoIva) }}</td>
                                     </tr>
                                     <tr>
                                         <td>Total</td>
-                                        <td>${{
-                        formatNumber(this.montoNeto + (this.despacho * this.montoNeto) +
-                            (this.montoNeto * this.iva) +
-                            this.montoOpcionales)
-                                            }}
+                                        <td>${{ formatNumber(this.totalPrice) }}
                                         </td>
                                     </tr>
                                 </tbody>
@@ -191,7 +192,7 @@ export default {
             montoIva: 0,
             montoTotal: 0,
             montoOpcionales: 0,
-            vasoxsalsa:1
+            vasoxsalsa: 1
 
         }
     },
@@ -224,7 +225,7 @@ export default {
             } else {
                 const productoCopia = Object.assign({}, producto);
                 productoCopia.quantity = 1;
-                if(productoCopia.category == 2){
+                if (productoCopia.category == 2) {
                     productoCopia.vasos = 10;
                 }
                 this.productosPedido.push(productoCopia);
@@ -244,14 +245,18 @@ export default {
             //monto neto
             this.montoNeto = 0;
             for (var index in this.productosPedido) {
-                if(this.productosPedido[index].category == 2){
+                if (this.productosPedido[index].category == 2) {
                     this.productosPedido[index].costo = this.productosPedido[index].vasos * this.productosPedido[index].compra;
-                }else{
-                    this.productosPedido[index].costo =  this.productosPedido[index].quantity * this.productosPedido[index].compra;
+                } else {
+                    this.productosPedido[index].costo = this.productosPedido[index].quantity * this.productosPedido[index].compra;
                 }
 
                 this.montoNeto += parseFloat(this.productosPedido[index].costo);
             }
+
+            this.montoDespacho = Math.ceil(this.despacho * this.montoNeto);
+            this.montoIva = Math.ceil(this.iva * this.montoNeto);
+            this.totalPrice = Math.ceil(this.montoNeto + this.montoDespacho + this.montoIva);
 
         },
         addProducts() {
@@ -264,20 +269,19 @@ export default {
                 return false;
             }
 
-            this.montoDespacho = this.despacho * this.montoNeto;
-            this.montoIva = this.iva * this.montoNeto;
+            // this.montoDespacho = this.despacho * this.montoNeto;
+            // this.montoIva = this.iva * this.montoNeto;
 
             this.totalPrice = this.montoNeto + this.montoDespacho + this.montoIva;
 
             console.log('Total price', this.totalPrice);
 
             this.$emit('update-products', this.productoSend);
-            this.$emit('update-total', Math.ceil((this.totalPrice)));
-            this.$emit('update-subtotal', Math.ceil((this.montoNeto)));
-            this.$emit('update-monto-iva', Math.ceil((this.montoIva)));
-            this.$emit('update-monto-despacho', Math.ceil((this.montoDespacho)));
-            
-            this.$emit('update-montoOpcionales', Math.ceil((this.montoOpcionales)));
+            this.$emit('update-total',(this.totalPrice));
+            this.$emit('update-subtotal', (this.montoNeto));
+            this.$emit('update-monto-iva', (this.montoIva));
+            this.$emit('update-monto-despacho',(this.montoDespacho));
+            this.$emit('update-montoOpcionales',(this.montoOpcionales));
 
             this.productoSend = [];
             this.productosPedido = [];
@@ -285,7 +289,7 @@ export default {
             this.montoDespacho = 0;
             this.montoIva = 0;
             this.totalPrice = 0;
-
+            this.montoNeto = 0;
             $('#pedidoUrgente').modal('hide');
         },
         async getProducts() {
@@ -355,7 +359,8 @@ table thead th {
     padding-top: 0.3rem !important;
     padding-bottom: 0.3rem !important;
 }
-.fieldEdit{
+
+.fieldEdit {
     width: 80px;
 }
 </style>

@@ -495,6 +495,11 @@ export default {
         await this.getCategories();
         await this.getSubcategories()
         await this.getOperations(this.oldPage, true);
+
+        //Get app
+        var request = await this.$store.dispatch('main/refreshData', '?slim');
+        console.log('data :', request.data);
+        this.phone = request.data.Entorno.stgg_contacto.value;
     },
     computed: {
         // operationTable:{ get(){ return ConfigHelper.ConfStr('modulos.productos.ajustes.productos_tabla'); } },

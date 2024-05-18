@@ -229,7 +229,7 @@
                                 <b class="p-2">Total de operaciones: ${{
                                                     formatNumber(deFormatNumber(this.total_operaciones)) }}</b>
                             </template>
-                            <table class="m-0 table table-striped table-bordered table-sm w-100">
+                            <table class="m-0 table table-striped table-bordered table-sm w-100" id="balancesTable">
                                 <template v-for="category in balances">
                                     <template v-if="category.operations_count > 0">
                                         <thead>
@@ -273,6 +273,9 @@
 
                     </div>
                     <div class="modal-footer">
+                        <button @click="descargarExcel" type="button" class="btn bg-info text-white"
+                            data-dismiss="modal">Exportar a
+                            excel</button>
                         <button type="button" class="btn bg-secundario text-white" data-dismiss="modal">Cerrar</button>
                     </div>
                 </div>
@@ -402,14 +405,12 @@
 import paginate from '@/components/MPage.vue';
 import verifyModal from '@/components/modals/verifyDelete.vue';
 import customTable from '@/components/tables/table.vue';
-import catalog from '@/components/modals/pedidos/catalog.vue';
-import cardProduct from '@/components/cards/card_product.vue';
 import categories from '@/components/modals/OperationsCategories.vue';
 import subCategories from '@/components/modals/OperationsSubCategories.vue';
 // Helpers
 import Loader from '@/helpers/Loader';
-import moment from 'moment';
 import FormatNumber from '@/helpers/FormatNumber.js';
+import XLSX from 'xlsx';
 
 const { shell } = require('electron');
 
@@ -420,7 +421,6 @@ export default {
         verifyModal,
         paginate,
         customTable,
-        catalog,
         categories,
         subCategories
     },
@@ -743,6 +743,45 @@ export default {
             console.log(operation);
             this.operation = operation;
             this.category = operation.categories;
+        },
+        descargarExcel() {
+            // Obtener los datos de la tabla
+            const table = document.getElementById('balancesTable');
+            const workbook = XLSX.utils.table_to_book(table);
+
+            // Generar el archivo Excel
+            const filename = 'tabla.xlsx';
+            const wbout = XLSX.write(workbook, { bookType: 'xlsx', bookSST: true, type: 'binary' });
+
+            const saveAs = (blob, fileName) => {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = fileName;
+
+                // Simular un clic en el enlace para iniciar la descarga
+                link.dispatchEvent(new MouseEvent('click'));
+
+                // Limpiar el enlace y liberar la URL de objeto
+                setTimeout(function () {
+                    URL.revokeObjectURL(link.href);
+                    link.remove();
+                }, 0);
+            };
+
+            const s2ab = (s) => {
+                const buf = new ArrayBuffer(s.length);
+                const view = new Uint8Array(buf);
+                for (let i = 0; i < s.length; i++) {
+                    view[i] = s.charCodeAt(i) & 0xff;
+                }
+                return buf;
+            };
+
+            const fileData = s2ab(wbout);
+            const blob = new Blob([fileData], { type: 'application/octet-stream' });
+
+            // Descargar el archivo Excel con ventana "Guardar como"
+            saveAs(blob, filename);
         }
     }
 }

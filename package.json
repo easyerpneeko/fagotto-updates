@@ -108,7 +108,8 @@
     "vue2-datepicker": "^3.3.1",
     "vuedraggable": "^2.24.3",
     "vuex": "^3.0.1",
-    "vuex-electron": "^1.0.0"
+    "vuex-electron": "^1.0.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "ajv": "^6.5.0",

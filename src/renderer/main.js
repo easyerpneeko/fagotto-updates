@@ -19,6 +19,7 @@ import JQuery from 'jquery';
 import DatePicker from 'vue2-datepicker';
 import Autocomplete from '@trevoreyre/autocomplete-vue';
 import vSelect from 'vue-select';
+import XLSX from 'xlsx';
 
 import '@trevoreyre/autocomplete-vue/dist/style.css'
 Vue.use(Autocomplete)
@@ -45,6 +46,7 @@ import Chart from 'chart.js'
 
 Vue.use(Chartkick.use(Chart))
 Vue.component('v-select', vSelect)
+// Vue.component('xlsx', XLSX)
 // import "mdbootstrap/js/mdb.min.js"
 Vue.use(require('bootstrap'))
 

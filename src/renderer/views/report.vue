@@ -798,11 +798,11 @@ export default {
             if(this.gananciaInstalled) {
               this.listTr.push(
                 [
-                  request[i][1],
-                  request[i][2],
-                  '$'+this.formatNumber(request[i][4]/(request[i][2])),
-                  '$'+FormatNumber.format(request[i][4]),
-                  '$'+this.formatNumber(request[i][4]),
+                  request[i][1], //Nombre
+                  request[i][2], //Stock vendido
+                  '$'+this.formatNumber(request[i][3]/(request[i][2])), //Valor del producto
+                  '$'+FormatNumber.format(request[i][4]),               //Ganancia (Ganancia_total)
+                  '$'+this.formatNumber(request[i][3]),                 //Total Vendido (Monto_total)
                 ],
               );
             } else {

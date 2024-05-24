@@ -14,7 +14,21 @@
           <div class="col-12 p-0 space-between-search-and-create">
 
             <div class="input-group input-group-sm mb-3 ">
-              <autocomplete :search="search" class="w-50" placeholder="Buscar" :getResultValue="getSearchValue"
+              <autocomplete v-if="this.settingEnterBuscar" @keyup.enter="submitAutocomplete(false)" :search="search"
+                class="w-50" placeholder="Buscar" :getResultValue="getSearchValue" ref="productAutocomplete">
+                <template #result="{ result, props }">
+                  <div class="d-flex list-item" :class="result.class ? result.class : ''"
+                    @click="submitAutocomplete(result)">
+                    <div style="width: 50px;"><b><i class="fab fa-sistrix"></i></b></div>
+                    <div style="width: 300px;"><b>{{ result.name }}</b></div>
+                    <div v-if="stockInstalled" style="width: 100px;"><b>{{ result.stock }}</b></div>
+                    <div style="width: 100px;"><b>{{ result.price != 'PRICE' ?
+                formatNumber(deFormatNumber(result.price)) + '$' : 'PRICE' }} </b></div>
+                  </div>
+                </template>
+              </autocomplete>
+
+              <autocomplete v-else :search="search" class="w-50" placeholder="Buscar" :getResultValue="getSearchValue"
                 @submit="submitAutocomplete" ref="productAutocomplete">
                 <template #result="{ result, props }">
                   <div class="d-flex list-item" :class="result.class ? result.class : ''"
@@ -83,8 +97,8 @@
                   </td>
 
                   <td class="py-3 px-3 text-center" :class="{ 'bgVentaMayorClass': activeRows[index] }">
-                    <span
-                      :class="product.stock <= 0 ? 'easy-badge-danger' : 'easy-badge-success'">{{ product.stock }}</span>
+                    <span :class="product.stock <= 0 ? 'easy-badge-danger' : 'easy-badge-success'">{{ product.stock
+                      }}</span>
                   </td>
 
                   <!-- <td v-if="(priceUnitaryInstalled && priceUnitary)" class="" :class="{ 'bgVentaMayorClass': activeRows[index] }"> -->
@@ -348,7 +362,7 @@
                     <span for="cantidad"><strong>Cantidad</strong></span>
                     <input class="Jinput-border-none btn shadow-icon " type="number" ref="counter_product"
                       v-model="product_counter" v-on:keyup.enter="addProductQuantityTable()" name="product_counter"
-                      id="product_counter" min="1" autofocus />
+                      v-on:keydown="handleKeyDown" id="product_counter" min="1" autofocus />
                   </div>
                 </div>
               </div>
@@ -531,6 +545,27 @@ export default {
   },
 
   methods: {
+    handleKeyDown(event) {
+      if(/^\d$/.test(event.key)){
+
+      }else if (event.key === '+' || event.key === '-' || event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+        // Ejecutar las funciones mas() o menos() aquí
+        if (event.key === '+' || event.key === 'ArrowUp') {
+          this.increaseProduct_counter();
+        } else if (event.key === '-' || event.key === 'ArrowDown') {
+          this.decreaseProduct_counter();
+        }
+        event.preventDefault();
+      }
+    },
+    increaseProduct_counter() {
+      this.product_counter++
+    },
+    decreaseProduct_counter() {
+      if(this.product_counter>1){
+        this.product_counter--
+      }
+    },
     async getApp() {
       var request = await this.$store.dispatch('main/refreshData', '?slim');
       return request.data;
@@ -1078,10 +1113,12 @@ export default {
       if (input.length < 2) return [];
 
       clearTimeout(this.timeoutT2);
-      this.timeoutT2 = setTimeout(() => {
-        // Establecemos la busqueda en segundo plano
-        this.productSearch = input;
-      }, 1500);
+      if (!this.settingEnterBuscar) {
+        this.timeoutT2 = setTimeout(() => {
+          // Establecemos la busqueda en segundo plano
+          this.productSearch = input;
+        }, 500);
+      }
 
       const inputLower = input.toLowerCase();
       const maxProductFindLength = 50;
@@ -1103,13 +1140,28 @@ export default {
     },
 
     submitAutocomplete(result) {
+
+      if (this.settingEnterBuscar) {
+        if (result === false) {
+          result = this.products.find(element => {
+            const nameLower = element.name.toLowerCase();
+            const barcode = element.barcode;
+            const inputLower = this.inputElement.value.toLowerCase();
+            return nameLower === inputLower || barcode === inputLower;
+          });
+
+          if (!result) {
+            return this.$awn.info("Sin resultados");
+          }
+        }
+      }
       console.log("ENVIADO AUTOCOMPLETEEE", this.inputElement);
       if (this.product_modal_init) {
         this.product_counter = 1;
         this.product_name = result.name;
         this.product_modal = result;
         $('#modalProductAdd').modal('show');
-        //setTimeout(() => {this.$refs.counter_product.focus();}, 500);
+        setTimeout(() => { this.$refs.counter_product.focus(); }, 500);
         return;
       }
 
@@ -1505,6 +1557,12 @@ export default {
 
     stockInstalled: { get() { return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_stock'); } },
 
+    settingEnterBuscar: {
+      get() {
+        return ConfigHelper.ConfStr('modulos.ventas.ajustes.enter_para_buscar');
+      }
+    },
+
     sellCreate: {
       get() {
         if (ConfigHelper.HavePermission('crear_venta')) {
@@ -1562,7 +1620,7 @@ export default {
                   this.product_name = findProduct.name;
                   this.product_modal = findProduct;
                   $('#modalProductAdd').modal('show');
-                  setTimeout(() => { this.$refs.counter_product.focus(); }, 50);
+                  setTimeout(() => { this.$refs.counter_product.focus(); }, 500);
                   return;
                 }
                 this.quantityAdd({

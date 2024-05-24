@@ -383,13 +383,13 @@
                 <div class="col-12 text-center">
                   <span><strong>Escriba el nombre del producto</strong></span>
                   <!-- <Select2 v-model="this.itemSelect" :options="this.productsSelect" :settings="{ dropdownParent: '#modalProductStock', width: '100%' }" @change="thisProduct($event)" @select="thisProductEvent($event)"/> -->
-                  <v-select v-model="itemSelect" :options="this.productsSelect" @input="thisProductEvent"
-                    label="text" />
+                  <v-select v-model="itemSelect" :options="this.productsSelect" @input="thisProductEvent" label="text" />
                   <br>
                   <div v-if="stock_first">
                     <span><strong>{{ stock_first }}</strong></span>
                     <input class="Jinput-border-none btn" type="number" v-model="product_stock"
                       v-on:keyup.enter="productStockAdd()" name="product_stock" ref="product_Stock_counter"
+                      v-on:keydown="handleKeyDown2"
                       id="product_stock" min="1" autofocus />
                   </div>
                 </div>
@@ -614,9 +614,6 @@ export default {
         this.focusInput();
       }
     },
-    handleInput(event) {
-
-    },
     focusInput() {
       console.log("focus 1 borrar-focus");
       this.inputElement.focus();
@@ -642,8 +639,8 @@ export default {
           console.log(productos);
           if (this.barcodeInstalled) {
             $.each(productos, function (key, val) {
-              // productsSelect.push({"id":val.id, "text":val.barcode+ ' '+val.name+ ' - stock '+val.stock });
-              productsSelect.push({ "id": val.id, "text": val.name + ' - stock ' + val.stock });
+              productsSelect.push({"id":val.id, "text":val.barcode+ ' '+val.name+ ' - stock '+val.stock });
+              // productsSelect.push({ "id": val.id, "text": val.name + ' - stock ' + val.stock });
             });
           }
           if (!this.barcodeInstalled) {
@@ -656,6 +653,27 @@ export default {
         } else {
           this.$awn.alert('Error al obtener los productos');
         }
+      }
+    },
+    handleKeyDown2(event) {
+      if(/^\d$/.test(event.key)){
+
+      }else if (event.key === '+' || event.key === '-' || event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+        // Ejecutar las funciones mas() o menos() aquí
+        if (event.key === '+' || event.key === 'ArrowUp') {
+          this.increaseProduct_stock();
+        } else if (event.key === '-' || event.key === 'ArrowDown') {
+          this.decreaseProduct_stock();
+        }
+        event.preventDefault();
+      }
+    },
+    increaseProduct_stock(){
+      this.product_stock++
+    },
+    decreaseProduct_stock(){
+      if(this.product_stock>1){
+        this.product_stock--
       }
     },
     async productStockAdd() {

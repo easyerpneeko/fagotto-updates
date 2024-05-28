@@ -106,7 +106,7 @@
                     <!-- #fere-warp1 -->
                     <input class="Jinput-border-none btn shadow-icon m-0" type="number" :id="product.id" autofocus
                       @change="calculatePlus(index, product, true)" v-model="product.price" name="unitary"
-                      :min="product.price" @keydown.capture="keydownEvent($event, index)" @input="handleInput" />
+                      :min="product.price" @keydown.capture="keydownEvent($event, index)" />
                   </td>
 
 
@@ -383,14 +383,14 @@
                 <div class="col-12 text-center">
                   <span><strong>Escriba el nombre del producto</strong></span>
                   <!-- <Select2 v-model="this.itemSelect" :options="this.productsSelect" :settings="{ dropdownParent: '#modalProductStock', width: '100%' }" @change="thisProduct($event)" @select="thisProductEvent($event)"/> -->
-                  <v-select v-model="itemSelect" :options="this.productsSelect" @input="thisProductEvent" label="text" />
+                  <v-select v-model="itemSelect" :options="this.productsSelect" @input="thisProductEvent"
+                    label="text" />
                   <br>
                   <div v-if="stock_first">
                     <span><strong>{{ stock_first }}</strong></span>
                     <input class="Jinput-border-none btn" type="number" v-model="product_stock"
                       v-on:keyup.enter="productStockAdd()" name="product_stock" ref="product_Stock_counter"
-                      v-on:keydown="handleKeyDown2"
-                      id="product_stock" min="1" autofocus />
+                      v-on:keydown="handleKeyDown2" id="product_stock" min="1" autofocus />
                   </div>
                 </div>
               </div>
@@ -546,9 +546,9 @@ export default {
 
   methods: {
     handleKeyDown(event) {
-      if(/^\d$/.test(event.key)){
+      if (/^\d$/.test(event.key)) {
 
-      }else if (event.key === '+' || event.key === '-' || event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+      } else if (event.key === '+' || event.key === '-' || event.key === 'ArrowUp' || event.key === 'ArrowDown') {
         // Ejecutar las funciones mas() o menos() aquí
         if (event.key === '+' || event.key === 'ArrowUp') {
           this.increaseProduct_counter();
@@ -562,7 +562,7 @@ export default {
       this.product_counter++
     },
     decreaseProduct_counter() {
-      if(this.product_counter>1){
+      if (this.product_counter > 1) {
         this.product_counter--
       }
     },
@@ -639,7 +639,7 @@ export default {
           console.log(productos);
           if (this.barcodeInstalled) {
             $.each(productos, function (key, val) {
-              productsSelect.push({"id":val.id, "text":val.barcode+ ' '+val.name+ ' - stock '+val.stock });
+              productsSelect.push({ "id": val.id, "text": val.barcode + ' ' + val.name + ' - stock ' + val.stock });
               // productsSelect.push({ "id": val.id, "text": val.name + ' - stock ' + val.stock });
             });
           }
@@ -656,9 +656,9 @@ export default {
       }
     },
     handleKeyDown2(event) {
-      if(/^\d$/.test(event.key)){
+      if (/^\d$/.test(event.key)) {
 
-      }else if (event.key === '+' || event.key === '-' || event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+      } else if (event.key === '+' || event.key === '-' || event.key === 'ArrowUp' || event.key === 'ArrowDown') {
         // Ejecutar las funciones mas() o menos() aquí
         if (event.key === '+' || event.key === 'ArrowUp') {
           this.increaseProduct_stock();
@@ -668,11 +668,11 @@ export default {
         event.preventDefault();
       }
     },
-    increaseProduct_stock(){
+    increaseProduct_stock() {
       this.product_stock++
     },
-    decreaseProduct_stock(){
-      if(this.product_stock>1){
+    decreaseProduct_stock() {
+      if (this.product_stock > 1) {
         this.product_stock--
       }
     },
@@ -809,19 +809,13 @@ export default {
         return false;
       }
       this.btnPago(false);
-      if (type_sell == 'debito') {
-        this.other_type = type_sell;
-      } else {
-        this.type_sell = type_sell;
-      }
+      if (type_sell == 'debito') this.other_type = type_sell;
+      else this.type_sell = type_sell;
 
       if (type_sell == 'efectivo') this.other_type = type_sell;
       else this.type_sell = type_sell;
 
       if (type_sell == 'credito') this.other_type = type_sell;
-      else this.type_sell = type_sell;
-
-      if (type_sell == 'boleta') this.other_type = type_sell;
       else this.type_sell = type_sell;
 
       if (this.clientsInstaller && type_sell == 'factura') {

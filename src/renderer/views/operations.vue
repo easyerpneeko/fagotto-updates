@@ -42,7 +42,7 @@
                                         <div class="row">
                                             <div id="msgContactSubmit" class="hidden"></div>
 
-                                            <div class="form-group col-sm-6"
+                                            <div class="form-group col-sm-4"
                                                 :class="{ 'has-error': submitted && !isValidName }">
                                                 <div class="help-block with-errors"></div>
                                                 <input v-model="name" :disabled="this.disableForm" name="name"
@@ -51,13 +51,24 @@
                                                 <div class="input-group-icon"><i class="fa fa-user"></i></div>
 
                                             </div><!-- end form-group -->
-                                            <div class="form-group col-sm-6"
+
+                                            <div class="form-group col-sm-4"
                                                 :class="{ 'has-error': submitted && !isValidRut }">
                                                 <div class="help-block with-errors"></div>
                                                 <input v-model="rut" name="rut" id="rut" placeholder="RUT"
                                                     class="form-control" :disabled="this.disableForm" type="text"
                                                     required="" data-error="Por favor ingresa tu número de RUT">
                                                 <div class="input-group-icon"><i class="far fa-address-card"></i></div>
+                                            </div><!-- end form-group -->
+
+                                            <div class="form-group col-sm-4"
+                                                :class="{ 'has-error': submitted && !isValidReceptor }">
+                                                <div class="help-block with-errors"></div>
+                                                <input v-model="receptor" name="receptor" id="receptor"
+                                                    placeholder="RECEPTOR" class="form-control"
+                                                    :disabled="this.disableForm" type="text" required=""
+                                                    data-error="Nombre del receptor">
+                                                <div class="input-group-icon"><i class="far fa-id-card"></i></div>
                                             </div><!-- end form-group -->
 
                                             <div class="form-group col-sm-4"
@@ -70,7 +81,7 @@
                                                 <div class="input-group-icon"><i class="fas fa-building"></i></div>
                                             </div><!-- end form-group -->
 
-                                            <div class="form-group col-sm-8"
+                                            <div class="form-group col-sm-4"
                                                 :class="{ 'has-error': submitted && !isValidFactura }">
                                                 <div class="help-block with-errors"></div>
                                                 <input v-model="factura" name="factura" id="factura"
@@ -80,13 +91,22 @@
                                                 <div class="input-group-icon"><i class="fas fa-file-invoice"></i></div>
                                             </div><!-- end form-group -->
 
+                                            <div class="form-group col-sm-4" :class="{ 'has-error': submitted }">
+                                                <div class="help-block with-errors"></div>
+                                                <input v-model="fecha" name="fecha" id="fecha" placeholder="Fecha"
+                                                    class="form-control" :disabled="this.disableForm" type="date"
+                                                    required="" data-error="Por favor ingresa la fecha">
+                                                <div class="input-group-icon"><i class="fas fa-calendar"></i></div>
+                                            </div><!-- end form-group -->
+
 
                                             <div class="form-group col-sm-12"
                                                 :class="{ 'has-error': submitted && !isValidTotal }">
                                                 <div class="help-block with-errors"></div>
-                                                <input v-model="total" name="total" id="total" placeholder="Total $"
-                                                    class="form-control" :disabled="this.disableForm" type="number"
-                                                    required="" data-error="Por favor ingresa el total">
+                                                <input v-model="total" name="total" min="1" id="total"
+                                                    placeholder="Total $" class="form-control"
+                                                    :disabled="this.disableForm" type="number" required=""
+                                                    data-error="Por favor ingresa el total">
                                                 <div class="input-group-icon"><i class="fas fa-dollar-sign"></i></div>
                                             </div><!-- end form-group -->
 
@@ -116,6 +136,15 @@
                                                     </option>
                                                 </select>
                                                 <div class="input-group-icon"><i class="fas fa-stream"></i></div>
+                                            </div><!-- end form-group -->
+
+                                            <div class="form-group col-sm-12" :class="{ 'has-error': submitted }">
+                                                <textarea v-model="observation" rows="3" name="observation"
+                                                    id="observation" :disabled="this.disableForm"
+                                                    placeholder="Escribe tu observaion aquí" class="form-control"
+                                                    required=""></textarea>
+                                                <div class="textarea input-group-icon"><i class="fas fa-pencil-alt"></i>
+                                                </div>
                                             </div><!-- end form-group -->
 
                                             <div class="form-group last col-sm-12">
@@ -319,6 +348,24 @@
                                             <div class="input-group-icon"><i class="far fa-address-card"></i></div>
                                         </div><!-- end form-group -->
 
+                                        <div class="form-group col-sm-6"
+                                            :class="{ 'has-error': submitted && !isValidReceptor }">
+                                            <div class="help-block with-errors"></div>
+                                            <input v-model="operation.receptor" name="receptor" id="receptor"
+                                                placeholder="RECEPTOR" class="form-control" :disabled="this.disableForm"
+                                                type="text" required="" data-error="Receptor">
+                                            <div class="input-group-icon"><i class="far fa-id-card"></i></div>
+                                        </div><!-- end form-group -->
+
+                                        <div class="form-group col-sm-6" :class="{ 'has-error': submitted }">
+                                            <div class="help-block with-errors"></div>
+                                            <input v-model="operation.fecha" name="fecha" id="fecha" placeholder="Fecha"
+                                                class="form-control" :disabled="this.disableForm" type="date"
+                                                required="" data-error="Por favor ingresa la fecha">
+                                            <div class="input-group-icon"><i class="fas fa-calendar"></i></div>
+                                        </div><!-- end form-group -->
+
+
                                         <div class="form-group col-sm-4"
                                             :class="{ 'has-error': submitted && !isValidCompanyName }">
                                             <div class="help-block with-errors"></div>
@@ -375,6 +422,15 @@
                                             </select>
                                             <div class="input-group-icon"><i class="fas fa-stream"></i></div>
                                         </div><!-- end form-group -->
+
+                                        <div class="form-group col-sm-12" :class="{ 'has-error': submitted }">
+                                            <textarea v-model="operation.observation" rows="3" name="observation" id="observation"
+                                                :disabled="this.disableForm" placeholder="Escribe tu observaion aquí"
+                                                class="form-control" required="">{{operation.observation}}</textarea>
+                                            <div class="textarea input-group-icon"><i class="fas fa-pencil-alt"></i>
+                                            </div>
+                                        </div><!-- end form-group -->
+                                        
                                         <!-- <span class="sub-text">* Campos requeridos</span> -->
                                         <div class="clearfix"></div>
                                     </div><!-- end row -->
@@ -430,6 +486,9 @@ export default {
             rut: '',
             factura: '',
             company_name: '',
+            observation: '',
+            receptor: '',
+            fecha: '',
             total: 0,
 
 
@@ -466,10 +525,12 @@ export default {
                     { key: 'name', class: '', permission: 'default' },
                     { key: 'company_name', class: '', permission: 'default' },
                     { key: 'rut', class: '', permission: 'default' },
+                    { key: 'receptor', class: '', permission: 'default' },
                     { key: 'factura', class: '', permission: 'default' },
-                    { key: 'created_at', class: '', permission: 'default' },
+                    { key: 'fecha', class: '', permission: 'default' },
                     { key: 'categories', class: '', permission: 'default' },
                     { key: 'subcategories', class: '', permission: 'default' },
+                    { key: 'observation', class: '', permission: 'default' },
                     { key: 'total', class: '', permission: 'default' },
                 ],
                 titles: [
@@ -477,10 +538,12 @@ export default {
                     { label: 'Nombre', class: 'th-sm', permission: 'default', type: 'orderBy', orderBy: false },
                     { label: 'Empresa', class: 'th-sm', permission: 'categoriesInstalled', type: 'orderBy' },
                     { label: 'RUT', class: 'th-sm', permission: 'default', type: false },
+                    { label: 'Receptor', class: 'th-sm', permission: 'default', type: false },
                     { label: 'Factura', class: 'th-sm', permission: 'default', type: false },
                     { label: 'Fecha', class: 'th-sm', permission: 'default', type: false },
                     { label: 'Categoria', class: 'th-sm', permission: 'default', type: 'orderBy' },
-                    { label: 'Subcategoria', class: 'th-sm', permission: 'default', type: 'orderBy' },
+                    { label: 'Sub', class: 'th-sm', permission: 'default', type: 'orderBy' },
+                    { label: 'Observacion', class: 'th-sm', permission: 'default', type: false },
                     { label: 'Total', class: 'th-sm', permission: 'default', type: false },
                     { label: 'Acciones', class: 'th-sm text-center', permission: 'default', type: false },
                 ]
@@ -527,7 +590,10 @@ export default {
         },
         isValidCompanyName: {
             get() { return this.company_name.length > 0 }
-        }
+        },
+        isValidReceptor: {
+            get() { return this.receptor.length > 0 }
+        },
 
     },
     methods: {
@@ -571,6 +637,9 @@ export default {
                 name: this.name,
                 rut: this.rut,
                 company_name: this.company_name,
+                receptor: this.receptor,
+                observation: this.observation,
+                fecha: this.fecha,
                 factura: this.factura,
                 total: this.total,
                 operations_categories_id: this.category.id,
@@ -594,7 +663,10 @@ export default {
                 this.rut = null;
                 this.company_name = "";
                 this.factura = "";
-                this.total = 0;
+                this.receptor = "",
+                    this.observation = "";
+                this.fecha = "",
+                    this.total = 0;
                 this.category = null;
                 this.subcategory = null;
             } else {

@@ -65,7 +65,7 @@
           </div>
           <div class="modal-body">
             <div class="d-flex flex-column px-2 mb-2">
-              <h6 class="font-weight-bold">{{ (!this.isEdit) ? 'Añador Subcategoria' : 'Editar Subcategoria' }}</h6>
+              <h6 class="font-weight-bold">{{ (!this.isEdit) ? 'Añadir Subcategoria' : 'Editar Subcategoria' }}</h6>
               <div class="form-group my-1">
                 <input type="text" class="form-control" placeholder="Nombre" :disabled="waitResponse" v-model="name"
                   @keyup.enter="newSubcategory">
@@ -145,13 +145,13 @@ export default {
       if (this.isEdit) {
         var request = await this.$store.dispatch("operations/editSubcategory", { id: this.subcategory.id, data: fd });
       } else {
-        var request = await this.$store.dispatch("operations/editSubcategory", fd);
+        var request = await this.$store.dispatch("operations/newSubcategory", fd);
       }
       if (request.success) {
         if (this.isEdit) {
-          this.$awn.success('Subcategoria Creada Exitosamente', { labels: { success: 'CORRECTO' } });
-        } else {
           this.$awn.success('Subcategoria Modificada Exitosamente', { labels: { success: 'CORRECTO' } });
+        } else {
+          this.$awn.success('Subcategoria Creada Exitosamente', { labels: { success: 'CORRECTO' } });
         }
         this.closeModal();
         this.refreshData();

@@ -10,8 +10,13 @@ import roles from './roles';
 import sells from './sells';
 import reports from './reports';
 import expenses from './expenses';
+//Pedidos
 import requests from './requests';
+//Operaciones
 import operations from './operations';
+//Devoluciones
+import devolutions from './devolutions';
+
 // Modulo de cafeteria
 import cafeteria from './cafeteria/cafeteria';
 import waiters from './cafeteria/waiters';
@@ -35,6 +40,7 @@ export default new Vuex.Store({
     expenses,
     requests,
     operations,
+    devolutions,
     'cafeteria/kitchen': cafeteria_kitchen,
     'client_orders/mobile_devices': co_mobile_devices,
     clients,

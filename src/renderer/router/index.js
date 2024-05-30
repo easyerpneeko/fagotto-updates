@@ -53,6 +53,10 @@ export default new Router({
           component: require('@/views/sells.vue').default
         },
         {
+          path: 'devoluciones',
+          component: require('@/views/devolutions.vue').default
+        },
+        {
           path: 'client-orders/mobile-devices/lista',
           component: require('@/views/orders-clients/mobile-devices.vue').default
         },

@@ -42,6 +42,22 @@
                   {{ (item.subcategories != null) ? item.subcategories.name: '-' }}
                 </div>
 
+                <div v-else-if="key.key == 'sell'" class="m-0">
+                  {{ (item.categories != null) ? item.categories.name: '-' }}
+                </div>
+
+                <div v-else-if="key.key == 'product'" class="m-0">
+                  {{ (item.product != null) ? item.product.name: '-' }}
+                </div>
+
+                <div v-else-if="key.key == 'priceProductDevolution'" class="m-0">
+                  {{ (item.product != null) ? '$'+formatNumber(deFormatNumber(item.product.price)): '-' }}
+                </div>
+
+                <div v-else-if="key.key == 'user'" class="m-0">
+                  {{ (item.user != null) ? item.user.fullname: '-' }}
+                </div>
+
                 <!-- Campo especial para mostrar cantidades de pesos y cecina -->
                 <div v-if="(key.key == 'total' || key.key == 'price' || key.key == 'totalPrice' || key.key == 'balance')" class="m-0">
                   ${{formatNumber(deFormatNumber(item[key.key]))}} <span v-if="(item[key.subKey] && getPermission(key.subPermission))">/KG</span>
@@ -90,7 +106,26 @@
                 </div>
 
                 <!-- Campo predeterminado -->
-                <div v-else-if="(key.key != 'balance' && key.key != 'state' && key.key != 'subtotal' && key.key != 'stock' && key.key != 'total' && key.key != 'price' && key.key != 'client_rut' && key.key != 'client_name' && key.key != 'unitary_price' && key.key != 'totalPrice' && key.key != 'type' && key.key != 'field_afected' && key.key != 'categories' && key.key != 'subcategories')" class="m-0">
+                <div class="m-0" v-else-if="(
+                  key.key != 'balance' && 
+                  key.key != 'state' && 
+                  key.key != 'subtotal' && 
+                  key.key != 'stock' && 
+                  key.key != 'total' && 
+                  key.key != 'price' && 
+                  key.key != 'client_rut' && 
+                  key.key != 'client_name' && 
+                  key.key != 'unitary_price' && 
+                  key.key != 'totalPrice' && 
+                  key.key != 'type' && 
+                  key.key != 'field_afected' && 
+                  key.key != 'categories' && 
+                  key.key != 'subcategories' && 
+                  key.key != 'product' && 
+                  key.key != 'user' &&
+                  key.key != 'priceProductDevolution' )"
+                  >
+
                   {{(item[key.key]) ? item[key.key] : '-' }}
                 </div>
               </span>

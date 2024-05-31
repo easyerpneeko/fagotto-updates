@@ -534,7 +534,7 @@ export default {
                     { key: 'total', class: '', permission: 'default' },
                 ],
                 titles: [
-                    { label: '#', class: 'th-sm', permission: 'default', type: false, orderBy: false },
+                    { label: '#', class: 'th-xs', permission: 'default', type: false, orderBy: false },
                     { label: 'Nombre', class: 'th-sm', permission: 'default', type: 'orderBy', orderBy: false },
                     { label: 'Empresa', class: 'th-sm', permission: 'categoriesInstalled', type: 'orderBy' },
                     { label: 'RUT', class: 'th-sm', permission: 'default', type: false },

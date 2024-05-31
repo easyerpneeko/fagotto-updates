@@ -167,14 +167,14 @@
       </div>
     </div>
       <!-- modales -->
-      <!-- @refreshData="refreshData" -->
-    <verifyDelete :propVerify="propVerify"/>
+    <verifyDevolution :propVerify="propVerify"  @refreshData="refreshData"/>
   </div>
 </template>
 
 <script>
 import customTable from '../tables/table.vue';
 import verifyDelete from '@/components/modals/verifyDelete.vue';
+import verifyDevolution from '@/components/modals/verifyDevolution.vue';
 
 import ConfigHelper from '@/helpers/ConfigHelper.js';
 import Connection from '../../helpers/Connection.js';
@@ -183,6 +183,7 @@ import AllErrors from '@/helpers/AllErrors.js';
 import BaseUrl from '@/helpers/baseUrl.js';
 import Print from '@/helpers/Print.js';
 import Loader from '@/helpers/Loader';
+import { refreshData } from '../../store/main/actions';
 const fs = require('fs');
 
 export default {
@@ -223,7 +224,7 @@ export default {
   ],
   components: {
     customTable,
-    verifyDelete
+    verifyDevolution
   },
   methods: {
     // Cancelar la venta
@@ -241,7 +242,9 @@ export default {
       }
       Loader.hide();
     },
-
+    async refreshData(){
+      this.$emit('refreshData');
+    },
     // Impresion
     async printPDF(boleta_local = false, action = 'print') {
       /*
@@ -438,10 +441,10 @@ export default {
     },
     openVerifyDelete(product_sell) {
       this.propVerify = {
-        params: product_sell.id,
+        params: {'product_sell_id' : product_sell.id, 'quantity': product_sell.quantity},
         title: 'Devolucion de producto',
         text: `¿Usted esta seguro de querer eliminar el producto ${product_sell.name} de la venta?`,
-        store: 'sells/devolutionProductSell',
+        store: 'devolutions/devolutionProductSell',
         success: 'Producto eliminado exitosamente'
       };
       $('#verifyDelete').modal('show');

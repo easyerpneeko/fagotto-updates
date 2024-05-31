@@ -46,14 +46,6 @@
                   {{ (item.categories != null) ? item.categories.name: '-' }}
                 </div>
 
-                <div v-else-if="key.key == 'product'" class="m-0">
-                  {{ (item.product != null) ? item.product.name: '-' }}
-                </div>
-
-                <div v-else-if="key.key == 'priceProductDevolution'" class="m-0">
-                  {{ (item.product != null) ? '$'+formatNumber(deFormatNumber(item.product.price)): '-' }}
-                </div>
-
                 <div v-else-if="key.key == 'user'" class="m-0">
                   {{ (item.user != null) ? item.user.fullname: '-' }}
                 </div>
@@ -120,10 +112,8 @@
                   key.key != 'type' && 
                   key.key != 'field_afected' && 
                   key.key != 'categories' && 
-                  key.key != 'subcategories' && 
-                  key.key != 'product' && 
-                  key.key != 'user' &&
-                  key.key != 'priceProductDevolution' )"
+                  key.key != 'subcategories' &&
+                  key.key != 'user' )"
                   >
 
                   {{(item[key.key]) ? item[key.key] : '-' }}

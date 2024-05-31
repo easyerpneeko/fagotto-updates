@@ -82,14 +82,14 @@
         />
       </div>
 
-      <div v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2">
+      <!-- <div v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2">
         <cardTable
           :cardTitle="'Devoluciones de ventas'"
           :th="titlesDevoluciones"
           :tr="getProductDevolutions"
           :idTarget="randToken()"
         />
-      </div>
+      </div> -->
 
       <div  v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2" >
         <bar-chart :chart-data="topSellsChartData" :idTarget="randToken()" cardTitle="Top Ventas"></bar-chart>
@@ -193,7 +193,7 @@ export default {
       titlesOrders: ["ID","Monto"],
       titlesCounter: ["Tipos (Metodos/pagos/ganancias/gastos)","Totales"],
       titlesProducts: [],
-      titlesDevoluciones: ["Venta(#)","Nombre del Producto", "Stock", "Valor del Producto",'Motivo'],
+      // titlesDevoluciones: ["Venta(#)","Nombre del Producto", "Stock", "Valor del Producto",'Motivo'],
       listOrder: [],
       listCounter: [],
       listTr: [],
@@ -833,27 +833,27 @@ export default {
         return this.listTr;
       }
     },
-    getProductDevolutions:{
-      get(){
-        var request = this.$store.getters['reports/getterProductEstadisticas'];
-        if(request){
-          this.listTr = [];
-          for (var i = 0; i < request.length; i++) {
-            this.listTr.push(
-              [
-                1,
-                'Producto A',
-                2,
-                '$'+2000,
-                'Motivo de la devolucion'
-              ],
-            );
-          }
-        }
+    // getProductDevolutions:{
+    //   get(){
+    //     var request = this.$store.getters['reports/getterProductEstadisticas'];
+    //     if(request){
+    //       this.listTr = [];
+    //       for (var i = 0; i < request.length; i++) {
+    //         this.listTr.push(
+    //           [
+    //             1,
+    //             'Producto A',
+    //             2,
+    //             '$'+2000,
+    //             'Motivo de la devolucion'
+    //           ],
+    //         );
+    //       }
+    //     }
 
-        return this.listTr;
-      }
-    },
+    //     return this.listTr;
+    //   }
+    // },
     getWaiters:{
       get(){
         let request = this.$store.getters['reports/getterWaiters'];

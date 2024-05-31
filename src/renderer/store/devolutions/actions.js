@@ -7,8 +7,8 @@ export async function getDevolutions(context, params) {
   return request;
 }
 
-export async function devolutionProductSell(context, id) {
-  let url = BaseUrl.getUrl('api/local/sell/devolution/product/' + id);  
-  const request = await Connection.request('put', url);
+export async function devolutionProductSell(context, data) {
+  let url = BaseUrl.getUrl('api/local/sell/devolution/product/'+data.params.product_sell_id);  
+  const request = await Connection.request('put', url, data.formData);
   return request;
 }

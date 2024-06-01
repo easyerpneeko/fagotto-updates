@@ -56,10 +56,10 @@
                 </div>
                  <!-- Campo especial para mostrar el tipo de actualizacion en historial de productos -->
                 <div v-if="(key.key == 'type')" class="m-0">
-                  <span class="text-info" v-if="item.type == 'updated'">Actualizacion</span>
+                  <span class="text-danger" v-if="item.type == 'updated'">AJUSTE</span>
                   <span class="text-info" v-if="item.type == 'created'">Creacion</span>
                   <span class="text-info" v-if="item.type == 'deleted'">Eliminacion</span>
-                  <span class="text-info" v-if="item.type == 'stock'"  >Stock</span>
+                  <span class="text-success" v-if="item.type == 'stock'">ENTRADA</span>
                 </div>
                 <!-- Campo especial para mostrar el campo afectado de actualizacion en historial de productos -->
                 <div v-if="(key.key == 'field_afected')" class="m-0">

@@ -72,7 +72,7 @@
               </div>
               <div class="list-group">
                 <custom-table v-model="jsonTable" v-slot="props">
-                  <a class="py-1 px-2 text-center btn bg-warning" href="#" @click="openVerifyDelete(props.item)">
+                  <a v-if="devoluciones" class="py-1 px-2 text-center btn bg-warning" href="#" @click="openVerifyDelete(props.item)">
                     <i class="fas fa-undo"></i>
                   </a>
                 </custom-table>
@@ -200,19 +200,19 @@ export default {
           value: false
         },
         rows: [
-          { key: 'id', class: 'text-capitalize', permission: 'default' },
+          { key: 'id', class: 'text-capitalize', permission: 'devolutionsInstalled' },
           { key: 'name', class: 'text-capitalize', permission: 'default' },
           { key: 'quantity', class: '', permission: 'default' },
           { key: 'unitary_price', class: '', permission: 'default' },
           { key: 'totalPrice', class: '', permission: 'siiInstaller' },
         ],
         titles: [
-          { label: 'ID', class: '', permission: 'default', type: false },
+          { label: 'ID', class: '', permission: 'devolutionsInstalled', type: false },
           { label: 'Nombre', class: '', permission: 'default', type: false },
           { label: 'Cantidad', class: '', permission: 'default', type: false },
           { label: 'Precio c/u', class: '', permission: 'default', type: false },
           { label: 'Total', class: '', permission: 'default', type: false },
-          { label: 'Devolver', class: '', permission: 'default', type: false },
+          { label: 'Devolver', class: '', permission: 'devolutionsInstalled', type: false },
         ]
       },
       propVerify: null,
@@ -480,6 +480,7 @@ export default {
         return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.factura');
       }
     },
+    devoluciones:{ get(){return ConfigHelper.ConfStr('modulos.ventas.submodulos.devolutions'); } }
   },
   watch: {
     clientFromModal: {

@@ -191,7 +191,8 @@ export default {
     displayUser:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.ajustes.mostrar_usuario_venta'); } },
     stockInstalled:{ get(){ return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_stock'); } },
     cecinaInstalled:{ get(){ return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_cecina'); } },
-    categoriesInstalled:{ get(){ return ConfigHelper.ConfStr('modulos.productos.submodulos.categorias'); } }
+    categoriesInstalled:{ get(){ return ConfigHelper.ConfStr('modulos.productos.submodulos.categorias'); } },
+    devolutionsInstalled:{ get(){return ConfigHelper.ConfStr('modulos.ventas.submodulos.devolutions'); } }
   },
 }
 </script>

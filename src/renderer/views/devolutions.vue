@@ -123,7 +123,7 @@ export default {
           { label: 'Precio', class: 'th-xs', permission: 'default', type: false },
           { label: 'Ganancia', class: 'th-xs', permission: 'default', type: false },
           { label: 'Stock', class: 'th-xs', permission: 'default', type: false },
-          { label: 'Reason', class: 'th-md', permission: 'default', type: false },
+          { label: 'Razon', class: 'th-md', permission: 'default', type: false },
           { label: 'Usuario', class: 'th-xs', permission: 'displayUser', type: false },
           // { label: 'Detalles', class: 'th-sm text-center', permission: 'default', type: false },
         ]

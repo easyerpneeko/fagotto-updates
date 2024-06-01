@@ -269,11 +269,12 @@ export default {
       var follows = ConfigHelper.ConfStr('modulos.seguimientos');
       var sells = ConfigHelper.ConfStr('modulos.ventas');
       var cafeteria = ConfigHelper.ConfStr('modulos.cafeteria');
-      var sii = ConfigHelper.ConfStr('modulos.ventas.submodulos.sii');
       const clientOrders = ConfigHelper.ConfStr('modulos.client_orders');
       var pedidos = ConfigHelper.ConfStr('modulos.pedidos');
       var operations = ConfigHelper.ConfStr('modulos.operations');
       // Submodulos
+      var devoluciones = ConfigHelper.ConfStr('modulos.ventas.submodulos.devolutions');
+      var sii = ConfigHelper.ConfStr('modulos.ventas.submodulos.sii');
       var fastSell = ConfigHelper.ConfStr('modulos.ventas') && ConfigHelper.ConfStr('modulos.ventas.submodulos.sell_fast');
       const kitchenMode = ConfigHelper.ConfStr('modulos.cafeteria') && ConfigHelper.ConfStr('modulos.cafeteria.submodulos.modo_cocina');
       var report = ConfigHelper.ConfStr('modulos.ventas') && ConfigHelper.ConfStr('modulos.ventas.submodulos.reporte');
@@ -466,13 +467,13 @@ export default {
         }
 
         //Modulo de devoluciones
-        // if (devoluciones) {
+        if (devoluciones) {
           menu.push({
             label: 'Devoluciones',
             route: '/inicio/devoluciones',
             icon: 'fas fa-undo-alt'
           });
-        // }
+        }
 
         // console.log(menu);
         this.menu = menu;

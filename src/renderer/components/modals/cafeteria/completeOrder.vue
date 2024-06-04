@@ -437,7 +437,7 @@ export default {
         thing.set('other_type', 'convenio_empresa');
       }
 
-      if(this.total >= 3862000) this.openVerify(thing); // si la boleta es posiblemente erronea debido a su precio exageradamente alto
+      if(this.total >= 3862000) this.openVerify(thing); // silocal/ticket la boleta es posiblemente erronea debido a su precio exageradamente alto
       else{
         console.log("TYPE_SELL ENVIADA", this.type_sell);
         // Iniciando peticion

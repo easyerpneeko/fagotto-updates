@@ -204,7 +204,7 @@
 
         <div class="row">
           <div class="col-md-12">
-            <button @click="newTicket()" type="button" v-if="(ticketInstaller && tickets)" :disabled="editOrder"
+            <button @click="newTicket()" type="button" v-if="(ticketInstaller && tickets && order_kitchen_pending == false)" :disabled="editOrder"
               class="btn-r0 w-100 Jbutton-ticket m-1 btn btn-primary">
               Crear ticket
             </button>
@@ -1554,7 +1554,7 @@ export default {
       }
     },
     lastSell: { get() { return this.$store.getters['sells/sellPast']; } },
-
+    order_kitchen_pending:{ get(){ return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.order_kitchen_pending'); } },
     productsGet: {
       get() {
 

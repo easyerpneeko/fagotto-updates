@@ -136,7 +136,7 @@
             <button v-if="ticket_sell && settingFactura" type="button" class="btn bg-secundario text-white" @click="viewTicket('factura')">
               Ticket + factura
             </button>
-            <button type="button" class="btn bg-primario text-white" @click="viewTicket('ticket')">
+            <button v-if="order_kitchen_pending == false" type="button" class="btn bg-primario text-white" @click="viewTicket('ticket')">
               Crear ticket
             </button>
 
@@ -720,6 +720,7 @@ export default {
     ticket_description:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.ticket.ajustes.ticket_description'); } },
     //permitir cliente en ticket
     ticket_sell_client:{ get(){ return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.ticket_sell_client'); } },
+    order_kitchen_pending:{ get(){ return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.order_kitchen_pending'); } },
 
 
     settingBoleta:{ get(){

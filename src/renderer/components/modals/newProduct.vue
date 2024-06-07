@@ -31,7 +31,7 @@
             </div>
            
           </div>
-          <div class="form-group col-md-6 col-12"  >
+          <div class="form-group col-md-6 col-12" v-if="precioCompraInstalled" >
             <label for="priceInput">Precio de compra</label>
             <div class="input-group mb-3">
               <span class="input-group-text" id="basic-addon1">$</span>
@@ -254,6 +254,11 @@ export default {
     gananciaInstalled:{
       get(){
         return ConfigHelper.ConfStr('modulos.ventas.ajustes.permitir_ganancia');
+      }
+    },
+    precioCompraInstalled:{
+      get(){
+        return ConfigHelper.ConfStr('modulos.ventas.ajustes.permitir_compra');
       }
     },
     ventaAlMayorInstalled:{

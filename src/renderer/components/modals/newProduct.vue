@@ -76,7 +76,7 @@
                 @keypress="pricesCalcToGananciaMayor">
               </div>
             </div>
-            <div class="form-group col-md-6 col-12">
+            <div class="form-group col-md-6 col-12" v-if="gananciaInstalled">
               <label for="priceInput">Ganancia por mayor</label>
               <div class="input-group mb-3">
                 <span class="input-group-text" id="basic-addon1">$</span>

@@ -487,7 +487,7 @@ export default {
     },
     async mounted() {
 
-        this.getRequests(false);
+        this.getRequests();
         this.getDespacho();
         // this.user = this.me;
         console.log("user:", this.isAdmin);
@@ -544,8 +544,8 @@ export default {
             // Verificando respuesta
             if (!request.success) return this.$awn.alert(request.data);
             else {
-                this.requests = (request.data.items.length == 0) ? false : request.data;
-                this.jsonTable.items = this.requests.items;
+                this.requests = request.data;
+                this.jsonTable.items = this.requests;
             }
         },
         openProductsOrder(request) {

@@ -81,8 +81,10 @@
                                             <div class="form-group col-sm-12"
                                                 :class="{ 'has-error': submitted && !isValidPaymode }">
                                                 <div class="help-block with-errors"></div>
-                                                <select class="form-control" v-model="paymode" :disabled="this.disableForm" placeholder="Metodo de pago">
-                                                    <option v-for="paymode in paymodes" :selected="paymode.id === 1" :value="paymode.name"  :key="paymode.id" class="text-capitalize">
+                                                <select class="form-control" v-model="paymode"
+                                                    :disabled="this.disableForm" placeholder="Metodo de pago">
+                                                    <option v-for="paymode in paymodes" :selected="paymode.id === 1"
+                                                        :value="paymode.name" :key="paymode.id" class="text-capitalize">
                                                         {{ paymode.name }}
                                                     </option>
                                                 </select>
@@ -109,12 +111,15 @@
 
                                             <div class="form-group row d-flex justify-content-between col-sm-12">
                                                 <div class="">
-                                                    <button v-if="this.products.length > 0" class="m-1 btn-width btn bg-success text-white text-capitalize">
+                                                    <button v-if="this.products.length > 0"
+                                                        class="m-1 btn-width btn bg-success text-white text-capitalize">
                                                         Productos Agregados al pedido
                                                         <i class="fas fa-shopping-cart"></i>
-                                                        <span class="badge badge-light">{{this.products.length}}</span>
+                                                        <span class="badge badge-light">{{ this.products.length
+                                                            }}</span>
                                                     </button>
-                                                    <button v-else class="m-1 btn-width btn bg-danger text-white text-capitalize">
+                                                    <button v-else
+                                                        class="m-1 btn-width btn bg-danger text-white text-capitalize">
                                                         Sin productos en el pedido
                                                         <i class="fas fa-shopping-cart"></i>
                                                         <span class="badge badge-light">0</span>
@@ -197,7 +202,8 @@ Reloj de arena: En espera.">
                     </a>
                 </customTable>
                 <!-- Paginacion -->
-                <!-- <paginate v-if="(requests && requests.pages > 1)" v-model="requests" :offOn="offOn" @getPage="getRequests" /> -->
+                <paginate v-if="(requests && requests.pages > 1)" v-model="requests" :offOn="offOn"
+                    @getPage="getRequests" />
             </div>
             <div ref="loaderProduct" v-else class="vld-parent px-2 mt-2">
                 <div class="box-false d-flex flex-center text-center p-2 w-100">
@@ -523,10 +529,10 @@ export default {
             return request.data;
         },
         async getRequests(page = false) {
-
+            // Parametros para la ruta
             var params = '?params=true';
-            if (page !== false) this.oldPage = '&page=' + page;
-            params += this.oldPage;
+            if (page && this.oldPage != page) this.oldPage = page;
+            params += '&page=' + this.oldPage;
 
             // Iniciando peticion
             this.offOn = true;
@@ -536,15 +542,11 @@ export default {
             Loader.hide();
             this.offOn = false;
             // Verificando respuesta
-            // if (!request.success) return this.$awn.alert(request.data);
-            if (!request.success) console.log('Error: ', request.data);
-
-            this.requests = request.data;
-            // this.jsonTable.items = request.data.items;
-            this.jsonTable.items = request.data;
-        },
-        getTotal(products) {
-
+            if (!request.success) return this.$awn.alert(request.data);
+            else {
+                this.requests = (request.data.items.length == 0) ? false : request.data;
+                this.jsonTable.items = this.requests.items;
+            }
         },
         openProductsOrder(request) {
             this.jsonTableProducts.items = JSON.parse(request.products);
@@ -669,7 +671,7 @@ export default {
                     this.paymode = null;
                     // this.status = null;
                     this.products = [];
-                    this.comment ="";
+                    this.comment = "";
                     this.totalPrice = 0;
                     this.subtotal = 0;
                     this.montoIva = 0;
@@ -693,7 +695,7 @@ export default {
             if (!this.isValidProducts) {
                 this.$awn.alert("Es necesario agregar algun producto");
             }
-            if (!this.isValidName || !this.isValidPhone ||  !this.isValidPaymode) {
+            if (!this.isValidName || !this.isValidPhone || !this.isValidPaymode) {
                 return false;
             }
             return true;

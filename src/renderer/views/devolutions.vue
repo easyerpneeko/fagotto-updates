@@ -168,13 +168,16 @@ export default {
       if (this.sellsGet) {
         // Parametros para la ruta
         var params = '?params=true';
+        if (page && this.oldPage != page) this.oldPage = page;
+        params += '&page=' + this.oldPage;
+
         if (allDevolutions === false) {
           // Busqueda especifica
-          // if (this.devolution != null && this.devolution != '') {
-          //   params += '&searchInDevolution=' + this.devolution;
-          //   this.oldPage = 1;
-          //   page = false;
-          // }
+          if (this.devolution != null && this.devolution != '') {
+            params += '&searchInDevolution=' + this.devolution;
+            this.oldPage = 1;
+            page = false;
+          }
 
           if (this.ProductName != null && this.ProductName != '') params += '&ProductName=' + this.ProductName;
 
@@ -199,8 +202,8 @@ export default {
           this.rangeDate = [];
         }
         // Paginacion
-        if (page !== false) this.oldPage = page;
-        params += '&page=' + this.oldPage;
+        // if (page !== false) this.oldPage = page;
+        // params += '&page=' + this.oldPage;
 
         // Ordenamiento
         // var orderBy = (this.jsonTable.titles[2].orderBy) ? 'asc' : 'desc';
@@ -215,8 +218,8 @@ export default {
         else {
           console.log('Devoluciones', request.data);
 
-          this.devolutions = request.data;
-          this.jsonTable.items = request.data;
+          this.devolutions = (request.data.items.length == 0) ? false : request.data;
+          this.jsonTable.items = this.devolutions.items;
         }
 
       }

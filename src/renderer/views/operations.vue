@@ -173,26 +173,42 @@
             <div class="col-md-2 col-sm-4 col-12">
                 <label for="OperationName">Buscar</label>
                 <input :disabled="this.disableCategory" id="OperationName" v-model="OperationName" type="text"
-                    class="form-control" @keypress.enter="getOperations" />
+                    class="form-control" @keypress.enter="refreshData" />
+            </div>
+            <div class="col-md-2 col-sm-4 col-12">
+                <label>Rango de fechas</label>
+                <date-picker class="widthInput" format="YYYY-MM-DD" type="date" v-model="rangeDate" range
+                    placeholder="Fechas" confirm></date-picker>
+            </div>
+            <div class="col-md-2 col-sm-4 col-12 d-flex align-items-end">
+                <a @click="refreshData()"
+                    :class="['btn mx-1 mt-1 mb-0 bg-primario btnPersonalice', { 'disabled': offOn }]" href="#">
+                    <i class="fas fa-search"></i>
+                </a>
+                <a @click="refreshData(1, null, true)"
+                    :class="['btn mx-1 mt-1 mb-0 bg-primario btnPersonalice', { 'disabled': offOn }]" href="#">
+                    <i class="fas fa-list-alt"></i>
+                    <span class="">Todas</span>
+                </a>
             </div>
             <!-- v-if="categoriesInstalled && productsGet" -->
-            <div class="col-md-4 col-sm-6 col-12">
+            <div class="col-md-2 col-sm-6 col-12">
                 <label for="Category">Categoria</label>
-                <select class="form-control" v-model="categoryName" @change="getOperations" :disabled="disableCategory">
+                <select class="form-control" v-model="categoryName" @change="refreshData" :disabled="disableCategory">
                     <option :value="null" class="text-capitalize" @click="this.subCategoryName == null">Todas</option>
                     <option :value="category" v-for="category in categories" :key="category.id" class="text-capitalize">
                         {{ category.name }}</option>
                 </select>
             </div>
-            <div class="col-md-4 col-sm-6 col-12">
+            <div class="col-md-2 col-sm-4 col-12">
                 <label for="Subcategory">Subcategorias</label>
-                <select class="form-control" v-model="subCategoryName" @change="getOperations">
+                <select class="form-control" v-model="subCategoryName" @change="refreshData">
                     <option :value="null" class="text-capitalize">Todas</option>
                     <option :value="subcategory" v-for="subcategory in filtersubcategories" :key="subcategory.id"
                         class="text-capitalize">{{ subcategory.name }}</option>
                 </select>
             </div>
-            <div class="col-md-2 col-sm-6 col-12 d-flex justify-content-md-end align-items-end">
+            <div class="col-md-2 col-sm-4 col-12 d-flex justify-content-md-end align-items-end">
                 <button type="button" data-toggle="modal" data-target="#balancesModal" @click="getBalances"
                     class="m-1 btn-width btn bg-dark text-white text-capitalize">
                     Balances
@@ -225,8 +241,7 @@
             </div> -->
 
             <!-- Paginacion -->
-            <paginate v-if="(operations && operations.pages > 1)" v-model="operations" :offOn="offOn"
-                @getPage="getOperations" />
+            <paginate v-if="(operations && operations.pages > 1)" v-model="operations" :offOn="offOn" @getPage="refreshData" />
         </div>
         <!-- v-else -->
         <div ref="loaderOperation" v-else class="vld-parent px-2 mt-2">
@@ -255,8 +270,7 @@
                         </div>
                         <div class="scroll-table px-2">
                             <template>
-                                <b class="p-2">Total de operaciones: ${{
-                                                    formatNumber(deFormatNumber(this.total_operaciones)) }}</b>
+                                <b class="p-2">Total de operaciones: ${{ formatNumber(deFormatNumber(this.total_operaciones)) }}</b>
                             </template>
                             <table class="m-0 table table-striped table-bordered table-sm w-100" id="balancesTable">
                                 <template v-for="category in balances">
@@ -424,13 +438,15 @@
                                         </div><!-- end form-group -->
 
                                         <div class="form-group col-sm-12" :class="{ 'has-error': submitted }">
-                                            <textarea v-model="operation.observation" rows="3" name="observation" id="observation"
-                                                :disabled="this.disableForm" placeholder="Escribe tu observaion aquí"
-                                                class="form-control" required="">{{operation.observation}}</textarea>
+                                            <textarea v-model="operation.observation" rows="3" name="observation"
+                                                id="observation" :disabled="this.disableForm"
+                                                placeholder="Escribe tu observaion aquí" class="form-control"
+                                                required="">{{
+                                                    operation.observation }}</textarea>
                                             <div class="textarea input-group-icon"><i class="fas fa-pencil-alt"></i>
                                             </div>
                                         </div><!-- end form-group -->
-                                        
+
                                         <!-- <span class="sub-text">* Campos requeridos</span> -->
                                         <div class="clearfix"></div>
                                     </div><!-- end row -->
@@ -449,7 +465,7 @@
             </div>
         </div>
 
-        <verify-modal :propVerify="propVerify" @refreshData="getOperations" />
+        <verify-modal :propVerify="propVerify" @refreshData="refreshData" />
         <categories />
         <sub-categories />
     </div>
@@ -467,6 +483,7 @@ import subCategories from '@/components/modals/OperationsSubCategories.vue';
 import Loader from '@/helpers/Loader';
 import FormatNumber from '@/helpers/FormatNumber.js';
 import XLSX from 'xlsx';
+import moment from 'moment';
 
 const { shell } = require('electron');
 
@@ -513,9 +530,7 @@ export default {
             AllSubcategories: [],
             balances: null,
 
-            operations: {
-                items: {}
-            },
+            operations:null,
 
             jsonTable: {
                 btn: true,
@@ -548,6 +563,8 @@ export default {
                     { label: 'Acciones', class: 'th-sm text-center', permission: 'default', type: false },
                 ]
             },
+
+            rangeDate: [],
         }
     },
     async beforeCreate() {
@@ -557,7 +574,7 @@ export default {
     async mounted() {
         await this.getCategories();
         await this.getSubcategories()
-        await this.getOperations(this.oldPage, true);
+        await this.refreshData(1, null, true);
 
         //Get app
         var request = await this.$store.dispatch('main/refreshData', '?slim');
@@ -677,51 +694,65 @@ export default {
             console.log(data);
 
             //refrescar data
-            this.getOperations(false);
+            this.refreshData(false);
             this.submitted = false;
 
         },
-        async getOperations(page = false, isRefresh = true) {
-            if (!isRefresh) {
-                this.disableCategory = true;
-                Loader.containe(this.$refs.loaderOperation);
-            }
+
+        async refreshData(page = false, today = null, allOperations = false, isLoader = true, id = false) {
+            // if (!isRefresh) {
+            //     this.disableCategory = true;
+            //     Loader.containe(this.$refs.loaderOperation);
+            // }
+            // Iniciando refrescamiento (carga y botones disabled)
+
             // this.loadSubcategories();
             var params = '?params=true';
-            // if (page !== false) this.oldPage = '&page=' + page;
-            // params += this.oldPage;
+            if (page !== false) this.oldPage = '&page=' + page;
+            params += this.oldPage;
+            if (allOperations === false) {
 
-            if (this.categoryName != null && this.categoryName != '') params += '&categoryOfProduct=' + this.categoryName.id;
+                if (this.categoryName != null && this.categoryName != '') params += '&categoryOfProduct=' + this.categoryName.id;
 
-            if (this.subCategoryName != null && this.subCategoryName != '') params += '&subcategoryOfProduct=' + this.subCategoryName.id;
+                if (this.subCategoryName != null && this.subCategoryName != '') params += '&subcategoryOfProduct=' + this.subCategoryName.id;
 
-            if (this.OperationName != null && this.OperationName != '') params += '&nameOfOperation=' + this.OperationName;
-            // Iniciando peticion
+                if (this.OperationName != null && this.OperationName != '') params += '&nameOfOperation=' + this.OperationName;
+                // Iniciando peticion
+
+                if (this.rangeDate && this.rangeDate.length > 0) {
+                    // Rango de fechas
+                    var startDate = moment(this.rangeDate[0]).format('YYYY-MM-DD') + ' ' + '00:00:00';
+                    var endDate = moment(this.rangeDate[1]).format('YYYY-MM-DD') + ' ' + '23:59:59';
+                    params += '&startDate=' + startDate;
+                    params += '&endDate=' + endDate;
+                } else {
+                    // Ventas del dia
+                    this.today = today;
+                    if (this.today != null) params += '&todayOperations=' + this.today;
+                }
+
+            } else {
+                this.categoryName = null;
+                this.subCategoryName = null;
+                this.OperationName = null;
+                this.today = null;
+                this.rangeDate = [];
+            }
+
             this.offOn = true;
-            Loader.containe(this.$refs.loaderRequests);
+            if (isLoader) Loader.containe(this.$refs.loaderOperation);
+
             var request = await this.$store.dispatch("operations/getOperations", params);
+
             console.log('Operaciones: ', request);
             Loader.hide();
             this.offOn = false;
             // Verificando respuesta
-            // if (!request.success) return this.$awn.alert(request.data);
-            if (!request.success) console.log('Error: ', request.data);
+            if (!request.success) return this.$awn.alert(request.data);
+            // if (!request.success) console.log('Error: ', request.data);
 
-            this.requests = request.data;
-            this.jsonTable.items = request.data;
-        },
-        // Refrescando productos
-        async refreshData(loading = false) {
-            // Iniciando refrescamiento (carga y botones disabled)
-            // this.offOn = true;
-            // this.disableCategory = true;
-            // if (loading) Loader.containe(this.$refs.loaderProduct);
-            // else Loader.dinamic();
-            // await this.getOperations(this.oldPage, true);
-            // // Culminando la funcion
-            // Loader.hide();
-            // this.disableCategory = false;
-            // this.offOn = false;
+            this.operations = (request.data.items.length == 0) ? false : request.data;
+            this.jsonTable.items = this.operations.items;
         },
         orderBy() {
             this.jsonTable.titles[0].orderBy = !this.jsonTable.titles[0].orderBy;

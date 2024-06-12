@@ -105,7 +105,7 @@ export async function getSubcategoriesByCategory(context, data) {
 
 //Balances
 export async function getBalances(context, params) {
-  let url = BaseUrl.getUrl('api/local/operations/balances');
+  let url = BaseUrl.getUrl('api/local/operations/balances' + params);
   const request = await Connection.request('get',url);
   return request;
 }

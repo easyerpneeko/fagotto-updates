@@ -81,6 +81,7 @@
     "electron-root-path": "^1.0.16",
     "electron-updater": "^4.3.9",
     "eslint": "^7.13.0",
+    "exceljs": "^4.4.0",
     "export-from-json": "^1.4.0",
     "file-saver": "^2.0.2",
     "inputmask": "^5.0.3",
@@ -108,8 +109,7 @@
     "vue2-datepicker": "^3.3.1",
     "vuedraggable": "^2.24.3",
     "vuex": "^3.0.1",
-    "vuex-electron": "^1.0.0",
-    "xlsx": "^0.18.5"
+    "vuex-electron": "^1.0.0"
   },
   "devDependencies": {
     "ajv": "^6.5.0",

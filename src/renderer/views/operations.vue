@@ -241,7 +241,8 @@
             </div> -->
 
             <!-- Paginacion -->
-            <paginate v-if="(operations && operations.pages > 1)" v-model="operations" :offOn="offOn" @getPage="refreshData" />
+            <paginate v-if="(operations && operations.pages > 1)" v-model="operations" :offOn="offOn"
+                @getPage="refreshData" />
         </div>
         <!-- v-else -->
         <div ref="loaderOperation" v-else class="vld-parent px-2 mt-2">
@@ -270,12 +271,16 @@
                         </div>
                         <div class="scroll-table px-2">
                             <template>
-                                <b class="p-2">Total de operaciones: ${{ formatNumber(deFormatNumber(this.total_operaciones)) }}</b>
+                                <b class="p-2">Total de operaciones: ${{
+                                                    formatNumber(deFormatNumber(this.total_operaciones)) }}</b>
                             </template>
                             <table class="m-0 table table-striped table-bordered table-sm w-100" id="balancesTable">
                                 <template v-for="category in balances">
                                     <template v-if="category.operations_count > 0">
                                         <thead>
+                                            <tr>
+                                                <th class="text-center border-0" colspan="3"></th>
+                                            </tr>
                                             <tr>
                                                 <th class="text-center border-0" colspan="3">{{ category.name }}</th>
                                             </tr>
@@ -482,7 +487,9 @@ import subCategories from '@/components/modals/OperationsSubCategories.vue';
 // Helpers
 import Loader from '@/helpers/Loader';
 import FormatNumber from '@/helpers/FormatNumber.js';
-import XLSX from 'xlsx';
+// import XLSX from 'xlsx';
+// import 'xlsx-style/dist/xlsx.core.min.js';
+import ExcelJS from 'exceljs';
 import moment from 'moment';
 
 const { shell } = require('electron');
@@ -530,7 +537,7 @@ export default {
             AllSubcategories: [],
             balances: null,
 
-            operations:null,
+            operations: null,
 
             jsonTable: {
                 btn: true,
@@ -848,43 +855,49 @@ export default {
             this.category = operation.categories;
         },
         descargarExcel() {
+            // Crear un nuevo libro de Excel
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Sheet 1');
+
             // Obtener los datos de la tabla
             const table = document.getElementById('balancesTable');
-            const workbook = XLSX.utils.table_to_book(table);
+            const rows = table.querySelectorAll('tr');
+
+            // Agregar los datos a la hoja de cálculo
+            rows.forEach((row, rowIndex) => {
+                const cells = row.querySelectorAll('th, td');
+                cells.forEach((cell, cellIndex) => {
+                    const cellValue = cell.innerText;
+                    worksheet.getCell(rowIndex + 1, cellIndex + 1).value = cellValue;
+
+                    // Aplicar formato de letra negrita a los encabezados
+                    if (cell.tagName === 'TH') {
+                        worksheet.getCell(rowIndex + 1, cellIndex + 1).font = { bold: true };
+                    }
+                });
+            });
+
+            // Ajustar el ancho de las columnas
+            const columnWidths = [
+                { width: 60 },
+                { width: 25 },
+                { width: 25 },
+                // Agrega más objetos aquí para establecer el ancho de las columnas adicionales
+            ];
+            worksheet.columns = columnWidths;
 
             // Generar el archivo Excel
             const filename = 'tabla.xlsx';
-            const wbout = XLSX.write(workbook, { bookType: 'xlsx', bookSST: true, type: 'binary' });
-
-            const saveAs = (blob, fileName) => {
+            workbook.xlsx.writeBuffer().then((buffer) => {
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = fileName;
-
-                // Simular un clic en el enlace para iniciar la descarga
-                link.dispatchEvent(new MouseEvent('click'));
-
-                // Limpiar el enlace y liberar la URL de objeto
-                setTimeout(function () {
-                    URL.revokeObjectURL(link.href);
-                    link.remove();
-                }, 0);
-            };
-
-            const s2ab = (s) => {
-                const buf = new ArrayBuffer(s.length);
-                const view = new Uint8Array(buf);
-                for (let i = 0; i < s.length; i++) {
-                    view[i] = s.charCodeAt(i) & 0xff;
-                }
-                return buf;
-            };
-
-            const fileData = s2ab(wbout);
-            const blob = new Blob([fileData], { type: 'application/octet-stream' });
-
-            // Descargar el archivo Excel con ventana "Guardar como"
-            saveAs(blob, filename);
+                link.href = url;
+                link.setAttribute('download', filename);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
         }
     }
 }

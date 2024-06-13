@@ -194,7 +194,8 @@
             <!-- v-if="categoriesInstalled && productsGet" -->
             <div class="col-md-2 col-sm-6 col-12">
                 <label for="Category">Categoria</label>
-                <select class="form-control" v-model="categoryName" @change="refreshData(),loadSubcategories(categoryName)" :disabled="disableCategory">
+                <select class="form-control" v-model="categoryName"
+                    @change="refreshData(), loadSubcategories(categoryName)" :disabled="disableCategory">
                     <option :value="null" class="text-capitalize" @click="this.categoryName == null">Todas</option>
                     <option :value="category" v-for="category in categories" :key="category.id" class="text-capitalize">
                         {{ category.name }}</option>
@@ -271,12 +272,11 @@
                         </div>
                         <div class="scroll-table px-2">
                             <template>
-                                <b class="p-2">Total de operaciones: ${{
-                                                    formatNumber(deFormatNumber(this.total_operaciones)) }}</b>
+                                <b class="p-2">Total de operaciones: ${{ formatNumber(deFormatNumber(this.total_operaciones)) }}</b>
                             </template>
                             <table class="m-0 table table-striped table-bordered table-sm w-100" id="balancesTable">
                                 <template v-for="category in balances">
-                                    <template v-if="category.operations_count > 0">
+                                    <template v-if="category.operations.length > 0">
                                         <thead>
                                             <tr>
                                                 <th class="text-center border-0" colspan="3"></th>
@@ -296,7 +296,7 @@
                                                     <span class="m-0 p-0">{{ subcategory.name }}</span>
                                                 </td>
                                                 <td>
-                                                    <span class="m-0 p-0">{{ subcategory.operations_count }}</span>
+                                                    <span class="m-0 p-0">{{ subcategory.operations[0].operations_count }}</span>
                                                 </td>
                                                 <td>
                                                     <span class="m-0 p-0">
@@ -417,8 +417,8 @@
                                         <div class="form-group col-sm-6" :class="{ 'has-error': submitted }">
                                             <div class="help-block with-errors"></div>
                                             <select class="form-control" v-model="operation.operations_categories_id"
-                                                @change="loadSubcategories2(operation.operations_categories_id)" :disabled="this.disableForm"
-                                                placeholder="Categorias">
+                                                @change="loadSubcategories2(operation.operations_categories_id)"
+                                                :disabled="this.disableForm" placeholder="Categorias">
                                                 <option :value="category.id" v-for="category in categories"
                                                     :selected="operation.operations_categories_id.id === category.id"
                                                     :key="category.id" class="text-capitalize">
@@ -797,11 +797,22 @@ export default {
             return true;
         },
         async getBalances() {
+            var params = '?params=true';
+
+            if (this.rangeDate && this.rangeDate.length > 0) {
+                // Rango de fechas
+                var startDate = moment(this.rangeDate[0]).format('YYYY-MM-DD') + ' ' + '00:00:00';
+                var endDate = moment(this.rangeDate[1]).format('YYYY-MM-DD') + ' ' + '23:59:59';
+                params += '&startDate=' + startDate;
+                params += '&endDate=' + endDate;
+            }
+
             this.waitResponse = true;
-            let request = await this.$store.dispatch("operations/getBalances");
+            let request = await this.$store.dispatch("operations/getBalances", params);
             if (request.success) {
                 this.balances = request.data;
                 console.log('Balances:', request.data);
+                this.total_operaciones = 0;
                 this.balances.forEach(balance => {
                     this.total_operaciones += parseFloat(balance.operations[0].operations_sum_total);
                 });

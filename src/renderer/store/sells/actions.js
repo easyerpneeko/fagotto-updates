@@ -113,3 +113,9 @@ export async function importProducts(context, data) {
   const request = await Connection.request('post',url,data);
   return request;
 }
+
+export async function getReport(context, params){
+  let url = BaseUrl.getUrl('api/local/sells/report' + params);
+  const request = await Connection.request('get',url);
+  return request;
+}

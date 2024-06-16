@@ -34,6 +34,10 @@
             <i class="fas fa-list-alt"></i>
             <span class="">Canceladas</span>
           </a>
+          <a @click="openReportSells()" :class="['btn mx-1 mt-1 mb-0 bg-dark text-white text-capitalize btnPersonalice',{'disabled': offOn}]" href="#">
+            <i class="fas fa-file-alt"></i>
+            <span class="">Reporte</span>
+          </a>
         </div>
       </div>
       <!-- Lista de ventas -->
@@ -64,6 +68,8 @@
     <detailSell :dataDetail="dataDetail" @refreshData="refreshData" :clientFromModal="client" />
     <modalClient @sendInfo="editarCliente" :rutUser="rutUser" />
     <Verifymodal :propVerify="propVerify" @refreshData="refreshData" />
+
+    <ReportSells />
   </div>
 </template>
 
@@ -75,6 +81,7 @@ import detailSell from '@/components/modals/detailSell.vue';
 import Verifymodal from '@/components/modals/verifyDeleteSell.vue';
 import modalClient from '@/components/modals/client.vue';
 import customTable from '@/components/tables/table.vue';
+import ReportSells from '@/components/modals/sells/reportSells.vue';
 // helpers
 import ConfigHelper from '@/helpers/ConfigHelper.js';
 import FormatNumber from '@/helpers/FormatNumber.js';
@@ -134,7 +141,8 @@ export default {
     Verifymodal,
     paginate,
     customTable,
-    modalClient
+    modalClient,
+    ReportSells
   },
   props:{
     value: {
@@ -260,6 +268,9 @@ export default {
     },
     async editarCliente(client){
       this.client = client;
+    },
+    openReportSells(){
+      $('#reportSellsModal').modal('show');
     }
   },
   computed:{

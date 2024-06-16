@@ -25,7 +25,7 @@ export default class {
 
   // Funcion para descarga un xlsx
   static async downloadExcel(data) {
-    const options = { defaultPath: app.getPath('downloads') + '/inventario.xlsx' };
+    const options = { defaultPath: app.getPath('downloads') + '/documento.xlsx' };
     // Path del archivo
     let path = await dialog.showSaveDialog(null, options);
 

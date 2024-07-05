@@ -1,5 +1,5 @@
 <template>
-    <div class="modal fade" id="verifyDelete" tabindex="-1" role="dialog" aria-labelledby="verifyDelete" aria-hidden="true">
+    <div class="modal fade" id="verifyDeleteSell" tabindex="-1" role="dialog" aria-labelledby="verifyDeleteSell" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
           <div class="modal-header bg-primario">
@@ -43,7 +43,7 @@
       async removeData(){
         // this.submitted = true;
         // if(!this.isValidComment) return false;
-        $('#verifyDelete').modal('hide');
+        $('#verifyDeleteSell').modal('hide');
         
         Loader.dinamic();
         // Iniciando peticion

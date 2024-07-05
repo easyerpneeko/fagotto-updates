@@ -77,7 +77,6 @@
 // components
 import paginate from  '@/components/MPage.vue';
 import detailSell from '@/components/modals/detailSell.vue';
-// import Verifymodal from '@/components/modals/verifyDelete.vue';
 import Verifymodal from '@/components/modals/verifyDeleteSell.vue';
 import modalClient from '@/components/modals/client.vue';
 import customTable from '@/components/tables/table.vue';
@@ -251,7 +250,7 @@ export default {
         store: 'sells/removeSell',
         success: 'Venta eliminada exitosamente'
       };
-      $('#verifyDelete').modal('show');
+      $('#verifyDeleteSell').modal('show');
     },
     // Abriendo modal de detalle
     openDetails(data){

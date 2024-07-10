@@ -204,7 +204,8 @@
 
         <div class="row">
           <div class="col-md-12">
-            <button @click="newTicket()" type="button" v-if="(ticketInstaller && tickets && order_kitchen_pending == false)" :disabled="editOrder"
+            <button @click="newTicket()" type="button"
+              v-if="(ticketInstaller && tickets && order_kitchen_pending == false)" :disabled="editOrder"
               class="btn-r0 w-100 Jbutton-ticket m-1 btn btn-primary">
               Crear ticket
             </button>
@@ -382,7 +383,6 @@
               <div class="row">
                 <div class="col-12 text-center">
                   <span><strong>Escriba el nombre del producto</strong></span>
-                  <!-- <Select2 v-model="this.itemSelect" :options="this.productsSelect" :settings="{ dropdownParent: '#modalProductStock', width: '100%' }" @change="thisProduct($event)" @select="thisProductEvent($event)"/> -->
                   <v-select v-model="itemSelect" :options="this.productsSelect" @input="thisProductEvent"
                     label="text" />
                   <br>
@@ -1206,7 +1206,60 @@ export default {
     addProductQuantityTable() {
       var result = this.product_modal;
       console.log(result);
-      if (result.stock != null || this.settingVenderSinStock) {
+
+      //Comprobamos si es combo
+      if (result.isCombo) {
+        //Obtenemos los id del combo
+        const products_id = result.products_id.split(',').map(number => parseInt(number));
+
+        var coincidences = [];
+
+        //Buscando los productos del combo
+        for (var i = 0; i < this.products.length; i++) {
+          var product = this.products[i];
+          if (products_id.includes(product.id)) {
+            coincidences.push(product);
+          }
+        }
+
+        console.log(this.products);
+        console.log(coincidences);
+
+        //Agregamos los porductos
+        if (result.stock != null || this.settingVenderSinStock) {
+          if (result.stock > 0 || this.settingVenderSinStock) {
+            if (result.stock <= 10) {
+              this.$awn.alert("Stock critico de " + result.name + ", quedan " + result.stock)
+            }
+            if (this.product_counter > 0 && result) {
+              $('#modalProductAdd').modal('hide');
+              
+              //agregando los productos
+              for (var i = 0; i < this.products.length; i++) {
+                this.quantityAdd({
+                  id: coincidences[i].id,
+                  name: coincidences[i].name,
+                  price: coincidences[i].price,
+                  quantity: parseInt(this.product_counter),
+                  prices: coincidences[i].prices,
+                  cecina: (coincidences[i].cecina) ? true : false,
+                  stock: coincidences[i].stock
+                });
+              }
+            }
+          } else {
+            this.$awn.alert("Producto " + result.name + ", sin stock ");
+            this.$refs.productAutocomplete.setValue('');
+          }
+
+          this.$refs.productAutocomplete.setValue('');
+          return;
+        }
+        this.$awn.alert("ha ocurrido un error verifique por favor, la cantidad del producto ingresa");
+
+      }
+
+      else if (result.stock != null || this.settingVenderSinStock) {
         if (result.stock > 0 || this.settingVenderSinStock) {
           if (result.stock <= 10) {
             this.$awn.alert("Stock critico de " + result.name + ", quedan " + result.stock)
@@ -1554,7 +1607,7 @@ export default {
       }
     },
     lastSell: { get() { return this.$store.getters['sells/sellPast']; } },
-    order_kitchen_pending:{ get(){ return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.order_kitchen_pending'); } },
+    order_kitchen_pending: { get() { return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.order_kitchen_pending'); } },
     productsGet: {
       get() {
 

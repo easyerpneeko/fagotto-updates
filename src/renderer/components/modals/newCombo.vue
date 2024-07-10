@@ -1,9 +1,9 @@
 <template>
-  <div class="modal fade" id="newProductModal" tabindex="-1" role="dialog" aria-labelledby="newProductModal" aria-hidden="true" data-backdrop="false">
+  <div class="modal fade" id="newComboModal" tabindex="-1" role="dialog" aria-labelledby="newComboModal" aria-hidden="true" data-backdrop="false">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">{{(!this.edit) ? 'Nuevo producto' : 'Editar producto'}}</h5>
+        <h5 class="modal-title">{{(!this.edit) ? 'Nuevo Combo' : 'Editar Combo'}}</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close" @click="selectProduct">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -39,7 +39,7 @@
             </div>
           </div>
           <div class="form-group col-md-6 col-12" v-if="(!precioVariante && gananciaInstalled)">
-            <label for="ganancia">Ganancia del Producto</label>
+            <label for="ganancia">Ganancia del Combo</label>
             <div class="input-group mb-3">
               <span class="input-group-text" id="basic-addon1">$</span>
               <input id="ganancia" type="number" class="form-control" placeholder="ganancia" :disabled="waitResponse" 
@@ -91,14 +91,10 @@
             <input type="checkbox" class="custom-control-input" id="cecina" v-model="cecina">
             <label class="custom-control-label" for="cecina">Cecina</label>
           </div>
-          <div class="custom-control custom-checkbox pb-3 mr-2" v-if="precioVarianteInstalled">
+          <!-- <div class="custom-control custom-checkbox pb-3" v-if="precioVarianteInstalled">
             <input type="checkbox" class="custom-control-input" id="precioVariante" v-model="precioVariante">
             <label class="custom-control-label" for="precioVariante">Precio Variante</label>
-          </div>
-          <div class="custom-control custom-checkbox pb-3 mr-2" v-if="comboInstalled">
-            <input type="checkbox" class="custom-control-input" id="isCombo" v-model="isCombo">
-            <label class="custom-control-label" for="isCombo">Es un combo</label>
-          </div>
+          </div> -->
         </div>
         <div class="d-flex w-100 flex-wrap" v-if="precioVarianteInstalled && precioVariante">
           <div class="form-group col-md-6 col-12 pt-2">
@@ -200,7 +196,6 @@ export default {
       waitResponse:false,
       edit: false,
       precioVariante: false,
-      isCombo: false,
       nuevoPrecio:"",
       nuevaGanancia:"",
       nuevaCantidad:"",
@@ -213,6 +208,12 @@ export default {
       utilidad:0,
       utilidad_porcentaje:0,
       submitted:false
+    }
+  },
+  props: {
+    products: {
+      // type: Object,
+      required: true
     }
   },
   computed:{
@@ -239,11 +240,6 @@ export default {
     stockInstalled:{
       get(){
         return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_stock');
-      }
-    },
-    comboInstalled:{
-      get(){
-        return true;
       }
     },
     minQuantityInstalled:{
@@ -311,9 +307,7 @@ export default {
 
   },
   mounted(){
-    // var priceInput = document.getElementById("priceInput");
-    // var im = new Inputmask({'alias': 'numeric', 'prefix': '$', 'placeholder': '0'});
-    // im.mask(priceInput);
+    console.log(this.products);
   },
   methods:{
     validar_form() {
@@ -485,10 +479,6 @@ export default {
         fields.push('ganancia');
         fields.push('ganancia_mayor');
       }
-      
-      if(this.comboInstalled){
-        fields.push('isCombo');
-      }
 
       for (var field of fields){
         if (product){
@@ -562,10 +552,6 @@ export default {
       if (this.gananciaInstalled && !this.precioVariante) {
         fields.push('ganancia');
       }
-      
-      if(this.precioCompraInstalled){
-        fields.push('compra');
-      }
 
       if (this.ventaAlMayorInstalled) {
         fields.push('ganancia_mayor');
@@ -573,11 +559,7 @@ export default {
       }
 
       let fd = new FormData();
-      
-      if(this.precioCompraInstalled){
-        fd.append('compra', this.compra);
-      }
-
+      fd.append('compra', this.compra);
 
       if (this.precioVarianteInstalled) {
         if (this.precioVariante) {
@@ -620,7 +602,7 @@ export default {
         //   }
         // }
 
-        if (field === 'price' || field === 'compra' || field === 'ganancia' || field === 'mayor' || field === 'ganancia_mayor') {
+        if (field === 'price' || field === 'ganancia' || field === 'mayor' || field === 'ganancia_mayor') {
           fd.append(field, this.deFormatNumber(this[field], false));
         } else {
           fd.append(field, this[field]);
@@ -633,10 +615,6 @@ export default {
 
       if (this.cecinaInstalled) {
         fd.append('cecina', this.cecina ? 1 : 0);
-      }
-
-      if (this.comboInstalled) {
-        fd.append('isCombo', this.isCombo ? 1 : 0);
       }
 
       this.waitResponse = true;
@@ -657,9 +635,9 @@ export default {
 
       if (request.success) {
         if (this.edit) {
-          this.$awn.success('Producto Editado Exitosamente', { labels: { success: 'CORRECTO' } });
+          this.$awn.success('Combo Editado Exitosamente', { labels: { success: 'CORRECTO' } });
         } else {
-          this.$awn.success('Producto Creado Exitosamente', { labels: { success: 'CORRECTO' } });
+          this.$awn.success('Combo Creado Exitosamente', { labels: { success: 'CORRECTO' } });
         }
         this.submitted = false;
         this.selectProduct();

@@ -20,6 +20,12 @@ export async function editStock(context, data) {
   return request;
 }
 
+export async function addToCombo(context, data) {
+  let url = BaseUrl.getUrl('api/local/product/addtocombo');
+  const request = await Connection.request('post',url,data);
+  return request;
+}
+
 export async function getProductsOfSell(context) {
   let url = BaseUrl.getUrl('api/local/products/sell');
   const request = await Connection.request('get',url);

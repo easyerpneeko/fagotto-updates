@@ -70,6 +70,10 @@
     <div ref="loaderProduct" v-if="(products && products.items.length > 0)" class="vld-parent px-2 mt-2">
       <!-- tabla -->
       <customTable v-if="productTable" v-model="jsonTable" @orderBy="orderBy" v-slot="props">
+        <a v-if="props.item.isCombo" @click="modalAddToCombo(props.item)"
+          class="py-1 px-2 text-center btn bg-secundario" href="#" data-toggle="modal" data-target="#modalAddCombo">
+          <i class="fas fa-plus"></i>
+        </a>
         <a @click="selectProduct(props.item)" class="py-1 px-2 text-center btn bg-secundario" href="#"
           data-toggle="modal" data-target="#newProductModal">
           <i class="fas fa-edit"></i>
@@ -186,8 +190,32 @@
                   <span><strong>{{ stock_first }}</strong></span>
                   <input class="Jinput-border-none btn" type="number" v-model="product_stock"
                     v-on:keyup.enter="productStockAdd()" name="product_stock" ref="product_Stock_counter"
-                    v-on:keydown="handleKeyDown2"
-                    id="product_stock" min="1" autofocus />
+                    v-on:keydown="handleKeyDown2" id="product_stock" min="1" autofocus />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="comboInstalled" class="modal fade " id="modalAddCombo" tabindex="-1" role="dialog" aria-labelledby="modalAddCombo"
+      aria-hidden="true" data-backdrop="false">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header bg-primario">
+            <h5 class="modal-title">Agregar Producto</h5>
+          </div>
+          <div class="modal-body" ref="loaderModalAddCombo">
+            <div class="row">
+              <div class="col-12 text-center">
+                <span><strong>Nombre del producto</strong></span>
+                <v-select multiple v-model="itemsSelect" :options="this.productsSelect" label="text" />
+                <br>
+                <div>
+                  <button type="button" class="btn bg-primario text-white" @click="addProductsToCombo()">
+                    Crear
+                  </button>
                 </div>
               </div>
             </div>
@@ -295,6 +323,7 @@ export default {
       },
 
       productsSelect: [],
+      itemsSelect: '',
       itemSelect: '',
       stock_first: '',
       product_stock: '',
@@ -524,7 +553,7 @@ export default {
           console.log(productos);
           if (this.barcodeInstalled) {
             $.each(productos, function (key, val) {
-              productsSelect.push({"id":val.id, "text":val.barcode+ ' '+val.name+ ' - stock '+val.stock });
+              productsSelect.push({ "id": val.id, "text": val.barcode + ' ' + val.name + ' - stock ' + val.stock });
             });
           }
           if (!this.barcodeInstalled) {
@@ -539,6 +568,63 @@ export default {
         }
       }
     },
+
+    async modalAddToCombo(product) {
+      if (this.productsGet) {
+        this.product_id = product.id;
+        // Iniciando peticion
+        var request = await this.$store.dispatch("products/getProductsOfSell");
+        // Verificando respuesta
+        if (request.success) {
+          let productsSelect = [];
+          var productos = (request.data.length == 0) ? false : request.data;
+          console.log(productos);
+          if (this.barcodeInstalled) {
+            $.each(productos, function (key, val) {
+              productsSelect.push({ "id": val.id, "text": val.barcode + ' ' + val.name + ' - stock ' + val.stock });
+            });
+          }
+          if (!this.barcodeInstalled) {
+            $.each(productos, function (key, val) {
+              productsSelect.push({ "id": val.id, "text": val.name + ' - stock ' + val.stock });
+            });
+          }
+          this.productsSelect = productsSelect;
+          $('#modalAddCombo').modal('show');
+        } else {
+          this.$awn.alert('Error al obtener los productos');
+        }
+      }
+    },
+
+    async addProductsToCombo() {
+
+      if (this.itemsSelect.length > 0) {
+        //Unimos los Ids de los producst
+        let products_id = '';
+        for (let index = 0; index < this.itemsSelect.length; index++) {
+          if (index == 0) {
+            products_id += this.itemsSelect[index].id;
+          } else {
+            products_id += ',' + this.itemsSelect[index].id;
+          }
+        }
+        //mandamos al server
+        Loader.fullPage();
+        let data = new FormData();
+        data.append('id', this.product_id);
+        data.append('products_id', products_id);
+        var request = await this.$store.dispatch("products/addToCombo", data);
+        if (request.success) {
+          this.$awn.success(request.data, { labels: { success: 'CORRECTO' } });
+          $('#modalAddCombo').modal('hide');
+        } else {
+          this.$awn.alert('Error al actualizar el combo');
+        }
+      }
+      Loader.hide();
+    },
+
     thisProductEvent({ id, text }) {
       text = text.replace('-', '\n\n');
       this.stock_first = text;
@@ -556,9 +642,6 @@ export default {
         if (request.success) {
           this.$awn.success(request.data, { labels: { success: 'CORRECTO' } });
           $('#modalProductStock').modal('hide');
-          setTimeout(() => {
-            this.productSearch = '';
-          }, 500);
         } else {
           this.$awn.alert('Error al actualizar el stock');
         }
@@ -569,9 +652,9 @@ export default {
       return result.name + '';
     },
     handleKeyDown2(event) {
-      if(/^\d$/.test(event.key)){
+      if (/^\d$/.test(event.key)) {
 
-      }else if (event.key === '+' || event.key === '-' || event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+      } else if (event.key === '+' || event.key === '-' || event.key === 'ArrowUp' || event.key === 'ArrowDown') {
         // Ejecutar las funciones mas() o menos() aquí
         if (event.key === '+' || event.key === 'ArrowUp') {
           this.increaseProduct_stock();
@@ -581,11 +664,11 @@ export default {
         event.preventDefault();
       }
     },
-    increaseProduct_stock(){
+    increaseProduct_stock() {
       this.product_stock++
     },
-    decreaseProduct_stock(){
-      if(this.product_stock>1){
+    decreaseProduct_stock() {
+      if (this.product_stock > 1) {
         this.product_stock--
       }
     },
@@ -605,6 +688,11 @@ export default {
     downloadExcelInstaller: { get() { return ConfigHelper.ConfStr('modulos.productos.ajustes.donwload_inventory'); } },
     stockInstalled: { get() { return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_stock'); } },
     barcodeInstalled: { get() { return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_barcode'); } },
+    comboInstalled:{
+      get(){
+        return true;
+      }
+    },
     productsGet: {
       get() {
 

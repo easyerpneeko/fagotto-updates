@@ -690,7 +690,7 @@ export default {
     barcodeInstalled: { get() { return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_barcode'); } },
     comboInstalled:{
       get(){
-        return true;
+        return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_combo');
       }
     },
     productsGet: {

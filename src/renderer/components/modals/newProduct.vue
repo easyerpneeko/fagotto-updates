@@ -243,7 +243,7 @@ export default {
     },
     comboInstalled:{
       get(){
-        return true;
+        return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_combo');
       }
     },
     minQuantityInstalled:{

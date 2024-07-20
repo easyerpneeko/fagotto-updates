@@ -49,7 +49,7 @@
                     <tbody>
                       <tr v-for="(producto, id) in productosFijos" :key="id">
                         <template
-                          v-if="producto.name == 'Queso' || producto.name == 'Harina' || producto.name == 'Vaso' || producto.name == 'Huevo'">
+                          v-if="producto.name == 'Queso' || producto.name == 'Harina' || producto.name == 'Vaso' || producto.name == 'Botella de Huevos 1L'">
                           <td>{{ producto.name }}</td>
                           <td v-if="producto.name == 'Queso' || producto.name == 'Harina'">{{
             formatearMonto(producto.price) }}gr</td>
@@ -231,7 +231,7 @@ export default {
   },
   data() {
     return {
-      vasos: 160,
+      vasos: 162,
       // queso: 4,
       // harina: 22,
       // huevo: 180,
@@ -243,7 +243,7 @@ export default {
       totalVasos: 0,
       totalPrice: 0,
       productosPedido: {
-        // 1: { name: 'Vasos', quantity: 160, vasos: 1 },
+        // 1: { name: 'Vasos', quantity: 162, vasos: 1 },
       },
       salsasPedido: [],
       opcionalPedido: [],
@@ -333,28 +333,29 @@ export default {
       }
       this.calcularPrecioOpcionales();
     },
-    removeSalsa(index) {
-      if (index >= 0 && index < this.salsasPedido.length) {
-        this.salsasPedido.splice(index, 1);
-      }
-      this.calcularVasosSalsas();
-    },
+    // removeSalsa(index) {
+    //   if (index >= 0 && index < this.salsasPedido.length) {
+    //     this.salsasPedido.splice(index, 1);
+    //   }
+    //   this.calcularVasosSalsas();
+    // },
     calcularCantidades() {
 
-      if (this.vasosSalsas > 160) {
+      if (this.vasosSalsas > 162) {
         this.vasos = this.vasosSalsas;
         this.productosPedido[1].quantity = this.vasos;
-      } else if (this.vasosSalsas <= 160) {
-        this.vasos = 160;
+      } else if (this.vasosSalsas <= 162) {
+        this.vasos = 162;
         this.productosPedido[1].quantity = this.vasos;
       }
 
       for (const key in this.productosPedido) {
         if (this.productosPedido[key].name != "Vaso") {
-          if (this.productosPedido[key].name != "Huevo") {
+          if (this.productosPedido[key].name != "Botella de Huevos 1L") {
             this.productosPedido[key].quantity = (this.productosPedido[key].price * this.vasos) / 1000;
-          }else if(this.productosPedido[key].name == "Huevo"){
-            this.productosPedido[key].quantity = Math.ceil((this.productosPedido[key].price * this.vasos));
+          }else if(this.productosPedido[key].name == "Botella de Huevos 1L"){
+            console.log(this.vasos);
+            this.productosPedido[key].quantity = Math.ceil((this.vasos / this.productosPedido[key].price));
           }
         }
 
@@ -411,8 +412,8 @@ export default {
       console.log('kilos Salsas:', this.kiloSalsas);
       console.log('Opcionales:', this.opcionalPedido);
 
-      if (this.vasosSalsas < 160) {
-        this.$awn.info("El pedido debe ser de minimo 160 vasos");
+      if (this.vasosSalsas < 162) {
+        this.$awn.info("El pedido debe ser de minimo 162 vasos");
         return false;
       }
 
@@ -491,10 +492,10 @@ export default {
           };
           this.$set(this.productosPedido, producto, nuevoProductoPedido);
 
-        } else if (this.productosFijos[producto].name === 'Huevo') {
+        } else if (this.productosFijos[producto].name === 'Botella de Huevos 1L') {
           const nuevoProductoPedido = {
             name: this.productosFijos[producto].name,
-            quantity: (this.productosFijos[producto].price * this.vasos),
+            quantity: (this.vasos / this.productosFijos[producto].price ),
             vasos: 1,
             price: this.productosFijos[producto].price
           };

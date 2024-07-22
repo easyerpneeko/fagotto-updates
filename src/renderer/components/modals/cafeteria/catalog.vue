@@ -10,7 +10,7 @@
       </div>
       <div class="modal-body p-0" style="overflow: auto; max-height: 70vh;">
         <div class="d-flex flex-wrap">
-          <div v-if="(categoriesInstalled && Allcategories && Allcategories.length > 0)" class="col-md-3 boxCategories">
+          <div v-if="(categoriesInstalled && Allcategories && Allcategories.length > 0)" class="col-md-2 boxCategories">
             <h5 class="text-primario my-2 text-center">
               Categorias
             </h5>
@@ -18,14 +18,14 @@
               {{categorie.name}}
             </div>
           </div>
-          <div :class="['boxProducts mt-2 ', (categoriesInstalled && Allcategories && ((Allcategories.length > 0 && jsonTable.items.length == 0) || (Allcategories.length == 0 && jsonTable.items.length > 0))) ? 'col-md-9' : 'col-md-5' ]">
+          <div :class="['boxProducts mt-2 ', (categoriesInstalled && Allcategories && ((Allcategories.length > 0 && jsonTable.items.length == 0) || (Allcategories.length == 0 && jsonTable.items.length > 0))) ? 'col-md-10' : 'col-md-6' ]">
             <div class="d-flex flex-wrap">
               <div class="col-12">
                 <div class="autocomplete-input-container">
                   <autocomplete :search="search" placeholder="Buscar" :getResultValue="getSearchValue" @submit="submitAutocomplete" ref="productAutocomplete" ></autocomplete>
                 </div>
               </div>
-              <div v-for="(product, index) in filteredList" :key="index" v-if="(products && products.length > 0 && (!cecinaInstalled || (cecinaInstalled && product.cecina)))" class="col-md-4 col-sm-6 col-12">
+              <div v-for="(product, index) in filteredList" :key="index" v-if="(products && products.length > 0 && (!cecinaInstalled || (cecinaInstalled && product.cecina)))" class="col-md-3 col-sm-6 col-12">
                 <card-product-orders :product="product" @clickEmit="AddProduct" />
               </div>
               <div v-else class="col-12 text-center mt-5 pt-5">
@@ -496,37 +496,85 @@ export default {
     },
 
     AddProduct(data){
-      let price = 0;
-      if(data.prices){
-        if (data.prices.length) {
-          var precios = data.prices;
-          for (var i = 0; i < precios.length; i++) {
-            if (precios[i+1]) {
-              if (1 >= parseFloat(precios[i].cantidad) && 1 < parseFloat(precios[i+1].cantidad)) {
-                price = precios[i].precio;
-                break;
+      console.log('data', data);
+      //Comprobamos si es combo
+      if (data.isCombo) {
+        //Obtenemos los id del combo
+        const products_id = data.products_id.split(',').map(number => parseInt(number));
+        
+        var coincidences = [];
+
+        //Buscando los productos del combo
+         for (var i = 0; i < this.products.length; i++) {
+          var product = this.products[i];
+          if (products_id.includes(product.id)) {
+            coincidences.push(product);
+          }
+        }
+          //Agregamos los porductos
+          if (data.stock != null || this.settingVenderSinStock) {
+            if (data.stock > 0 || this.settingVenderSinStock) {
+              if (data.stock <= 10) {
+                this.$awn.alert("Stock critico de " + data.name + ", quedan " + data.stock)
               }
-            }else{
-              price = precios[i].precio;
+              if (data) {              
+                //agregando los productos
+                for (var i = 0; i < this.products.length; i++) {
+                  this.quantityAdd({
+                    id: coincidences[i].id,
+                    name: coincidences[i].name,
+                    price: coincidences[i].price,
+                    quantity: 1,
+                    prices: coincidences[i].prices,
+                    cecina: (coincidences[i].cecina) ? true : false,
+                    stock: coincidences[i].stock
+                  });
+                }
+              }
+            } else {
+              this.$awn.alert("Producto " + data.name + ", sin stock ");
+              this.$refs.productAutocomplete.setValue('');
             }
+
+            this.$refs.productAutocomplete.setValue('');
+            return;
+          }
+          this.$awn.alert("ha ocurrido un error verifique por favor, la cantidad del producto ingresa");
+
+      }else{
+        let price = 0;
+        if(data.prices){
+          if (data.prices.length) {
+            var precios = data.prices;
+            for (var i = 0; i < precios.length; i++) {
+              if (precios[i+1]) {
+                if (1 >= parseFloat(precios[i].cantidad) && 1 < parseFloat(precios[i+1].cantidad)) {
+                  price = precios[i].precio;
+                  break;
+                }
+              }else{
+                price = precios[i].precio;
+              }
+            }
+          }else{
+            price = data.price;
           }
         }else{
           price = data.price;
         }
-      }else{
-        price = data.price;
+        var product = {
+          id: data.id,
+          name: data.name,
+          price: price,
+          quantity: 1,
+          prices: data.prices,
+          cecina: (data.cecina)?true:false,
+          ganancia: data.ganancia,
+          comment: null
+        };
+        this.quantityAdd(product);
       }
-      var product = {
-        id: data.id,
-        name: data.name,
-        price: price,
-        quantity: 1,
-        prices: data.prices,
-        cecina: (data.cecina)?true:false,
-        ganancia: data.ganancia,
-        comment: null
-      };
-      this.quantityAdd(product);
+      
     },
 
     removeProduct(item){
@@ -805,6 +853,11 @@ export default {
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.convenio_empresa');
     } },
 
+    settingVenderSinStock: {
+      get() {
+        return ConfigHelper.ConfStr('modulos.ventas.ajustes.permitir_venta_sin_stock');
+      }
+    },
 
     filteredList:{
       get(){

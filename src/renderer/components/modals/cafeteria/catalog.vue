@@ -83,7 +83,7 @@
 
         <!-- Si hay una mesa seleccionada... -->
         <template>
-          <span v-if="!ver_ticket" class="m-0 p-0">
+          <span v-if="!ver_ticket && !solo_crear_ticket" class="m-0 p-0">
             <button v-if="ticket_sell && settingBoletaLocal" type="button" class="btn bg-primario text-white" @click="viewTicket('boleta_local')">
               Ticket + Efectivo
             </button>
@@ -136,12 +136,18 @@
             <button v-if="ticket_sell && settingFactura" type="button" class="btn bg-secundario text-white" @click="viewTicket('factura')">
               Ticket + factura
             </button>
-            <button v-if="order_kitchen_pending == false" type="button" class="btn bg-primario text-white" @click="viewTicket('ticket')">
+            <button v-if="order_kitchen_pending == false " type="button" class="btn bg-primario text-white" @click="viewTicket('ticket')">
               Crear ticket
             </button>
 
 
           </span>
+          <span v-if="!ver_ticket && solo_crear_ticket" class="m-0 p-0">
+            <button type="button" class="btn bg-primario text-white" @click="viewTicket('ticket')">
+              Crear ticket
+            </button>
+          </span>
+
           <button v-else @click="viewTicket(false)" type="button" class="btn bg-primario text-white">
             Ver ticket
           </button>
@@ -721,6 +727,7 @@ export default {
     //permitir cliente en ticket
     ticket_sell_client:{ get(){ return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.ticket_sell_client'); } },
     order_kitchen_pending:{ get(){ return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.order_kitchen_pending'); } },
+    solo_crear_ticket:{ get(){ return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.solo_crear_ticket'); } },
 
 
     settingBoleta:{ get(){

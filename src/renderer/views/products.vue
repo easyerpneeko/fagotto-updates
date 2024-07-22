@@ -323,7 +323,7 @@ export default {
       },
 
       productsSelect: [],
-      itemsSelect: '',
+      itemsSelect: [],
       itemSelect: '',
       stock_first: '',
       product_stock: '',
@@ -570,14 +570,17 @@ export default {
     },
 
     async modalAddToCombo(product) {
+      console.log('product', product);
       if (this.productsGet) {
         this.product_id = product.id;
         // Iniciando peticion
         var request = await this.$store.dispatch("products/getProductsOfSell");
         // Verificando respuesta
+        var productos;
+
         if (request.success) {
           let productsSelect = [];
-          var productos = (request.data.length == 0) ? false : request.data;
+          productos = (request.data.length == 0) ? false : request.data;
           console.log(productos);
           if (this.barcodeInstalled) {
             $.each(productos, function (key, val) {
@@ -593,6 +596,26 @@ export default {
           $('#modalAddCombo').modal('show');
         } else {
           this.$awn.alert('Error al obtener los productos');
+        }
+     
+
+        if(product.isCombo){
+          if(product.products_id){
+            const products_id = product.products_id.split(',').map(number => parseInt(number));
+            var arrayItems = [];
+            for (let index = 0; index < products_id.length; index++) {
+              //Buscando los productos del combo
+              for (var i = 0; i < productos.length; i++) {
+                if (productos[i].id == products_id[index]) {
+                  //Agregando a la seleccion
+                  arrayItems.push({ "id":productos[i].id, "text": productos[i].name + ' - stock ' + productos[i].stock });
+                }
+              }
+            }
+
+            this.itemsSelect = arrayItems;
+          }
+          
         }
       }
     },
@@ -623,6 +646,7 @@ export default {
         }
       }
       Loader.hide();
+      this.refreshData();
     },
 
     thisProductEvent({ id, text }) {

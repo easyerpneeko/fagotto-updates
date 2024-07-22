@@ -502,44 +502,51 @@ export default {
         //Obtenemos los id del combo
         const products_id = data.products_id.split(',').map(number => parseInt(number));
         
+        console.log('producs id',products_id);
         var coincidences = [];
 
         //Buscando los productos del combo
-         for (var i = 0; i < this.products.length; i++) {
-          var product = this.products[i];
+        console.log(this.productsRequest);
+        for (var i = 0; i < this.productsRequest.length; i++) {
+          var product = this.productsRequest[i];
           if (products_id.includes(product.id)) {
             coincidences.push(product);
           }
         }
-          //Agregamos los porductos
-          if (data.stock != null || this.settingVenderSinStock) {
-            if (data.stock > 0 || this.settingVenderSinStock) {
-              if (data.stock <= 10) {
-                this.$awn.alert("Stock critico de " + data.name + ", quedan " + data.stock)
-              }
-              if (data) {              
-                //agregando los productos
-                for (var i = 0; i < this.products.length; i++) {
-                  this.quantityAdd({
-                    id: coincidences[i].id,
-                    name: coincidences[i].name,
-                    price: coincidences[i].price,
-                    quantity: 1,
-                    prices: coincidences[i].prices,
-                    cecina: (coincidences[i].cecina) ? true : false,
-                    stock: coincidences[i].stock
-                  });
-                }
-              }
-            } else {
-              this.$awn.alert("Producto " + data.name + ", sin stock ");
-              this.$refs.productAutocomplete.setValue('');
-            }
 
+        console.log('coincides', coincidences);
+        //Agregamos los porductos
+        if (data.stock != null || this.settingVenderSinStock) {
+          if (data.stock > 0 || this.settingVenderSinStock) {
+            if (data.stock <= 10) {
+              this.$awn.alert("Stock critico de " + data.name + ", quedan " + data.stock)
+            }
+            if (data) {              
+              //agregando los productos
+              for (var i = 0; i < coincidences.length; i++) {
+                this.quantityAdd({
+                  id: coincidences[i].id,
+                  name: coincidences[i].name,
+                  price: coincidences[i].price,
+                  quantity: 1,
+                  prices: coincidences[i].prices,
+                  cecina: (coincidences[i].cecina) ? true : false,
+                  stock: coincidences[i].stock
+                });
+              }
+              //Cambiamos para ver los productos variables
+              this.changeCategorie(data.product_variable_category);
+            }
+          } else {
+            this.$awn.alert("Producto " + data.name + ", sin stock ");
             this.$refs.productAutocomplete.setValue('');
-            return;
           }
-          this.$awn.alert("ha ocurrido un error verifique por favor, la cantidad del producto ingresa");
+
+          this.$refs.productAutocomplete.setValue('');
+          return;
+        }
+        
+        this.$awn.alert("ha ocurrido un error verifique por favor, la cantidad del producto ingresa");
 
       }else{
         let price = 0;

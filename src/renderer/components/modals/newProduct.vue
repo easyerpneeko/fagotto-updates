@@ -202,7 +202,7 @@ export default {
       stock: 0,
       min_quantity: "",
       category: "",
-      product_variable_category: "",
+      product_variable_category: null,
       cecina:false,
       preview: '',
       waitResponse:false,
@@ -296,7 +296,7 @@ export default {
       get() {return this.category > 0}
     },
     isValidPrice: {
-      get() {return this.price > 0}
+      get() {return this.price >= 0}
     },
     // isValidCompra: {
     //   get() {return console.log('Compra',this.compra > 0)}
@@ -651,7 +651,7 @@ export default {
         fd.append('isCombo', this.isCombo ? 1 : 0);
       }
       if (this.comboInstalled) {
-        fd.append('product_variable_category', this.product_variable_category);
+        fd.append('product_variable_category', this.product_variable_category ? this.product_variable_category : 0);
       }
       this.waitResponse = true;
       Loader.fullPage();

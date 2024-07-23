@@ -38,6 +38,12 @@ export async function getProductsOfIndex(context) {
   return request;
 }
 
+export async function getProductsOfFagotto(context) {
+  let url = BaseUrl.getUrl('api/local/products/fagotto');
+  const request = await Connection.request('get',url);
+  return request;
+}
+
 export async function newProduct(context, data) {
   let url = BaseUrl.getUrl('api/local/product');
   const request = await Connection.request('post',url,data);

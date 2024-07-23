@@ -57,6 +57,10 @@ export default new Router({
           component: require('@/views/devolutions.vue').default
         },
         {
+          path: 'stocks',
+          component: require('@/views/stocks.vue').default
+        },
+        {
           path: 'client-orders/mobile-devices/lista',
           component: require('@/views/orders-clients/mobile-devices.vue').default
         },

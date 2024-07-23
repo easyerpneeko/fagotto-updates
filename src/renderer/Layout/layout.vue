@@ -272,6 +272,7 @@ export default {
       const clientOrders = ConfigHelper.ConfStr('modulos.client_orders');
       var pedidos = ConfigHelper.ConfStr('modulos.pedidos');
       var operations = ConfigHelper.ConfStr('modulos.operations');
+      var stocks = ConfigHelper.ConfStr('modulos.stocks');
       // Submodulos
       var devoluciones = ConfigHelper.ConfStr('modulos.ventas.submodulos.devolutions');
       var sii = ConfigHelper.ConfStr('modulos.ventas.submodulos.sii');
@@ -472,6 +473,15 @@ export default {
             label: 'Devoluciones',
             route: '/inicio/devoluciones',
             icon: 'fas fa-undo-alt'
+          });
+        }
+
+        //Modulo de stocks
+        if (stocks) {
+          menu.push({
+            label: 'Stocks',
+            route: '/inicio/stocks',
+            icon: 'fas fa-boxes'
           });
         }
 

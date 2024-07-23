@@ -99,6 +99,13 @@
             <input type="checkbox" class="custom-control-input" id="isCombo" v-model="isCombo">
             <label class="custom-control-label" for="isCombo">Es un combo</label>
           </div>
+          <div class="form-group col-12" v-if="isCombo">
+            <label for="category">Categoria del producto Variable</label>
+            <select id="category" class="browser-default custom-select" v-model="product_variable_category" :class="{ 'invalid-input': submitted && !isValidCategory}">
+              <option value="" selected disabled>Categoria</option>
+              <option :value="category.id" v-for="category in categories" class="text-capitalize">{{category.name}}</option>
+            </select>
+          </div>
         </div>
         <div class="d-flex w-100 flex-wrap" v-if="precioVarianteInstalled && precioVariante">
           <div class="form-group col-md-6 col-12 pt-2">
@@ -195,6 +202,7 @@ export default {
       stock: 0,
       min_quantity: "",
       category: "",
+      product_variable_category: "",
       cecina:false,
       preview: '',
       waitResponse:false,
@@ -490,6 +498,10 @@ export default {
         fields.push('isCombo');
       }
 
+      if(this.comboInstalled){
+        fields.push('product_variable_category');
+      }
+
       for (var field of fields){
         if (product){
           if ((field == 'price' || field == 'ganancia' || field == 'mayor' || field == 'compra' || field == 'ganancia_mayor') && product[field]) {
@@ -638,7 +650,9 @@ export default {
       if (this.comboInstalled) {
         fd.append('isCombo', this.isCombo ? 1 : 0);
       }
-
+      if (this.comboInstalled) {
+        fd.append('product_variable_category', this.product_variable_category);
+      }
       this.waitResponse = true;
       Loader.fullPage();
 

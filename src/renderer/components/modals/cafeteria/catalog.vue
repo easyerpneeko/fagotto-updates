@@ -10,7 +10,7 @@
       </div>
       <div class="modal-body p-0" style="overflow: auto; max-height: 70vh;">
         <div class="d-flex flex-wrap">
-          <div v-if="(categoriesInstalled && Allcategories && Allcategories.length > 0)" class="col-md-3 boxCategories">
+          <div v-if="(categoriesInstalled && Allcategories && Allcategories.length > 0)" class="col-md-2 boxCategories">
             <h5 class="text-primario my-2 text-center">
               Categorias
             </h5>
@@ -18,14 +18,14 @@
               {{categorie.name}}
             </div>
           </div>
-          <div :class="['boxProducts mt-2 ', (categoriesInstalled && Allcategories && ((Allcategories.length > 0 && jsonTable.items.length == 0) || (Allcategories.length == 0 && jsonTable.items.length > 0))) ? 'col-md-9' : 'col-md-5' ]">
+          <div :class="['boxProducts mt-2 ', (categoriesInstalled && Allcategories && ((Allcategories.length > 0 && jsonTable.items.length == 0) || (Allcategories.length == 0 && jsonTable.items.length > 0))) ? 'col-md-10' : 'col-md-6' ]">
             <div class="d-flex flex-wrap">
               <div class="col-12">
                 <div class="autocomplete-input-container">
                   <autocomplete :search="search" placeholder="Buscar" :getResultValue="getSearchValue" @submit="submitAutocomplete" ref="productAutocomplete" ></autocomplete>
                 </div>
               </div>
-              <div v-for="(product, index) in filteredList" :key="index" v-if="(products && products.length > 0 && (!cecinaInstalled || (cecinaInstalled && product.cecina)))" class="col-md-4 col-sm-6 col-12">
+              <div v-for="(product, index) in filteredList" :key="index" v-if="(products && products.length > 0 && (!cecinaInstalled || (cecinaInstalled && product.cecina)))" class="col-md-3 col-sm-6 col-12">
                 <card-product-orders :product="product" @clickEmit="AddProduct" />
               </div>
               <div v-else class="col-12 text-center mt-5 pt-5">
@@ -83,7 +83,7 @@
 
         <!-- Si hay una mesa seleccionada... -->
         <template>
-          <span v-if="!ver_ticket" class="m-0 p-0">
+          <span v-if="!ver_ticket && !solo_crear_ticket" class="m-0 p-0">
             <button v-if="ticket_sell && settingBoletaLocal" type="button" class="btn bg-primario text-white" @click="viewTicket('boleta_local')">
               Ticket + Efectivo
             </button>
@@ -136,12 +136,18 @@
             <button v-if="ticket_sell && settingFactura" type="button" class="btn bg-secundario text-white" @click="viewTicket('factura')">
               Ticket + factura
             </button>
-            <button v-if="order_kitchen_pending == false" type="button" class="btn bg-primario text-white" @click="viewTicket('ticket')">
+            <button v-if="order_kitchen_pending == false " type="button" class="btn bg-primario text-white" @click="viewTicket('ticket')">
               Crear ticket
             </button>
 
 
           </span>
+          <span v-if="!ver_ticket && solo_crear_ticket" class="m-0 p-0">
+            <button type="button" class="btn bg-primario text-white" @click="viewTicket('ticket')">
+              Crear ticket
+            </button>
+          </span>
+
           <button v-else @click="viewTicket(false)" type="button" class="btn bg-primario text-white">
             Ver ticket
           </button>
@@ -721,6 +727,7 @@ export default {
     //permitir cliente en ticket
     ticket_sell_client:{ get(){ return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.ticket_sell_client'); } },
     order_kitchen_pending:{ get(){ return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.order_kitchen_pending'); } },
+    solo_crear_ticket:{ get(){ return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.solo_crear_ticket'); } },
 
 
     settingBoleta:{ get(){
@@ -798,6 +805,11 @@ export default {
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.convenio_empresa');
     } },
 
+    settingVenderSinStock: {
+      get() {
+        return ConfigHelper.ConfStr('modulos.ventas.ajustes.permitir_venta_sin_stock');
+      }
+    },
 
     filteredList:{
       get(){

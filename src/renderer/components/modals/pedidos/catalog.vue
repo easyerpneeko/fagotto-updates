@@ -48,8 +48,8 @@
                     </thead>
                     <tbody>
                       <tr v-for="(producto, id) in productosFijos" :key="id">
-                        <template
-                          v-if="producto.name == 'Queso' || producto.name == 'Harina' || producto.name == 'Vaso' || producto.name == 'Botella de Huevos 1L'">
+                        <template v-if="producto.name == 'Queso' || producto.name == 'Harina' || producto.name == 'Vaso' || producto.name == 'Botella de Huevos 1L'">
+
                           <td>{{ producto.name }}</td>
 
                           <td v-if="producto.name == 'Queso' || producto.name == 'Harina'">

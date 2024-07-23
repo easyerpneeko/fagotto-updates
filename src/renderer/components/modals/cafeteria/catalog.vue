@@ -496,85 +496,37 @@ export default {
     },
 
     AddProduct(data){
-      console.log('data', data);
-      //Comprobamos si es combo
-      if (data.isCombo) {
-        //Obtenemos los id del combo
-        const products_id = data.products_id.split(',').map(number => parseInt(number));
-        
-        var coincidences = [];
-
-        //Buscando los productos del combo
-         for (var i = 0; i < this.products.length; i++) {
-          var product = this.products[i];
-          if (products_id.includes(product.id)) {
-            coincidences.push(product);
-          }
-        }
-          //Agregamos los porductos
-          if (data.stock != null || this.settingVenderSinStock) {
-            if (data.stock > 0 || this.settingVenderSinStock) {
-              if (data.stock <= 10) {
-                this.$awn.alert("Stock critico de " + data.name + ", quedan " + data.stock)
-              }
-              if (data) {              
-                //agregando los productos
-                for (var i = 0; i < this.products.length; i++) {
-                  this.quantityAdd({
-                    id: coincidences[i].id,
-                    name: coincidences[i].name,
-                    price: coincidences[i].price,
-                    quantity: 1,
-                    prices: coincidences[i].prices,
-                    cecina: (coincidences[i].cecina) ? true : false,
-                    stock: coincidences[i].stock
-                  });
-                }
-              }
-            } else {
-              this.$awn.alert("Producto " + data.name + ", sin stock ");
-              this.$refs.productAutocomplete.setValue('');
-            }
-
-            this.$refs.productAutocomplete.setValue('');
-            return;
-          }
-          this.$awn.alert("ha ocurrido un error verifique por favor, la cantidad del producto ingresa");
-
-      }else{
-        let price = 0;
-        if(data.prices){
-          if (data.prices.length) {
-            var precios = data.prices;
-            for (var i = 0; i < precios.length; i++) {
-              if (precios[i+1]) {
-                if (1 >= parseFloat(precios[i].cantidad) && 1 < parseFloat(precios[i+1].cantidad)) {
-                  price = precios[i].precio;
-                  break;
-                }
-              }else{
+      let price = 0;
+      if(data.prices){
+        if (data.prices.length) {
+          var precios = data.prices;
+          for (var i = 0; i < precios.length; i++) {
+            if (precios[i+1]) {
+              if (1 >= parseFloat(precios[i].cantidad) && 1 < parseFloat(precios[i+1].cantidad)) {
                 price = precios[i].precio;
+                break;
               }
+            }else{
+              price = precios[i].precio;
             }
-          }else{
-            price = data.price;
           }
         }else{
           price = data.price;
         }
-        var product = {
-          id: data.id,
-          name: data.name,
-          price: price,
-          quantity: 1,
-          prices: data.prices,
-          cecina: (data.cecina)?true:false,
-          ganancia: data.ganancia,
-          comment: null
-        };
-        this.quantityAdd(product);
+      }else{
+        price = data.price;
       }
-      
+      var product = {
+        id: data.id,
+        name: data.name,
+        price: price,
+        quantity: 1,
+        prices: data.prices,
+        cecina: (data.cecina)?true:false,
+        ganancia: data.ganancia,
+        comment: null
+      };
+      this.quantityAdd(product);
     },
 
     removeProduct(item){

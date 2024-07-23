@@ -48,11 +48,25 @@
                     </thead>
                     <tbody>
                       <tr v-for="(producto, id) in productosFijos" :key="id">
+<<<<<<< HEAD
                         <template
                           v-if="producto.name == 'Queso' || producto.name == 'Harina' || producto.name == 'Vaso' || producto.name == 'Botella de Huevos 1L'">
+=======
+                        <template v-if="producto.name == 'Queso' || producto.name == 'Harina' || producto.name == 'Vaso' || producto.name == 'Botella de Huevos 1L'">
+
+>>>>>>> b6cf801de1cb8d92b5a088d22bf1dce970d3caac
                           <td>{{ producto.name }}</td>
-                          <td v-if="producto.name == 'Queso' || producto.name == 'Harina'">{{
-            formatearMonto(producto.price) }}gr</td>
+
+                          <td v-if="producto.name == 'Queso' || producto.name == 'Harina'">
+                            {{ formatearMonto(producto.price) }}gr
+                          </td>
+
+                          <td v-else-if="producto.name == 'Botella de Huevos 1L'">
+                            {{ formatearMonto(producto.price) }} Vasos
+                            <i class="fas fa-info-circle" data-toggle="tooltip" data-placement="top"
+                            :title="`Botella de Huevos 1 L equivale a ${formatearMonto(producto.price)} Vasos`"></i>
+                          </td>
+
                           <td v-else>{{ formatearMonto(producto.price) }}</td>
                         </template>
                         <!-- <td>{{ producto.vasos }}</td> -->
@@ -223,6 +237,7 @@
 import ConfigHelper from '@/helpers/ConfigHelper.js';
 import FormatNumber from '@/helpers/FormatNumber.js';
 // import Loader from '@/helpers/Loader';
+import $ from 'jquery';
 
 export default {
   products: {
@@ -277,7 +292,9 @@ export default {
   async mounted() {
     //Trae los productos fijo de db 
     await this.cargarProductosFijos();
-
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    })
   },
   methods: {
     async closeModal(refresh = false) {

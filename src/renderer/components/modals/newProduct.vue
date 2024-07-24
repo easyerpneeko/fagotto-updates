@@ -251,7 +251,7 @@ export default {
     },
     comboInstalled:{
       get(){
-        return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_combo');
+        return ConfigHelper.ConfStr('modulos.productos.submodulos.permitir_combos');
       }
     },
     minQuantityInstalled:{

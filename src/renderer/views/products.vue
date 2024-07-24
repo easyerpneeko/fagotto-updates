@@ -70,7 +70,7 @@
     <div ref="loaderProduct" v-if="(products && products.items.length > 0)" class="vld-parent px-2 mt-2">
       <!-- tabla -->
       <customTable v-if="productTable" v-model="jsonTable" @orderBy="orderBy" v-slot="props">
-        <a v-if="props.item.isCombo" @click="modalAddToCombo(props.item)"
+        <a v-if="props.item.isCombo && comboInstalled" @click="modalAddToCombo(props.item)"
           class="py-1 px-2 text-center btn bg-secundario" href="#" data-toggle="modal" data-target="#modalAddCombo">
           <i class="fas fa-plus"></i>
         </a>
@@ -714,7 +714,7 @@ export default {
     barcodeInstalled: { get() { return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_barcode'); } },
     comboInstalled:{
       get(){
-        return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_combo');
+        return ConfigHelper.ConfStr('modulos.productos.submodulos.permitir_combos');
       }
     },
     productsGet: {

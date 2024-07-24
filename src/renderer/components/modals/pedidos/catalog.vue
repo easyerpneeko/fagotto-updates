@@ -277,7 +277,8 @@ export default {
       despacho: 0,
       iva: 0.19,
       montoTotal: 0,
-      montoOpcionales: 0
+      montoOpcionales: 0,
+      isMultiplo:true,
 
     }
   },
@@ -366,11 +367,14 @@ export default {
           if (this.productosPedido[key].name != "Botella de Huevos 1L") {
             this.productosPedido[key].quantity = (this.productosPedido[key].price * this.vasos) / 1000;
           }else if(this.productosPedido[key].name == "Botella de Huevos 1L"){
-            console.log(this.vasos);
             this.productosPedido[key].quantity = Math.ceil((this.vasos / this.productosPedido[key].price));
+            
+            if( (this.vasos % this.productosPedido[key].price) != 0){
+              this.isMultiplo = false;
+              this.$awn.info("El pedido debe ser de minimo 162 vasos y multiplo de "+this.productosPedido[key].price);
+            }
           }
         }
-
       }
 
 
@@ -425,7 +429,12 @@ export default {
       console.log('Opcionales:', this.opcionalPedido);
 
       if (this.vasosSalsas < 162) {
-        this.$awn.info("El pedido debe ser de minimo 162 vasos");
+        this.$awn.info("El pedido debe ser de minimo 162 vasos de salsa");
+        return false;
+      }
+
+      if (!this.isMultiplo) {
+        this.$awn.info("El pedido debe ser multiplo de la cantidad de vasos de la Botella de Huevos");
         return false;
       }
 

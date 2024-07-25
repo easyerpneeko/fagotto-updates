@@ -178,6 +178,9 @@
         <div class="modal-content">
           <div class="modal-header bg-primario">
             <h5 class="modal-title">Producto Stock</h5>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
           </div>
           <div class="modal-body" ref="loaderStockProduct">
             <div class="row">
@@ -205,6 +208,9 @@
         <div class="modal-content">
           <div class="modal-header bg-primario">
             <h5 class="modal-title">Agregar Producto</h5>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
           </div>
           <div class="modal-body" ref="loaderModalAddCombo">
             <div class="row">
@@ -323,7 +329,7 @@ export default {
       },
 
       productsSelect: [],
-      itemsSelect: [],
+      itemsSelect: null,
       itemSelect: '',
       stock_first: '',
       product_stock: '',
@@ -622,21 +628,13 @@ export default {
 
     async addProductsToCombo() {
 
-      if (this.itemsSelect.length > 0) {
-        //Unimos los Ids de los producst
-        let products_id = '';
-        for (let index = 0; index < this.itemsSelect.length; index++) {
-          if (index == 0) {
-            products_id += this.itemsSelect[index].id;
-          } else {
-            products_id += ',' + this.itemsSelect[index].id;
-          }
-        }
+      if (this.itemsSelect) {
+        console.log(this.itemsSelect.id);
         //mandamos al server
         Loader.fullPage();
         let data = new FormData();
         data.append('id', this.product_id);
-        data.append('products_id', products_id);
+        data.append('products_id', this.itemsSelect.id);
         var request = await this.$store.dispatch("products/addToCombo", data);
         if (request.success) {
           this.$awn.success(request.data, { labels: { success: 'CORRECTO' } });

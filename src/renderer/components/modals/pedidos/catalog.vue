@@ -372,6 +372,8 @@ export default {
             if( (this.vasos % this.productosPedido[key].price) != 0){
               this.isMultiplo = false;
               this.$awn.info("El pedido debe ser de minimo 162 vasos y multiplo de "+this.productosPedido[key].price);
+            }else{
+              this.isMultiplo = true;
             }
           }
         }
@@ -427,6 +429,9 @@ export default {
       console.log('Salsas: ', this.salsasPedido);
       console.log('kilos Salsas:', this.kiloSalsas);
       console.log('Opcionales:', this.opcionalPedido);
+
+      console.log('multiplo:',this.isMultiplo);
+      console.log('vasos:', this.vasosSalsas);
 
       if (this.vasosSalsas < 162) {
         this.$awn.info("El pedido debe ser de minimo 162 vasos de salsa");

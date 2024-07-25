@@ -557,11 +557,11 @@ export default {
       };
       this.quantityAdd(product);
 
-      // if (data.isCombo) {
-        if(data.product_variable_category != 0){
+      if (this.comboInstalled) {
+        if(data.product_variable_category != 0 && data.product_variable_category != null){
           this.changeCategorie(data.product_variable_category);
         }
-      // }
+      }
     },
 
     removeProduct(item) {
@@ -764,6 +764,7 @@ export default {
     order_kitchen_pending: { get() { return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.order_kitchen_pending'); } },
     solo_crear_ticket: { get() { return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.solo_crear_ticket'); } },
 
+    comboInstalled:{ get(){ return ConfigHelper.ConfStr('modulos.productos.submodulos.permitir_combos');}},
 
     settingBoleta: {
       get() {

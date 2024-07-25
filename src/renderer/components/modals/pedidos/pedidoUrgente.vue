@@ -62,10 +62,10 @@
                                             Kg
                                         </td>
                                         <td
-                                            v-if="(producto.category == 3 || producto.name == 'Huevo' || producto.name == 'Vaso')">
+                                            v-if="(producto.category == 3 || producto.name == 'Botella de Huevos 1L' || producto.name == 'Vaso')">
                                             <input min="1" class="fieldEdit" type="number" v-model="producto.quantity"
                                                 @change="calcularMontos()" />
-                                            {{ (producto.name == 'Huevo' ? 'Caja(s)' : 'Unidad(es)') }}
+                                            {{ (producto.name == 'Botella de Huevos 1L' ? 'Botellas(s)' : 'Unidad(es)') }}
                                         </td>
                                         <td v-if="(producto.category == 2)">
                                             <input min="10" class="fieldEdit" type="number" v-model="producto.vasos"

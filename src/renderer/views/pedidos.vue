@@ -269,7 +269,7 @@ Reloj de arena: En espera.">
                                             <tr v-for="(producto, id) in jsonTableProducts.items" :key="id">
                                                 <td>{{ producto.name }}</td>
                                                 <td>{{ (producto.name != 'Vaso'
-                && producto.name != 'Huevo'
+                && producto.name != 'Botella de Huevos 1L'
                 && producto.name != 'Sandwich'
                 && producto.name != 'Aceite de oliva 5kg'
                 && producto.name != 'Aceite Vegetal 1L'

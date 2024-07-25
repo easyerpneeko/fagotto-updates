@@ -210,7 +210,7 @@
             <div class="row">
               <div class="col-12 text-center">
                 <span><strong>Nombre del producto</strong></span>
-                <v-select multiple v-model="itemsSelect" :options="this.productsSelect" label="text" />
+                <v-select v-model="itemsSelect" :options="this.productsSelect" label="text" />
                 <br>
                 <div>
                   <button type="button" class="btn bg-primario text-white" @click="addProductsToCombo()">

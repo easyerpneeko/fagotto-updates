@@ -557,11 +557,11 @@ export default {
       };
       this.quantityAdd(product);
 
-      if (data.isCombo) {
-        if(data.product_variable_category){
+      // if (data.isCombo) {
+        if(data.product_variable_category != 0){
           this.changeCategorie(data.product_variable_category);
         }
-      }
+      // }
     },
 
     removeProduct(item) {

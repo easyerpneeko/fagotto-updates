@@ -99,7 +99,11 @@
             <input type="checkbox" class="custom-control-input" id="isCombo" v-model="isCombo">
             <label class="custom-control-label" for="isCombo">Es un combo</label>
           </div>
-          <div class="form-group col-12" v-if="isCombo">
+          <div class="custom-control custom-checkbox pb-3 mr-2" v-if="comboInstalled">
+            <input type="checkbox" class="custom-control-input" id="isPromo" v-model="isPromo">
+            <label class="custom-control-label" for="isPromo">Es una promo</label>
+          </div>
+          <div class="form-group col-12" v-if="isPromo">
             <label for="category">Categoria del producto Variable</label>
             <select id="category" class="browser-default custom-select" v-model="product_variable_category" :class="{ 'invalid-input': submitted && !isValidCategory}">
               <option value="" selected disabled>Categoria</option>
@@ -209,6 +213,7 @@ export default {
       edit: false,
       precioVariante: false,
       isCombo: false,
+      isPromo: false,
       nuevoPrecio:"",
       nuevaGanancia:"",
       nuevaCantidad:"",

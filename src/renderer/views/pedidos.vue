@@ -543,10 +543,10 @@ export default {
             this.offOn = false;
             // Verificando respuesta
             if (!request.success) return this.$awn.alert(request.data);
-            else {
-                this.requests = request.data;
-                this.jsonTable.items = this.requests;
-            }
+            // if (!request.success) console.log('Error: ', request.data);
+
+            this.requests = (request.data.items.length == 0) ? false : request.data;
+            this.jsonTable.items = this.requests.items;
         },
         openProductsOrder(request) {
             this.jsonTableProducts.items = JSON.parse(request.products);

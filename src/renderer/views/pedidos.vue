@@ -8,7 +8,7 @@
                         <span>Realizar pedidos de productos</span>
                     </div>
                 </div>
-                <div class="col-md-4 col-sm-4 col-12 d-flex flex-column">
+                <div v-if="PedidoUrgenteInstalled" class="col-md-4 col-sm-4 col-12 d-flex flex-column">
                     <button type="button" data-toggle="modal" data-target="#pedidoUrgente"
                         class="m-1 btn-width btn bg-primario text-white text-capitalize">
                         Pedido Urgente
@@ -372,7 +372,7 @@ import customTable from '@/components/tables/table.vue';
 import catalog from '@/components/modals/pedidos/catalog.vue';
 import pedidoUrgente from '@/components/modals/pedidos/pedidoUrgente.vue';
 // Helpers
-// import ConfigHelper from '@/helpers/ConfigHelper.js';
+import ConfigHelper from '@/helpers/ConfigHelper.js';
 // import BaseUrl from '@/helpers/baseUrl.js';
 import Loader from '@/helpers/Loader';
 import moment from 'moment';
@@ -519,6 +519,8 @@ export default {
         },
 
         isAdmin: { get() { return (this.$store.getters['main/user'].role == 1) } },
+
+        PedidoUrgenteInstalled:{ get(){ return ConfigHelper.ConfStr('modulos.pedidos.ajustes.pedidos_urgentes'); } },
     },
     watch: {
 

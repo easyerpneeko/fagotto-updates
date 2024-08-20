@@ -2449,7 +2449,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) *
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony default export */ __webpack_exports__[\"default\"] = ({\n  apiUrl: 'http://154.38.171.1',\n  user: null,\n  users: null,\n  envs: null,\n  sell_total: null,\n  allUsers: null,\n  permisos: null,\n  clients: [],\n  detailSells: [],\n  versionNumber: '',\n  feeds: null,\n  folios: null,\n  pusherEnv: 'prod' });\n\n//# sourceURL=webpack:///./src/renderer/store/main/state.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony default export */ __webpack_exports__[\"default\"] = ({\n  apiUrl: 'https://posfagotto.cl',\n  user: null,\n  users: null,\n  envs: null,\n  sell_total: null,\n  allUsers: null,\n  permisos: null,\n  clients: [],\n  detailSells: [],\n  versionNumber: '',\n  feeds: null,\n  folios: null,\n  pusherEnv: 'prod' });\n\n//# sourceURL=webpack:///./src/renderer/store/main/state.js?");
 
 /***/ }),
 

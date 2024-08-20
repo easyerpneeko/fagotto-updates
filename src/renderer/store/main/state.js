@@ -4,7 +4,8 @@ export default {
   // apiUrl: 'https://eanpsyerp.scaly.work', // STAGING
   //apiUrl: 'http://209.145.62.104', // e2 sin ssl
   // apiUrl:'http://154.53.34.255', // PRODUCCION 11-2023
-  apiUrl:'http://154.38.171.1', // DEVELOPMENT 11-2023
+  // apiUrl:'http://154.38.171.1', // DEVELOPMENT 11-2023
+  apiUrl:'https://posfagotto.cl', // ACTIVADO EL SSL
   //apiUrl: 'https://appeasyerp.cl',
   user: null,
   users: null,

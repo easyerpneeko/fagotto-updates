@@ -459,7 +459,7 @@ export default {
     notaInstalled: {
       get() {
         if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
-        return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.noda_de_credito');
+        return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.nota_de_credito');
       }
     },
     boletaLocal: {

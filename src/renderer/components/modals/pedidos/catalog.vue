@@ -19,20 +19,6 @@
                   <div class="row d-flex justify-content-start">
                     <h5 class="modal-title p-2 m-1">Detallado del pedido</h5>
                     <hr>
-                    <!-- <label class="pr-2 pl-3 d-flex align-items-center">Productos disponibles: </label> -->
-                    <!-- <div class="btn-group btn-group-toggle d-flex align-items-center" role="group"
-                      data-toggle="buttons">
-                      <label class="btn btn-primary ">
-                        <input type="radio" name="options" id="option1" v-bind:checked="opcionSeleccionada"
-                          @click="calcularCantidades(1)">
-                        320
-                      </label>
-                      <label class="btn btn-primary active">
-                        <input type="radio" name="options" id="option2" v-bind:checked="opcionSeleccionada"
-                          @click="calcularCantidades(2)">
-                        160
-                      </label>
-                    </div> -->
                   </div>
 
                 </div>
@@ -130,7 +116,7 @@
                     <td>{{ salsa.name }}</td>
                     <td>{{ salsa.quantity }}kg</td>
                     <td>
-                      <input min="10" @change="calcularVasosSalsas()" class="fieldEdit" type="number"
+                      <input @input="validateInput()" :min="salsa.min_quantity" @change="calcularVasosSalsas()" :step="salsa.min_quantity" class="fieldEdit" type="number"
                         v-model="salsa.vasos" />
                     </td>
                     <!-- <td>{{ salsa.vasos }}</td> -->
@@ -222,11 +208,6 @@
 </template>
 
 <script>
-// Componentes
-// import customTable from '@/components/tables/table.vue';
-// import cardProductOrders from '@/components/cards/card_product_orders.vue';
-// import ticket from '@/components/modals/cafeteria/createTicket.vue';
-// import modalVerify from '@/components/modals/verifyDelete.vue';
 
 // Helpers y plugins
 import ConfigHelper from '@/helpers/ConfigHelper.js';
@@ -314,7 +295,7 @@ export default {
         console.log(`Salsa ${salsa.name} ya existente.`);
       } else {
         const salsaCopia = Object.assign({}, salsa);
-        salsaCopia.vasos = 10; // O también puedes usar: const salsaCopia = { ...salsa };
+        salsaCopia.vasos = salsaCopia.min_quantity; // O también puedes usar: const salsaCopia = { ...salsa };
         this.salsasPedido.push(salsaCopia);
         // console.log(this.salsasPedido);
       }
@@ -399,11 +380,12 @@ export default {
             salsaDisponible = this.salsasDisponibles[key];
           }
         }
-
+        this.validateInput(salsa);
         salsa.quantity = (salsa.vasos * salsaDisponible.quantity) / 1000;
       });
 
       this.calcularCantidades();
+
     },
     calcularPrecioOpcionales() {
       this.opcionalPedido.forEach((producto) => {
@@ -544,7 +526,8 @@ export default {
             name: this.productosFijos[producto].name,
             quantity: this.productosFijos[producto].price,
             vasos: 1,
-            price: this.productosFijos[producto].price
+            price: this.productosFijos[producto].price,
+            min_quantity: this.productosFijos[producto].min_quantity,
           };
 
           this.$set(this.salsasDisponibles, producto, salsaDisponible);
@@ -577,6 +560,10 @@ export default {
     convertirAKilogramosYRedondear(gramos, multiplicador) {
       const kilogramos = (gramos * multiplicador) / 1000;
       return Math.ceil(kilogramos * 1000) / 1000;
+    },
+    validateInput(salsa){
+      // Redondea al múltiplo más cercano
+      salsa.vasos = Math.round(salsa.vasos / salsa.min_quantity) * salsa.min_quantity;
     }
   },
   computed: {

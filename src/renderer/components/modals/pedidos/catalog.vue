@@ -170,20 +170,15 @@
                   </tr>
                   <tr>
                     <td>Despacho {{ this.despacho * 100 }}%</td>
-                    <td>${{ formatearMonto(this.montoDespacho = (this.vasos * this.precioVaso) * this.despacho) }}</td>
+                    <td>${{ formatearMonto(this.montoDespacho = this.montoNeto * this.despacho) }}</td>
                   </tr>
                   <tr>
-                    <td>IVA 19%</td>
+                    <td>IVA {{ this.iva * 100 }}%</td>
                     <td>${{ formatearMonto(this.montoIva = (this.montoNeto * this.iva)) }}</td>
                   </tr>
                   <tr>
                     <td>Total</td>
-                    <td>${{ formatearMonto(
-            this.vasos * this.precioVaso
-            + ((this.vasos * this.precioVaso) * this.iva)
-            + ((this.vasos * this.precioVaso) * this.despacho)
-            + (this.montoOpcionales)
-          ) }}</td>
+                    <td>${{ formatearMonto( this.montoNeto + this.montoDespacho + this.montoIva ) }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -222,7 +217,8 @@ export default {
   },
   data() {
     return {
-      vasos: 162,
+      vasosMinimos:0,
+      vasos: 0,
       // queso: 4,
       // harina: 22,
       // huevo: 180,
@@ -327,19 +323,13 @@ export default {
       }
       this.calcularPrecioOpcionales();
     },
-    // removeSalsa(index) {
-    //   if (index >= 0 && index < this.salsasPedido.length) {
-    //     this.salsasPedido.splice(index, 1);
-    //   }
-    //   this.calcularVasosSalsas();
-    // },
     calcularCantidades() {
 
-      if (this.vasosSalsas > 162) {
+      if (this.vasosSalsas > this.vasosMinimos) {
         this.vasos = this.vasosSalsas;
         this.productosPedido[1].quantity = this.vasos;
-      } else if (this.vasosSalsas <= 162) {
-        this.vasos = 162;
+      } else if (this.vasosSalsas <= this.vasosMinimos) {
+        this.vasos = this.vasosMinimos;
         this.productosPedido[1].quantity = this.vasos;
       }
 
@@ -349,13 +339,13 @@ export default {
             this.productosPedido[key].quantity = (this.productosPedido[key].price * this.vasos) / 1000;
           }else if(this.productosPedido[key].name == "Botella de Huevos 1L"){
             this.productosPedido[key].quantity = Math.ceil((this.vasos / this.productosPedido[key].price));
-            
-            if( (this.vasos % this.productosPedido[key].price) != 0){
-              this.isMultiplo = false;
-              this.$awn.info("El pedido debe ser de minimo 162 vasos y multiplo de "+this.productosPedido[key].price);
-            }else{
-              this.isMultiplo = true;
-            }
+            //Para saber si el pedido es multiplo
+            // if( (this.vasos % this.productosPedido[key].price) != 0){
+            //   this.isMultiplo = false;
+            //   this.$awn.info("El pedido debe ser de minimo "+this.vasosMinimos+" vasos y multiplo de "+this.productosPedido[key].price);
+            // }else{
+            //   this.isMultiplo = true;
+            // }
           }
         }
       }
@@ -381,7 +371,7 @@ export default {
           }
         }
         this.validateInput(salsa);
-        salsa.quantity = (salsa.vasos * salsaDisponible.quantity) / 1000;
+        salsa.quantity = ((salsa.vasos * salsaDisponible.quantity) / 1000).toFixed(2);
       });
 
       this.calcularCantidades();
@@ -415,8 +405,8 @@ export default {
       console.log('multiplo:',this.isMultiplo);
       console.log('vasos:', this.vasosSalsas);
 
-      if (this.vasosSalsas < 162) {
-        this.$awn.info("El pedido debe ser de minimo 162 vasos de salsa");
+      if (this.vasosSalsas < this.vasosMinimos) {
+        this.$awn.info("El pedido debe ser de minimo "+this.vasosMinimos+" vasos de salsa");
         return false;
       }
 
@@ -438,11 +428,10 @@ export default {
         this.$awn.alert("Es necesario agregar algun producto");
         return false;
       }
+      
+//El monto neto ya incluye el precio de los opcionales
 
-      this.totalPrice = this.vasos * this.precioVaso
-        + ((this.vasos * this.precioVaso) * this.iva)
-        + ((this.vasos * this.precioVaso) * this.despacho)
-        + (this.montoOpcionales);
+      this.totalPrice = Math.ceil(this.montoNeto + this.montoDespacho + this.montoIva);      
 
       this.$emit('update-products', this.productoSend);
       this.$emit('update-total', Math.ceil((this.totalPrice)));
@@ -517,7 +506,7 @@ export default {
             price: this.productosFijos[producto].price
           };
           this.$set(this.productosPedido, producto, nuevoProductoPedido);
-
+          this.vasosMinimos = this.productosFijos[producto].min_quantity;
           //para obtener el precio del vaso
           this.precioVaso = this.productosFijos[producto].price;
 

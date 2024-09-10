@@ -111,19 +111,21 @@
 
                                             <div class="form-group row d-flex justify-content-between col-sm-12">
                                                 <div class="">
-                                                    <button v-if="this.products.length > 0"
+                                                    <div v-if="this.products.length > 0"
                                                         class="m-1 btn-width btn bg-success text-white text-capitalize">
                                                         Productos Agregados al pedido
-                                                        <i class="fas fa-shopping-cart"></i>
-                                                        <span class="badge badge-light">{{ this.products.length
-                                                            }}</span>
-                                                    </button>
-                                                    <button v-else
-                                                        class="m-1 btn-width btn bg-danger text-white text-capitalize">
-                                                        Sin productos en el pedido
-                                                        <i class="fas fa-shopping-cart"></i>
-                                                        <span class="badge badge-light">0</span>
-                                                    </button>
+                                                        <a href="#">
+                                                            <i class="fas fa-shopping-cart"></i>
+                                                            <span class="badge badge-light">{{ this.products.length}}</span>
+                                                        </a>
+                                                    </div>
+                                                    <div v-else class="m-1 btn-width btn bg-danger text-white text-capitalize">
+                                                        <a href="#">
+                                                            Sin productos en el pedido
+                                                            <i class="fas fa-shopping-cart"></i>
+                                                            <span class="badge badge-light">0</span>
+                                                        </a>
+                                                    </div>
                                                 </div>
                                                 <div>
                                                     <button type="button" data-toggle="modal"
@@ -273,6 +275,7 @@ Reloj de arena: En espera.">
                 && producto.name != 'Sandwich'
                 && producto.name != 'Aceite de oliva 5kg'
                 && producto.name != 'Aceite Vegetal 1L'
+                && producto.name != 'Harina'
                 && producto.name != 'Bolsa') ?
                 producto.quantity + 'kg' : producto.quantity }}</td>
                                                 <!-- <td>{{ }}</td> -->
@@ -575,7 +578,7 @@ export default {
 
         },
         closeProductsOrder() {
-
+            
             $('#productsOrder').modal('hide');
         },
         async uploadVoucher(event) {

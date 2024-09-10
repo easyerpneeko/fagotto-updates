@@ -34,18 +34,19 @@
                     </thead>
                     <tbody>
                       <tr v-for="(producto, id) in productosFijos" :key="id">
-                        <template v-if="producto.name == 'Queso' || producto.name == 'Harina' || producto.name == 'Vaso' || producto.name == 'Botella de Huevos 1L'">
+                        <template
+                          v-if="producto.name == 'Queso' || producto.name == 'Harina' || producto.name == 'Vaso' || producto.name == 'Botella de Huevos 1L'">
 
                           <td>{{ producto.name }}</td>
 
-                          <td v-if="producto.name == 'Queso' || producto.name == 'Harina'">
+                          <td v-if="producto.name == 'Queso'">
                             {{ formatearMonto(producto.price) }}gr
                           </td>
 
-                          <td v-else-if="producto.name == 'Botella de Huevos 1L'">
+                          <td v-else-if="producto.name == 'Botella de Huevos 1L' || producto.name == 'Harina'">
                             {{ formatearMonto(producto.price) }} Vasos
                             <i class="fas fa-info-circle" data-toggle="tooltip" data-placement="top"
-                            :title="`Botella de Huevos 1 L equivale a ${formatearMonto(producto.price)} Vasos`"></i>
+                              :title="`Esto equivale a ${formatearMonto(producto.price)} Vasos`"></i>
                           </td>
 
                           <td v-else>{{ formatearMonto(producto.price) }}</td>
@@ -94,9 +95,20 @@
                 </thead>
                 <tbody>
                   <tr v-for="(producto, id) in productosPedido" :key="id">
-                    <td>{{ producto.name }}</td>
-                    <td v-if="(producto.name == 'Queso' || producto.name == 'Harina')">{{ producto.quantity }}kg</td>
-                    <td v-else>{{ producto.quantity }}</td>
+                    <template v-if="producto.name == 'Harina' || producto.name == 'Botella de Huevos 1L'">
+                      <th>{{ producto.name }}</th>
+                      <th>{{ producto.quantity }}</th>
+                    </template>
+                    <template v-if="producto.name == 'Queso'">
+                      <th>{{ producto.name }}</th>
+                      <th>{{ producto.quantity }}kg</th>
+                    </template>
+                  </tr>
+                  <tr v-for="(producto, id) in productosPedido" :key="id">
+                      <template v-if="producto.name == 'Vaso'">
+                        <td class="bg-primary">{{ producto.name }}</td>
+                        <td class="bg-primary">{{ producto.quantity }}</td>
+                      </template>
                   </tr>
                 </tbody>
               </table>
@@ -116,8 +128,8 @@
                     <td>{{ salsa.name }}</td>
                     <td>{{ salsa.quantity }}kg</td>
                     <td>
-                      <input @input="validateInput()" :min="salsa.min_quantity" @change="calcularVasosSalsas()" :step="salsa.min_quantity" class="fieldEdit" type="number"
-                        v-model="salsa.vasos" />
+                      <input @input="validateInput()" :min="salsa.min_quantity" @change="calcularVasosSalsas()"
+                        :step="salsa.min_quantity" class="fieldEdit" type="number" v-model="salsa.vasos" />
                     </td>
                     <!-- <td>{{ salsa.vasos }}</td> -->
                     <td>
@@ -166,7 +178,8 @@
                 <tbody>
                   <tr>
                     <td>Monto neto</td>
-                    <td>${{ formatearMonto(this.montoNeto = (this.vasos * this.precioVaso) + (this.montoOpcionales)) }}</td>
+                    <td>${{ formatearMonto(this.montoNeto = (this.vasos * this.precioVaso) + (this.montoOpcionales)) }}
+                    </td>
                   </tr>
                   <tr>
                     <td>Despacho {{ this.despacho * 100 }}%</td>
@@ -178,7 +191,7 @@
                   </tr>
                   <tr>
                     <td>Total</td>
-                    <td>${{ formatearMonto( this.montoNeto + this.montoDespacho + this.montoIva ) }}</td>
+                    <td>${{ formatearMonto(this.montoNeto + this.montoDespacho + this.montoIva) }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -217,7 +230,7 @@ export default {
   },
   data() {
     return {
-      vasosMinimos:0,
+      vasosMinimos: 0,
       vasos: 0,
       // queso: 4,
       // harina: 22,
@@ -249,13 +262,13 @@ export default {
       kiloSalsas: 0,
       productoSend: [],
       montoNeto: 0,
-      montoIva:0,
-      montoDespacho:0,
+      montoIva: 0,
+      montoDespacho: 0,
       despacho: 0,
       iva: 0.19,
       montoTotal: 0,
       montoOpcionales: 0,
-      isMultiplo:true,
+      isMultiplo: true,
 
     }
   },
@@ -278,9 +291,13 @@ export default {
       this.totalVasos = 0;
       this.kiloSalsas = 0;
       this.salsasPedido = [];
-      this.opcionalPedidoPedido = [];
+      this.opcionalPedido = [];
       this.totalPrice = 0;
       this.vasos = 0;
+      this.montoIva = 0;
+      this.montoDespacho = 0;
+      this.montoNeto = 0;
+      this.montoTotal = 0;
       $('#modalCatalog').modal('hide');
     },
     addSalsa(salsa) {
@@ -325,32 +342,39 @@ export default {
     },
     calcularCantidades() {
 
-      if (this.vasosSalsas > this.vasosMinimos) {
-        this.vasos = this.vasosSalsas;
-        this.productosPedido[1].quantity = this.vasos;
-      } else if (this.vasosSalsas <= this.vasosMinimos) {
-        this.vasos = this.vasosMinimos;
-        this.productosPedido[1].quantity = this.vasos;
-      }
-
       for (const key in this.productosPedido) {
-        if (this.productosPedido[key].name != "Vaso") {
-          if (this.productosPedido[key].name != "Botella de Huevos 1L") {
+        if(this.productosPedido[key].name == "Vaso"){
+          //Para mantener el minimo de vasos
+          if (this.vasosSalsas > this.vasosMinimos) {
+            this.vasos = this.vasosSalsas;
+            this.productosPedido[key].quantity = this.vasos;
+          } else if (this.vasosSalsas <= this.vasosMinimos) {
+            this.vasos = this.vasosMinimos;
+            this.productosPedido[key].quantity = this.vasos;
+          }
+        }
+        else{
+
+          if (this.productosPedido[key].name == "Queso") {
             this.productosPedido[key].quantity = (this.productosPedido[key].price * this.vasos) / 1000;
-          }else if(this.productosPedido[key].name == "Botella de Huevos 1L"){
+
+          }
+          if (this.productosPedido[key].name == "Harina") {
             this.productosPedido[key].quantity = Math.ceil((this.vasos / this.productosPedido[key].price));
-            //Para saber si el pedido es multiplo
-            // if( (this.vasos % this.productosPedido[key].price) != 0){
-            //   this.isMultiplo = false;
-            //   this.$awn.info("El pedido debe ser de minimo "+this.vasosMinimos+" vasos y multiplo de "+this.productosPedido[key].price);
-            // }else{
-            //   this.isMultiplo = true;
-            // }
+          }
+          if (this.productosPedido[key].name == "Botella de Huevos 1L") {
+            this.productosPedido[key].quantity = (this.vasos / this.productosPedido[key].price);
+
+            // Para saber si el pedido es multiplo
+            if ((this.vasos % this.productosPedido[key].price) != 0) {
+              this.isMultiplo = false;
+              this.$awn.info("El pedido debe ser de minimo " + this.vasosMinimos + " vasos y multiplo de " + this.productosPedido[key].price);
+            } else {
+              this.isMultiplo = true;
+            }
           }
         }
       }
-
-
     },
     formatNumber(number) {
       return FormatNumber.format(number);
@@ -402,11 +426,11 @@ export default {
       console.log('kilos Salsas:', this.kiloSalsas);
       console.log('Opcionales:', this.opcionalPedido);
 
-      console.log('multiplo:',this.isMultiplo);
+      console.log('multiplo:', this.isMultiplo);
       console.log('vasos:', this.vasosSalsas);
 
       if (this.vasosSalsas < this.vasosMinimos) {
-        this.$awn.info("El pedido debe ser de minimo "+this.vasosMinimos+" vasos de salsa");
+        this.$awn.info("El pedido debe ser de minimo " + this.vasosMinimos + " vasos de salsa");
         return false;
       }
 
@@ -428,10 +452,10 @@ export default {
         this.$awn.alert("Es necesario agregar algun producto");
         return false;
       }
-      
-//El monto neto ya incluye el precio de los opcionales
 
-      this.totalPrice = Math.ceil(this.montoNeto + this.montoDespacho + this.montoIva);      
+      //El monto neto ya incluye el precio de los opcionales
+
+      this.totalPrice = Math.ceil(this.montoNeto + this.montoDespacho + this.montoIva);
 
       this.$emit('update-products', this.productoSend);
       this.$emit('update-total', Math.ceil((this.totalPrice)));
@@ -480,7 +504,7 @@ export default {
       await this.getProducts();
       for (const producto in this.productosFijos) {
 
-        if (this.productosFijos[producto].name == 'Queso' || this.productosFijos[producto].name == 'Harina') {
+        if (this.productosFijos[producto].name == 'Queso') {
           const nuevoProductoPedido = {
             name: this.productosFijos[producto].name,
             quantity: this.convertirAKilogramosYRedondear(this.productosFijos[producto].price, this.vasos),
@@ -489,10 +513,10 @@ export default {
           };
           this.$set(this.productosPedido, producto, nuevoProductoPedido);
 
-        } else if (this.productosFijos[producto].name === 'Botella de Huevos 1L') {
+        } else if (this.productosFijos[producto].name === 'Botella de Huevos 1L' || this.productosFijos[producto].name === 'Harina') {
           const nuevoProductoPedido = {
             name: this.productosFijos[producto].name,
-            quantity: (this.vasos / this.productosFijos[producto].price ),
+            quantity: (this.vasos / this.productosFijos[producto].price),
             vasos: 1,
             price: this.productosFijos[producto].price
           };
@@ -506,7 +530,7 @@ export default {
             price: this.productosFijos[producto].price
           };
           this.$set(this.productosPedido, producto, nuevoProductoPedido);
-          this.vasosMinimos = this.productosFijos[producto].min_quantity;
+          this.vasosMinimos = Math.ceil(this.productosFijos[producto].min_quantity);
           //para obtener el precio del vaso
           this.precioVaso = this.productosFijos[producto].price;
 
@@ -525,12 +549,12 @@ export default {
 
         } else if (this.productosFijos[producto].name === 'Despacho') {
           //Obteniendo el precio de despacho
-          if(this.isDespachoGratis){
+          if (this.isDespachoGratis) {
             this.despacho = 0;
-          }else{
+          } else {
             this.despacho = this.productosFijos[producto].price;
           }
-          
+
         } else if (this.productosFijos[producto].category === 3) {
           const opcionalDisponible = {
             name: this.productosFijos[producto].name,
@@ -550,13 +574,13 @@ export default {
       const kilogramos = (gramos * multiplicador) / 1000;
       return Math.ceil(kilogramos * 1000) / 1000;
     },
-    validateInput(salsa){
+    validateInput(salsa) {
       // Redondea al múltiplo más cercano
       salsa.vasos = Math.round(salsa.vasos / salsa.min_quantity) * salsa.min_quantity;
     }
   },
   computed: {
-    isDespachoGratis: { get(){ return ConfigHelper.ConfStr('modulos.pedidos.ajustes.despacho_gratis'); }}
+    isDespachoGratis: { get() { return ConfigHelper.ConfStr('modulos.pedidos.ajustes.despacho_gratis'); } }
   },
 }
 </script>

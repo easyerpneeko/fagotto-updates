@@ -97,9 +97,9 @@ export async function consultarDTE(context, id) {
   return request;
 }
 
-export async function cancelFactura(context, id) {
-  let url = BaseUrl.getUrl('api/local/sell/nota_de_credito/factura/'+id);
-  const request = await Connection.request('put',url);
+export async function cancelFactura(context, data) {
+  let url = BaseUrl.getUrl('api/local/sell/nota_de_credito/factura/'+data.id);
+  const request = await Connection.request('post',url,data.data);
   return request;
 }
 export async function cancelBoleta(context, id) {

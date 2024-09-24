@@ -86,10 +86,13 @@
             @click="editarCliente(null)">
             Editar Cliente
           </button>
-          <button type="button" class="btn bg-dark text-white text-capitalize"
-            v-if="notaInstalled && dataDetail && dataDetail.type == 'factura'" @click="cancelSell">
+          <button type="button" class="btn bg-dark text-white text-capitalize" @click="openCancelSell">
             Cancelar factura
           </button>
+          <!-- <button type="button" class="btn bg-dark text-white text-capitalize"
+            v-if="notaInstalled && dataDetail && dataDetail.type == 'factura'" @click="cancelSell">
+            Cancelar factura
+          </button> -->
           <button type="button" class="btn bg-primario text-white text-capitalize"
             v-if="dataDetail && siiInstalled && settingFactura && dataDetail.type == 'factura'" @click="consultarVenta">
             Consultar Factura
@@ -166,8 +169,34 @@
         </div>
       </div>
     </div>
-      <!-- modales -->
-    <verifyDevolution :propVerify="propVerify"  @refreshData="refreshData"/>
+
+    <!-- MODAL CANCELAR FACTURA -->
+    <div class="modal fade modalForce" id="detailSellDate" tabindex="-1" role="dialog" aria-labelledby="detailSellDate" aria-hidden="true" data-backdrop="false">
+      <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header bg-primario">
+            <h5 class="modal-title">Detalle de venta</h5>
+            <button type="button" class="text-white close" @click="$emit('closeModal')" data-dismiss="modal"
+              aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div v-if="dataDetail" class="modal-body">
+            <label>Fecha de cancelacion</label>
+            <div class="col-12">
+                <date-picker class="widthInput" format="YYYY-MM-DD" type="date" v-model="cancelDate" placeholder="Fechas" confirm></date-picker>
+            </div>
+          </div>
+          <div class="modal-footer" v-if="dataDetail && !dataDetail.trash">
+            <button type="button" class="btn bg-dark text-white text-capitalize" @click="cancelSell">
+              Cancelar factura
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- modales -->
+    <verifyDevolution :propVerify="propVerify" @refreshData="refreshData" />
   </div>
 </template>
 
@@ -175,7 +204,7 @@
 import customTable from '../tables/table.vue';
 import verifyDelete from '@/components/modals/verifyDelete.vue';
 import verifyDevolution from '@/components/modals/verifyDevolution.vue';
-
+import moment from 'moment';
 import ConfigHelper from '@/helpers/ConfigHelper.js';
 import Connection from '../../helpers/Connection.js';
 import FormatNumber from '@/helpers/FormatNumber.js';
@@ -216,6 +245,7 @@ export default {
         ]
       },
       propVerify: null,
+      cancelDate:""
     }
   },
   props: [
@@ -229,8 +259,14 @@ export default {
   methods: {
     // Cancelar la venta
     async cancelSell() {
+      var fd = new FormData();
+      var dateCancel = moment(this.cancelDate).format('YYYY-MM-DD');
+
+      fd.append('id', this.dataDetail.id);
+      fd.append('cancelDate', dateCancel);
+
       Loader.fullPage();
-      var request = await this.$store.dispatch("sells/cancelFactura", this.dataDetail.id);
+      var request = await this.$store.dispatch("sells/cancelFactura", { id: this.dataDetail.id, data: fd });
       console.log(request);
       if (request.success) {
         var printPDF = await Print.printBase64(request.data);
@@ -242,7 +278,13 @@ export default {
       }
       Loader.hide();
     },
-    async refreshData(){
+    // Abriendo modal de detalle
+    openCancelSell() {
+
+      $('#detailSellDate').modal('show');
+    },
+
+    async refreshData() {
       this.$emit('refreshData');
     },
     // Impresion
@@ -441,7 +483,7 @@ export default {
     },
     openVerifyDelete(product_sell) {
       this.propVerify = {
-        params: {'product_sell_id' : product_sell.id, 'quantity': product_sell.quantity},
+        params: { 'product_sell_id': product_sell.id, 'quantity': product_sell.quantity },
         title: 'Devolucion de producto',
         text: `¿Usted esta seguro de querer eliminar el producto ${product_sell.name} de la venta?`,
         store: 'devolutions/devolutionProductSell',
@@ -449,7 +491,7 @@ export default {
       };
       $('#verifyDelete').modal('show');
     },
-    
+
   },
   computed: {
     clientsPhone: { get() { return ConfigHelper.ConfStr('modulos.ventas.submodulos.clientes.ajustes.cliente_telefono'); } },
@@ -480,7 +522,7 @@ export default {
         return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.factura');
       }
     },
-    devoluciones:{ get(){return ConfigHelper.ConfStr('modulos.ventas.submodulos.devolutions'); } }
+    devoluciones: { get() { return ConfigHelper.ConfStr('modulos.ventas.submodulos.devolutions'); } }
   },
   watch: {
     clientFromModal: {

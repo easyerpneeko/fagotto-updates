@@ -24,7 +24,7 @@
                                     <div class="row">
                                         <span class="m-0 p-0">
                                             <template v-for="(producto, index) in productos">
-                                                <button v-if="producto.name != 'Despacho'" type="button"
+                                                <button v-if="(producto.name != 'Despacho' && producto.name != 'Queso')" type="button"
                                                     @click="addProduct(producto)"
                                                     class="m-1 btn-width btn bg-primario text-white text-capitalize col-md-5">
                                                     {{ producto.name.toUpperCase() }} <i class="fa fa-plus"></i>
@@ -56,19 +56,30 @@
                                         <td>{{ producto.name }}</td>
 
                                         <!-- Cantidad -->
+                                       
                                         <td v-if="(producto.category == 4)">
                                             <input min="1" class="fieldEdit" type="number" v-model="producto.quantity"
                                                 @change="calcularMontos()" />
                                             Kg
                                         </td>
-                                        <td
-                                            v-if="(producto.category == 3 || producto.name == 'Botella de Huevos 1L' || producto.name == 'Vaso')">
+                                        <!-- POR UNIDAD -->
+                                        <td v-if="(producto.category == 1 && producto.name != 'Vaso')">
+                                            <input min="1" class="fieldEdit" type="number" v-model="producto.quantity" @change="calcularMontos()" />
+                                            Unidad(es)
+                                        </td>
+                                        <td v-if="(producto.name == 'Vaso')">
+                                            <input min="27" step="27" class="fieldEdit" type="number" v-model="producto.quantity" @change="calcularMontos()" />
+                                            'Unidad(es)'
+                                        </td>
+                                        <!-- OPCIONALES -->
+                                        <td v-if="(producto.category == 3)">
                                             <input min="1" class="fieldEdit" type="number" v-model="producto.quantity"
                                                 @change="calcularMontos()" />
                                             {{ (producto.name == 'Botella de Huevos 1L' ? 'Botellas(s)' : 'Unidad(es)') }}
                                         </td>
+                                         <!-- SALSAS -->
                                         <td v-if="(producto.category == 2)">
-                                            <input min="10" class="fieldEdit" type="number" v-model="producto.vasos"
+                                            <input class="fieldEdit" :min="producto.min_quantity" :step="producto.min_quantity" type="number" v-model="producto.vasos"
                                                 @change="calcularMontos()" />
                                             Vasos
                                         </td>
@@ -120,7 +131,8 @@
                                         <td>${{ formatNumber(this.montoNeto) }}</td>
                                     </tr>
                                     <tr>
-                                        <td>Despacho {{ this.despacho * 100 }}%</td>
+                                        <td v-if="emergency">Despacho</td>
+                                        <td v-else>Despacho {{ this.despacho * 100 }}%</td>
 
                                         <td>${{ formatNumber(this.montoDespacho) }}</td>
                                     </tr>
@@ -129,21 +141,31 @@
 
                                         <td>${{ formatNumber(this.montoIva) }}</td>
                                     </tr>
+                                    <tr v-if="this.emergency">
+                                        <td>Cargo de Emergencia (+10%)</td>
+                                        <td>${{ Math.ceil((this.totalPrice * 0.1)) }}
+                                        </td>
+                                    </tr>
                                     <tr>
                                         <td>Total</td>
                                         <td>${{ formatNumber(this.totalPrice) }}
                                         </td>
                                     </tr>
+
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <div class="modal-footer justify-content-end ">
+                <div class="modal-footer justify-content-end d-flex">
+                    <div class="custom-control custom-checkbox pb-3">
+                        <input type="checkbox" class="custom-control-input" id="emergency" v-model="emergency" @change="calcularMontos()">
+                        <label class="custom-control-label" for="emergency">Emergencia(+10%)</label>
+                    </div>
                     <div>
                         <button type="button" class="btn bg-dark text-white" @click="closeModal()">
-                            Cerrar
+                        Cerrar
                         </button>
                         <button type="button" @click="addProducts()" class="btn bg-primario text-white">
                             Agregar Productos
@@ -192,8 +214,8 @@ export default {
             montoIva: 0,
             montoTotal: 0,
             montoOpcionales: 0,
-            vasoxsalsa: 1
-
+            vasoxsalsa: 1,
+            emergency: true
         }
     },
     components: {
@@ -224,9 +246,14 @@ export default {
                 console.log(`Producto ${producto.name} ya existente.`);
             } else {
                 const productoCopia = Object.assign({}, producto);
-                productoCopia.quantity = 1;
+                
                 if (productoCopia.category == 2) {
-                    productoCopia.vasos = 10;
+                    productoCopia.vasos = productoCopia.min_quantity;
+                }
+                if (productoCopia.name == 'Vaso') {
+                    productoCopia.quantity = 27;
+                }else{
+                    productoCopia.quantity = 1;
                 }
                 this.productosPedido.push(productoCopia);
             }
@@ -253,10 +280,17 @@ export default {
 
                 this.montoNeto += parseFloat(this.productosPedido[index].costo);
             }
+            
 
             this.montoDespacho = Math.ceil(this.despacho * this.montoNeto);
             this.montoIva = Math.ceil(this.iva * this.montoNeto);
             this.totalPrice = Math.ceil(this.montoNeto + this.montoDespacho + this.montoIva);
+            //Si el check emergency is active            
+            if(this.emergency){
+                //sumamos el 10%
+                this.totalPrice = Math.ceil((this.totalPrice*0.1) + this.totalPrice);
+                this.montoDespacho = 5000;
+            }
 
         },
         addProducts() {

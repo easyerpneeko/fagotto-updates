@@ -159,7 +159,7 @@
 
                 <div class="modal-footer justify-content-end d-flex">
                     <div class="custom-control custom-checkbox pb-3">
-                        <input type="checkbox" class="custom-control-input" id="emergency" v-model="emergency" @change="calcularMontos()">
+                        <input type="checkbox" class="custom-control-input" id="emergency" checked disabled @change="calcularMontos()">
                         <label class="custom-control-label" for="emergency">Emergencia(+10%)</label>
                     </div>
                     <div>

@@ -141,9 +141,9 @@
                                         <td>${{ formatNumber(this.montoIva) }}</td>
                                     </tr>
                                     <tr v-if="this.emergency">
-                                        <td>Cargo de Emergencia (+10%)</td>
-                                        <td>${{ Math.ceil((this.totalPrice * 0.1)) }}
-                                        </td>
+                                        <td>Cargo de Emergencia (+{{this.emergencia * 100}}%)</td>
+
+                                        <td>${{ formatNumber(this.montoEmergencia) }}</td>
                                     </tr>
                                     <tr>
                                         <td>Total</td>
@@ -209,9 +209,11 @@ export default {
             montoNeto: 0,
             despacho: 0,
             iva: 0.19,
+            emergencia:0.1,
             montoDespacho: 0,
             montoIva: 0,
             montoTotal: 0,
+            montoEmergencia:0,
             montoOpcionales: 0,
             vasoxsalsa: 1,
             emergency: true
@@ -231,6 +233,7 @@ export default {
 
             this.montoDespacho = 0;
             this.montoIva = 0;
+            this.montoEmergencia = 0;
             this.montoTotal = 0;
             this.montoNeto = 0;
             this.productosPedido = [];
@@ -283,17 +286,18 @@ export default {
                 this.montoNeto += parseFloat(this.productosPedido[index].costo);
             }
             
-
-            this.montoDespacho = Math.ceil(this.despacho * this.montoNeto);
             this.montoIva = Math.ceil(this.iva * this.montoNeto);
-            this.totalPrice = Math.ceil(this.montoNeto + this.montoDespacho + this.montoIva);
             //Si el check emergency is active            
             if(this.emergency){
-                //sumamos el 10%
-                this.totalPrice = Math.ceil((this.totalPrice*0.1) + this.totalPrice);
+                //sumamos el 10% y 5000 fijos de despacho
+                this.montoEmergencia = Math.ceil(this.emergencia * this.montoNeto);
                 this.montoDespacho = 5000;
+            }else{
+                this.montoDespacho = Math.ceil(this.despacho * this.montoNeto);
+                this.montoEmergencia = 0;
             }
 
+            this.totalPrice = Math.ceil(this.montoNeto + this.montoDespacho + this.montoIva + this.montoEmergencia);
         },
         addProducts() {
             console.log('Productos pedido: ', this.productosPedido);
@@ -305,10 +309,8 @@ export default {
                 return false;
             }
 
-            // this.montoDespacho = this.despacho * this.montoNeto;
-            // this.montoIva = this.iva * this.montoNeto;
 
-            this.totalPrice = this.montoNeto + this.montoDespacho + this.montoIva;
+            this.totalPrice = this.montoNeto + this.montoDespacho + this.montoIva + this.montoEmergencia;
 
             console.log('Total price', this.totalPrice);
 
@@ -316,6 +318,7 @@ export default {
             this.$emit('update-total',(this.totalPrice));
             this.$emit('update-subtotal', (this.montoNeto));
             this.$emit('update-monto-iva', (this.montoIva));
+            this.$emit('update-monto-emergencia', (this.montoEmergencia));
             this.$emit('update-monto-despacho',(this.montoDespacho));
             this.$emit('update-montoOpcionales',(this.montoOpcionales));
 
@@ -324,6 +327,7 @@ export default {
             this.montoOpcionales = 0;
             this.montoDespacho = 0;
             this.montoIva = 0;
+            this.montoEmergencia = 0;
             this.totalPrice = 0;
             this.montoNeto = 0;
             $('#pedidoUrgente').modal('hide');

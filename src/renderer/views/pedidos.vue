@@ -116,10 +116,12 @@
                                                         Productos Agregados al pedido
                                                         <a href="#">
                                                             <i class="fas fa-shopping-cart"></i>
-                                                            <span class="badge badge-light">{{ this.products.length}}</span>
+                                                            <span class="badge badge-light">{{
+                                                                this.products.length}}</span>
                                                         </a>
                                                     </div>
-                                                    <div v-else class="m-1 btn-width btn bg-danger text-white text-capitalize">
+                                                    <div v-else
+                                                        class="m-1 btn-width btn bg-danger text-white text-capitalize">
                                                         <a href="#">
                                                             Sin productos en el pedido
                                                             <i class="fas fa-shopping-cart"></i>
@@ -226,7 +228,8 @@ Reloj de arena: En espera.">
 
         <pedido-urgente :products="products" @update-products="updateProducts" @update-total="updateTotal"
             @update-subtotal="updateSubtotal" @update-monto-iva="updateMontoIva"
-            @update-monto-despacho="updateMontoDespacho" @update-montoOpcionales="updateMontoOpcionales" />
+            @update-monto-emergencia="updateMontoEmergencia" @update-monto-despacho="updateMontoDespacho"
+            @update-montoOpcionales="updateMontoOpcionales" />
         <verify-modal :propVerify="propVerify" @refreshData="getRequests" />
         <!-- modal productsOrders -->
         <div class="modal fade modalForce" id="productsOrder" tabindex="-1" role="dialog"
@@ -271,13 +274,13 @@ Reloj de arena: En espera.">
                                             <tr v-for="(producto, id) in jsonTableProducts.items" :key="id">
                                                 <td>{{ producto.name }}</td>
                                                 <td>{{ (producto.name != 'Vaso'
-                && producto.name != 'Botella de Huevos 1L'
-                && producto.name != 'Sandwich'
-                && producto.name != 'Aceite de oliva 5kg'
-                && producto.name != 'Aceite Vegetal 1L'
-                && producto.name != 'Harina'
-                && producto.name != 'Bolsa') ?
-                producto.quantity + 'kg' : producto.quantity }}</td>
+                                                    && producto.name != 'Botella de Huevos 1L'
+                                                    && producto.name != 'Sandwich'
+                                                    && producto.name != 'Aceite de oliva 5kg'
+                                                    && producto.name != 'Aceite Vegetal 1L'
+                                                    && producto.name != 'Harina'
+                                                    && producto.name != 'Bolsa') ?
+                                                    producto.quantity + 'kg' : producto.quantity }}</td>
                                                 <!-- <td>{{ }}</td> -->
                                             </tr>
                                         </tbody>
@@ -296,7 +299,10 @@ Reloj de arena: En espera.">
                                                     <td>${{ formatearMonto(this.requestSubtotal) }}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td>Despacho {{ this.porcentajeDespacho * 100 }}%</td>
+                                                    <td v-if="this.requestEmergencia > 0"> Despacho</td>
+                                                    <td v-else="this.requestEmergencia > 0"> Despacho {{
+                                                        this.porcentajeDespacho * 100 }}%</td>
+
                                                     <td>${{ formatearMonto(this.requestDespacho) }}</td>
                                                 </tr>
                                                 <tr>
@@ -304,9 +310,13 @@ Reloj de arena: En espera.">
                                                     <td>${{ formatearMonto(this.requestIva) }}
                                                     </td>
                                                 </tr>
+                                                <tr v-if="this.requestEmergencia > 0">
+                                                    <td>Cargo de emergencia {{ this.porcentajeEmergencia * 100 }}%</td>
+                                                    <td>${{ formatearMonto(this.requestEmergencia) }}</td>
+                                                </tr>
                                                 <tr>
                                                     <td>Total</td>
-                                                    <td>${{ formatearMonto(this.requestPrice)}}</td>
+                                                    <td>${{ formatearMonto(this.requestPrice) }}</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -468,10 +478,12 @@ export default {
             subtotal: 0,
             total: 0,
             montoIva: 0,
+            montoEmergencia: 0,
             montoDespacho: 0,
             propVerify: null,
             productosFijos: {},
             porcentajeDespacho: 0,
+            porcentajeEmergencia: 0.1,
             iva: 0.19,
             precioVaso: 0,
             montoOpcionales: 0,
@@ -481,7 +493,8 @@ export default {
             requestPrice: 0,
             requestSubtotal: 0,
             requestIva: 0,
-            requestDespacho: 0
+            requestDespacho: 0,
+            requestEmergencia: 0,
         }
     },
     async beforeCreate() {
@@ -523,7 +536,7 @@ export default {
 
         isAdmin: { get() { return (this.$store.getters['main/user'].role == 1) } },
 
-        PedidoUrgenteInstalled:{ get(){ return ConfigHelper.ConfStr('modulos.pedidos.ajustes.pedidos_urgentes'); } },
+        PedidoUrgenteInstalled: { get() { return ConfigHelper.ConfStr('modulos.pedidos.ajustes.pedidos_urgentes'); } },
     },
     watch: {
 
@@ -562,6 +575,9 @@ export default {
             this.requestIva = request.iva;
             this.requestDespacho = request.despacho;
 
+            if (request.emergency) {
+                this.requestEmergencia = request.emergency;
+            }
 
             this.payment = request.payment;
             this.status_payment = request.status_payment;
@@ -578,7 +594,7 @@ export default {
 
         },
         closeProductsOrder() {
-            
+
             $('#productsOrder').modal('hide');
         },
         async uploadVoucher(event) {
@@ -628,6 +644,9 @@ export default {
         updateMontoIva(newMontoIva) {
             this.montoIva = newMontoIva;
         },
+        updateMontoEmergencia(newMontoEmergencia) {
+            this.montoEmergencia = newMontoEmergencia;
+        },
         updateMontoDespacho(newMontoDespacho) {
             this.montoDespacho = newMontoDespacho;
         },
@@ -643,7 +662,15 @@ export default {
             }
             if (this.products.length > 0) {
                 //Tranformar a Json
-                this.products = JSON.stringify(this.products);
+                try {
+                    JSON.parse(this.products);
+                    // Si llega aquí, significa que ya es un JSON válido
+                    console.log('El texto ya es un JSON');
+                } catch (e) {
+                    // Si hay un error en el parseo, entonces no es un JSON válido
+                    this.products = JSON.stringify(this.products);
+                    console.log('Texto convertido a JSON');
+                }
                 const data = {
                     contact_name: this.name,
                     contact_phone: this.phone,
@@ -656,6 +683,7 @@ export default {
                     price: this.totalPrice,
                     subtotal: this.subtotal,
                     iva: this.montoIva,
+                    emergency: this.montoEmergencia,
                     despacho: this.montoDespacho,
                     // transaccion: this.transaccion,
                     app_id: this.app.Id,
@@ -682,6 +710,7 @@ export default {
                     this.subtotal = 0;
                     this.montoIva = 0;
                     this.montoDespacho = 0;
+                    this.montoEmergencia = 0;
                 } else {
                     console.log(request.data);
                     this.$awn.alert('Error al enviar el pedido');

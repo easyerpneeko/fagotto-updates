@@ -158,10 +158,10 @@
                 </div>
 
                 <div class="modal-footer justify-content-end d-flex">
-                    <div class="custom-control custom-checkbox pb-3">
+                    <!-- <div class="custom-control custom-checkbox pb-3">
                         <input type="checkbox" class="custom-control-input" id="emergency" checked disabled @change="calcularMontos()">
                         <label class="custom-control-label" for="emergency">Emergencia(+10%)</label>
-                    </div>
+                    </div> -->
                     <div>
                         <button type="button" class="btn bg-dark text-white" @click="closeModal()">
                         Cerrar

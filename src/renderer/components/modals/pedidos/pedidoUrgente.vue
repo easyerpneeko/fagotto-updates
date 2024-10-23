@@ -79,8 +79,7 @@
                                         </td>
                                          <!-- SALSAS -->
                                         <td v-if="(producto.category == 2)">
-                                            <input class="fieldEdit" :min="producto.min_quantity" :step="producto.min_quantity" type="number" v-model="producto.vasos"
-                                                @change="calcularMontos()" />
+                                            <input class="fieldEdit" :min="producto.min_quantity" :step="producto.min_quantity" type="number" v-model="producto.vasos" @change="calcularMontos()" />
                                             Vasos
                                         </td>
 
@@ -271,6 +270,9 @@ export default {
         calcularMontos() {
             //monto neto
             this.montoNeto = 0;
+            //Corregimos cantidades no validas de las salsas
+            this.validateInput();
+
             for (var index in this.productosPedido) {
                 if (this.productosPedido[index].category == 2) {
                     this.productosPedido[index].costo = this.productosPedido[index].vasos * this.productosPedido[index].compra;
@@ -354,6 +356,18 @@ export default {
         convertirAKilogramosYRedondear(gramos, multiplicador) {
             const kilogramos = (gramos * multiplicador) / 1000;
             return Math.ceil(kilogramos * 1000) / 1000;
+        },
+        validateInput() {
+            // Redondea al múltiplo más cercano
+            for (var index in this.productosPedido) {
+                if(this.productosPedido[index].category == 2){
+                    this.productosPedido[index].vasos = Math.round(this.productosPedido[index].vasos / this.productosPedido[index].min_quantity) * this.productosPedido[index].min_quantity; 
+                }
+                if(this.productosPedido[index].name == 'Vaso'){
+                    this.productosPedido[index].quantity = Math.round(this.productosPedido[index].quantity / 27) * 27; 
+                }
+                
+            }
         }
     },
     computed: {

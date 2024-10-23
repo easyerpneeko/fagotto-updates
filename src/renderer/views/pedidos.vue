@@ -414,7 +414,7 @@ export default {
             products: [],
             //formdata
             name: '',
-            phone: '',
+            phone: '+56',
             comment: '',
             paymode: 'Metodo de pago',
             review: '',

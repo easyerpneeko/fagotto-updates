@@ -700,8 +700,8 @@ export default {
                 if (request.success) {
                     this.$awn.success('Pedido enviado Exitosamente', { labels: { success: 'CORRECTO' } });
 
-                    this.name = "";
-                    this.phone = "";
+                    this.name = this.me.fullname;
+                    this.phone = "+56";
                     this.paymode = null;
                     // this.status = null;
                     this.products = [];
@@ -770,7 +770,7 @@ export default {
                 title: 'Eliminar Pedido',
                 text: '¿Usted esta seguro de eliminar el pedido #' + pedido.id + '?',
                 store: 'requests/removeRequest',
-                success: 'Gasto eliminado exitosamente'
+                success: 'Pedido eliminado exitosamente'
             };
             $('#verifyDelete').modal('show');
         },

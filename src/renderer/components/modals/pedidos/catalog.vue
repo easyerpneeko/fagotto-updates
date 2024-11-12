@@ -90,26 +90,28 @@
                   <tr>
                     <th scope="col">Producto</th>
                     <th scope="col">Cantidad</th>
-
+                    <!-- <th scope="col">Precio</th> -->
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(producto, id) in productosPedido" :key="id">
-                    <template v-if="producto.name == 'Harina' || producto.name == 'Botella de Huevos 1L'">
+                    <template v-if=" producto.name == 'Botella de Huevos 1L'">
                       <th>{{ producto.name }}</th>
                       <th>{{ producto.quantity }}</th>
+                      <td class=" d-none">${{ producto.costo = formatearMonto(producto.quantity * producto.compra )}}</td>
                     </template>
-                    <template v-if="producto.name == 'Queso'">
+                    <template v-if="producto.name == 'Queso' || producto.name == 'Harina'">
                       <th>{{ producto.name }}</th>
                       <th>{{ producto.quantity }}kg</th>
+                      <td class="d-none">${{ producto.costo = formatearMonto(producto.quantity * producto.compra )}}</td>
+                    </template>
+                    <template v-if="producto.name == 'Vaso'">
+                      <td class="bg-primary">{{ producto.name }}</td>
+                      <td class="bg-primary">{{ producto.quantity }}</td>
+                      <td class="bg-primary d-none">${{ producto.costo = formatearMonto(producto.quantity * producto.price )}}</td>
                     </template>
                   </tr>
-                  <tr v-for="(producto, id) in productosPedido" :key="id">
-                      <template v-if="producto.name == 'Vaso'">
-                        <td class="bg-primary">{{ producto.name }}</td>
-                        <td class="bg-primary">{{ producto.quantity }}</td>
-                      </template>
-                  </tr>
+
                 </tbody>
               </table>
 
@@ -120,6 +122,7 @@
                     <th scope="col">Salsa</th>
                     <th scope="col">Cantidad</th>
                     <th scope="col">Vasos</th>
+                    <th scope="col">Precio</th>
                     <th scope="col">Eliminar</th>
                   </tr>
                 </thead>
@@ -131,7 +134,7 @@
                       <input @input="validateInput()" :min="salsa.min_quantity" @change="calcularVasosSalsas()"
                         :step="salsa.min_quantity" class="fieldEdit" type="number" v-model="salsa.vasos" />
                     </td>
-                    <!-- <td>{{ salsa.vasos }}</td> -->
+                    <td>${{ formatearMonto(salsa.costo = salsa.vasos * precioVaso) }}</td>
                     <td>
                       <button class="btn btn-danger btn-m" @click="removeSalsa(index)">
                         <i class="fa fa-times-circle"></i>
@@ -154,12 +157,11 @@
                 <tbody>
                   <tr v-for="(producto, index) in opcionalPedido" :key="index">
                     <td>{{ producto.name }}</td>
-                    <td>{{ formatearMonto(producto.price) }}</td>
                     <td>
                       <input min="1" @change="calcularPrecioOpcionales()" class="fieldEdit" type="number"
                         v-model="producto.quantity" />
                     </td>
-                    <!-- <td>{{ salsa.vasos }}</td> -->
+                    <td>${{ formatearMonto(producto.costo = producto.price * 1) }}</td>
                     <td>
                       <button class="btn btn-danger btn-m" @click="removeOpcional(index)">
                         <i class="fa fa-times-circle"></i>
@@ -505,45 +507,59 @@ export default {
       for (const producto in this.productosFijos) {
 
         if (this.productosFijos[producto].name == 'Queso') {
-          const nuevoProductoPedido = {
-            name: this.productosFijos[producto].name,
-            quantity: this.convertirAKilogramosYRedondear(this.productosFijos[producto].price, this.vasos),
-            vasos: 1,
-            price: this.productosFijos[producto].price
-          };
-          this.$set(this.productosPedido, producto, nuevoProductoPedido);
+          // const nuevoProductoPedido = {
+            // name: this.productosFijos[producto].name,
+            // quantity: this.convertirAKilogramosYRedondear(this.productosFijos[producto].price, this.vasos),
+            // vasos: 1,
+            // price: this.productosFijos[producto].price
+          // };
+
+          this.productosFijos[producto].quantity = this.convertirAKilogramosYRedondear(this.productosFijos[producto].price, this.vasos);
+          this.productosFijos[producto].vasos = 1;
+
+          this.$set(this.productosPedido, producto, this.productosFijos[producto]);
 
         } else if (this.productosFijos[producto].name === 'Botella de Huevos 1L' || this.productosFijos[producto].name === 'Harina') {
-          const nuevoProductoPedido = {
-            name: this.productosFijos[producto].name,
-            quantity: (this.vasos / this.productosFijos[producto].price),
-            vasos: 1,
-            price: this.productosFijos[producto].price
-          };
-          this.$set(this.productosPedido, producto, nuevoProductoPedido);
+          // const nuevoProductoPedido = {
+          //   name: this.productosFijos[producto].name,
+          //   quantity: (this.vasos / this.productosFijos[producto].price),
+          //   vasos: 1,
+          //   price: this.productosFijos[producto].price
+          // };
+          this.productosFijos[producto].quantity = (this.vasos / this.productosFijos[producto].price);
+          this.productosFijos[producto].vasos = 1;
+
+          this.$set(this.productosPedido, producto,this.productosFijos[producto]);
 
         } else if (this.productosFijos[producto].name === 'Vaso') {
-          const nuevoProductoPedido = {
-            name: this.productosFijos[producto].name,
-            quantity: this.vasos,
-            vasos: 1,
-            price: this.productosFijos[producto].price
-          };
-          this.$set(this.productosPedido, producto, nuevoProductoPedido);
+          // const nuevoProductoPedido = {
+          //   name: this.productosFijos[producto].name,
+          //   quantity: this.vasos,
+          //   vasos: 1,
+          //   price: this.productosFijos[producto].price
+          // };
+
+          this.productosFijos[producto].quantity = this.vasos;
+          this.productosFijos[producto].vasos = 1;
+
+          this.$set(this.productosPedido, producto, this.productosFijos[producto]);
           this.vasosMinimos = Math.ceil(this.productosFijos[producto].min_quantity);
           //para obtener el precio del vaso
           this.precioVaso = this.productosFijos[producto].price;
 
         } else if (this.productosFijos[producto].category === 2) {
-          const salsaDisponible = {
-            name: this.productosFijos[producto].name,
-            quantity: this.productosFijos[producto].price,
-            vasos: 1,
-            price: this.productosFijos[producto].price,
-            min_quantity: this.productosFijos[producto].min_quantity,
-          };
+          // const salsaDisponible = {
+          //   name: this.productosFijos[producto].name,
+          //   quantity: this.productosFijos[producto].price,
+          //   vasos: 1,
+          //   price: this.productosFijos[producto].price,
+          //   min_quantity: this.productosFijos[producto].min_quantity,
+          // };
 
-          this.$set(this.salsasDisponibles, producto, salsaDisponible);
+          this.productosFijos[producto].vasos = 1;
+          this.productosFijos[producto].quantity = this.productosFijos[producto].price;
+
+          this.$set(this.salsasDisponibles, producto, this.productosFijos[producto]);
 
           this.productosFijos[producto] = []; // Opcional: Eliminar el elemento de productosFijos
 
@@ -556,14 +572,16 @@ export default {
           }
 
         } else if (this.productosFijos[producto].category === 3) {
-          const opcionalDisponible = {
-            name: this.productosFijos[producto].name,
-            quantity: 1,
-            vasos: 1,
-            price: this.productosFijos[producto].price
-          };
+          // const opcionalDisponible = {
+          //   name: this.productosFijos[producto].name,
+          //   quantity: 1,
+          //   vasos: 1,
+          //   price: this.productosFijos[producto].price
+          // };
+          this.productosFijos[producto].quantity = 1;
+          this.productosFijos[producto].vasos = 1;
 
-          this.$set(this.opcionalesDisponibles, producto, opcionalDisponible);
+          this.$set(this.opcionalesDisponibles, producto, this.productosFijos[producto]);
 
           this.productosFijos[producto] = []; // Opcional: Eliminar el elemento de productosFijos
         }

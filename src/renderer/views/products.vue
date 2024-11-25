@@ -70,10 +70,6 @@
     <div ref="loaderProduct" v-if="(products && products.items.length > 0)" class="vld-parent px-2 mt-2">
       <!-- tabla -->
       <customTable v-if="productTable" v-model="jsonTable" @orderBy="orderBy" v-slot="props">
-        <a v-if="props.item.isCombo && comboInstalled" @click="modalAddToCombo(props.item)"
-          class="py-1 px-2 text-center btn bg-secundario" href="#" data-toggle="modal" data-target="#modalAddCombo">
-          <i class="fas fa-plus"></i>
-        </a>
         <a @click="selectProduct(props.item)" class="py-1 px-2 text-center btn bg-secundario" href="#"
           data-toggle="modal" data-target="#newProductModal">
           <i class="fas fa-edit"></i>
@@ -194,34 +190,6 @@
                   <input class="Jinput-border-none btn" type="number" v-model="product_stock"
                     v-on:keyup.enter="productStockAdd()" name="product_stock" ref="product_Stock_counter"
                     v-on:keydown="handleKeyDown2" id="product_stock" min="1" autofocus />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div v-if="comboInstalled" class="modal fade " id="modalAddCombo" tabindex="-1" role="dialog" aria-labelledby="modalAddCombo"
-      aria-hidden="true" data-backdrop="false">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <div class="modal-header bg-primario">
-            <h5 class="modal-title">Agregar Producto</h5>
-            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body" ref="loaderModalAddCombo">
-            <div class="row">
-              <div class="col-12 text-center">
-                <span><strong>Nombre del producto</strong></span>
-                <v-select v-model="itemsSelect" :options="this.productsSelect" label="text" />
-                <br>
-                <div>
-                  <button type="button" class="btn bg-primario text-white" @click="addProductsToCombo()">
-                    Crear
-                  </button>
                 </div>
               </div>
             </div>
@@ -575,78 +543,6 @@ export default {
       }
     },
 
-    async modalAddToCombo(product) {
-      console.log('product', product);
-      if (this.productsGet) {
-        this.product_id = product.id;
-        // Iniciando peticion
-        var request = await this.$store.dispatch("products/getProductsOfSell");
-        // Verificando respuesta
-        var productos;
-
-        if (request.success) {
-          let productsSelect = [];
-          productos = (request.data.length == 0) ? false : request.data;
-          console.log(productos);
-          if (this.barcodeInstalled) {
-            $.each(productos, function (key, val) {
-              productsSelect.push({ "id": val.id, "text": val.barcode + ' ' + val.name + ' - stock ' + val.stock });
-            });
-          }
-          if (!this.barcodeInstalled) {
-            $.each(productos, function (key, val) {
-              productsSelect.push({ "id": val.id, "text": val.name + ' - stock ' + val.stock });
-            });
-          }
-          this.productsSelect = productsSelect;
-          $('#modalAddCombo').modal('show');
-        } else {
-          this.$awn.alert('Error al obtener los productos');
-        }
-     
-
-        if(product.isCombo){
-          if(product.products_id){
-            const products_id = product.products_id.split(',').map(number => parseInt(number));
-            var arrayItems = [];
-            for (let index = 0; index < products_id.length; index++) {
-              //Buscando los productos del combo
-              for (var i = 0; i < productos.length; i++) {
-                if (productos[i].id == products_id[index]) {
-                  //Agregando a la seleccion
-                  arrayItems.push({ "id":productos[i].id, "text": productos[i].name + ' - stock ' + productos[i].stock });
-                }
-              }
-            }
-
-            this.itemsSelect = arrayItems;
-          }
-          
-        }
-      }
-    },
-
-    async addProductsToCombo() {
-
-      if (this.itemsSelect) {
-        console.log(this.itemsSelect.id);
-        //mandamos al server
-        Loader.fullPage();
-        let data = new FormData();
-        data.append('id', this.product_id);
-        data.append('products_id', this.itemsSelect.id);
-        var request = await this.$store.dispatch("products/addToCombo", data);
-        if (request.success) {
-          this.$awn.success(request.data, { labels: { success: 'CORRECTO' } });
-          $('#modalAddCombo').modal('hide');
-        } else {
-          this.$awn.alert('Error al actualizar el combo');
-        }
-      }
-      Loader.hide();
-      this.refreshData();
-    },
-
     thisProductEvent({ id, text }) {
       text = text.replace('-', '\n\n');
       this.stock_first = text;
@@ -710,9 +606,10 @@ export default {
     downloadExcelInstaller: { get() { return ConfigHelper.ConfStr('modulos.productos.ajustes.donwload_inventory'); } },
     stockInstalled: { get() { return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_stock'); } },
     barcodeInstalled: { get() { return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_barcode'); } },
-    comboInstalled:{
+
+    promoInstalled:{
       get(){
-        return ConfigHelper.ConfStr('modulos.productos.submodulos.permitir_combos');
+        return ConfigHelper.ConfStr('modulos.productos.submodulos.precio_promo');
       }
     },
     productsGet: {

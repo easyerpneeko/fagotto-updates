@@ -95,17 +95,11 @@
             <input type="checkbox" class="custom-control-input" id="precioVariante" v-model="precioVariante">
             <label class="custom-control-label" for="precioVariante">Precio Variante</label>
           </div>
-          <!-- <div class="custom-control custom-checkbox pb-3 mr-2" v-if="comboInstalled">
-            <input type="checkbox" class="custom-control-input" id="isCombo" v-model="isCombo">
-            <label class="custom-control-label" for="isCombo">Es un combo</label>
-          </div> -->
 
-          <!-- v-if="comboInstalled" -->
-          <div class="custom-control custom-checkbox pb-3 mr-2" >
+          <div class="custom-control custom-checkbox pb-3 mr-2"  v-if="promoInstalled">
             <input type="checkbox" class="custom-control-input" id="isPromo" v-model="isPromo">
             <label class="custom-control-label" for="isPromo">Activar promocion</label>
           </div>
-          <!-- v-if="comboInstalled" -->
           <div class="form-group col-md-12 col-12" v-if="isPromo">
             <label for="priceInput">Precio promocion</label>
             <div class="input-group mb-3">
@@ -113,13 +107,6 @@
               <input type="number" class="form-control" id="priceInput" maxlength="15"  v-model="promo_price"  @keypress="pricesCalcToCompra">
             </div>
           </div>
-          <!-- <div class="form-group col-12" v-if="isPromo">
-            <label for="category">Categoria del producto Variable</label>
-            <select id="category" class="browser-default custom-select" v-model="product_variable_category" :class="{ 'invalid-input': submitted && !isValidCategory}">
-              <option value="" selected disabled>Categoria</option>
-              <option :value="category.id" v-for="category in categories" class="text-capitalize">{{category.name}}</option>
-            </select>
-          </div> -->
         </div>
         <div class="d-flex w-100 flex-wrap" v-if="precioVarianteInstalled && precioVariante">
           <div class="form-group col-md-6 col-12 pt-2">
@@ -222,7 +209,6 @@ export default {
       waitResponse:false,
       edit: false,
       precioVariante: false,
-      isCombo: false,
       isPromo: false,
       nuevoPrecio:"",
       nuevaGanancia:"",
@@ -264,9 +250,9 @@ export default {
         return ConfigHelper.ConfStr('modulos.productos.ajustes.permitir_stock');
       }
     },
-    comboInstalled:{
+    promoInstalled:{
       get(){
-        return ConfigHelper.ConfStr('modulos.productos.submodulos.permitir_combos');
+        return ConfigHelper.ConfStr('modulos.productos.submodulos.precio_promo');
       }
     },
     minQuantityInstalled:{
@@ -509,11 +495,15 @@ export default {
         fields.push('ganancia_mayor');
       }
       
-      if(this.comboInstalled){
-        fields.push('isCombo');
+      if(this.promoInstalled){
+        fields.push('promo_active');
       }
 
-      if(this.comboInstalled){
+      if(this.promoInstalled){
+        fields.push('promo_price');
+      }
+
+      if(this.promoInstalled){
         fields.push('product_variable_category');
       }
 
@@ -662,10 +652,15 @@ export default {
         fd.append('cecina', this.cecina ? 1 : 0);
       }
 
-      if (this.comboInstalled) {
-        fd.append('isCombo', this.isCombo ? 1 : 0);
+      if (this.promoInstalled) {
+        fd.append('promo_active', this.promo_active ? 1 : 0);
       }
-      if (this.comboInstalled) {
+
+      if (this.promoInstalled) {
+        fd.append('promo_price', this.promo_price ? this.promo_price : null);
+      }
+
+      if (this.promoInstalled) {
         fd.append('product_variable_category', this.product_variable_category ? this.product_variable_category : 0);
       }
       this.waitResponse = true;

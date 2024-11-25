@@ -233,7 +233,6 @@ export default {
       type_sell: null,
       promoCategorieId:6,
       promo_active:false,
-      categorie_old:0,
       jsonTable: {
         btn: true,
         items: [],
@@ -579,8 +578,7 @@ export default {
         ganancia: data.ganancia,
         category: data.category,
         comment: null,
-        // isCombo: (data.isCombo) ? true : false,
-        // product_variable_category: (data.product_variable_category) ? data.product_variable_category : false
+        product_variable_category: (data.product_variable_category) ? data.product_variable_category : false
       };
       this.quantityAdd(product);
 
@@ -813,7 +811,7 @@ export default {
     order_kitchen_pending: { get() { return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.order_kitchen_pending'); } },
     solo_crear_ticket: { get() { return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.solo_crear_ticket'); } },
 
-    // comboInstalled:{ get(){ return ConfigHelper.ConfStr('modulos.productos.submodulos.permitir_combos');}},
+    promoInstalled:{ get(){ return ConfigHelper.ConfStr('modulos.productos.submodulos.precio_promo');}},
 
     settingBoleta: {
       get() {

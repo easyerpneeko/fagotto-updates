@@ -232,6 +232,7 @@ export default {
       editOrder: false,
       type_sell: null,
       promoCategorieId:6,
+      promo_active:false,
       jsonTable: {
         btn: true,
         items: [],
@@ -393,7 +394,7 @@ export default {
     },
 
     // Cambiar de categoria
-    changeCategorie(id) {
+    changeCategorie(id,promo = false) {
       if (this.categorieNow != id) this.categorieNow = id;
       else this.categorieNow = null;
 
@@ -415,6 +416,12 @@ export default {
         this.products = productsFind;
       } else {
         this.products = this.productsRequest;
+      }
+
+      if(promo){
+        this.promo_active = true;
+      }else{
+        this.promo_active = false;
       }
     },
 
@@ -466,7 +473,7 @@ export default {
     //Agregar producto
     addProductQuantity(i, data) {
       // El subtotal es la cantidad actual por el nuevo precio que le envio (#subtotal)
-      if(this.isPromoTab){
+      if(this.promo_active){
         data.subtotal = parseFloat(data.quantity) * parseFloat(data.promo_price);
       }else{
         data.subtotal = parseFloat(data.quantity) * parseFloat(data.price);
@@ -507,7 +514,7 @@ export default {
             }
 
             // El subtotal es la cantidad actual por el nuevo precio que le envio (#subtotal)
-            if(this.isPromoTab){
+            if(this.promo_active){
               this.productoSend[i].subtotal = this.productoSend[i].quantity * parseFloat(data.promo_price);
             }else{
               this.productoSend[i].subtotal = this.productoSend[i].quantity * parseFloat(data.price);
@@ -576,11 +583,11 @@ export default {
       };
       this.quantityAdd(product);
 
-      // if (this.comboInstalled) {
+      if (this.isPromoTab) {
         if(data.product_variable_category != 0 && data.product_variable_category != null){
-          this.changeCategorie(data.product_variable_category);
+          this.changeCategorie(data.product_variable_category,true);
         }
-      // }
+      }
     },
 
     removeProduct(item) {
@@ -647,16 +654,16 @@ export default {
     calculatePlus(index, data, unitary_price = false) {
       // Obtengo el producto
       var productActual = Object.assign({}, this.products.find(element => element.id == data.id));
-      console.log(this.isPromoTab);
+      console.log(this.promo_active);
       
-      if(this.isPromoTab){
+      if(this.promo_active){
         var precioDeEntrada = this.productoSend[index].promo_price;
       }else{
         var precioDeEntrada = this.productoSend[index].price;
       }
       var precioVarianteDiferenteDeUnitario = false;
 
-      if(this.isPromoTab){
+      if(this.promo_active){
         if (unitary_price) productActual.price = this.productoSend[index].promo_price;
       }else{
         if (unitary_price) productActual.price = this.productoSend[index].price;
@@ -729,7 +736,7 @@ export default {
         }
         // <FINALIZACION DE RECORRIDO DE LOS PRECIOS VARIANTES>
       } else { // No recorro los precios variantes si no que uso un solo precio...
-        if(this.isPromoTab){
+        if(this.promo_active){
           this.addGainSubTotalVariantPrice(index, data.cecina, productActual.promo_price, cantidad, productActual.ganancia);
         }else{
           this.addGainSubTotalVariantPrice(index, data.cecina, productActual.price, cantidad, productActual.ganancia);
@@ -737,7 +744,7 @@ export default {
         
       }
       
-      if(this.isPromoTab){
+      if(this.promo_active){
         this.productoSend[index].precioAnterior = this.productoSend[index].promo_price;
       }else{
         this.productoSend[index].precioAnterior = this.productoSend[index].price;

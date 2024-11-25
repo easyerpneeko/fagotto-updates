@@ -95,21 +95,31 @@
             <input type="checkbox" class="custom-control-input" id="precioVariante" v-model="precioVariante">
             <label class="custom-control-label" for="precioVariante">Precio Variante</label>
           </div>
-          <div class="custom-control custom-checkbox pb-3 mr-2" v-if="comboInstalled">
+          <!-- <div class="custom-control custom-checkbox pb-3 mr-2" v-if="comboInstalled">
             <input type="checkbox" class="custom-control-input" id="isCombo" v-model="isCombo">
             <label class="custom-control-label" for="isCombo">Es un combo</label>
-          </div>
-          <div class="custom-control custom-checkbox pb-3 mr-2" v-if="comboInstalled">
+          </div> -->
+
+          <!-- v-if="comboInstalled" -->
+          <div class="custom-control custom-checkbox pb-3 mr-2" >
             <input type="checkbox" class="custom-control-input" id="isPromo" v-model="isPromo">
-            <label class="custom-control-label" for="isPromo">Es una promo</label>
+            <label class="custom-control-label" for="isPromo">Activar promocion</label>
           </div>
-          <div class="form-group col-12" v-if="isPromo">
+          <!-- v-if="comboInstalled" -->
+          <div class="form-group col-md-12 col-12" v-if="isPromo">
+            <label for="priceInput">Precio promocion</label>
+            <div class="input-group mb-3">
+              <span class="input-group-text" id="basic-addon1">$</span>
+              <input type="number" class="form-control" id="priceInput" maxlength="15"  v-model="promo_price"  @keypress="pricesCalcToCompra">
+            </div>
+          </div>
+          <!-- <div class="form-group col-12" v-if="isPromo">
             <label for="category">Categoria del producto Variable</label>
             <select id="category" class="browser-default custom-select" v-model="product_variable_category" :class="{ 'invalid-input': submitted && !isValidCategory}">
               <option value="" selected disabled>Categoria</option>
               <option :value="category.id" v-for="category in categories" class="text-capitalize">{{category.name}}</option>
             </select>
-          </div>
+          </div> -->
         </div>
         <div class="d-flex w-100 flex-wrap" v-if="precioVarianteInstalled && precioVariante">
           <div class="form-group col-md-6 col-12 pt-2">

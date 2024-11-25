@@ -231,6 +231,7 @@ export default {
       order: false,
       editOrder: false,
       type_sell: null,
+      promoCategorieId:6,
       jsonTable: {
         btn: true,
         items: [],
@@ -242,7 +243,7 @@ export default {
         titles: [
           { label: 'Nombre', class: '', permission: 'default', type: false },
           { label: 'Cantidad', class: 'text-center w-30', permission: 'default', type: false },
-          { label: 'Cometarios', class: 'text-center', permission: 'default', type: false },
+          { label: 'Comentario', class: 'text-center', permission: 'default', type: false },
           { label: 'Acciones', class: 'text-center', permission: 'default', type: false },
         ]
       }
@@ -398,15 +399,22 @@ export default {
 
       if (this.categorieNow != null) {
         var productsFind = [];
-        productsFind = this.productsRequest.filter(product => {
-          if (product.category == this.categorieNow) {
-            return product;
-          }
-          return false;
-        });
+
+        // Verificar si el id es igual a promoCategorieId
+        if (this.categorieNow === this.promoCategorieId) {
+          productsFind = this.productsRequest.filter(product => product.promo_active === 1);
+        } else {
+          productsFind = this.productsRequest.filter(product => {
+            if (product.category == this.categorieNow) {
+              return product;
+            }
+            return false;
+          });
+        }
+
         this.products = productsFind;
       } else {
-        this.products = this.productsRequest
+        this.products = this.productsRequest;
       }
     },
 
@@ -434,6 +442,7 @@ export default {
         id: result.id,
         name: result.name,
         price: result.price,
+        promo_price : promo_price,
         quantity: parseInt(1),
         prices: result.prices,
         cecina: (result.cecina) ? true : false,
@@ -457,7 +466,11 @@ export default {
     //Agregar producto
     addProductQuantity(i, data) {
       // El subtotal es la cantidad actual por el nuevo precio que le envio (#subtotal)
-      data.subtotal = parseFloat(data.quantity) * parseFloat(data.price);
+      if(this.isPromoTab){
+        data.subtotal = parseFloat(data.quantity) * parseFloat(data.promo_price);
+      }else{
+        data.subtotal = parseFloat(data.quantity) * parseFloat(data.price);
+      }
       // Si la ganancia esta instalada, agrego la ganancia ✅
       if (this.gananciaInstalled) {
         if (!data.ganancia) data.ganancia = 0; //Esto antes era (this.gananciaInstalled && data.ganancia); pero creo asi es mas correcto -feredev
@@ -494,7 +507,12 @@ export default {
             }
 
             // El subtotal es la cantidad actual por el nuevo precio que le envio (#subtotal)
-            this.productoSend[i].subtotal = this.productoSend[i].quantity * parseFloat(data.price);
+            if(this.isPromoTab){
+              this.productoSend[i].subtotal = this.productoSend[i].quantity * parseFloat(data.promo_price);
+            }else{
+              this.productoSend[i].subtotal = this.productoSend[i].quantity * parseFloat(data.price);
+            }
+            
             // Si la ganancia esta instalada, agrego la ganancia ✅
             if (this.gananciaInstalled) {
               if (!data.ganancia) data.ganancia = 0; //🤔
@@ -545,23 +563,24 @@ export default {
       var product = {
         id: data.id,
         name: data.name,
-        price: price,
+        price: 1000,
+        promo_price:data.promo_price,
         quantity: 1,
         prices: data.prices,
         cecina: (data.cecina) ? true : false,
         ganancia: data.ganancia,
         category: data.category,
         comment: null,
-        isCombo: (data.isCombo) ? true : false,
-        product_variable_category: (data.product_variable_category) ? data.product_variable_category : false
+        // isCombo: (data.isCombo) ? true : false,
+        // product_variable_category: (data.product_variable_category) ? data.product_variable_category : false
       };
       this.quantityAdd(product);
 
-      if (this.comboInstalled) {
-        if(data.product_variable_category != 0 && data.product_variable_category != null){
-          this.changeCategorie(data.product_variable_category);
-        }
-      }
+      // if (this.comboInstalled) {
+      //   if(data.product_variable_category != 0 && data.product_variable_category != null){
+      //     this.changeCategorie(data.product_variable_category);
+      //   }
+      // }
     },
 
     removeProduct(item) {
@@ -628,11 +647,21 @@ export default {
     calculatePlus(index, data, unitary_price = false) {
       // Obtengo el producto
       var productActual = Object.assign({}, this.products.find(element => element.id == data.id));
-
-      var precioDeEntrada = this.productoSend[index].price;
+      console.log(this.isPromoTab);
+      
+      if(this.isPromoTab){
+        var precioDeEntrada = this.productoSend[index].promo_price;
+      }else{
+        var precioDeEntrada = this.productoSend[index].price;
+      }
       var precioVarianteDiferenteDeUnitario = false;
 
-      if (unitary_price) productActual.price = this.productoSend[index].price;
+      if(this.isPromoTab){
+        if (unitary_price) productActual.price = this.productoSend[index].promo_price;
+      }else{
+        if (unitary_price) productActual.price = this.productoSend[index].price;
+      }
+      
 
       // Obtenemos la CANTIDAD
       var cantidad = parseFloat(data.quantity);
@@ -700,10 +729,20 @@ export default {
         }
         // <FINALIZACION DE RECORRIDO DE LOS PRECIOS VARIANTES>
       } else { // No recorro los precios variantes si no que uso un solo precio...
-        this.addGainSubTotalVariantPrice(index, data.cecina, productActual.price, cantidad, productActual.ganancia);
+        if(this.isPromoTab){
+          this.addGainSubTotalVariantPrice(index, data.cecina, productActual.promo_price, cantidad, productActual.ganancia);
+        }else{
+          this.addGainSubTotalVariantPrice(index, data.cecina, productActual.price, cantidad, productActual.ganancia);
+        }
+        
       }
-
-      this.productoSend[index].precioAnterior = this.productoSend[index].price;
+      
+      if(this.isPromoTab){
+        this.productoSend[index].precioAnterior = this.productoSend[index].promo_price;
+      }else{
+        this.productoSend[index].precioAnterior = this.productoSend[index].price;
+      }
+      
 
       this.productoSend[index].quantity = cantidad;
       this.calculateTotal();
@@ -764,7 +803,7 @@ export default {
     order_kitchen_pending: { get() { return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.order_kitchen_pending'); } },
     solo_crear_ticket: { get() { return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.solo_crear_ticket'); } },
 
-    comboInstalled:{ get(){ return ConfigHelper.ConfStr('modulos.productos.submodulos.permitir_combos');}},
+    // comboInstalled:{ get(){ return ConfigHelper.ConfStr('modulos.productos.submodulos.permitir_combos');}},
 
     settingBoleta: {
       get() {
@@ -893,6 +932,7 @@ export default {
               id: findProduct.id,
               name: findProduct.name,
               price: findProduct.price,
+              promo_price:findProduct.promo_price,
               quantity: parseInt(1),
               prices: findProduct.prices,
               cecina: (findProduct.cecina) ? true : false,
@@ -919,7 +959,13 @@ export default {
 
         });
       },
-    }
+    },
+
+    isPromoTab: {
+      get() {
+        return this.categorieNow == this.promoCategorieId
+      }
+    },
   },
 }
 </script>

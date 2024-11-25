@@ -577,9 +577,9 @@ export default {
       this.quantityAdd(product);
 
       // if (this.comboInstalled) {
-      //   if(data.product_variable_category != 0 && data.product_variable_category != null){
-      //     this.changeCategorie(data.product_variable_category);
-      //   }
+        if(data.product_variable_category != 0 && data.product_variable_category != null){
+          this.changeCategorie(data.product_variable_category);
+        }
       // }
     },
 

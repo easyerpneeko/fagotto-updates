@@ -233,6 +233,7 @@ export default {
       type_sell: null,
       promoCategorieId:6,
       promo_active:false,
+      categorie_old:0,
       jsonTable: {
         btn: true,
         items: [],
@@ -587,6 +588,8 @@ export default {
         if(data.product_variable_category != 0 && data.product_variable_category != null){
           this.changeCategorie(data.product_variable_category,true);
         }
+      }else{
+        this.changeCategorie(null);
       }
     },
 

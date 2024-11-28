@@ -232,6 +232,7 @@ export default {
       editOrder: false,
       type_sell: null,
       promoCategorieId:6,
+      bebidaCategorieId:3,
       promo_active:false,
       jsonTable: {
         btn: true,
@@ -582,7 +583,7 @@ export default {
       };
       this.quantityAdd(product);
 
-      if (this.isPromoTab) {
+      if (this.isPromoTab || this.isBebidaTab) {
         if(data.product_variable_category != 0 && data.product_variable_category != null){
           this.changeCategorie(data.product_variable_category,true);
         }
@@ -972,6 +973,11 @@ export default {
     isPromoTab: {
       get() {
         return this.categorieNow == this.promoCategorieId
+      }
+    },
+    isBebidaTab: {
+      get() {
+        return this.categorieNow == this.bebidaCategorieId
       }
     },
   },

@@ -232,7 +232,7 @@ export default {
       editOrder: false,
       type_sell: null,
       promoCategorieId:6,
-      bebidaCategorieId:3,
+      salsaExtraId:11,
       promo_active:false,
       jsonTable: {
         btn: true,
@@ -568,6 +568,7 @@ export default {
       } else {
         price = data.price;
       }
+
       var product = {
         id: data.id,
         name: data.name,
@@ -581,9 +582,17 @@ export default {
         comment: null,
         product_variable_category: (data.product_variable_category) ? data.product_variable_category : false
       };
-      this.quantityAdd(product);
 
-      if (this.isPromoTab || this.isBebidaTab) {
+      if(!this.promoInstalled){
+        this.quantityAdd(product);
+      }else if(this.promoInstalled){
+        if(data.id != this.salsaExtraId){
+          this.quantityAdd(product);
+        }
+      }
+
+
+      if (this.isPromoTab || data.id == this.salsaExtraId) {
         if(data.product_variable_category != 0 && data.product_variable_category != null){
           this.changeCategorie(data.product_variable_category,true);
         }
@@ -973,11 +982,6 @@ export default {
     isPromoTab: {
       get() {
         return this.categorieNow == this.promoCategorieId
-      }
-    },
-    isBebidaTab: {
-      get() {
-        return this.categorieNow == this.bebidaCategorieId
       }
     },
   },

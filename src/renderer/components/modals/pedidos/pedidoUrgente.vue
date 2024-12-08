@@ -63,13 +63,17 @@
                                             Kg
                                         </td>
                                         <!-- POR UNIDAD -->
-                                        <td v-if="(producto.category == 1 && producto.name != 'Vaso')">
+                                        <td v-if="(producto.category == 1 && producto.name != 'Vaso' && producto.name != 'Bolsa de Queso')">
                                             <input min="1" class="fieldEdit" type="number" v-model="producto.quantity" @change="calcularMontos()" />
                                             Unidad(es)
                                         </td>
                                         <td v-if="(producto.name == 'Vaso')">
                                             <input min="27" step="27" class="fieldEdit" type="number" v-model="producto.quantity" @change="calcularMontos()" />
                                             'Unidad(es)'
+                                        </td>
+                                        <td v-if="(producto.name == 'Bolsa de Queso')">
+                                            <input min="1" class="fieldEdit" type="number" v-model="producto.quantity" @change="calcularMontos()" />
+                                            {{ producto.price+" gr" }}
                                         </td>
                                         <!-- OPCIONALES -->
                                         <td v-if="(producto.category == 3)">

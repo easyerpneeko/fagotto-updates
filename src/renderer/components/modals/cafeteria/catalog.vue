@@ -232,7 +232,8 @@ export default {
       editOrder: false,
       type_sell: null,
       promoCategorieId:6,
-      salsaExtraId:11,
+      bebidasCategorieId:3,
+      // salsaExtraId:11,
       promo_active:false,
       jsonTable: {
         btn: true,
@@ -450,7 +451,7 @@ export default {
         id: result.id,
         name: result.name,
         price: result.price,
-        promo_price : promo_price,
+        promo_price : result.promo_price,
         quantity: parseInt(1),
         prices: result.prices,
         cecina: (result.cecina) ? true : false,
@@ -476,6 +477,8 @@ export default {
       // El subtotal es la cantidad actual por el nuevo precio que le envio (#subtotal)
       if(this.promo_active){
         data.subtotal = parseFloat(data.quantity) * parseFloat(data.promo_price);
+        data.price = parseFloat(data.quantity) * parseFloat(data.promo_price);
+        data.product_promo = true;
       }else{
         data.subtotal = parseFloat(data.quantity) * parseFloat(data.price);
       }
@@ -543,7 +546,8 @@ export default {
       } else { // Si no hay mas de un producto
         this.addProductQuantity(0, data);
       }
-
+      console.log(this.productoSend);
+      
     },
 
     AddProduct(data) {
@@ -572,7 +576,7 @@ export default {
       var product = {
         id: data.id,
         name: data.name,
-        price: 1000,
+        price: price,
         promo_price:data.promo_price,
         quantity: 1,
         prices: data.prices,
@@ -583,20 +587,21 @@ export default {
         product_variable_category: (data.product_variable_category) ? data.product_variable_category : false
       };
 
-      if(!this.promoInstalled){
+      // if(!this.promoInstalled){
         this.quantityAdd(product);
-      }else if(this.promoInstalled){
-        if(data.id != this.salsaExtraId){
-          this.quantityAdd(product);
-        }
-      }
+      // }
+      // else if(this.promoInstalled){
+        // if(data.id != this.salsaExtraId){
+          // this.quantityAdd(product);
+        // }
+      // }
 
 
-      if (this.isPromoTab || data.id == this.salsaExtraId) {
+      if (this.isPromoTab) {
         if(data.product_variable_category != 0 && data.product_variable_category != null){
           this.changeCategorie(data.product_variable_category,true);
         }
-      }else{
+      }else if(data.category == this.bebidasCategorieId){
         this.changeCategorie(null);
       }
     },

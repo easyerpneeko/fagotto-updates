@@ -137,7 +137,7 @@ export default {
         this.offOn = true;
         await this.$store.dispatch('main/getFeeds');
         await this.getFolios()
-        console.log('SII:', this.siiInstalled);
+        // console.log('SII:', this.siiInstalled);
         this.offOn = false;
       }
     }

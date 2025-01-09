@@ -101,6 +101,10 @@ export default new Router({
           component: require('@/views/pedidos.vue').default
         },
         {
+          path: 'reposteria',
+          component: require('@/views/reposteria.vue').default
+        },
+        {
           path: 'operaciones',
           component: require('@/views/operations.vue').default
         }

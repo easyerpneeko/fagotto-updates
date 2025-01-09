@@ -6,6 +6,7 @@ import { createPersistedState, createSharedMutations } from 'vuex-electron'
 // import modules from './modules'
 import main from './main';
 import products from './products';
+import reposteria from './reposteria';
 import roles from './roles';
 import sells from './sells';
 import reports from './reports';
@@ -31,6 +32,7 @@ export default new Vuex.Store({
   modules: {
     main,
     products,
+    reposteria,
     roles,
     sells,
     cafeteria,

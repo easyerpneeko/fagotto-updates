@@ -458,6 +458,14 @@ export default {
             icon: 'fas fa-truck-loading'
           });
         }
+        //Modulo de pedidos de pasteles
+        if (pedidos) {
+          menu.push({
+            label: 'Pedido Reposteria',
+            route: '/inicio/reposteria',
+            icon: 'fas fa-birthday-cake'
+          });
+        }
         //Modulo de operaciones
         if (operations) {
           menu.push({

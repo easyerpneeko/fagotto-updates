@@ -54,3 +54,23 @@ export async function update(context, data) {
 //   context.commit('setProperty', {key:'products', data: request.data});
 //   return request;
 // }
+
+// --------------------------------------Reposteria-----------------------------------------
+
+export async function getRequestsReposteria(context, params) {
+  let url = BaseUrl.getUrl('api/local/requests/reposteria' + params);
+  const request = await Connection.request('get',url);
+  return request;
+}
+
+export async function newRequestReposteria(context, data) {
+  let url = BaseUrl.getUrl("api/local/request/reposteria");
+  const request = await Connection.request("post", url, data);
+  return request;
+}
+
+export async function reviewReposteria(context, data) {
+  let url = BaseUrl.getUrl('api/local/request/review/reposteria/' + data.id);
+  const request = await Connection.request('put',url, data.data);
+  return request;
+}

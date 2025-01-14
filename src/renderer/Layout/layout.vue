@@ -271,6 +271,7 @@ export default {
       var cafeteria = ConfigHelper.ConfStr('modulos.cafeteria');
       const clientOrders = ConfigHelper.ConfStr('modulos.client_orders');
       var pedidos = ConfigHelper.ConfStr('modulos.pedidos');
+      var reposteria = ConfigHelper.ConfStr('modulos.reposteria');
       var operations = ConfigHelper.ConfStr('modulos.operations');
       var stocks = ConfigHelper.ConfStr('modulos.stocks');
       // Submodulos
@@ -459,7 +460,7 @@ export default {
           });
         }
         //Modulo de pedidos de pasteles
-        if (pedidos) {
+        if (reposteria) {
           menu.push({
             label: 'Pedido Reposteria',
             route: '/inicio/reposteria',

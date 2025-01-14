@@ -1,6 +1,6 @@
 {
   "name": "easy-erp-app",
-  "version": "1.1.32",
+  "version": "1.1.33",
   "author": "",
   "description": "EasyERP build over electron-vue",
   "license": "null",
@@ -97,7 +97,6 @@
     "popper.js": "^1.16.1",
     "pusher-js": "^7.1.0-beta",
     "tempusdominus-core": "^5.0.3",
-    "vite": "^6.0.7",
     "vue": "^2.5.16",
     "vue-awesome-notifications": "^3.1.0",
     "vue-chartkick": "^0.6.1",

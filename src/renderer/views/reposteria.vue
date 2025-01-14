@@ -564,7 +564,7 @@ export default {
 
             this.payment = request.payment;
             this.status_payment = request.status_payment;
-            this.url_payment = this.url_linkify + this.app.Id + 'i' + this.payment.id
+            this.url_payment = this.url_linkify + this.app.Id + 'p' + this.payment.id
 
             for (const producto in this.jsonTableProducts.items) {
                 if (this.jsonTableProducts.items[producto].name === 'Vaso') {

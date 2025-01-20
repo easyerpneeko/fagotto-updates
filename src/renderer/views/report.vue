@@ -9,7 +9,13 @@
             <date-picker class="widthInput" format="YYYY-MM-DD" type="date" v-model="rangeDate" range placeholder="Fechas" confirm></date-picker>
           </div>
         </div>
-       
+        <div class="mediaWidth">
+          <div class="d-flex flex-column m-1">
+            <label>&nbsp;</label>
+            <button @click="getSells" type="button" :class="['fontSizeBtn btn bg-secundario m-0 mx-1',{'disabled': offOn}]">Buscar</button>
+          </div>
+        </div>
+        
         <div class= "d-none">
           <div class  ="d-flex flex-column m-1">
             <label>Hora inicial</label>
@@ -31,21 +37,17 @@
           </div>
         </div> -->
 
+
+        <div class="m-1 d-flex align-items-end ml-auto">
+          <button @click="printSells(false)" type="button" :class="['fontSizeBtn btn bg-primario m-0 mx-1',{'disabled': offOn}]">Contadores</button>
+          <button @click="printSells(true)" type="button" :class="['fontSizeBtn btn bg-dark m-0 mx-1',{'disabled': offOn}]">Contadores + Estadisticas</button>
+        </div>
+
         <div class="d-flex flex-column mediaWidth2">
           <div class="d-flex flex-column m-1">
             <label>Finalizar turno</label>
            <button @click="endShift" type="button" :class="['fontSizeBtn btn bg-secundario m-0 mx-1',{'disabled': offOn}]">Finalizar turno</button>
           </div>
-        </div>
-
-        <div class="m-1 d-flex align-items-end ml-auto">
-          
-
-
-
-          <button @click="getSells" type="button" :class="['fontSizeBtn btn bg-secundario m-0 mx-1',{'disabled': offOn}]">Buscar</button>
-          <button @click="printSells(false)" type="button" :class="['fontSizeBtn btn bg-primario m-0 mx-1',{'disabled': offOn}]">Contadores</button>
-          <button @click="printSells(true)" type="button" :class="['fontSizeBtn btn bg-dark m-0 mx-1',{'disabled': offOn}]">Contadores + Estadisticas</button>
         </div>
       </div>
     </div>
@@ -91,21 +93,21 @@
         />
       </div> -->
 
-      <div  v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2" >
+      <!-- <div  v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2" >
         <bar-chart :chart-data="topSellsChartData" :idTarget="randToken()" cardTitle="Top Ventas"></bar-chart>
-      </div>
+      </div> -->
 
-      <div v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2" >
+      <!-- <div v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2" >
         <area-chart :chart-data="sellsByhourChartData" :idTarget="randToken()" cardTitle="Ventas por hora"></area-chart>
-      </div>
+      </div> -->
 
-      <div v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2" >
+      <!-- <div v-if="listOrder.length != 0" class="col-lg-6 col-12 my-2" >
         <pie-chart :chart-data="countersChartData" :idTarget="randToken()" cardTitle="Contadores"></pie-chart>
-      </div>
+      </div> -->
 
-      <div v-if="listOrder.length != 0 && cafeteriaInstalled" class="col-lg-6 col-12 my-2" >
+      <!-- <div v-if="listOrder.length != 0 && cafeteriaInstalled" class="col-lg-6 col-12 my-2" >
         <column-chart :chart-data="getWaiters" :idTarget="randToken()" cardTitle="Mesas atendidas"></column-chart>
-      </div>
+      </div> -->
 
       <div v-if="getExpenses && expensesInstalled" class="col-md-6 col-12 my-2">
         <cardTable
@@ -132,16 +134,16 @@
           :idTarget="randToken()"
         />
       </div>
-      <div v-if="getAddtionWaiters && addtionsWaiterInstalled && get_cafeteria()" class="col-md-6 col-12 my-2">
+      <!-- <div v-if="getAddtionWaiters && addtionsWaiterInstalled && get_cafeteria()" class="col-md-6 col-12 my-2">
         <cardTable
           cardTitle="Servicios adicionales"
           :th="['Mesero', 'Cantidad', 'Total']"
           :tr="getAddtionWaiters"
           :idTarget="randToken()"
         />
-      </div>
+      </div> -->
       
-        <div v-if ="get_cafeteria()" class="col-md-6 col-12 my-2">
+        <!-- <div v-if ="get_cafeteria()" class="col-md-6 col-12 my-2">
 
           <CardReportMesero
             :cardTitle="waiter_name"
@@ -151,7 +153,7 @@
             :tr="getOneWaiter"
             :idTarget="randToken()"
           />
-        </div>
+        </div> -->
       
     </div>
     <div ref="loaderReport" v-if="listOrder.length == 0 && !getWaiters && !getAddtionWaiters && !getExpenses" class="vld-parent hv-80 d-flex flex-center text-center px-2 mt-2">
@@ -182,9 +184,9 @@ export default {
   name:'report',
   data(){
     return{
-      topSellsChartData: [],
-      sellsByhourChartData: [],
-      countersChartData:[],
+      // topSellsChartData: [],
+      // sellsByhourChartData: [],
+      // countersChartData:[],
       waiterChartData:[],
       rangeDate: [new Date(), new Date()],
       startTime: '00:00:00',
@@ -374,8 +376,8 @@ export default {
     // Obteniendo reporte de ventas
     async getSells(ref = 'loaderReport'){
       // Iniciando refrescamiento (carga y botones disabled)
-      this.getTopSells();
-      this.getSellsByHour();
+      // this.getTopSells();
+      // this.getSellsByHour();
       this.offOn = true;
       Loader.containe(this.$refs[ref]);
 
@@ -506,94 +508,94 @@ export default {
       Loader.hide();
     },
     // Obteniendo top de ventas
-    async getTopSells(){
-      // Iniciando refrescamiento (carga y botones disabled)
-      this.offOn = true;
-      // Loader.containe(this.$refs[ref]);
+    // async getTopSells(){
+    //   // Iniciando refrescamiento (carga y botones disabled)
+    //   this.offOn = true;
+    //   // Loader.containe(this.$refs[ref]);
 
-      // Estableciendo rango de fecha y hora
-      if(this.rangeDate.length == 0) return this.$awn.alert('Por favor inserte un rango de fechas');
+    //   // Estableciendo rango de fecha y hora
+    //   if(this.rangeDate.length == 0) return this.$awn.alert('Por favor inserte un rango de fechas');
 
-      //JC BOTONES DE REPORTE
+    //   //JC BOTONES DE REPORTE
 
-      var startTime = (this.startTime == null) ? '00:00:00' : this.startTime;
-      var endTime = (this.endTime == null) ? '23:59:59' : this.endTime;
+    //   var startTime = (this.startTime == null) ? '00:00:00' : this.startTime;
+    //   var endTime = (this.endTime == null) ? '23:59:59' : this.endTime;
 
-      var startDate = moment(this.rangeDate[0]).format('YYYY-MM-DD');
-      var endDate = moment(this.rangeDate[1]).format('YYYY-MM-DD');
-      const data = {
-        startDate: startDate,
-        endDate: endDate,
-      };
+    //   var startDate = moment(this.rangeDate[0]).format('YYYY-MM-DD');
+    //   var endDate = moment(this.rangeDate[1]).format('YYYY-MM-DD');
+    //   const data = {
+    //     startDate: startDate,
+    //     endDate: endDate,
+    //   };
 
-      var thing = new FormData();
-      for (let key in data) if (data[key]) thing.append(key, data[key]);
+    //   var thing = new FormData();
+    //   for (let key in data) if (data[key]) thing.append(key, data[key]);
 
-      // Parametros para los contadores
-      var params = '?params=true';
-      this.ckecks.map((key)=>{
-        if(key.value) params += '&'+key.key+'=' + key.value;
-      });
+    //   // Parametros para los contadores
+    //   var params = '?params=true';
+    //   this.ckecks.map((key)=>{
+    //     if(key.value) params += '&'+key.key+'=' + key.value;
+    //   });
 
-      // Iniciando peticion
-      var request = await this.$store.dispatch("reports/getTopSells", {data:thing, params});
-      // Verificando respuesta
-      if(!request){
-        this.$awn.info('Top Ventas no encontradas');
-      }else{
-        let topVentas = request.data;
-        // console.log('Top ventas: ', topVentas);
-        let topVentasArray = Object.values(topVentas);
-        this.topSellsChartData = topVentasArray.map(item => [item.product_name, item.total_quantity]);
-      }
+    //   // Iniciando peticion
+    //   var request = await this.$store.dispatch("reports/getTopSells", {data:thing, params});
+    //   // Verificando respuesta
+    //   if(!request){
+    //     this.$awn.info('Top Ventas no encontradas');
+    //   }else{
+    //     let topVentas = request.data;
+    //     // console.log('Top ventas: ', topVentas);
+    //     let topVentasArray = Object.values(topVentas);
+    //     this.topSellsChartData = topVentasArray.map(item => [item.product_name, item.total_quantity]);
+    //   }
 
-      // Culminando la funcion
-      // Loader.hide();
-      this.offOn = false;
-    },
-    async getSellsByHour(){
-      // Iniciando refrescamiento (carga y botones disabled)
-      this.offOn = true;
-      // Loader.containe(this.$refs[ref]);
+    //   // Culminando la funcion
+    //   // Loader.hide();
+    //   this.offOn = false;
+    // },
+    // async getSellsByHour(){
+    //   // Iniciando refrescamiento (carga y botones disabled)
+    //   this.offOn = true;
+    //   // Loader.containe(this.$refs[ref]);
 
-      // Estableciendo rango de fecha y hora
-      if(this.rangeDate.length == 0) return this.$awn.alert('Por favor inserte un rango de fechas');
+    //   // Estableciendo rango de fecha y hora
+    //   if(this.rangeDate.length == 0) return this.$awn.alert('Por favor inserte un rango de fechas');
 
-      //JC BOTONES DE REPORTE
+    //   //JC BOTONES DE REPORTE
 
-      var startTime = (this.startTime == null) ? '00:00:00' : this.startTime;
-      var endTime = (this.endTime == null) ? '23:59:59' : this.endTime;
+    //   var startTime = (this.startTime == null) ? '00:00:00' : this.startTime;
+    //   var endTime = (this.endTime == null) ? '23:59:59' : this.endTime;
 
-      var startDate = moment(this.rangeDate[0]).format('YYYY-MM-DD');
-      var endDate = moment(this.rangeDate[1]).format('YYYY-MM-DD')+' 23:59:59';
-      const data = {
-        startDate: startDate,
-        endDate: endDate,
-      };
+    //   var startDate = moment(this.rangeDate[0]).format('YYYY-MM-DD');
+    //   var endDate = moment(this.rangeDate[1]).format('YYYY-MM-DD')+' 23:59:59';
+    //   const data = {
+    //     startDate: startDate,
+    //     endDate: endDate,
+    //   };
 
-      var thing = new FormData();
-      for (let key in data) if (data[key]) thing.append(key, data[key]);
+    //   var thing = new FormData();
+    //   for (let key in data) if (data[key]) thing.append(key, data[key]);
 
-      // Parametros para los contadores
-      var params = '?params=true';
-      this.ckecks.map((key)=>{
-        if(key.value) params += '&'+key.key+'=' + key.value;
-      });
+    //   // Parametros para los contadores
+    //   var params = '?params=true';
+    //   this.ckecks.map((key)=>{
+    //     if(key.value) params += '&'+key.key+'=' + key.value;
+    //   });
 
-      // Iniciando peticion
-      var request = await this.$store.dispatch("reports/getSellsByHour", {data:thing, params});
-      // Verificando respuesta
-      if(!request){
-        this.$awn.info('Ventas por hora no encontradas');
-      }else{
-        this.sellsByhourChartData = request.data;
-        // console.log('Ventas por hora:', request.data);
-      }
+    //   // Iniciando peticion
+    //   var request = await this.$store.dispatch("reports/getSellsByHour", {data:thing, params});
+    //   // Verificando respuesta
+    //   if(!request){
+    //     this.$awn.info('Ventas por hora no encontradas');
+    //   }else{
+    //     this.sellsByhourChartData = request.data;
+    //     // console.log('Ventas por hora:', request.data);
+    //   }
 
-      // Culminando la funcion
-      // Loader.hide();
-      this.offOn = false;
-    },
+    //   // Culminando la funcion
+    //   // Loader.hide();
+    //   this.offOn = false;
+    // },
     // async getWorkshifts(){
       
     // },
@@ -708,7 +710,7 @@ export default {
             );
           }
         }
-        this.countersChartData = request;
+        // this.countersChartData = request;
         // this.countersChartData = this.listCounter.map(item => [
         //   item[0], // Mantener el primer elemento sin cambios
         //   Number(item[1].substring(1)) // Eliminar el símbolo "$" y convertir el valor a número

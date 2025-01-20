@@ -40,16 +40,16 @@ export async function printPDF(context, data) {
   return request;
 }
 
-export async function getTopSells(context, data) {
-  let url = BaseUrl.getUrl('api/local/report/sells/top' + data.params);
-  const request = await Connection.request('get',url, data.data);
-  if(!request.success) return false;
-  return request;
-}
+// export async function getTopSells(context, data) {
+//   let url = BaseUrl.getUrl('api/local/report/sells/top' + data.params);
+//   const request = await Connection.request('get',url, data.data);
+//   if(!request.success) return false;
+//   return request;
+// }
 
-export async function getSellsByHour(context, data) {
-  let url = BaseUrl.getUrl('api/local/report/sells/byhour' + data.params);
-  const request = await Connection.request('get',url, data.data);
-  if(!request.success) return false;
-  return request;
-}
+// export async function getSellsByHour(context, data) {
+//   let url = BaseUrl.getUrl('api/local/report/sells/byhour' + data.params);
+//   const request = await Connection.request('get',url, data.data);
+//   if(!request.success) return false;
+//   return request;
+// }

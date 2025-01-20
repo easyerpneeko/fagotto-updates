@@ -118,7 +118,7 @@
               </div>
               <div class="col-12 text-center">
                 <h6>¡Te deseamos lo mejor en este día!</h6>
-                <p>Es hora de usar EasyERP</p>
+                <p>Es hora de usar FagottoERP</p>
               </div>
             </div>
               

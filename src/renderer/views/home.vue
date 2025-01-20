@@ -9,7 +9,7 @@
     </div>
     <div :class="['bg-parallax-home', (feeds != 'Failed to fetch' && feeds && feeds.length > 0) ? '' : 'bg-full-height']">
       <div class="rgbaBlack d-flex flex-column justify-content-center align-items-center py-5">
-        <img class="home_logo" src="../assets/logo.png" alt="easy-erp">
+        <img class="home_logo" src="../assets/logo.png" alt="fagotto-erp">
         <h2 class="text-bienvenida">
           Bienvenido a tu mejor aplicación de gestión en negocios
         </h2>

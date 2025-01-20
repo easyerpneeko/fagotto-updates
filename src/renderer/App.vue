@@ -11,7 +11,7 @@ import BaseUrl from '@/helpers/baseUrl.js';
 import ConfigHelper from '@/helpers/ConfigHelper.js';
 const fs = require('fs');
 export default {
-  name: 'easy-cafe-aplication',
+  name: 'fagotto-cafe-aplication',
   data() {
     return{
       version: State.versionNumber

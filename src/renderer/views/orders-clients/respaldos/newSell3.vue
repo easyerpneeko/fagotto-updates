@@ -7,7 +7,7 @@
           <autocomplete :search="search" placeholder="Buscar" :getResultValue="getSearchValue" @submit="submitAutocomplete" ref="productAutocomplete" ></autocomplete>
         </div>
         
-          <img src="../assets/logo.png" class="img-fluid" alt="EasyERP" height="10%" width="10%">
+          <img src="../assets/logo.png" class="img-fluid" alt="FagottoERP" height="10%" width="10%">
         <div class="btns_sell">
           <button @click="newTicket()" type="button" v-if="(ticketInstaller && tickets)" :disabled="editOrder" class="m-1 btn bg-primario text-white text-capitalize">
             Crear ticket

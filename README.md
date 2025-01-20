@@ -1,4 +1,4 @@
-# easy-erd-aplication
+# fagotto-erd-aplication
 
 > An electron-vue project
 

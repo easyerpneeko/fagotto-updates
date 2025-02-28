@@ -438,8 +438,8 @@ export default {
       }
 
       // Culminando la funcion
-      Loader.hide();
-      this.offOn = false;
+      // Loader.hide();
+      // this.offOn = false;
     },
     async getWaiter(waiter_id) {
       var startTime = (this.startTime == null) ? '00:00:00' : this.startTime;
@@ -834,6 +834,9 @@ export default {
         this.titlesProducts = [];
         if(this.gananciaInstalled) this.titlesProducts.push("Nombre del Producto", "Stock Vendido", "Valor del Producto", "Ganancia", 'Total Vendido');
         else this.titlesProducts.push("Nombre del Producto", "Stock Vendido", "Valor del Producto", 'Total Vendido');
+        Loader.hide();
+        this.offOn = false;
+        
         return this.listTr;
       }
     },

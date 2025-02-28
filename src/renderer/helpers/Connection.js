@@ -129,7 +129,7 @@ export default class Connection {
 
   static async request(method, url, formData = null, headers = null, isFormData = null ) {
 
-    console.log('Connection. Request TO', url);
+    // console.log('Connection. Request TO', url);
 
     /*formData = {
       name: 'adasd'

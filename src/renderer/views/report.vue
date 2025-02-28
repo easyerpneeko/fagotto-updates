@@ -804,26 +804,28 @@ export default {
     getProductEstadisticas:{
       get(){
         var request = this.$store.getters['reports/getterProductEstadisticas'];
+        
         if(request){
           this.listTr = [];
           for (var i = 0; i < request.length; i++) {
             if(this.gananciaInstalled) {
               this.listTr.push(
                 [
-                  request[i][1], //Nombre
-                  request[i][2], //Stock vendido
-                  '$'+this.formatNumber(request[i][3]/(request[i][2])), //Valor del producto
-                  '$'+FormatNumber.format(request[i][4]),               //Ganancia (Ganancia_total)
-                  '$'+this.formatNumber(request[i][3]),                 //Total Vendido (Monto_total)
+                  request[i].name,                                                //Nombre
+                  request[i].quantity,                                            //Stock vendido
+                  '$'+this.formatNumber(request[i].price),                        //Valor del producto
+                  '$'+FormatNumber.format(request[i].totalProfit),                //Ganancia (Ganancia_total)
+                  '$'+this.formatNumber(request[i].quantity*request[i].price)     //Total Vendido (Monto_total)
                 ],
               );
             } else {
               this.listTr.push(
                 [
-                  request[i][1],
-                  request[i][2],
-                  '$'+this.formatNumber(request[i][3]),
-                  '$'+this.formatNumber(request[i][5])
+                  request[i].name,                                                //Nombre
+                  request[i].quantity,                                            //Stock vendido
+                  '$'+this.formatNumber(request[i].price),                        //Valor del producto
+                  // '$'+FormatNumber.format(request[i].totalProfit),                //Ganancia (Ganancia_total)
+                  '$'+this.formatNumber(request[i].quantity*request[i].price)     //Total Vendido (Monto_total)
                 ],
               );
             }

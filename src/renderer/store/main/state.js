@@ -5,7 +5,8 @@ export default {
   //apiUrl: 'http://209.145.62.104', // e2 sin ssl
   // apiUrl:'http://154.53.34.255', // PRODUCCION 11-2023
   // apiUrl:'http://154.38.171.1', // DEVELOPMENT 11-2023
-  apiUrl:'https://posfagotto.cl', // ACTIVADO EL SSL
+  // apiUrl:'https://posfagotto.cl', // ACTIVADO EL SSL
+  apiUrl:'http://200.86.219.116', // SERVER CHILE 1
   //apiUrl: 'https://appeasyerp.cl',
   user: null,
   users: null,

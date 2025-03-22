@@ -60,7 +60,8 @@
                   <div class="row">
                     <span class="m-0 p-0">
                       <button v-for="(salsa, id) in salsasDisponibles" :key="id" type="button" @click="addSalsa(salsa)"
-                        class="m-1 btn-width btn bg-primario text-white text-capitalize col-md-3">
+                        class="m-1 btn-width btn bg-primario text-white text-capitalize col-md-3"
+                        :disabled="salsa.stock < salsa.min_stock">
                         {{ salsa.name }} <i class="fa fa-plus"></i>
                       </button>
                     </span>
@@ -95,20 +96,23 @@
                 </thead>
                 <tbody>
                   <tr v-for="(producto, id) in productosPedido" :key="id">
-                    <template v-if=" producto.name == 'Botella de Huevos 1L'">
+                    <template v-if="producto.name == 'Botella de Huevos 1L'">
                       <th>{{ producto.name }}</th>
                       <th>{{ producto.quantity }}</th>
-                      <td class=" d-none">${{ producto.costo = formatearMonto(producto.quantity * producto.compra )}}</td>
+                      <td class=" d-none">${{ producto.costo = formatearMonto(producto.quantity * producto.compra) }}
+                      </td>
                     </template>
                     <template v-if="producto.name == 'Queso' || producto.name == 'Harina'">
                       <th>{{ producto.name }}</th>
                       <th>{{ producto.quantity }}kg</th>
-                      <td class="d-none">${{ producto.costo = formatearMonto(producto.quantity * producto.compra )}}</td>
+                      <td class="d-none">${{ producto.costo = formatearMonto(producto.quantity * producto.compra) }}
+                      </td>
                     </template>
                     <template v-if="producto.name == 'Vaso'">
                       <td class="bg-primary">{{ producto.name }}</td>
                       <td class="bg-primary">{{ producto.quantity }}</td>
-                      <td class="bg-primary d-none">${{ producto.costo = formatearMonto(producto.quantity * producto.price )}}</td>
+                      <td class="bg-primary d-none">${{ producto.costo = formatearMonto(producto.quantity *
+                        producto.price )}}</td>
                     </template>
                   </tr>
 
@@ -345,7 +349,7 @@ export default {
     calcularCantidades() {
 
       for (const key in this.productosPedido) {
-        if(this.productosPedido[key].name == "Vaso"){
+        if (this.productosPedido[key].name == "Vaso") {
           //Para mantener el minimo de vasos
           if (this.vasosSalsas > this.vasosMinimos) {
             this.vasos = this.vasosSalsas;
@@ -355,7 +359,7 @@ export default {
             this.productosPedido[key].quantity = this.vasos;
           }
         }
-        else{
+        else {
 
           if (this.productosPedido[key].name == "Queso") {
             this.productosPedido[key].quantity = (this.productosPedido[key].price * this.vasos) / 1000;
@@ -508,10 +512,10 @@ export default {
 
         if (this.productosFijos[producto].name == 'Queso') {
           // const nuevoProductoPedido = {
-            // name: this.productosFijos[producto].name,
-            // quantity: this.convertirAKilogramosYRedondear(this.productosFijos[producto].price, this.vasos),
-            // vasos: 1,
-            // price: this.productosFijos[producto].price
+          // name: this.productosFijos[producto].name,
+          // quantity: this.convertirAKilogramosYRedondear(this.productosFijos[producto].price, this.vasos),
+          // vasos: 1,
+          // price: this.productosFijos[producto].price
           // };
 
           this.productosFijos[producto].quantity = this.convertirAKilogramosYRedondear(this.productosFijos[producto].price, this.vasos);
@@ -529,7 +533,7 @@ export default {
           this.productosFijos[producto].quantity = (this.vasos / this.productosFijos[producto].price);
           this.productosFijos[producto].vasos = 1;
 
-          this.$set(this.productosPedido, producto,this.productosFijos[producto]);
+          this.$set(this.productosPedido, producto, this.productosFijos[producto]);
 
         } else if (this.productosFijos[producto].name === 'Vaso') {
           // const nuevoProductoPedido = {

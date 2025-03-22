@@ -438,8 +438,8 @@ export default {
       }
 
       // Culminando la funcion
-      // Loader.hide();
-      // this.offOn = false;
+      Loader.hide();
+      this.offOn = false;
     },
     async getWaiter(waiter_id) {
       var startTime = (this.startTime == null) ? '00:00:00' : this.startTime;

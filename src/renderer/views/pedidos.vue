@@ -713,7 +713,7 @@ export default {
                     this.montoEmergencia = 0;
                 } else {
                     console.log(request.data);
-                    this.$awn.alert('Error al enviar el pedido');
+                    this.$awn.alert(request.data.message);
                 }
                 this.waitResponse = false;
                 console.log(data);

@@ -1,6 +1,6 @@
 {
   "name": "fagotto-erp-app",
-  "version": "1.1.36",
+  "version": "1.1.40",
   "author": "",
   "description": "FagottoERP build over electron-vue",
   "license": "null",

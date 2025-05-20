@@ -477,7 +477,7 @@ export default {
       this.productoSend = [];
       // this.productosPedido = {};
       this.salsasPedido = [];
-      this.opcionalPedido;
+      this.opcionalPedido = [];
       this.totalPrice = 0;
     },
     async getProducts() {

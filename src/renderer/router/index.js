@@ -107,7 +107,11 @@ export default new Router({
         {
           path: 'operaciones',
           component: require('@/views/operations.vue').default
-        }
+        },
+        {
+          path: 'ingredients',
+          component: require('@/views/ingredients.vue').default
+        },
       ]
     },
     {

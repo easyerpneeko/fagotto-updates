@@ -1,18 +1,37 @@
 <template>
-  <div @click="$emit('clickEmit', product)" class="cardModalProducts card my-2">
-    <div :class="['card-body p-1 text-center d-flex flex-column align-items-center', (product.image == 'productDefault') ? '' : 'pa-12']">
+  <div
+    @click="$emit('clickEmit', product)"
+    class="cardModalProducts card my-2"
+    :class="{ 'disabled': !product.tiene_stock }"
+  >
+    <div v-if="!product.tiene_stock" class="card-body p-1 text-center d-flex flex-column align-items-center">
+      <h6 class="mt-0 text-capitalize text-bold">
+        {{ product.name }}
+      </h6>
+      <span class="text-danger">Sin Stock</span>
+    </div>
+    <div v-else :class="['card-body p-1 text-center d-flex flex-column align-items-center', (product.image == 'productDefault') ? '' : 'pa-12']">
       <div v-if="product.image != 'productDefault'" class="view">
-        <img :src="getImage(product.image)" class="product-img img-fluid">
+        <img
+          :src="getImage(product.image)"
+          class="product-img img-fluid"
+        />
         <a href="#">
           <div class="mask waves-effect waves-light rgba-white-slight"></div>
         </a>
       </div>
 
       <div class="w-100 d-flex flex-column align-items-start p-2">
-        <h6 class="mt-0 text-capitalize text-bold">{{product.name}}</h6>
-        <span><span class="color-money">${{formatNumber(deFormatNumber(product.price))}}<span v-if="product.cecina && cecinaInstalled">/KG</span></span></span>
+        <h6 class="mt-0 text-capitalize text-bold">
+          {{ product.name }}
+        </h6>
+        <span>
+          <span class="color-money">${{
+            formatNumber(deFormatNumber(product.price))
+          }}</span
+          ><span v-if="product.cecina && cecinaInstalled">/KG</span>
+        </span>
       </div>
-
     </div>
   </div>
 </template>

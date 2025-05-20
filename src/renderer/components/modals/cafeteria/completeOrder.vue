@@ -442,7 +442,7 @@ export default {
         console.log("TYPE_SELL ENVIADA", this.type_sell);
         // Iniciando peticion
         Loader.fullPage();
-        var request = await this.$store.dispatch("sells/newSell", thing);
+        var request = await this.$store.dispatch("sells/newSell2", thing);
         console.log("RESPUESTA DE LA APIII COMPLETE ORDEN",request);
         Loader.hide();
         // Verificando respuesta

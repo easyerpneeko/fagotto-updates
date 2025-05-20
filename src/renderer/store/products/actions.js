@@ -32,17 +32,23 @@ export async function getProductsOfSell(context) {
   return request;
 }
 
+export async function getProductsOfSell2(context) {
+  let url = BaseUrl.getUrl('api/local/products/sell/new');
+  const request = await Connection.request('get',url);
+  return request;
+}
+
 export async function getProductsOfIndex(context) {
   let url = BaseUrl.getUrl('api/local/products/index');
   const request = await Connection.request('get',url);
   return request;
 }
 
-export async function getProductsOfFagotto(context) {
-  let url = BaseUrl.getUrl('api/local/products/fagotto');
-  const request = await Connection.request('get',url);
-  return request;
-}
+// export async function getProductsOfFagotto(context) {
+//   let url = BaseUrl.getUrl('api/local/products/fagotto');
+//   const request = await Connection.request('get',url);
+//   return request;
+// }
 
 export async function newProduct(context, data) {
   let url = BaseUrl.getUrl('api/local/product');
@@ -111,5 +117,17 @@ export async function hideCategory(context, id) {
 export async function showCategory(context, id) {
   let url = BaseUrl.getUrl('api/local/category/'+id+'/show');
   const request = await Connection.request('put',url);
+  return request;
+}
+
+export async function getIngredients(context) {
+  let url = BaseUrl.getUrl('api/local/ingredients');
+  const request = await Connection.request('get',url);
+  return request;
+}
+
+export async function updateIngredientStock(context, payload) {
+  let url = BaseUrl.getUrl(`api/local/ingredients/${payload.ingredientId}/stock`);
+  const request = await Connection.request('post', url, payload.data); // Pasamos payload.data
   return request;
 }

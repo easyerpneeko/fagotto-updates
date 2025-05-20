@@ -485,15 +485,23 @@ export default {
           });
         }
 
+        // //Modulo de stocks
+        // if (stocks) {
+        //   menu.push({
+        //     label: 'Stocks',
+        //     route: '/inicio/stocks',
+        //     icon: 'fas fa-boxes'
+        //   });
+        // }
+
         //Modulo de stocks
         if (stocks) {
           menu.push({
-            label: 'Stocks',
-            route: '/inicio/stocks',
-            icon: 'fas fa-boxes'
-          });
+            label: 'Ingredientes',
+            route: '/inicio/ingredients',
+            icon: 'far fa-file-alt'
+          })
         }
-
         // console.log(menu);
         this.menu = menu;
       }, 500);

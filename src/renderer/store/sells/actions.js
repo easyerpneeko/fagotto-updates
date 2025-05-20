@@ -28,6 +28,15 @@ export async function newSell(context, data) {
   return request;
 }
 
+export async function newSell2(context, data) {
+  console.log('sell2');
+  let url = BaseUrl.getUrl('api/local/sell/new');
+  const request = await Connection.request('post', url, data);
+  if(request.success)
+    context.commit('setProperty',{ key:'sellPast' , data: request.data.id });
+  return request;
+}
+
 export async function fastSell(context, data) {
   let url = BaseUrl.getUrl('api/local/fastSell');
   const request = await Connection.request('post', url, data);

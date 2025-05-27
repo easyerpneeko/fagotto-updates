@@ -5,10 +5,14 @@
 
       <div class="container">
         <div class="row">
-          <div v-for="ingredient in ingredients" class="col-md-4 col-xl-3">
+          <div
+            v-for="ingredient in ingredients"
+            :key="ingredient.id"
+            class="col-md-4 col-xl-3"
+          >
             <div
               :class="
-                ingredient.category_id == 1
+                ingredient.category_id == 2
                   ? 'card bg-c-yellow order-card'
                   : 'card bg-c-blue order-card'
               "
@@ -27,67 +31,153 @@
                   <span class="font-weight-bold">{{ ingredient.vasos }}</span>
                   vasos
                 </p>
-                <button class="btn btn-primary" @click="openModal(ingredient)">
-                  Cargar Stock
-                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div
-      class="modal fade"
-      id="stockModal"
-      tabindex="-1"
-      role="dialog"
-      aria-labelledby="stockModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="stockModalLabel">
-              Cargar Stock de Ingrediente
-            </h5>
-            <button
-              type="button"
-              class="close"
-              data-dismiss="modal"
-              aria-label="Close"
-            >
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
+      <div class="container mt-5">
+        <h4 class="mb-4">Asignar Ingredientes a Productos</h4>
+        <div class="card">
+          <div class="card-body">
             <div class="form-group">
-              <label for="stock">Stock (Kg)</label>
-              <input
-                type="number"
+              <label for="productSelect">Seleccionar Producto:</label>
+              <select
+                id="productSelect"
                 class="form-control"
-                id="stock"
-                v-model.number="modalIngredient.stock_quantity"
-              />
+                v-model="selectedProduct"
+                @change="onProductSelect"
+              >
+                <option :value="null">-- Seleccione un producto --</option>
+                <option
+                  v-for="product in products"
+                  :key="product.id"
+                  :value="product"
+                >
+                  {{ product.name }}
+                </option>
+              </select>
+            </div>
+
+            <div v-if="selectedProduct">
+              <h5 class="mt-4">
+                Ingredientes Asignados a {{ selectedProduct.name }}
+              </h5>
+              <ul class="list-group mb-3">
+                <li
+                  v-for="(assignment, index) in assignedIngredients"
+                  :key="index"
+                  class="list-group-item d-flex justify-content-between align-items-center"
+                >
+                  {{ assignment.ingredient_name }} -
+                  {{ assignment.quantity_grams }} gramos
+                  <button
+                    class="btn btn-danger btn-sm"
+                    @click="removeAssignedIngredient(index)"
+                  >
+                    Eliminar
+                  </button>
+                </li>
+                <li
+                  v-if="assignedIngredients.length === 0"
+                  class="list-group-item text-muted"
+                >
+                  No hay ingredientes asignados a este producto.
+                </li>
+              </ul>
+
+              <h5 class="mt-4">Añadir Nuevo Ingrediente:</h5>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="newIngredientSelect">Ingrediente:</label>
+                  <select
+                    id="newIngredientSelect"
+                    class="form-control"
+                    v-model="newAssignment.ingredient_id"
+                  >
+                    <option :value="null">
+                      -- Seleccione un ingrediente --
+                    </option>
+                    <option
+                      v-for="ing in ingredients"
+                      :key="ing.id"
+                      :value="ing.id"
+                    >
+                      {{ ing.name }}
+                    </option>
+                  </select>
+                </div>
+                <div class="form-group col-md-4">
+                  <label for="newQuantity">Cantidad (gramos):</label>
+                  <input
+                    type="number"
+                    id="newQuantity"
+                    class="form-control"
+                    v-model.number="newAssignment.quantity_grams"
+                    min="0"
+                  />
+                </div>
+                <div class="form-group col-md-2 d-flex align-items-end">
+                  <button
+                    class="btn btn-success w-100"
+                    @click="addIngredientToProduct"
+                  >
+                    Añadir
+                  </button>
+                </div>
+              </div>
+              <button
+                class="btn btn-primary mt-3 w-100"
+                @click="saveProductIngredients"
+              >
+                Guardar Asignaciones
+              </button>
+            </div>
+            <div v-else class="alert alert-info mt-3">
+              Por favor, seleccione un producto para asignar ingredientes.
             </div>
           </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-dismiss="modal"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              @click="guardarStock()"
-            >
-              Guardar
-            </button>
-          </div>
         </div>
+      </div>
+
+      <div
+        class="container mt-4"
+        v-if="products && products.length > 0 && totalPages > 1"
+      >
+        <nav aria-label="Page navigation example">
+          <ul class="pagination justify-content-center">
+            <li class="page-item" :class="{ disabled: currentPage === 1 }">
+              <a
+                class="page-link"
+                href="#"
+                @click.prevent="changePage(currentPage - 1)"
+                >Anterior</a
+              >
+            </li>
+            <li
+              class="page-item"
+              v-for="page in totalPages"
+              :key="page"
+              :class="{ active: page === currentPage }"
+            >
+              <a class="page-link" href="#" @click.prevent="changePage(page)">{{
+                page
+              }}</a>
+            </li>
+            <li
+              class="page-item"
+              :class="{ disabled: currentPage === totalPages }"
+            >
+              <a
+                class="page-link"
+                href="#"
+                @click.prevent="changePage(currentPage + 1)"
+                >Siguiente</a
+              >
+            </li>
+          </ul>
+        </nav>
       </div>
     </div>
   </div>
@@ -108,15 +198,24 @@ export default {
   data() {
     return {
       ingredients: null,
-      modalIngredient: {
-        id: null,
-        stock_quantity: 0,
-      }, // Para almacenar el ingrediente del modal
+      products: null, // Para almacenar los productos paginados
+      selectedProduct: null, // Producto seleccionado para asignar ingredientes
+      assignedIngredients: [], // Ingredientes asignados al producto seleccionado
+      newAssignment: {
+        ingredient_id: null,
+        quantity_grams: 0,
+      },
+      // Datos para la paginación de productos
+      currentPage: 1,
+      totalPages: 1,
+      itemsPerPage: 12, // Valor predeterminado, se actualizará con la respuesta del backend
+      totalProducts: 0,
     };
   },
-  mounted() {
+  async mounted() {
     console.log("=============INGREDIENTES================");
-    this.getIngredients();
+    await this.getIngredients();
+    await this.getProducts(this.currentPage); // Obtener los productos de la primera página
   },
   components: {
     customTable,
@@ -132,11 +231,136 @@ export default {
       Loader.dinamic();
       var request = await this.$store.dispatch("products/getIngredients");
       Loader.hide();
-      console.log(request);
       if (request.success) {
         this.ingredients = request.data;
       } else {
+        this.$awn.alert("Error al obtener los ingredientes");
+      }
+    },
+    async getProducts(page = 1) {
+      Loader.dinamic();
+      // Asumiendo que tu acción 'getProducts' en el store 'products'
+      // puede aceptar un parámetro de página.
+      // Si tu backend usa un query parameter como '?page=X', la acción debería construirlo.
+      var request = await this.$store.dispatch(
+        "products/getProducts",
+        `?page=${page}`
+      );
+      console.log("p", request);
+      Loader.hide();
+      if (request.success) {
+        this.products = request.data.items;
+        this.currentPage = request.data.page;
+        this.totalPages = request.data.pages;
+        this.itemsPerPage = request.data.perpage;
+        this.totalProducts = request.data.total;
+      } else {
         this.$awn.alert("Error al obtener los productos");
+      }
+    },
+    async onProductSelect() {
+      this.assignedIngredients = []; // Limpiar asignaciones anteriores
+      if (this.selectedProduct && this.selectedProduct.id) {
+        Loader.dinamic();
+        const request = await this.$store.dispatch(
+          "products/getProductIngredients",
+          this.selectedProduct.id
+        );
+        Loader.hide();
+        if (request.success) {
+          console.log("data", request);
+
+          this.assignedIngredients = request.data.map((item) => ({
+            ingredient_id: item.ingredient_id,
+            ingredient_name: item.name,
+            quantity_grams: item.pivot.quantity_grams,
+          }));
+        } else {
+          this.$awn.alert("Error al obtener los ingredientes del producto");
+        }
+      }
+    },
+    addIngredientToProduct() {
+      if (
+        this.newAssignment.ingredient_id &&
+        this.newAssignment.quantity_grams > 0
+      ) {
+        const selectedIngredient = this.ingredients.find(
+          (ing) => ing.id === this.newAssignment.ingredient_id
+        );
+
+        if (selectedIngredient) {
+          const existingAssignmentIndex = this.assignedIngredients.findIndex(
+            (assign) => assign.ingredient_id === selectedIngredient.id
+          );
+
+          if (existingAssignmentIndex !== -1) {
+            this.assignedIngredients[existingAssignmentIndex].quantity_grams =
+              this.newAssignment.quantity_grams;
+            this.$awn.info("Cantidad del ingrediente actualizada.");
+          } else {
+            this.assignedIngredients.push({
+              ingredient_id: selectedIngredient.id,
+              ingredient_name: selectedIngredient.name,
+              quantity_grams: this.newAssignment.quantity_grams,
+            });
+            this.$awn.success("Ingrediente añadido a la lista.");
+          }
+
+          this.newAssignment = {
+            ingredient_id: null,
+            quantity_grams: 0,
+          };
+        }
+      } else {
+        this.$awn.warning(
+          "Por favor, seleccione un ingrediente y una cantidad válida."
+        );
+      }
+    },
+    removeAssignedIngredient(index) {
+      this.assignedIngredients.splice(index, 1);
+      this.$awn.info("Ingrediente eliminado de la lista.");
+    },
+    async saveProductIngredients() {
+      if (!this.selectedProduct) {
+        this.$awn.alert(
+          "Por favor, seleccione un producto para guardar las asignaciones."
+        );
+        return;
+      }
+      Loader.dinamic();
+
+      // Crear un objeto FormData
+      const formData = new FormData();
+      // Añadir el productId
+      formData.append("productId", this.selectedProduct.id);
+      // Añadir los ingredientes como una cadena JSON
+      formData.append(
+        "ingredients",
+        JSON.stringify(
+          this.assignedIngredients.map((item) => ({
+            ingredient_id: item.ingredient_id,
+            quantity_grams: item.quantity_grams,
+          }))
+        )
+      );
+
+      // Enviar el FormData a la acción del store
+      const response = await this.$store.dispatch(
+        "products/assignIngredientsToProduct",
+        formData // Enviamos el FormData directamente
+      );
+      Loader.hide();
+
+      if (response.success) {
+        this.$awn.success("Asignaciones guardadas correctamente.");
+        this.onProductSelect(); // Recargar para mostrar los cambios
+      } else {
+        this.$awn.alert(
+          "Error al guardar las asignaciones: " +
+            (response.message || "Error desconocido")
+        );
       }
     },
     formatNumber(number) {
@@ -149,31 +373,10 @@ export default {
         return FormatNumber.deFormat(number);
       }
     },
-    openModal(ingredient) {
-      this.modalIngredient = { ...ingredient }; // Copiar el ingrediente al objeto del modal
-      $("#stockModal").modal("show"); // Mostrar el modal
-    },
-    async guardarStock() {
-      Loader.dinamic();
-      // Enviar la actualización al backend (Laravel)
-      let data = new FormData();
-      data.append("new_stock", this.modalIngredient.stock_quantity);
-
-      const response = await this.$store.dispatch(
-        "products/updateIngredientStock",
-        {
-          ingredientId: this.modalIngredient.id,
-          data: data, // Cambiamos newStock por data
-        }
-      );
-      Loader.hide();
-      if (response.success) {
-        this.$awn.success("Stock de ingrediente actualizado correctamente");
-        $("#stockModal").modal("hide"); // Cerrar el modal
-        // Vuelve a cargar los ingredientes para reflejar los cambios
-        this.getIngredients();
-      } else {
-        this.$awn.alert("Error al actualizar el stock del ingrediente");
+    changePage(page) {
+      if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+        this.currentPage = page;
+        this.getProducts(this.currentPage);
       }
     },
   },

@@ -78,7 +78,7 @@ autoUpdater.setFeedURL({
   owner: "orlandodaniel",
   repo: "FRONT-PROJECT-VUE-DEV",
   private: true,
-  token: "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"
+  token: "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"
   
 });
 

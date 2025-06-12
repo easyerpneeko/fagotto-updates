@@ -133,6 +133,7 @@ export default {
           && this.type_sell != 'factura'
           && this.type_sell != 'ticket'
           && this.type_sell != 'edenred'
+          && this.type_sell != 'junaeb'
           && this.type_sell != null
         
         ){
@@ -157,6 +158,7 @@ export default {
           && this.type_sell != 'factura'
           && this.type_sell != 'ticket'
           && this.type_sell != 'edenred'
+          && this.type_sell != 'junaeb'
           && this.type_sell != null){
         
           thing.append('typeSell', this.type_sell);
@@ -170,6 +172,10 @@ export default {
 
       if (this.type_sell == 'rappi') {
         thing.set('other_type', 'rappi');
+      }
+      
+      if (this.type_sell == 'junaeb') {
+        thing.set('other_type', 'junaeb');
       }
 
       if (this.type_sell == 'uber') {
@@ -191,7 +197,7 @@ export default {
       // Iniciando peticion
       
       //Si es debito mando la data a otro endpoint
-      if(this.type_sell=='other' ||this.type_sell=='transferencia' ||this.type_sell=='rappi' ||this.type_sell=='uber' ||this.type_sell=='credito' || this.type_sell=='amipass'){
+      if(this.type_sell=='other' ||this.type_sell=='transferencia' ||this.type_sell=='rappi' ||this.type_sell=='junaeb' ||this.type_sell=='uber' ||this.type_sell=='credito' || this.type_sell=='amipass'){
         var request = await this.$store.dispatch("sells/newTicket", thing);
         console.log("RESPUESTA DE LA APIII CREARTICKET",request);
       }else{

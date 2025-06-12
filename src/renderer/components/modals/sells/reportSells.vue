@@ -74,6 +74,7 @@ export default {
                 { key: 'efectivo', label: 'Efectivo', value: false },
                 { key: 'credito', label: 'Credito', value: false },
                 { key: 'rappi', label: 'Rappi', value: false },
+                { key: 'junaeb', label: 'Junaeb', value: false },
                 { key: 'uber', label: 'Uber', value: false }
             ]
         }

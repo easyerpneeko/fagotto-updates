@@ -215,6 +215,7 @@ export default {
         {key:'amipass',label:'Amipass', value:true},
         {key:'credito',label:'Credito', value:true},
         {key:'rappi',label:'Rappi', value:true},
+        {key:'junaeb',label:'Junaeb', value:true},
         {key:'uber',label:'Uber', value:true},
         {key:'convenio_empresa',label:'Convenio Empresa', value:true}
       ]
@@ -642,6 +643,7 @@ export default {
     settingCheque:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.cheque') } },
     settingStateBank:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.banco') } },
     settingRappi:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.rappi') } },
+    settingJunaeb:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.junaeb') } },
     settingUber:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.uber') } },
     settingSodexo:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.sodexo') } },
     settingNotaCredito:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.nota_de_credito') } },
@@ -677,6 +679,7 @@ export default {
             if(this.settingDebito) this.listCounter.push( ['Debito', '$'+this.formatNumber(String(request.debito))]);
             if(this.settingAmipass) this.listCounter.push(['Amipass', '$'+this.formatNumber(String(request.amipass))]);
             if(this.settingRappi) this.listCounter.push(['Rappi', '$'+this.formatNumber(String(request.rappi))]);
+            if(this.settingJunaeb) this.listCounter.push(['Junaeb', '$'+this.formatNumber(String(request.junaeb))]);
             if(this.settingUber) this.listCounter.push(['Uber', '$'+this.formatNumber(String(request.uber))]);
             if(this.settingSodexo) this.listCounter.push(['Sodexo', '$'+this.formatNumber(String(request.sodexo))]);
             if(this.settingCredito) this.listCounter.push(['Credito', '$'+this.formatNumber(String(request.credito))]);

@@ -125,6 +125,9 @@
           <button v-if="settingRappi" @click="verifyClient('rappi')" type="button" class="btn bg-primario text-white">
             Rappi
           </button>
+          <button v-if="settingJunaeb" @click="verifyClient('junaeb')" type="button" class="btn bg-primario text-white">
+            Junaeb
+          </button>
           <button v-if="settingUber" @click="verifyClient('uber')" type="button" class="btn bg-primario text-white">
             Uber
           </button>
@@ -763,6 +766,10 @@ export default {
     settingRappi:{ get(){
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
       return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.rappi');
+    } },
+    settingJunaeb:{ get(){
+      if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+      return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.junaeb');
     } },
     settingUber:{ get(){
       if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;

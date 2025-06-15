@@ -37,7 +37,7 @@
         </div>
       </div>
 
-      <div class="container mt-5">
+      <!-- <div class="container mt-5">
         <h4 class="mb-4">Asignar Ingredientes a Productos</h4>
         <div class="card">
           <div class="card-body">
@@ -178,7 +178,7 @@
             </li>
           </ul>
         </nav>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
@@ -280,89 +280,89 @@ export default {
         }
       }
     },
-    addIngredientToProduct() {
-      if (
-        this.newAssignment.ingredient_id &&
-        this.newAssignment.quantity_grams > 0
-      ) {
-        const selectedIngredient = this.ingredients.find(
-          (ing) => ing.id === this.newAssignment.ingredient_id
-        );
+    // addIngredientToProduct() {
+    //   if (
+    //     this.newAssignment.ingredient_id &&
+    //     this.newAssignment.quantity_grams > 0
+    //   ) {
+    //     const selectedIngredient = this.ingredients.find(
+    //       (ing) => ing.id === this.newAssignment.ingredient_id
+    //     );
 
-        if (selectedIngredient) {
-          const existingAssignmentIndex = this.assignedIngredients.findIndex(
-            (assign) => assign.ingredient_id === selectedIngredient.id
-          );
+    //     if (selectedIngredient) {
+    //       const existingAssignmentIndex = this.assignedIngredients.findIndex(
+    //         (assign) => assign.ingredient_id === selectedIngredient.id
+    //       );
 
-          if (existingAssignmentIndex !== -1) {
-            this.assignedIngredients[existingAssignmentIndex].quantity_grams =
-              this.newAssignment.quantity_grams;
-            this.$awn.info("Cantidad del ingrediente actualizada.");
-          } else {
-            this.assignedIngredients.push({
-              ingredient_id: selectedIngredient.id,
-              ingredient_name: selectedIngredient.name,
-              quantity_grams: this.newAssignment.quantity_grams,
-            });
-            this.$awn.success("Ingrediente añadido a la lista.");
-          }
+    //       if (existingAssignmentIndex !== -1) {
+    //         this.assignedIngredients[existingAssignmentIndex].quantity_grams =
+    //           this.newAssignment.quantity_grams;
+    //         this.$awn.info("Cantidad del ingrediente actualizada.");
+    //       } else {
+    //         this.assignedIngredients.push({
+    //           ingredient_id: selectedIngredient.id,
+    //           ingredient_name: selectedIngredient.name,
+    //           quantity_grams: this.newAssignment.quantity_grams,
+    //         });
+    //         this.$awn.success("Ingrediente añadido a la lista.");
+    //       }
 
-          this.newAssignment = {
-            ingredient_id: null,
-            quantity_grams: 0,
-          };
-        }
-      } else {
-        this.$awn.warning(
-          "Por favor, seleccione un ingrediente y una cantidad válida."
-        );
-      }
-    },
-    removeAssignedIngredient(index) {
-      this.assignedIngredients.splice(index, 1);
-      this.$awn.info("Ingrediente eliminado de la lista.");
-    },
-    async saveProductIngredients() {
-      if (!this.selectedProduct) {
-        this.$awn.alert(
-          "Por favor, seleccione un producto para guardar las asignaciones."
-        );
-        return;
-      }
-      Loader.dinamic();
+    //       this.newAssignment = {
+    //         ingredient_id: null,
+    //         quantity_grams: 0,
+    //       };
+    //     }
+    //   } else {
+    //     this.$awn.warning(
+    //       "Por favor, seleccione un ingrediente y una cantidad válida."
+    //     );
+    //   }
+    // },
+    // removeAssignedIngredient(index) {
+    //   this.assignedIngredients.splice(index, 1);
+    //   this.$awn.info("Ingrediente eliminado de la lista.");
+    // },
+    // async saveProductIngredients() {
+    //   if (!this.selectedProduct) {
+    //     this.$awn.alert(
+    //       "Por favor, seleccione un producto para guardar las asignaciones."
+    //     );
+    //     return;
+    //   }
+    //   Loader.dinamic();
 
-      // Crear un objeto FormData
-      const formData = new FormData();
-      // Añadir el productId
-      formData.append("productId", this.selectedProduct.id);
-      // Añadir los ingredientes como una cadena JSON
-      formData.append(
-        "ingredients",
-        JSON.stringify(
-          this.assignedIngredients.map((item) => ({
-            ingredient_id: item.ingredient_id,
-            quantity_grams: item.quantity_grams,
-          }))
-        )
-      );
+    //   // Crear un objeto FormData
+    //   const formData = new FormData();
+    //   // Añadir el productId
+    //   formData.append("productId", this.selectedProduct.id);
+    //   // Añadir los ingredientes como una cadena JSON
+    //   formData.append(
+    //     "ingredients",
+    //     JSON.stringify(
+    //       this.assignedIngredients.map((item) => ({
+    //         ingredient_id: item.ingredient_id,
+    //         quantity_grams: item.quantity_grams,
+    //       }))
+    //     )
+    //   );
 
-      // Enviar el FormData a la acción del store
-      const response = await this.$store.dispatch(
-        "products/assignIngredientsToProduct",
-        formData // Enviamos el FormData directamente
-      );
-      Loader.hide();
+    //   // Enviar el FormData a la acción del store
+    //   const response = await this.$store.dispatch(
+    //     "products/assignIngredientsToProduct",
+    //     formData // Enviamos el FormData directamente
+    //   );
+    //   Loader.hide();
 
-      if (response.success) {
-        this.$awn.success("Asignaciones guardadas correctamente.");
-        this.onProductSelect(); // Recargar para mostrar los cambios
-      } else {
-        this.$awn.alert(
-          "Error al guardar las asignaciones: " +
-            (response.message || "Error desconocido")
-        );
-      }
-    },
+    //   if (response.success) {
+    //     this.$awn.success("Asignaciones guardadas correctamente.");
+    //     this.onProductSelect(); // Recargar para mostrar los cambios
+    //   } else {
+    //     this.$awn.alert(
+    //       "Error al guardar las asignaciones: " +
+    //         (response.message || "Error desconocido")
+    //     );
+    //   }
+    // },
     formatNumber(number) {
       return FormatNumber.format(number);
     },

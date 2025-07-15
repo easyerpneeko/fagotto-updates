@@ -1,13 +1,13 @@
 {
   "name": "fagotto-erp-app",
-  "version": "1.1.40",
+  "version": "1.11.4",
   "author": "",
   "description": "FagottoERP build over electron-vue",
   "license": "null",
   "main": "./dist/electron/main.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/orlandodaniel/FRONT-PROJECT-VUE-DEV.git"
+    "url": "https://github.com/easyerpneeko/fagotto-updates.git"
   },
   "scripts": {
     "build": "node .electron-vue/build.js && electron-builder build --win --publish never",
@@ -25,7 +25,9 @@
     "package-win": "electron-packager . fagotto-erp-client --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/icons/win/Logo_ERD.png --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Fagotto ERP - Client\"",
     "package-win-production": "electron-packager . fagotto-erp-client --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds-production --version-string.CompanyName=CE --version-string.FileDescription=CE --production --version-string.ProductName=\"Fagotto ERP - Client\"",
     "postinstall": "",
-    "deploy": "node .electron-vue/build.js && electron-builder build --win --publish always"
+    "deploy": "node .electron-vue/build.js && electron-builder build --win --publish always",
+    "deploy-never": "node .electron-vue/build.js && electron-builder build --win --publish never",
+    "test-updater": "node test-updater.js"
   },
   "build": {
     "extraResources": [
@@ -39,6 +41,13 @@
     "files": [
       "dist/electron/**/*"
     ],
+    "publish": {
+      "provider": "github",
+      "owner": "easyerpneeko",
+      "repo": "fagotto-updates",
+      "private": true,
+      "releaseType": "release"
+    },
     "dmg": {
       "contents": [
         {
@@ -75,6 +84,7 @@
     "buble": "^0.20.0",
     "chart.js": "^2.9.4",
     "electron-fetch": "^1.4.0",
+    "electron-log": "^5.4.1",
     "electron-packager": "^14.2.1",
     "electron-pdf-window": "^1.0.12",
     "electron-printer": "0.0.5",

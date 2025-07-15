@@ -908,6 +908,7 @@ class ReportsController extends Controller
               continue;
           }
   
+
           // Extraer los datos requeridos
           $rznSocRecep = (string)$xml->Documento->Encabezado->Receptor->RznSocRecep;
           $rutRecep = (string)$xml->Documento->Encabezado->Receptor->RUTRecep;

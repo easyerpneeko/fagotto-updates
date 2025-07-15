@@ -1,6 +1,7 @@
 <template>
   <div id="app">
     <router-view :version="version"></router-view>
+    <UpdateDialog />
   </div>
 </template>
 
@@ -9,9 +10,13 @@ import State from "./store/main/state";
 import Connection from '@/helpers/Connection.js';
 import BaseUrl from '@/helpers/baseUrl.js';
 import ConfigHelper from '@/helpers/ConfigHelper.js';
+import UpdateDialog from './components/UpdateDialog.vue';
 const fs = require('fs');
 export default {
   name: 'fagotto-cafe-aplication',
+  components: {
+    UpdateDialog
+  },
   data() {
     return{
       version: State.versionNumber

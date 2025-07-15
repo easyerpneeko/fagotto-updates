@@ -1,0 +1,394 @@
+<?php
+
+  function formatoChilenoReporte1($numero, $decimales = null) {
+
+    $numeroFinal = number_format($numero);
+
+    if ($decimales)
+      $numeroFinal = number_format($numero, $decimales);
+
+    // FORMATO CHILENO
+
+    // Coma por Pivote
+    $numeroFinal = str_replace(',','%coma%',  $numeroFinal);
+    // Punto por Coma
+    $numeroFinal = str_replace('.',',',       $numeroFinal);
+    // Pivote por Punto
+    $numeroFinal = str_replace('%coma%','.',  $numeroFinal);
+
+    return $numeroFinal;
+
+  }
+
+?>
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body>
+    <p class="text-spacing-3 header-title text-center text-uppercase">{{$data['envs']->stgg_header->value}}</p>
+    <p class="text-spacing-3 header-title text-center text-uppercase">Reporte</p>
+    <hr class="hr-style-mb mt-2-5">
+    <div>
+      <p class="text-uppercase">Fecha Inicial: {{DateTime::createFromFormat("Y-m-d H:i:s",$data['dates']['startDate'])->format("d/m/Y H:i:s")}}</p>
+      <p class="text-uppercase">Fecha Final:  {{DateTime::createFromFormat("Y-m-d H:i:s",$data['dates']['endDate'])->format("d/m/Y H:i:s")}}</p>
+    </div>
+
+    <hr class="hr-style">
+
+    <!-- tabla general -->
+    <table>
+      <!-- titulo de tabla -->
+      <tr>
+        <th>ID</th>
+        <th>MONTO</th>
+      </tr>
+      <!-- titulo de tabla -->
+      <?php if(isset($data['counters']['init_money'])) { ?>
+        <tr>
+          <td>Monto inicial</td>
+          <td>${{ formatoChilenoReporte1($data['counters']['init_money']) }}</td>
+        </tr>
+      <?php } ?>
+      <tr>
+        <td>Total</td>
+        <td>${{ formatoChilenoReporte1($data['counters']['balanceTotal']) }}</td>
+      </tr>
+      <tr>
+        <td>Ganancia total</td>
+        <td>${{ formatoChilenoReporte1($data['counters']['gananciaTotal']) }}</td>
+      </tr>
+      <?php if(isset($data['counters']['expenses_day'])) { ?>
+        <tr>
+          <td>Gastos del día</td>
+          <td>${{ formatoChilenoReporte1($data['counters']['expenses_day']) }}</td>
+        </tr>
+        <tr>
+          <td>Total - Gastos</td>
+          <td>${{ formatoChilenoReporte1($data['counters']['totalToExpenses']) }}</td>
+        </tr>
+      <?php } ?>
+    </table>
+    <!-- tabla general -->
+
+    <hr class="hr-style">
+
+    <!-- datos de contadores -->
+    <div class="text-center">
+      <p>Contadores</p>
+    </div>
+    <table>
+      <!-- titulo de tabla -->
+      <tr>
+        <th>Contador</th>
+        <th>Valor</th>
+      </tr>
+      <!-- titulo de tabla -->
+      <?php if(isset($data['counters']['orders'])) { ?>
+        <tr>
+          <td>Ordenes totales</td>
+          <td>{{$data['counters']['orders']}}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['quantityTotal'])) { ?>
+        <tr>
+          <td>Unidades totales</td>
+          <td>{{$data['counters']['quantityTotal']}}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['typeProducts'])) { ?>
+        <tr>
+          <td>Tipos de productos</td>
+          <td>{{$data['counters']['typeProducts']}}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['factura'])) { ?>
+        <tr>
+          <td>Facturas</td>
+          <td>${{ formatoChilenoReporte1($data['counters']['factura']) }}</td>
+        </tr>
+      <?php } ?>
+      <!-- <tr>
+        <td>Facturas</td>
+        <td>${{ formatoChilenoReporte1($data['counters']['factura']) }}</td>
+      </tr> -->
+      <tr>
+        <td>Boletas</td>
+        <td>${{ formatoChilenoReporte1($data['counters']['boleta']) }}</td>
+      </tr>
+      <tr>
+        <td>Ventas rapidas</td>
+        <td>${{ formatoChilenoReporte1($data['counters']['fastSells']) }}</td>
+      </tr>
+      <!-- <tr>
+        <td>No Sii</td>
+        <td>${{ formatoChilenoReporte1($data['counters']['noSii']) }}</td>
+      </tr> -->
+      <?php if(isset($data['counters']['debito'])) { ?>
+        <tr>
+          <td>Debito</td>
+          <td>${{ $data['counters']['debito'] }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['efectivo'])) { ?>
+        <tr>
+          <td>Efectivo</td>
+          <td>${{ $data['counters']['efectivo'] }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['credito'])) { ?>
+        <tr>
+          <td>Credito</td>
+          <td>${{ $data['counters']['credito'] }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['transferencia'])) { ?>
+        <tr>
+          <td>Transferencia</td>
+          <td>${{ $data['counters']['transferencia'] }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['cheque'])) { ?>
+        <tr>
+          <td>Cheque</td>
+          <td>${{ $data['counters']['cheque'] }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['banco'])) { ?>
+        <tr>
+          <td>Trasnbank</td>
+          <td>${{ $data['counters']['banco'] }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['amipass'])) { ?>
+        <tr>
+          <td>Amipass</td>
+          <td>${{ $data['counters']['amipass'] }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['junaeb'])) { ?>
+        <tr>
+          <td>Junaeb</td>
+          <td>${{ $data['counters']['junaeb'] }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['uber'])) { ?>
+        <tr>
+          <td>Uber</td>
+          <td>${{ $data['counters']['uber'] }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['rappi'])) { ?>
+        <tr>
+          <td>Rappi</td>
+          <td>${{ $data['counters']['rappi'] }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['multicaja'])) { ?>
+        <tr>
+          <td>Multicaja</td>
+          <td>${{ $data['counters']['multicaja'] }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['edenred'])) { ?>
+        <tr>
+          <td>Edenred</td>
+          <td>${{ $data['counters']['edenred'] }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['convenio_empresa'])) { ?>
+        <tr>
+          <td>Convenio Empresa</td>
+          <td>${{ $data['counters']['convenio_empresa'] }}</td>
+        </tr>
+      <?php } ?>
+    </table>
+    <!-- datos de contadores -->
+    <hr class="hr-style">
+
+    <!-- Gastos del dia  -->
+    @if($data['expenses'])
+      <div class="text-center">
+        <p>Gastos del día</p>
+      </div>
+      <table>
+        <!-- titulo de tabla -->
+        <tr>
+          <th>Nombre</th>
+          <th>Total.</th>
+        </tr>
+        <!-- titulo de tabla -->
+        <?php foreach ($data['expenses'] as $expense) {
+          echo
+          "<tr>
+            <td>".$expense->name."</td>
+            <td>$".formatoChilenoReporte1($expense->balance)."</td>
+          </tr>";
+        } ?>
+      </table>
+    @endif
+    <!-- Gastos del dia  -->
+    <hr class="hr-style">
+
+    @component('components.report-meseros', ['data' => $data]);
+    @endcomponent
+
+    <hr class="hr-style mt-1">
+    <p class="text-spacing-3 header-title text-center text-uppercase ml-2 mr-2 mt-1">
+      REPORTE PARA COMERCIALIZADORA
+      ARRIAGADA&ARRIAGADA SPA
+    </p>
+    <p class="text-spacing-3 header-title text-center text-uppercase ml-2 mr-2">* SOFTWARE POS MADURO SG *</p>
+  </body>
+</html>
+<style media="screen">
+  *{
+    margin: 0;
+    margin: 6px 2px;
+    padding: 0px;
+    word-wrap: break-word !important;
+    word-break: break-all !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+    letter-spacing: 0.8px !important;
+    font-family: monospace;
+  }
+  p{
+    margin: 2px !important;
+  }
+  .box-fhater{
+    margin: 0px !important;
+    padding: 0px !important;
+  }
+  /* styles table */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  th, td {
+    text-align: left;
+    border-bottom: 0.8px solid #c4c4c4;
+  }
+  td {
+    padding: 3px;
+  }
+  th {
+    padding: 5px;
+    padding-top: 3px;
+  }
+  /* font styles */
+  .text-center{
+    text-align: center !important;
+  }
+  .text-uppercase{
+    text-transform: uppercase !important;
+  }
+  .text-spacing-3{
+    letter-spacing: 0.3px !important;
+  }
+  .header-title{
+    margin: 0px !important;
+    margin-bottom: 3px !important;
+  }
+  /* hr style */
+  .hr-style-mb{
+    border: 0.8px solid #000 !important;
+    margin-bottom: 7px;
+  }
+  .hr-style{
+    border: 0.8px solid #000 !important;
+    margin: 0px !important;
+  }
+
+  /* margins */
+  .mt-1{
+    margin-top: 10px !important;
+  }
+  .mt-2{
+    margin-top: 20px !important;
+  }
+  .mt-2-5{
+    margin-top: 25px !important;
+  }
+  .mt-3{
+    margin-top: 30px !important;
+  }
+  .mt-4{
+    margin-top: 40px !important;
+  }
+  .mt-5{
+    margin-top: 50px !important;
+  }
+  .mb-1{
+    margin-bottom: 10px !important;
+  }
+  .mb-2{
+    margin-bottom: 20px !important;
+  }
+  .mb-3{
+    margin-bottom: 30px !important;
+  }
+  .mb-4{
+    margin-bottom: 40px !important;
+  }
+  .mb-5{
+    margin-bottom: 50px !important;
+  }
+  .ml-1{
+    margin-left: 10px !important;
+  }
+  .ml-2{
+    margin-left: 20px !important;
+  }
+  .ml-3{
+    margin-left: 30px !important;
+  }
+  .ml-4{
+    margin-left: 40px !important;
+  }
+  .ml-5{
+    margin-left: 50px !important;
+  }
+  .mr-1{
+    margin-right: 10px !important;
+  }
+  .mr-2{
+    margin-right: 20px !important;
+  }
+  .mr-3{
+    margin-right: 30px !important;
+  }
+  .mr-4{
+    margin-right: 40px !important;
+  }
+  .mr-5{
+    margin-right: 50px;
+  }
+  .m-1{
+    margin: 10px !important;
+  }
+  .m-2{
+    margin: 20px !important;
+  }
+  .m-3{
+    margin: 30px !important;
+  }
+  .m-4{
+    margin: 40px !important;
+  }
+  .m-5{
+    margin: 50px !important;
+  }
+
+  .hr-style-mb-table{
+    border: 0.8px solid #000 !important;
+    border-top: 0px;
+    border-left: 0px;
+    border-right: 0px;
+    border-bottom: 0.8px;
+    margin-bottom: 1px;
+  }
+</style>

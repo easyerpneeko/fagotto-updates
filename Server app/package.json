@@ -1,0 +1,49 @@
+{
+    "private": true,
+    "scripts": {
+        "dev": "npm run development",
+        "development": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+        "watch": "npm run development -- --watch",
+        "watch-poll": "npm run watch -- --watch-poll",
+        "hot": "cross-env NODE_ENV=development node_modules/webpack-dev-server/bin/webpack-dev-server.js --inline --hot --config=node_modules/laravel-mix/setup/webpack.config.js",
+        "prod": "npm run production",
+        "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --no-progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js"
+    },
+    "devDependencies": {
+        "axios": "^0.27.2",
+        "cross-env": "^5.2.1",
+        "laravel-mix": "^4.0.10",
+        "lodash": "^4.17.20",
+        "resolve-url-loader": "^5.0.0",
+        "sass": "^1.27.0",
+        "sass-loader": "^7.1.0",
+        "vue-template-compiler": "^2.6.12"
+    },
+    "dependencies": {
+        "@deveodk/vue-toastr": "^1.1.0",
+        "@fortawesome/fontawesome-free": "^5.15.1",
+        "@innologica/vue-stackable-modal": "^0.1.10",
+        "@smartweb/vue-flash-message": "^0.5.3",
+        "admin-lte": "^3.0.5",
+        "bootstrap": "^4.6.2",
+        "jquery": "^3.5.1",
+        "laravel-echo": "^1.12.1",
+        "moment-timezone": "^0.5.31",
+        "pusher": "^5.1.1-beta",
+        "pusher-js": "^7.3.0",
+        "socket.io": "^4.7.5",
+        "sweetalert2": "^9.17.2",
+        "toastr": "^2.1.4",
+        "vue": "^2.6.12",
+        "vue-loading-overlay": "^3.4.2",
+        "vue-moment": "^4.1.0",
+        "vue-multiselect": "^2.1.6",
+        "vue-router": "^3.4.8",
+        "vue-select": "^3.10.8",
+        "vue-sweetalert2": "^3.0.8",
+        "vue-toastr": "^2.1.2",
+        "vue-toastr-2": "0.0.10",
+        "vuejs-datepicker": "^1.6.2",
+        "vuex": "^3.5.1"
+    }
+}

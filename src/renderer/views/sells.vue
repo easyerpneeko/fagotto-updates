@@ -111,7 +111,7 @@ export default {
           {key:'created_at', class:'', permission:'default'},
           {key:'client_name', class:'', permission:'clientsInstaller'},
           {key:'client_rut', class:'', permission:'clientsInstaller'},
-          {key:'type', class:'text-capitalize', permission:'siiInstaller'},
+          {key:'type', class:'text-capitalize', permission:'default'},
           {key:'sell_folio', class:'d-none-01', permission:'siiInstaller'},
           {key:'fullname', class:'d-none-01', permission:'displayUser'},
           {key:'total', class:'d-none-2', permission:'default'},
@@ -121,7 +121,7 @@ export default {
           {label:'Fecha', class:'th-sm', permission:'default', type:'orderBy', orderBy: false},
           {label:'Cliente', class:'th-sm', permission:'clientsInstaller', type:false},
           {label:'Rut de cliente', class:'th-md', permission:'clientsInstaller', type:false},
-          {label:'Tipo', class:'th-sm', permission:'siiInstaller',type:false},
+          {label:'Método de Pago', class:'th-sm', permission:'default',type:false},
           {label:'Folio', class:'d-none-01', permission:'siiInstaller',type:false},
           {label:'Usuario', class:'th-sm d-none-01', permission:'displayUser', type:false},
           {label:'Total', class:'d-none-2', permission:'default', type:false},
@@ -211,6 +211,16 @@ export default {
         else{
           this.sells = (request.data.items.length == 0) ? false : request.data;
           this.jsonTable.items = this.sells.items;
+          
+          // DEBUG: Verificar qué campos llegan del backend
+          console.log('=== DEBUG SELLS DATA ===');
+          console.log('First item:', this.sells.items[0]);
+          console.log('Type field:', this.sells.items[0] && this.sells.items[0].type);
+          console.log('Other_type field:', this.sells.items[0] && this.sells.items[0].other_type);
+          console.log('jsonTable.rows:', this.jsonTable.rows);
+          console.log('jsonTable.titles:', this.jsonTable.titles);
+          console.log('========================');
+          
           if(!isLoader && id){
             this.dataDetail = this.jsonTable.items.find((item) => item.id == id);
           }

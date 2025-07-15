@@ -75,7 +75,9 @@ export default {
                 { key: 'credito', label: 'Credito', value: false },
                 { key: 'rappi', label: 'Rappi', value: false },
                 { key: 'junaeb', label: 'Junaeb', value: false },
-                { key: 'uber', label: 'Uber', value: false }
+                { key: 'uber', label: 'Uber', value: false },
+                { key: 'pedidos_ya', label: 'Pedidos Ya', value: false },
+                { key: 'pluxee', label: 'Pluxee', value: false }
             ]
         }
     },

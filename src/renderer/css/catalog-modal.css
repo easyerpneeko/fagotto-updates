@@ -1,0 +1,1403 @@
+/* Variables CSS para colores 2025 con más contraste */
+:root {
+  --primary-color: #6366f1;
+  --primary-hover: #4f46e5;
+  --secondary-color: #f8fafc;
+  --accent-color: #10b981;
+  --success-color: #10b981;
+  --danger-color: #ef4444;
+  --warning-color: #f59e0b;
+  --text-dark: #111827;
+  --text-light: #4b5563;
+  --text-muted: #6b7280;
+  --border-color: #d1d5db;
+  --bg-light: #f9fafb;
+  --bg-card: #ffffff;
+  --bg-surface: #f1f5f9;
+  --shadow-light: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-heavy: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --border-radius: 12px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Modal base styling */
+.catalog-modal {
+  backdrop-filter: blur(8px);
+}
+
+.catalog-modal .modal-dialog {
+  max-width: 95vw;
+  width: 95vw;
+  height: 95vh;
+  margin: 2.5vh auto;
+}
+
+.catalog-modal .modal-content {
+  height: 100%;
+  border: none;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-heavy);
+  background: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-surface) 100%);
+}
+
+/* Header moderno con glassmorphism */
+.catalog-modal .modal-header {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+  color: white;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+  padding: 1.5rem 2rem;
+  border-bottom: none;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.catalog-modal .modal-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+  pointer-events: none;
+}
+
+.catalog-modal .header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.catalog-modal .header-icon-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.catalog-modal .header-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  position: relative;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.catalog-modal .icon-glow {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: iconPulse 2s infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+.catalog-modal .header-text {
+  flex: 1;
+}
+
+.catalog-modal .modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.catalog-modal .header-subtitle {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  font-weight: 300;
+}
+
+.catalog-modal .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.catalog-modal .stats-badge {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50px;
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.catalog-modal .stats-badge:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.catalog-modal .btn-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.catalog-modal .btn-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1) rotate(90deg);
+}
+
+/* Modal body */
+.catalog-modal .modal-body {
+  padding: 0;
+  height: calc(100% - 140px);
+  overflow: hidden;
+}
+
+.catalog-modal .catalog-container {
+  display: flex;
+  height: 100%;
+  background: var(--bg-surface);
+}
+
+/* Sidebar de categorías */
+.catalog-modal .categories-sidebar {
+  width: 300px;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.catalog-modal .categories-sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.02) 0%, rgba(16, 185, 129, 0.02) 100%);
+  pointer-events: none;
+}
+
+.catalog-modal .search-section {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-card);
+  position: relative;
+  z-index: 1;
+}
+
+.catalog-modal .search-container {
+  position: relative;
+}
+
+.catalog-modal .search-icon-wrapper {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  color: var(--text-light);
+  transition: var(--transition);
+}
+
+.catalog-modal .modern-search {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 3rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 0.95rem;
+  background: var(--bg-light);
+  color: var(--text-dark);
+  transition: var(--transition);
+  position: relative;
+}
+
+.catalog-modal .modern-search:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.catalog-modal .modern-search:focus + .search-border-glow {
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+.catalog-modal .search-border-glow {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  border-radius: var(--border-radius);
+  opacity: 0;
+  transition: var(--transition);
+  z-index: -1;
+}
+
+.catalog-modal .categories-section {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.catalog-modal .categories-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 0 0.5rem;
+}
+
+.catalog-modal .categories-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.catalog-modal .categories-count {
+  background: var(--primary-color);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.catalog-modal .categories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.catalog-modal .category-btn {
+  display: flex;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  color: var(--text-dark);
+  position: relative;
+  overflow: hidden;
+}
+
+.catalog-modal .category-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.catalog-modal .category-btn:hover::before {
+  left: 100%;
+}
+
+.catalog-modal .category-btn:hover {
+  background: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+  border-color: var(--primary-hover);
+}
+
+.catalog-modal .category-btn:hover .category-glow {
+  opacity: 1;
+}
+
+.catalog-modal .category-btn-active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-hover);
+  box-shadow: var(--shadow-medium);
+}
+
+.catalog-modal .category-btn-active .category-glow {
+  opacity: 1;
+}
+
+.catalog-modal .category-icon {
+  width: 35px;
+  height: 35px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+  font-size: 1rem;
+  transition: var(--transition);
+}
+
+.catalog-modal .category-btn:hover .category-icon,
+.catalog-modal .category-btn-active .category-icon {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.catalog-modal .category-name {
+  font-weight: 500;
+  font-size: 0.95rem;
+  flex: 1;
+}
+
+.catalog-modal .category-arrow {
+  opacity: 0.5;
+  transition: var(--transition);
+}
+
+.catalog-modal .category-btn:hover .category-arrow,
+.catalog-modal .category-btn-active .category-arrow {
+  opacity: 1;
+  transform: translateX(3px);
+}
+
+.catalog-modal .category-glow {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  border-radius: var(--border-radius);
+  opacity: 0;
+  transition: var(--transition);
+  z-index: -1;
+}
+
+/* Área de productos */
+.catalog-modal .products-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.catalog-modal .products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem;
+  overflow-y: auto;
+  height: 100%;
+  position: relative;
+  background: var(--bg-light);
+}
+
+.catalog-modal .products-grid::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.01) 0%, rgba(16, 185, 129, 0.01) 100%);
+  pointer-events: none;
+}
+
+.catalog-modal .product-item {
+  transition: var(--transition);
+  position: relative;
+  z-index: 1;
+}
+
+.catalog-modal .product-item:hover {
+  transform: translateY(-5px);
+  filter: drop-shadow(0 10px 20px rgba(99, 102, 241, 0.1));
+}
+
+.catalog-modal .product-item:nth-child(odd) {
+  animation: slideInLeft 0.6s ease-out;
+}
+
+.catalog-modal .product-item:nth-child(even) {
+  animation: slideInRight 0.6s ease-out;
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-50px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(50px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Sin resultados */
+.catalog-modal .no-results {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  grid-column: 1 / -1;
+  position: relative;
+}
+
+.catalog-modal .no-results-content {
+  text-align: center;
+  color: var(--text-light);
+  position: relative;
+  z-index: 1;
+}
+
+.catalog-modal .no-results-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.catalog-modal .no-results-content h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-dark);
+}
+
+.catalog-modal .no-results-content p {
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Panel del carrito */
+.catalog-modal .cart-panel {
+  width: 400px;
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.95) 0%, rgba(241, 245, 249, 0.95) 100%);
+  backdrop-filter: blur(20px);
+  border-left: 1px solid rgba(229, 231, 235, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  max-height: calc(100vh - 200px);
+}
+
+.catalog-modal .cart-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.02) 0%, rgba(16, 185, 129, 0.02) 100%);
+  pointer-events: none;
+}
+
+.catalog-modal .cart-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.7);
+  position: relative;
+  z-index: 1;
+}
+
+.catalog-modal .cart-title-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.catalog-modal .cart-icon {
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+  position: relative;
+  box-shadow: var(--shadow-medium);
+}
+
+.catalog-modal .cart-pulse {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border: 2px solid var(--primary-color);
+  border-radius: 50%;
+  animation: cartPulse 2s infinite;
+  opacity: 0.6;
+}
+
+@keyframes cartPulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.1); opacity: 0.3; }
+  100% { transform: scale(1); opacity: 0.6; }
+}
+
+.catalog-modal .cart-title-text {
+  flex: 1;
+}
+
+.catalog-modal .cart-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.catalog-modal .cart-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-light);
+  font-weight: 400;
+}
+
+.catalog-modal .cart-count-badge {
+  position: relative;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-weight: 600;
+  box-shadow: var(--shadow-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+  height: 35px;
+}
+
+.catalog-modal .cart-count {
+  position: relative;
+  z-index: 1;
+  font-size: 1rem;
+}
+
+.catalog-modal .count-glow {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  border-radius: 50px;
+  opacity: 0.7;
+  z-index: -1;
+  animation: countGlow 2s infinite;
+}
+
+@keyframes countGlow {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+.catalog-modal .cart-content {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-right: -0.5rem;
+  padding-right: 2rem;
+}
+
+/* Custom scrollbar para el contenido del carrito */
+.catalog-modal .cart-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.catalog-modal .cart-content::-webkit-scrollbar-track {
+  background: var(--bg-light);
+  border-radius: 3px;
+}
+
+.catalog-modal .cart-content::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 3px;
+}
+
+.catalog-modal .cart-content::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
+}
+
+.catalog-modal .client-section,
+.catalog-modal .comment-section,
+.catalog-modal .description-section {
+  margin-bottom: 1rem;
+}
+
+.catalog-modal .form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  font-size: 0.9rem;
+}
+
+.catalog-modal .modern-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 0.9rem;
+  background: var(--bg-card);
+  color: var(--text-dark);
+  resize: vertical;
+  min-height: 80px;
+  transition: var(--transition);
+}
+
+.catalog-modal .modern-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Inputs modernos de una línea */
+.catalog-modal .modern-input {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  padding: 0.5rem 0.75rem !important;
+  color: var(--text-dark) !important;
+  font-size: 0.875rem !important;
+  height: 38px !important;
+  transition: var(--transition) !important;
+  width: 100% !important;
+}
+
+.catalog-modal .modern-input:focus {
+  outline: none !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
+
+.catalog-modal .modern-input::placeholder {
+  color: var(--text-muted) !important;
+  font-style: italic !important;
+}
+
+/* Tabla del carrito */
+.catalog-modal .cart-table-container {
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  box-shadow: var(--shadow-light);
+  margin-bottom: 1rem;
+  max-height: 600px; /* Aumentado para mostrar más productos */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scroll container para la tabla */
+.catalog-modal .cart-table-container .table-scroll {
+  overflow-y: auto;
+  max-height: 550px; /* Aumentado para mostrar más productos */
+  flex: 1;
+}
+
+/* Custom scrollbar para la tabla */
+.catalog-modal .cart-table-container .table-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.catalog-modal .cart-table-container .table-scroll::-webkit-scrollbar-track {
+  background: var(--bg-light);
+  border-radius: 3px;
+}
+
+.catalog-modal .cart-table-container .table-scroll::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 3px;
+}
+
+.catalog-modal .cart-table-container .table-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
+}
+
+/* Componente custom-table */
+.catalog-modal .cart-table-container custom-table,
+.catalog-modal .cart-table-container [is="custom-table"] {
+  display: block !important;
+  width: 100% !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  height: 100%;
+}
+
+/* Estilos específicos para la tabla del carrito */
+.catalog-modal .cart-table-container .table {
+  margin: 0;
+  background: var(--bg-card);
+  width: 100%;
+  display: table !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.catalog-modal .cart-table-container .table thead {
+  display: table-header-group !important;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg-light);
+}
+
+.catalog-modal .cart-table-container .table th {
+  background: var(--bg-light) !important;
+  color: var(--text-dark) !important;
+  font-weight: 600;
+  border-bottom: 2px solid var(--border-color);
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  text-align: left;
+  display: table-cell !important;
+  position: sticky;
+  top: 0;
+  z-index: 11;
+}
+
+.catalog-modal .cart-table-container .table td {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+  font-size: 0.875rem;
+  display: table-cell !important;
+}
+
+.catalog-modal .cart-table-container .table tbody {
+  display: table-row-group !important;
+}
+
+.catalog-modal .cart-table-container .table tbody tr {
+  display: table-row !important;
+}
+
+.catalog-modal .cart-table-container .table tbody tr:hover {
+  background: var(--bg-light) !important;
+}
+
+.catalog-modal .cart-table-container .table tbody tr:hover td {
+  background: var(--bg-light) !important;
+}
+
+.catalog-modal .cart-table-container .table tbody tr td {
+  display: table-cell !important;
+}
+
+.catalog-modal .cart-table-container .table tbody tr:hover {
+  background: var(--bg-light);
+}
+
+.catalog-modal .cart-table-container .table tbody tr:hover td {
+  background: var(--bg-light);
+}
+
+/* Mejorar contraste de texto en la tabla */
+.catalog-modal .cart-table-container .table td,
+.catalog-modal .cart-table-container .table th {
+  color: var(--text-dark) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Forzar visibilidad de contenido de la tabla */
+.catalog-modal .cart-table-container .table tbody tr,
+.catalog-modal .cart-table-container .table thead tr {
+  display: table-row !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Asegurar que el texto sea visible */
+.catalog-modal .cart-table-container .table td *,
+.catalog-modal .cart-table-container .table th * {
+  color: var(--text-dark) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Inputs dentro de la tabla */
+.catalog-modal .cart-table-container .table input {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+  border: 1px solid var(--border-color) !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 4px !important;
+  width: 60px !important;
+  text-align: center !important;
+}
+
+/* Estilos para cantidades y totales */
+.catalog-modal .cart-table-container .table .text-primary {
+  color: var(--primary-color) !important;
+  font-weight: 600;
+}
+
+.catalog-modal .cart-table-container .table .text-success {
+  color: var(--success-color) !important;
+  font-weight: 600;
+}
+
+/* Estilos específicos para el contenido de la tabla del carrito */
+.catalog-modal .cart-table-container .table .product-name,
+.catalog-modal .cart-table-container .table td:first-child,
+.catalog-modal .cart-table-container .table td:first-child * {
+  color: var(--text-dark) !important;
+  font-weight: 500 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Estilos para cantidades */
+.catalog-modal .cart-table-container .table td:nth-child(2),
+.catalog-modal .cart-table-container .table td:nth-child(2) * {
+  color: var(--text-dark) !important;
+  font-weight: 500 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Estilos para comentarios */
+.catalog-modal .cart-table-container .table td:nth-child(3),
+.catalog-modal .cart-table-container .table td:nth-child(3) * {
+  color: var(--text-muted) !important;
+  font-style: italic !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Forzar visibilidad de todo el contenido */
+.catalog-modal .cart-table-container * {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Estilos para los botones de acción */
+.catalog-modal .action-buttons {
+  display: flex !important;
+  gap: 0.5rem;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.catalog-modal .btn-comment,
+.catalog-modal .btn-remove {
+  padding: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.catalog-modal .btn-comment {
+  background: var(--primary-color);
+  color: white;
+}
+
+.catalog-modal .btn-comment:hover {
+  background: var(--primary-hover);
+  transform: scale(1.05);
+}
+
+.catalog-modal .btn-remove {
+  background: var(--danger-color);
+  color: white;
+}
+
+.catalog-modal .btn-remove:hover {
+  background: #dc2626;
+  transform: scale(1.05);
+}
+
+/* Total del carrito */
+.catalog-modal .cart-total {
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-light);
+}
+
+.catalog-modal .total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.catalog-modal .total-label {
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 1.1rem;
+}
+
+.catalog-modal .total-amount {
+  color: var(--primary-color);
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+/* Estado vacío del carrito */
+.catalog-modal .empty-cart {
+  width: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-left: 1px solid rgba(229, 231, 235, 0.5);
+  position: relative;
+}
+
+.catalog-modal .empty-cart::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.02) 0%, rgba(16, 185, 129, 0.02) 100%);
+  pointer-events: none;
+}
+
+.catalog-modal .empty-cart-content {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-light);
+  position: relative;
+  z-index: 1;
+}
+
+.catalog-modal .empty-cart-animation {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.catalog-modal .empty-cart-icon {
+  font-size: 4rem;
+  color: var(--text-light);
+  opacity: 0.6;
+  animation: emptyCartFloat 3s ease-in-out infinite;
+}
+
+@keyframes emptyCartFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.catalog-modal .floating-dots {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+}
+
+.catalog-modal .dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--primary-color);
+  border-radius: 50%;
+  opacity: 0.7;
+}
+
+.catalog-modal .dot-1 {
+  top: 20%;
+  left: 20%;
+  animation: dotFloat1 2s infinite;
+}
+
+.catalog-modal .dot-2 {
+  top: 60%;
+  right: 20%;
+  animation: dotFloat2 2s infinite 0.5s;
+}
+
+.catalog-modal .dot-3 {
+  bottom: 20%;
+  left: 50%;
+  animation: dotFloat3 2s infinite 1s;
+}
+
+@keyframes dotFloat1 {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.2) translateY(-5px); }
+}
+
+@keyframes dotFloat2 {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.2) translateY(-8px); }
+}
+
+@keyframes dotFloat3 {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.2) translateY(-3px); }
+}
+
+.catalog-modal .empty-cart-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 0.5rem;
+}
+
+.catalog-modal .empty-cart-description {
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-light);
+}
+
+.catalog-modal .empty-cart-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary-color);
+  background: rgba(99, 102, 241, 0.1);
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: var(--transition);
+  box-shadow: var(--shadow-medium);
+  animation: ctaPulse 2s infinite;
+}
+
+@keyframes ctaPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.catalog-modal .empty-cart-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-heavy);
+}
+
+/* Mejoras específicas para métodos de pago */
+.payment-method-button {
+  background: var(--bg-card) !important;
+  color: var(--text-dark) !important;
+  border: 2px solid var(--border-color) !important;
+  transition: var(--transition);
+}
+
+.payment-method-button:hover {
+  background: var(--primary-color) !important;
+  color: white !important;
+  border-color: var(--primary-color) !important;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.payment-method-button.active {
+  background: var(--primary-color) !important;
+  color: white !important;
+  border-color: var(--primary-color) !important;
+}
+
+/* Estilos para botones del footer */
+.catalog-modal .modal-footer .btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  transition: var(--transition);
+  border: none;
+  margin: 0.25rem;
+}
+
+.catalog-modal .bg-primario {
+  background: var(--primary-color) !important;
+  color: white !important;
+}
+
+.catalog-modal .bg-primario:hover {
+  background: var(--primary-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-medium);
+}
+
+.catalog-modal .bg-secundario {
+  background: var(--accent-color) !important;
+  color: white !important;
+}
+
+.catalog-modal .bg-secundario:hover {
+  background: #059669 !important;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-medium);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .catalog-modal .cart-panel {
+    width: 350px;
+  }
+  
+  .catalog-modal .categories-sidebar {
+    width: 250px;
+  }
+}
+
+@media (max-width: 992px) {
+  .catalog-modal .cart-panel {
+    width: 300px;
+  }
+  
+  .catalog-modal .categories-sidebar {
+    width: 200px;
+  }
+  
+  .catalog-modal .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .catalog-modal .catalog-container {
+    flex-direction: column;
+  }
+  
+  .catalog-modal .categories-sidebar {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+  }
+  
+  .catalog-modal .cart-panel {
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+  }
+  
+  .catalog-modal .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
+/* Estilos para el autocomplete dropdown */
+.autocomplete {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.autocomplete-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 3rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 0.95rem;
+  background: var(--bg-light);
+  color: var(--text-dark);
+  transition: var(--transition);
+  position: relative;
+}
+
+.autocomplete-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.autocomplete-result-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-heavy);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  margin-top: 4px;
+  backdrop-filter: blur(10px);
+}
+
+.autocomplete-result {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(209, 213, 219, 0.3);
+  transition: var(--transition);
+  color: var(--text-dark);
+  font-size: 0.95rem;
+}
+
+.autocomplete-result:hover,
+.autocomplete-result:focus,
+.autocomplete-result.is-selected {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  color: white;
+  transform: translateX(4px);
+}
+
+.autocomplete-result:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-result:first-child {
+  border-top-left-radius: var(--border-radius);
+  border-top-right-radius: var(--border-radius);
+}
+
+.autocomplete-result:last-child {
+  border-bottom-left-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
+}
+
+/* Animación para el dropdown dentro del modal */
+.catalog-modal .autocomplete .autocomplete-result-list {
+  animation: fadeInDown 0.3s ease-out;
+}
+
+/* Animación para el dropdown */
+.autocomplete-result-list {
+  animation: fadeInDown 0.3s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilos específicos para vue-autocomplete dentro del modal catalog */
+.catalog-modal .autocomplete {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.catalog-modal .autocomplete .autocomplete-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 3rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 0.95rem;
+  background: var(--bg-light);
+  color: var(--text-dark);
+  transition: var(--transition);
+  position: relative;
+}
+
+.catalog-modal .autocomplete .autocomplete-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.catalog-modal .autocomplete .autocomplete-result-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-heavy);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  margin-top: 4px;
+  backdrop-filter: blur(10px);
+}
+
+.catalog-modal .autocomplete .autocomplete-result {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(209, 213, 219, 0.3);
+  transition: var(--transition);
+  color: var(--text-dark);
+  font-size: 0.95rem;
+}
+
+.catalog-modal .autocomplete .autocomplete-result:hover,
+.catalog-modal .autocomplete .autocomplete-result:focus,
+.catalog-modal .autocomplete .autocomplete-result.is-selected {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  color: white;
+  transform: translateX(4px);
+}
+
+.catalog-modal .autocomplete .autocomplete-result:last-child {
+  border-bottom: none;
+}
+
+.catalog-modal .autocomplete .autocomplete-result:first-child {
+  border-top-left-radius: var(--border-radius);
+  border-top-right-radius: var(--border-radius);
+}
+
+.catalog-modal .autocomplete .autocomplete-result:last-child {
+  border-bottom-left-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
+}
+
+/* Animación para el dropdown dentro del modal */
+.catalog-modal .autocomplete .autocomplete-result-list {
+  animation: fadeInDown 0.3s ease-out;
+}
+
+/* ...existing code... */

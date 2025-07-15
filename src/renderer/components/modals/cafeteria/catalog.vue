@@ -1,86 +1,180 @@
 <template>
-  <div class="modal fade" id="modalCatalog" tabindex="-1" role="dialog" aria-labelledby="modalCatalog"
+  <div class="modal fade catalog-modal" id="modalCatalog" tabindex="-1" role="dialog" aria-labelledby="modalCatalog"
     aria-hidden="true" data-backdrop="false">
-    <div class="modal-dialog lg-modal modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header bg-primario">
-          <h5 class="modal-title">Catalogo</h5>
-          <button type="button" class="close text-white" @click="closeModal(false)" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+      <div class="modal-content modern-modal">
+        <!-- Header moderno con glassmorphism -->
+        <div class="modal-header">
+          <div class="header-content">
+            <div class="header-icon-container">
+              <div class="header-icon">
+                <i class="fas fa-store"></i>
+              </div>
+              <div class="icon-glow"></div>
+            </div>
+            <div class="header-text">
+              <h4 class="modal-title">Catálogo de Productos</h4>
+              <p class="header-subtitle">Selecciona productos para tu pedido</p>
+            </div>
+          </div>
+          <div class="header-actions">
+            <div class="stats-badge">
+              <i class="fas fa-box"></i>
+              <span>{{ products ? products.length : 0 }}</span>
+            </div>
+            <!-- Indicador de método de pago especial -->
+            <div v-if="isSpecialPaymentDay" class="stats-badge" style="background: #10b981; color: white;" 
+                 :title="'Método de pago Banco De Chile 20% DESCUENTO disponible - ' + (specialPaymentInfo ? specialPaymentInfo.day : 'Hoy')">
+              <i class="fas fa-percentage"></i>
+              <span>-20%</span>
+            </div>
+            <button type="button" class="btn-close" @click="closeModal(false)" aria-label="Close">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
         </div>
-        <div class="modal-body p-0" style="overflow: auto; max-height: 70vh;">
-          <div class="d-flex flex-wrap">
+
+        <!-- Body con grid moderno -->
+        <div class="modal-body">
+          <div class="catalog-container">
+            
+            <!-- Sidebar de categorías con animaciones -->
             <div v-if="(categoriesInstalled && Allcategories && Allcategories.length > 0)"
-              class="col-md-2 boxCategories">
-              <h5 class="text-primario my-2 text-center">
-                Categorias
-              </h5>
-              <div @click="changeCategorie(categorie.id)"
-                :class="['btnCategorieSelect text-center', (categorieNow == categorie.id) ? 'btnCategorieSelect_active' : '']"
-                v-for="(categorie, index) in Allcategories" :key="index">
-                {{ categorie.name }}
+              class="categories-sidebar">
+              
+              <div class="categories-section">
+                <div class="categories-header">
+                  <h6 class="categories-title">
+                    <i class="fas fa-tags"></i>
+                    Categorías
+                  </h6>
+                  <div class="categories-count">{{ Allcategories.length }}</div>
+                </div>
+                
+                <div class="categories-list">
+                  <button 
+                    @click="changeCategorie(categorie.id)"
+                    :class="['category-btn', (categorieNow == categorie.id) ? 'category-btn-active' : '']"
+                    v-for="(categorie, index) in Allcategories" 
+                    :key="index">
+                    <div class="category-icon">
+                      <i :class="getCategoryIcon(categorie.name)"></i>
+                    </div>
+                    <span class="category-name">{{ categorie.name }}</span>
+                    <div class="category-arrow">
+                      <i class="fas fa-chevron-right"></i>
+                    </div>
+                    <div class="category-glow"></div>
+                  </button>
+                </div>
               </div>
             </div>
-            <div
-              :class="['boxProducts mt-2 ', (categoriesInstalled && Allcategories && ((Allcategories.length > 0 && jsonTable.items.length == 0) || (Allcategories.length == 0 && jsonTable.items.length > 0))) ? 'col-md-10' : 'col-md-6']">
-              <div class="d-flex flex-wrap">
-                <div class="col-12">
-                  <div class="autocomplete-input-container">
-                    <autocomplete :search="search" placeholder="Buscar" :getResultValue="getSearchValue"
-                      @submit="submitAutocomplete" ref="productAutocomplete"></autocomplete>
-                  </div>
-                </div>
+
+            <!-- Área principal de productos -->
+            <div class="products-area">
+              <!-- Grid de productos -->
+              <div class="products-grid">
                 <div v-for="(product, index) in filteredList" :key="index"
                   v-if="(products && products.length > 0 && (!cecinaInstalled || (cecinaInstalled && product.cecina)))"
-                  class="col-md-3 col-sm-6 col-12">
+                  class="product-item">
                   <card-product-orders :product="product" @clickEmit="AddProduct" />
                 </div>
-                <div v-else class="col-12 text-center mt-5 pt-5">
-                  <h2>Sin resultados</h2>
-                </div>
-              </div>
-            </div>
-            <div v-if="jsonTable.items.length > 0" class="col-md-4 boxProductsSend">
-
-              <div class="descriptionTextContainer mb-2" v-if="ticket_sell_client">
-                <label>Nombre del cliente</label>
-                <textarea v-model="clientTicket"></textarea>
-              </div>
-              <div>
-
-                <custom-table v-model="jsonTable" v-slot="props" v-on:onBlur="FunctionBlurInputEditable">
-                  <div style="display: inline-flex;">
-                    <a class="btn bg-primario text-black btnRemoveProduct mr-1" @click="openCommentProduct(props.item)">
-                      <i class="far fa-comment"></i>
-                    </a>
-
-                    <a class="btn bg-danger text-white btnRemoveProduct" @click="removeProduct(props.item)">
-                      <i class="fas fa-times"></i>
-                    </a>
+                <div v-if="!products || products.length === 0" class="no-results">
+                  <div class="no-results-content">
+                    <i class="fas fa-search-minus no-results-icon"></i>
+                    <h3>Sin resultados</h3>
+                    <p>No se encontraron productos que coincidan con tu búsqueda</p>
                   </div>
-                </custom-table>
-
-                <div class="footerTableTicket d-flex justify-content-between">
-                  <h6 class="">
-                    TOTAL
-                  </h6>
-                  <h6>
-                    {{ formatNumber(total) }}$
-                  </h6>
                 </div>
               </div>
-              <div class="descriptionTextContainer" v-on:keyup.enter="addCommentProduct(productComment)"
-                v-if="product_comentario">
-                <label>Comentario</label>
-                <textarea v-model="product_comentario_text"></textarea>
-              </div>
-              <div class="descriptionTextContainer" v-if="ticket_description">
-                <label>Descripcion</label>
-                <textarea v-model="ticketDescription"></textarea>
-              </div>
-
             </div>
+
+            <!-- Panel lateral del carrito con glassmorphism -->
+            <div v-if="jsonTable.items.length > 0" class="cart-panel">
+   
+
+              <div class="cart-content">
+                <!-- Campo de cliente si está habilitado -->
+                <div v-if="ticket_sell_client" class="client-section">
+                  <label class="form-label">
+                    <i class="fas fa-user me-2"></i>
+                    Nombre del cliente
+                  </label>
+                  <input v-model="clientTicket" class="form-control modern-input" 
+                    type="text" placeholder="Ingresa el nombre del cliente..." />
+                </div>
+
+                <!-- Campo de descripción si está habilitado -->
+                <div v-if="ticket_description" class="description-section">
+                  <label class="form-label">
+                    <i class="fas fa-file-text me-2"></i>
+                    Descripción del pedido
+                  </label>
+                  <input v-model="ticketDescription" class="form-control modern-input"
+                    type="text" placeholder="Agregar descripción del pedido..." />
+                </div>
+
+                <!-- Tabla de productos en el carrito -->
+                <div class="cart-table-container">
+                  <div class="table-scroll">
+                    <custom-table v-model="jsonTable" v-slot="props" v-on:onBlur="FunctionBlurInputEditable">
+                      <div class="action-buttons">
+                        <button class="btn-comment" @click="openCommentProduct(props.item)" 
+                          :title="'Agregar comentario'">
+                          <i class="far fa-comment"></i>
+                        </button>
+                        <button class="btn-remove" @click="removeProduct(props.item)" 
+                          :title="'Eliminar producto'">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+                    </custom-table>
+                  </div>
+                </div>
+
+                <!-- Total del pedido -->
+                <div class="cart-total">
+                  <div class="total-row">
+                    <span class="total-label">TOTAL</span>
+                    <span class="total-amount">${{ formatNumber(total) }}</span>
+                  </div>
+                </div>
+
+                <!-- Campo de comentario si está activo -->
+                <div v-if="product_comentario" class="comment-section">
+                  <label class="form-label">
+                    <i class="fas fa-comment me-2"></i>
+                    Comentario del producto
+                  </label>
+                  <textarea 
+                    v-model="product_comentario_text" 
+                    @keyup.enter="addCommentProduct(productComment)"
+                    class="form-control modern-textarea"
+                    placeholder="Agregar comentario especial..."></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Estado vacío del carrito con animación -->
+            <div v-else class="empty-cart">
+              <div class="empty-cart-content">
+                <div class="empty-cart-animation">
+                  <i class="fas fa-shopping-cart empty-cart-icon"></i>
+                  <div class="floating-dots">
+                    <div class="dot dot-1"></div>
+                    <div class="dot dot-2"></div>
+                    <div class="dot dot-3"></div>
+                  </div>
+                </div>
+                <h4 class="empty-cart-title">Tu carrito está vacío</h4>
+                <p class="empty-cart-description">Agrega productos seleccionándolos del catálogo</p>
+                <div class="empty-cart-cta">
+                  <i class="fas fa-hand-point-left"></i>
+                  <span>Explora nuestros productos</span>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -153,6 +247,25 @@
                 class="btn bg-primario text-white">
                 Ticket + Multicaja
               </button>
+              <button v-if="settingPedidosYa" @click="viewTicket('pedidos_ya')" type="button"
+                class="btn bg-primario text-white">
+                Ticket + Boleta Pedidos Ya
+              </button>
+              <button v-if="settingPluxee" @click="viewTicket('pluxee')" type="button"
+                class="btn bg-primario text-white">
+                Ticket + Boleta Pluxee
+              </button>
+              
+              <!-- Botón especial para Banco De Chile 20% (solo lunes y martes) -->
+              <button v-if="settingBancoChile20 && isSpecialPaymentDay" @click="viewTicket('banco_chile_20')" type="button"
+                class="btn bg-success text-white" style="font-weight: bold;">
+                <i class="fas fa-percentage me-2"></i>
+                Ticket + Banco De Chile 20% DESC
+                <small class="d-block" style="font-size: 0.75em;">
+                  Solo {{ specialPaymentInfo ? specialPaymentInfo.day : 'lunes y martes' }}
+                </small>
+              </button>
+              
               <button v-if="ticket_sell_close" type="button" class="btn bg-primario text-white"
                 @click="viewTicket('ticket_venta')">
                 Ticket + Cerrar venta
@@ -238,18 +351,21 @@ export default {
       bebidasCategorieId:3,
       // salsaExtraId:11,
       promo_active:false,
+      // Datos para método de pago especial Banco De Chile 20%
+      chileTime: null,
+      isSpecialPaymentDay: false,
       jsonTable: {
         btn: true,
         items: [],
         rows: [
           { key: 'name', class: '', permission: 'default' },
           { key: 'quantity', class: 'text-center', permission: 'default', edit: true },
-          { key: 'comment', class: 'text-center', permission: 'default' },
+          // { key: 'comment', class: 'text-center', permission: 'default' }, // Oculto temporalmente
         ],
         titles: [
           { label: 'Nombre', class: '', permission: 'default', type: false },
           { label: 'Cantidad', class: 'text-center w-30', permission: 'default', type: false },
-          { label: 'Comentario', class: 'text-center', permission: 'default', type: false },
+          // { label: 'Comentario', class: 'text-center', permission: 'default', type: false }, // Oculto temporalmente
           { label: 'Acciones', class: 'text-center', permission: 'default', type: false },
         ]
       }
@@ -267,7 +383,14 @@ export default {
     //HavePermission
     this.refreshData(false, true);
     this.product_comentario = false;
-
+    
+    // Verificar la hora de Chile para el método de pago especial
+    this.checkChileTime();
+    
+    // Verificar la hora cada 5 minutos por si cambia el día
+    setInterval(() => {
+      this.checkChileTime();
+    }, 300000); // 5 minutos = 300,000 ms
   },
   methods: {
     // tickets (require board)
@@ -280,12 +403,51 @@ export default {
       }
       if (this.gananciaInstalled && (this.gananciaTotal == null || this.gananciaTotal == '')) this.gananciaTotal = 0;
 
+      // Si es el método de pago especial con 20%, aplicar el descuento
+      if (val === 'banco_chile_20') {
+        if (!this.isSpecialPaymentDay) {
+          this.$awn.alert('Este método de pago solo está disponible los lunes y martes');
+          return false;
+        }
+        
+        // Calcular el 20% de descuento
+        const originalTotal = this.total;
+        const twentyPercentDiscount = originalTotal * 0.20;
+        const totalWithDiscount = originalTotal - twentyPercentDiscount;
+        
+        // Confirmar con el usuario
+        const confirmMessage = `¿Confirmar pago con Banco De Chile 20% DESCUENTO?\n\nTotal original: $${this.formatNumber(originalTotal)}\n20% descuento: -$${this.formatNumber(twentyPercentDiscount)}\nTotal final: $${this.formatNumber(totalWithDiscount)}`;
+        
+        if (!confirm(confirmMessage)) {
+          return false;
+        }
+        
+        // Actualizar el total con el 20% de descuento
+        this.total = totalWithDiscount;
+      }
+
       // Datos basicos
       this.ticketData = {
         products: this.productoSend,
         total: this.total,
         gananciaTotal: this.gananciaTotal
       }
+      
+      // Si es el método de pago especial con 20%, agregar información extra para reportes
+      if (val === 'banco_chile_20') {
+        this.ticketData.specialPayment = {
+          paymentType: 'banco_chile_20',
+          method: 'Banco De Chile 20%',
+          description: 'Pago especial con 20% de descuento disponible solo lunes y martes',
+          originalTotal: this.total / 0.80, // Total original antes del descuento
+          discountAmount: (this.total / 0.80) - this.total, // Cantidad del descuento
+          finalTotal: this.total,
+          date: this.chileTime ? this.chileTime.toISOString() : new Date().toISOString(),
+          dayOfWeek: this.chileTime ? this.chileTime.getDay() : new Date().getDay(),
+          enabled: this.isSpecialPaymentDay
+        };
+      }
+      
       if (this.ticket_description) {
         this.ticketData.description = this.ticketDescription;
       }
@@ -369,6 +531,41 @@ export default {
         return FormatNumber.deFormatBackend(number);
       } else {
         return FormatNumber.deFormat(number);
+      }
+    },
+
+    // Método para obtener la hora de Chile y verificar si es lunes o martes
+    async checkChileTime() {
+      try {
+        // Obtener la hora actual del sistema en zona horaria de Chile
+        const chileTimeZone = 'America/Santiago';
+        const now = new Date();
+        
+        // Crear fecha en zona horaria de Chile
+        const chileTime = new Date(now.toLocaleString("en-US", {timeZone: chileTimeZone}));
+        
+        // Obtener el día de la semana (0=domingo, 1=lunes, 2=martes, etc.)
+        const dayOfWeek = chileTime.getDay();
+        
+        // Verificar si es lunes (1) o martes (2)
+        const isMonday = dayOfWeek === 1;
+        const isThursday = dayOfWeek === 2;
+        this.isSpecialPaymentDay = isMonday || isThursday;
+        this.chileTime = chileTime;
+        
+        const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        
+        console.log('=== MÉTODO DE PAGO ESPECIAL BANCO DE CHILE 20% ===');
+        console.log('Hora actual de Chile:', chileTime.toLocaleString('es-CL'));
+        console.log('Día de la semana:', dayNames[dayOfWeek]);
+        console.log('Es día especial (lunes o martes):', this.isSpecialPaymentDay);
+        console.log('Método de pago disponible:', this.isSpecialPaymentDay ? 'SÍ' : 'NO');
+        
+        return this.isSpecialPaymentDay;
+      } catch (error) {
+        console.error('Error obteniendo hora de Chile:', error);
+        this.isSpecialPaymentDay = false;
+        return false;
       }
     },
 
@@ -711,7 +908,7 @@ export default {
             var pCantidad = precios[p].cantidad;
             var pNextCantidad = precios[p + 1].cantidad;
 
-            //Aqui es cuando hay mas precios
+            //Aqui es cuando hay mas de un precio
             if (cantidad >= parseFloat(pCantidad) && cantidad < parseFloat(pNextCantidad)) {
 
               var precioVarianteActual = precioActual;
@@ -793,6 +990,37 @@ export default {
     FunctionBlurInputEditable(prod) {
       prod.desde = "inputedit";
       this.quantityAdd(prod);
+    },
+
+    getCategoryIcon(categoryName) {
+      const icons = {
+        'Pastas': 'fas fa-utensils',
+        'Pasta': 'fas fa-utensils',
+        'Bigoli': 'fas fa-utensils',
+        'Fetuccini': 'fas fa-utensils',
+        'Bebidas': 'fas fa-glass-cheers',
+        'Bebida': 'fas fa-glass-cheers',
+        'Extras': 'fas fa-plus-circle',
+        'Extra': 'fas fa-plus-circle',
+        'Focaccias': 'fas fa-bread-slice',
+        'Focaccia': 'fas fa-bread-slice',
+        'Promociones': 'fas fa-fire',
+        'Promoción': 'fas fa-fire',
+        'Promo': 'fas fa-fire',
+        'Salsas': 'fas fa-pepper-hot',
+        'Salsa': 'fas fa-pepper-hot',
+        'Rappi': 'fas fa-motorcycle',
+        'Postres': 'fas fa-ice-cream',
+        'Postre': 'fas fa-ice-cream',
+        'Cafe': 'fas fa-coffee',
+        'Café': 'fas fa-coffee',
+        'Pizza': 'fas fa-pizza-slice',
+        'Pizzas': 'fas fa-pizza-slice',
+        'Ensaladas': 'fas fa-leaf',
+        'Ensalada': 'fas fa-leaf'
+      };
+      
+      return icons[categoryName] || 'fas fa-folder';
     }
 
   },
@@ -946,6 +1174,27 @@ export default {
       }
     },
 
+    settingPedidosYa: {
+      get() {
+        if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+        return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.pedidos_ya');
+      }
+    },
+
+    settingPluxee: {
+      get() {
+        if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+        return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.pluxee');
+      }
+    },
+
+    settingBancoChile20: {
+      get() {
+        if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+        return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.banco_chile_20');
+      }
+    },
+
     settingVenderSinStock: {
       get() {
         return ConfigHelper.ConfStr('modulos.ventas.ajustes.permitir_venta_sin_stock');
@@ -998,104 +1247,28 @@ export default {
         return this.categorieNow == this.promoCategorieId
       }
     },
+
+    // Computed property para mostrar información del día especial
+    specialPaymentInfo: {
+      get() {
+        if (!this.chileTime) return null;
+        
+        const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const dayOfWeek = this.chileTime.getDay();
+        
+        return {
+          day: dayNames[dayOfWeek],
+          date: this.chileTime.toLocaleDateString('es-CL'),
+          time: this.chileTime.toLocaleTimeString('es-CL'),
+          isSpecialDay: this.isSpecialPaymentDay
+        };
+      }
+    },
   },
 }
 </script>
 
-<style media="screen">
-.descriptionTextContainer {
-  display: flex;
-  flex-direction: column;
-}
-
-.descriptionTextContainer label {
-  flex: 1;
-}
-
-.descriptionTextContainer textarea {
-  flex: 1;
-}
-
-.btnRemoveProduct {
-  padding: 0px !important;
-  border-radius: 50% !important;
-  height: 20px !important;
-  width: 20px !important;
-  font-size: 14px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.modalForce {
-  background: rgba(0, 0, 0, .8) !important;
-}
-
-.inputSearch {
-  margin: 10px 0px;
-  width: 100%;
-  max-width: 500px;
-}
-
-.autocomplete-input-container {
-  flex: 1;
-  max-width: 550px;
-}
-
-.boxCategories {
-  transition: .4s all ease !important;
-  height: 68vh;
-  overflow: overlay;
-  padding: 0px !important;
-}
-
-.boxProductsSend {
-  transition: .4s all ease !important;
-  height: 68vh;
-  overflow: overlay;
-  padding: 0px !important;
-}
-
-.boxProducts {
-  transition: .4s all ease !important;
-  height: 68vh;
-  overflow: overlay;
-}
-
-.btnCategorieSelect {
-  padding: 10px 5px;
-  width: 100%;
-  border: 1px solid var(--primary);
-  color: var(--primary);
-  background: transparent;
-  font-weight: bold;
-  break-after: always;
-  user-select: none;
-  cursor: pointer;
-  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-.btnCategorieSelect_active {
-  background: var(--primary);
-  color: #fff;
-}
-
-.btnCategorieSelect:hover {
-  background: var(--primary);
-  color: #fff;
-}
-
-@media (max-width: 767px) {
-  .boxCategories {
-    display: none !important;
-  }
-
-  .boxProductsSend {
-    height: 165px;
-  }
-
-  .boxProducts {
-    height: 320px;
-  }
-}
+<style>
+@import '../../../css/catalog-modal.css';
 </style>
+

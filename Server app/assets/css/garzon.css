@@ -1,0 +1,10 @@
+:root{
+    --bac: #363636;
+}
+
+.btn-garzon{
+    border-color: var(--bac) !important;
+    border-width: 1px !important;
+    border-radius: 0px;
+    height: 96px !important;
+}

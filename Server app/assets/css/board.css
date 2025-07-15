@@ -1,0 +1,56 @@
+:root{
+    --bac: #363636;
+    --bac2 :#8f8f8f;
+}
+
+.btn-board{
+    border-color: var(--bac) !important;
+    border-width: 1px !important;
+    border-radius: 0px !important;
+    height: 96px !important;
+}
+
+.btn-board-ocupado{
+    background-color: #616161 !important;
+    color: rgb(255, 255, 255) !important;
+
+}
+
+.prodcut-container{
+    height: calc(100vh - 224px) !important;
+    overflow-y: auto;
+
+}
+
+.modal-control .modal-content{
+    background-color: var(--bac);
+    color: #aaaaaa;
+}
+
+.modal-control .modal-footer{
+    background-color: var(--bac2)!important;
+}
+
+.modal-control .modal-header{
+    background-color: var(--bac2)!important;
+    color: #ffffff;
+}
+
+.modal-control .modal-footer input{
+    background-color: var(--bac) !important;
+    color: aliceblue !important;
+}
+
+.modal-control .modal-footer button{
+    border-radius: 0px;
+    border-width: 1px;
+    border-color: var(--bac) !important;
+}
+
+.modal-control .modal-body .togle{
+    background-color: var(--bac2);
+    color: #ffffff;
+    font-weight: 400;
+    border-width: 2px;
+    border-color: var(--bac) !important;
+}

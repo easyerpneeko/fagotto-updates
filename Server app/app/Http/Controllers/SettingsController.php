@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+use App\Relations\Settings_modules_apps;
+
+class SettingsController extends Controller
+{
+    //Je esto era lo que debias hacer no era tan dificil como pense xdd
+    public function putSettingOfModule(Request $request,$id){
+
+      $setting = Settings_modules_apps::find($id);
+
+      if (!$setting) return response()->json('Relacion setting-module-app no encontrada.',404);
+      if (!$request->has('value')) return response()->json('Debe enviar un valor.',400);
+
+      $setting = $setting->setValue($request->input('value'));//<- esta funcionsita que cree no hace la gran vaina, velo tu mismo
+      if (!$setting) return response()->json('Error indefinido al modificar setting.',500);
+
+      return response()->json('Setting activado/desactivado correctamente.', 200);
+
+    }
+}

@@ -60,6 +60,10 @@
                   <span class="text-info" v-if="item.type == 'created'">Creacion</span>
                   <span class="text-info" v-if="item.type == 'deleted'">Eliminacion</span>
                   <span class="text-success" v-if="item.type == 'stock'">ENTRADA</span>
+                  <!-- Métodos de pago (cualquier otro valor que no sea de historial) -->
+                  <span v-if="item.type && item.type != 'updated' && item.type != 'created' && item.type != 'deleted' && item.type != 'stock'">
+                    {{ item.type }}
+                  </span>
                 </div>
                 <!-- Campo especial para mostrar el campo afectado de actualizacion en historial de productos -->
                 <div v-if="(key.key == 'field_afected')" class="m-0">

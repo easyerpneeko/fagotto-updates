@@ -1,0 +1,461 @@
+// Fonts
+@import url('https://fonts.googleapis.com/css?family=Nunito');
+
+// Font Awesome
+@import '~@fortawesome/fontawesome-free/scss/brands';
+@import '~@fortawesome/fontawesome-free/scss/regular';
+@import '~@fortawesome/fontawesome-free/scss/solid';
+@import '~@fortawesome/fontawesome-free/scss/fontawesome';
+
+// Variables
+// @import 'variables';
+
+// Bootstrap
+@import '~bootstrap/scss/bootstrap';
+
+// AdminLTE
+@import '~admin-lte/dist/css/adminlte.css';
+@import '~admin-lte/plugins/icheck-bootstrap/icheck-bootstrap.min.css';
+
+.content-wrapper{
+  min-height: 100vh !important;
+}
+
+:root{
+  --primary: #0B4F6C;
+  --secondary: #6CCFF6;
+  --secondary-light: rgba(108, 207, 246, 0.6);
+  --tertiary: lightslategray;
+  --background-1: rgba(230, 230, 230, 1);
+  --primary-dark: #292F36;
+  --secondary-dark: rgb(243, 242, 242);
+}
+.bg-one{
+  background-color: var(--primary);
+  color: #fff !important;
+}
+.bg-dark-one{
+  background-color: rgb(15 68 90);
+  color: #fff !important;
+}
+.bg-two{
+  background-color: var(--secondary);
+  color: #fff !important;
+}
+.bg-dark{
+  background-color: var(--primary-dark);
+  color: #fff !important;
+}
+.bg-light{
+  background-color: var(--secondary-dark);
+  color: var(--primary-dark) !important;
+}
+.c-one{
+  color: var(--primary);
+}
+.c-dark-one{
+  color: rgb(15 68 90);
+}
+.c-two{
+  color: var(--secondary);
+}
+.c-dark{
+  color: var(--primary-dark);
+}
+.c-light{
+  color: var(--secondary-dark);
+}
+.text_decoration{
+  text-decoration: none !important;
+}
+
+body{
+  overflow-y: scroll;
+  ::-webkit-scrollbar{
+    width:4px;
+  }
+  ::-webkit-scrollbar-track{
+    background:#c0c0c0;
+    border-radius:50px;
+  }
+  ::-webkit-scrollbar-thumb{
+    background:#000000;
+    border-radius:50px;
+  }
+}
+.modal-backdrop{
+  z-index: 1050 !important;
+}
+/* Reset Select */
+.select_class {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  outline: 0;
+  box-shadow: none;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fff;
+  background-image: none;
+
+  flex: 1;
+  padding: 0 .5em;
+  color: #292F36;
+  cursor: pointer;
+}
+/* Remove IE arrow */
+.select_class::-ms-expand {
+  display: none;
+}
+/* Custom Select */
+.select {
+  position: relative;
+  display: flex;
+  width: 20em;
+  height: 2.4em;
+  line-height: 3;
+  overflow: hidden;
+  border-radius: .25em;
+  width: 100%;
+}
+/* Arrow */
+.select::after {
+  content: '\25BC';
+  position: absolute;
+  top: -4px;
+  right: 0;
+  padding: 0 1em;
+  cursor: pointer;
+  pointer-events: none;
+  -webkit-transition: .25s all ease;
+  -o-transition: .25s all ease;
+  transition: .25s all ease;
+}
+/* Transition */
+.select:hover::after {
+  color: #0B4F6C;
+}
+.disabled{
+  cursor: not-allowed !important;
+}
+//
+.brand-image1{
+  float: left;
+  opacity: .8;
+  line-height: .8;
+  margin-left: .8rem;
+  margin-right: .5rem;
+  margin-top: -3px;
+  height: 33px;
+  width: 33px;
+}
+.brand-image2{
+  line-height: .8;
+  margin-left: .8rem;
+  margin-right: .5rem;
+  margin-top: -3px;
+  max-height: 33px;
+  max-width: 113px;
+}
+.login-page{
+  height: 100vh;
+  background: rgba(0,0,0,.4);
+  color: #fff;
+}
+.login-page-rgba{
+  background-image: url('../assets/images/bg-1.jpg');
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.vh-88{
+  min-height: 88vh;
+}
+.scrollApp{
+  max-height: 65vh !important;
+  overflow-y: scroll;
+  scrollbar-color: black rgba(0,0,0,.1);
+  scrollbar-width: thin;
+}
+::-webkit-scrollbar{
+  width: 6px;
+}
+::-webkit-scrollbar-track{
+  background: rgba(0,0,0,.1);
+  border-radius:50px;
+}
+::-webkit-scrollbar-thumb{
+  background:#000000;
+  border-radius:50px;
+}
+.formDate{
+  width: 95%;
+  input{
+    display: block;
+    width: 100%;
+    height: calc(1.5em + 0.75rem + 2px);
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+  }
+}
+.clock{
+  width: 5%;
+}
+.card-modules{
+  padding: 0px;
+  border-radius: 0px !important;
+  margin: 0px !important;
+}
+.text-font-modules{
+  font-size: 15px !important;
+}
+.text-font-submodules{
+  font-size: 14px !important;
+  padding-left: 20px;
+}
+.borderless{
+  border: none !important;
+}
+.bg-gris{
+  background: #cac5c5;
+}
+.btn-add-module{
+  color: #000 !important;
+  text-decoration: none;
+  transition: .4s all ease;
+}
+.btn-add-module:hover{
+  color: #828080 !important;
+  text-decoration: none;
+}
+.text-capitallice{
+  text-transform: capitalize;
+}
+.login-box{
+    font-size: 18px;
+}
+.close{
+  cursor: pointer;
+}
+.login-logo{
+    font-size:38px;
+}
+
+.form-font{
+    font-size: 18px;
+}
+
+.btn_login{
+    font-size: 18px;
+}
+
+.card_size{
+    padding: 30px;
+}
+
+.font-btn{
+  font-size: 17px;
+}
+
+.icheck-primary{
+  font-size: 16px;
+}
+.text-description{
+  text-align: justify;
+}
+
+$modal-xl: 900px;
+$modal-xxl: 1040px;
+$modal-xxxl: 1180px;
+$modal-90per: 90%;
+
+.modal-fullscreen {
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+  height: 100%;
+
+  .modal-body {
+    padding: 0;
+  }
+
+  .modal-content {
+    height: 100%;
+  }
+  &.aside .modal-content {
+    height: auto;
+  }
+  &.modal-dialog.aside.modal-stack1 .modal-content {
+    transform: scale(1) translate(0, 0) !important;
+  }
+}
+
+//modal without border
+.modal-dialog.modal-border-0 {
+  .modal-content {
+    border: none;
+  }
+}
+
+
+$transition-duration: 250ms !default;
+$translate-offset: 50px !default;
+$timing-function: cubic-bezier(.53,2,.36,.85) !default;
+
+//translate fade (right to left)
+.translate-fade-enter-active, .translate-fade-leave-active {
+  transition: all $transition-duration;
+  transition-timing-function: $timing-function;
+}
+.translate-fade-enter, .translate-fade-leave-active {
+  opacity: 0;
+}
+.translate-fade-enter {
+  transform: translateX($translate-offset);
+}
+.translate-fade-leave-active {
+  transform: translateX($translate-offset);
+}
+
+.user-panel-img{
+  height: 2.1rem !important;
+  width: 2.1rem !important;
+}
+
+.aler-error-login{
+  font-size: 18px;
+}
+
+
+.card-title-padding{
+  margin: .50rem auto;
+}
+
+.card-header > .card-tools{
+  margin-top: 2px;
+}
+
+.close{
+  margin: -10px 0 !important;
+}
+
+.width-name{
+  width: 30%;
+}
+
+.width-username{
+  width: 20%;
+}
+
+.width-app{
+  width: 15%;
+}
+
+.width-view-more{
+  width: 14%;
+}
+
+// min-width
+@media screen and (min-width: 800px){
+  .modal-dialog {
+    &.modal-xxl{
+      width: 98%;
+      max-width: 1040px;
+    }
+  }
+}
+@media (min-width: 768px) {
+  .modal-xl {
+    max-width: $modal-xl;
+  }
+  .modal-xxl {
+    max-width: $modal-xxl;
+  }
+  .modal-xxxl{
+    max-width: $modal-xxxl;
+  }
+  .modal-90per {
+    max-width: $modal-90per;
+  }
+}
+@media screen and (min-width: 640px){
+  .modal-dialog {
+    &.modal-xxl{
+      width: 98%;
+      max-width: 1040px;
+    }
+  }
+}
+
+// max-width
+@media screen and (max-width:768px ){
+  .display-none{
+    display: none !important;
+  }
+
+  .width-name{
+    width: 30% !important;
+  }
+
+  .width-username{
+    width: 0% !important;
+  }
+
+  .width-app{
+    width: 0% !important;
+  }
+
+  .width-view-more{
+    width: 40% !important;
+  }
+
+  .btn-font-r{
+    font-size: 13px !important;
+  }
+}
+
+@media screen and (max-width:445px ) {
+  .width-name{
+    font-size: 14px !important;
+    padding-right: 10px !important;
+  }
+  .width-view-more{
+    padding-left: 0 !important;
+  }
+}
+@media screen and (max-width:575px ){
+  .formDate{
+    width:90% !important;
+  }
+  .clock{
+    width: 10% !important;
+  }
+}
+@media screen and (max-width: 500px){
+  .mobile-modules{
+    display: none !important;
+  }
+  .text-font-modules{
+    font-size: 14px !important;
+  }
+  .text-font-submodules{
+    font-size: 13px !important;
+  }
+}
+@media screen and (max-width: 420px){
+  .modal-dialog,
+  .modal-content{
+    overflow: auto;
+  }
+  .text-add-module{
+    font-size: 22px;
+  }
+}

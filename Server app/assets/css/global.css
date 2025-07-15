@@ -1,0 +1,421 @@
+
+.body{
+    background-color: #363636 !important;
+    color: rgb(187, 187, 187);
+}
+
+.main-color {
+    background: #092756;
+    background: -moz-radial-gradient(0% 100%, ellipse cover, rgba(104, 128, 138, .4) 10%, rgba(138, 114, 76, 0) 40%), -moz-linear-gradient(top, rgba(57, 173, 219, .25) 0%, rgba(42, 60, 87, .4) 100%), -moz-linear-gradient(-45deg, #670d10 0%, #092756 100%);
+    background: -webkit-radial-gradient(0% 100%, ellipse cover, rgba(104, 128, 138, .4) 10%, rgba(138, 114, 76, 0) 40%), -webkit-linear-gradient(top, rgba(57, 173, 219, .25) 0%, rgba(42, 60, 87, .4) 100%), -webkit-linear-gradient(-45deg, #670d10 0%, #092756 100%);
+    background: -o-radial-gradient(0% 100%, ellipse cover, rgba(104, 128, 138, .4) 10%, rgba(138, 114, 76, 0) 40%), -o-linear-gradient(top, rgba(57, 173, 219, .25) 0%, rgba(42, 60, 87, .4) 100%), -o-linear-gradient(-45deg, #670d10 0%, #092756 100%);
+    background: -ms-radial-gradient(0% 100%, ellipse cover, rgba(104, 128, 138, .4) 10%, rgba(138, 114, 76, 0) 40%), -ms-linear-gradient(top, rgba(57, 173, 219, .25) 0%, rgba(42, 60, 87, .4) 100%), -ms-linear-gradient(-45deg, #670d10 0%, #092756 100%);
+    background: -webkit-radial-gradient(0% 100%, ellipse cover, rgba(104, 128, 138, .4) 10%, rgba(138, 114, 76, 0) 40%), linear-gradient(to bottom, rgba(57, 173, 219, .25) 0%, rgba(42, 60, 87, .4) 100%), linear-gradient(135deg, #670d10 0%, #092756 100%);
+    filter: progid: DXImageTransform.Microsoft.gradient( startColorstr='#3E1D6D', endColorstr='#092756', GradientType=1);
+}
+
+.caja {
+    background-color: #00000010;
+    padding: 3px;
+}
+
+label {
+    font-family: 'Trebuchet MS', Times, serif;
+}
+
+span {
+    font-family: 'Bahnschrift';
+}
+
+hr {
+    color: #00000069;
+    border: 0;
+    height: 10px;
+}
+
+.miga :hover {
+    border: 0;
+    color: #3498db;
+    font-size: 15%;
+}
+
+
+/*========================================================================================================================================================================================================
+ css ((  text   ))
+=========================================================================================================================================================================================================*/
+
+.text-neon-red {
+    text-shadow: 0 0 2px #FFF, 0 0 4px #FFF, 0 0 6px #FFF, 0 0 8px #ff1818, 0 0 10px #ff1818, 0 0 12px #ff1818, 0 0 14px #ff1818, 0 0 16px #ff1818;
+    color: #FFFFFF;
+}
+
+
+/*========================================================================================================================================================================================================
+ css (( modal control ))
+=========================================================================================================================================================================================================*/
+
+
+/*css>---------( full screen )-----------------------------------------------------------------------*/
+
+.full-modal {
+    padding: 0 !important
+}
+
+.full-modal-dialog {
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.full-modal-content {
+    height: 100% !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+}
+
+.full-modal-body {
+    overflow-y: auto;
+}
+
+
+/*========================================================================================================================================================================================================
+ css ((  button control  ))
+=========================================================================================================================================================================================================*/
+
+.animation_foramted {
+    z-index: 10000001;
+}
+
+.animation-ring-aqua::after {
+    content: '';
+    width: 30px;
+    height: 30px;
+    border-radius: 100%;
+    background-color: #00FFCB;
+    border: 6px solid #00FFCB;
+    position: absolute;
+    z-index: 10000000;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: ring 1.5s infinite;
+}
+
+.animation-ring-border-aqua::after {
+    content: '';
+    width: 30px;
+    height: 30px;
+    border-radius: 100%;
+    border: 6px solid #00FFCB;
+    position: absolute;
+    z-index: 10000000;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: ring 1.5s infinite;
+}
+
+.animation-ring-danger::after {
+    content: '';
+    width: 30px;
+    height: 30px;
+    border-radius: 100%;
+    background-color: #dd162a;
+    ;
+    border: 6px solid #dd162a;
+    position: absolute;
+    z-index: 10000000;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: ring 1.5s infinite;
+}
+
+.animation-ring-border-danger::after {
+    content: '';
+    width: 30px;
+    height: 30px;
+    border-radius: 100%;
+    border: 6px solid #dd162a;
+    position: absolute;
+    z-index: 10000000;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: ring 1.5s infinite;
+}
+
+@keyframes ring {
+    0% {
+        width: 30px;
+        height: 30px;
+        opacity: 0.5;
+    }
+    40% {
+        opacity: 0.7;
+    }
+    100% {
+        width: 200px;
+        height: 200px;
+        opacity: 0;
+    }
+}
+
+
+/*========================================================================================================================================================================================================
+ css ((  shadow  ))
+=========================================================================================================================================================================================================*/
+
+.shadow-in-all {
+    -webkit-box-shadow: inset 0px 0px 11px 2px rgba(0, 0, 0, 0.404);
+    -moz-box-shadow: inset 0px 0px 11px 2px rgba(0, 0, 0, 0.404);
+    box-shadow: inset 0px 0px 11px 2px rgba(0, 0, 0, 0.404);
+}
+
+.shadow-on-all {
+    -webkit-box-shadow: 0px 5px 26px -2px rgba(0, 0, 0, 0.541);
+    -moz-box-shadow: 0px 5px 26px -2px rgba(0, 0, 0, 0.541);
+    box-shadow: 0px 5px 26px -2px rgba(0, 0, 0, 0.541);
+}
+
+
+/*========================================================================================================================================================================================================
+ css ((  popper  ))
+=========================================================================================================================================================================================================*/
+
+
+/*========================================================================================================================================================================================================
+ css ((  border radius  ))
+=========================================================================================================================================================================================================*/
+
+.border-radius-arr-der {
+    /*css> --( arriba derecha ) */
+    border-top-right-radius: 50% 50%;
+}
+
+.border-radius-aba-der {
+    /*css> --( derecha abajo ) */
+    border-bottom-right-radius: 50% 50%;
+}
+
+.border-radius-aba-izq {
+    /*css> --( abajo izquierda ) */
+    border-bottom-left-radius: 50% 50%;
+}
+
+.border-radius-arri-izq {
+    /*css> --( izquierda arriba ) */
+    border-top-left-radius: 50% 50%;
+}
+
+.border-radius-0 {
+    border-radius: 0px;
+}
+
+.border-radius-1 {
+    border-radius: 5%;
+}
+
+.border-radius-2 {
+    border-radius: 10%;
+}
+
+.border-radius-3 {
+    border-radius: 25%;
+}
+
+.border-radius-4 {
+    border-radius: 50%;
+}
+
+.border-radius-5 {
+    border-radius: 75%;
+}
+
+.border-radius-6 {
+    border-radius: 100%;
+}
+
+
+/*========================================================================================================================================================================================================
+ css ((  controld e tabla ul tabla de datos JC  ))
+=========================================================================================================================================================================================================*/
+
+.table-fixed {
+    margin-bottom: 3px;
+    padding-bottom: 3px;
+}
+
+
+/*css>---------( si e smayor a 990 )-----------------------------------------------------------------------*/
+
+@media screen and (min-width: 990px) {
+    .table-button-show {
+        display: none;
+    }
+}
+
+
+/*css>---------( si es menor 990 )-----------------------------------------------------------------------*/
+
+@media screen and (max-width: 990px) {
+    .table-fixed {
+        margin-bottom: 6px;
+        padding-bottom: 6px;
+    }
+    .table-hide-lg {
+        display: none;
+    }
+    .table-colour {
+        background-color: rgba(0, 0, 0, 0.11);
+    }
+}
+
+
+/*css>---------( si e smenor a 575 )-----------------------------------------------------------------------*/
+
+@media screen and (max-width: 575px) {
+    .table-hide-sm {
+        display: none;
+    }
+    .table-btn_border {
+        border-top: 2px solid #999999;
+    }
+    .table-colour {
+        background-color: rgba(0, 0, 0, 0.151);
+    }
+}
+
+
+/*========================================================================================================================================================================================================
+ css ((  animacion loading  ))
+=========================================================================================================================================================================================================*/
+
+.aniwrapper {
+    width: 200px;
+    height: 60px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.anicircle {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    border-radius: 50%;
+    background-color: rgb(0, 247, 255);
+    left: 15%;
+    transform-origin: 50%;
+    animation: circle .5s alternate infinite ease;
+}
+
+@keyframes circle {
+    0% {
+        top: 60px;
+        height: 5px;
+        border-radius: 50px 50px 25px 25px;
+        transform: scaleX(1.7);
+    }
+    40% {
+        height: 20px;
+        border-radius: 50%;
+        transform: scaleX(1);
+    }
+    100% {
+        top: 0%;
+    }
+}
+
+.anicircle:nth-child(2) {
+    left: 45%;
+    animation-delay: .2s;
+}
+
+.anicircle:nth-child(3) {
+    left: auto;
+    right: 15%;
+    animation-delay: .3s;
+}
+
+.anishadow {
+    width: 20px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: rgba(0, 43, 49, 0.5);
+    position: absolute;
+    top: 62px;
+    transform-origin: 50%;
+    z-index: -1;
+    left: 15%;
+    filter: blur(1px);
+    animation: shadow .5s alternate infinite ease;
+}
+
+@keyframes shadow {
+    0% {
+        transform: scaleX(1.5);
+    }
+    40% {
+        transform: scaleX(1);
+        opacity: .7;
+    }
+    100% {
+        transform: scaleX(.2);
+        opacity: .4;
+    }
+}
+
+.anishadow:nth-child(4) {
+    left: 45%;
+    animation-delay: .2s
+}
+
+.anishadow:nth-child(5) {
+    left: auto;
+    right: 15%;
+    animation-delay: .3s;
+}
+
+.aniwrapper span {
+    position: absolute;
+    top: 75px;
+    font-family: 'Comic Sans MS';
+    font-size: 20px;
+    letter-spacing: 12px;
+    color: rgb(255, 255, 255);
+    left: 15%;
+}
+
+
+/*screen - lok */
+
+.screen-lock {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    z-index: 999;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    line-height: 1;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+/*alertas*/
+
+.alert{
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 200px;
+    z-index: 9999;
+    font-size: 1rem;
+    padding: 10px !important;
+    margin: 10px !important;
+    box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.158);
+
+}

@@ -217,7 +217,10 @@ export default {
         {key:'rappi',label:'Rappi', value:true},
         {key:'junaeb',label:'Junaeb', value:true},
         {key:'uber',label:'Uber', value:true},
-        {key:'convenio_empresa',label:'Convenio Empresa', value:true}
+        {key:'convenio_empresa',label:'Convenio Empresa', value:true},
+        {key:'pedidos_ya',label:'Pedidos Ya', value:true},
+        {key:'pluxee',label:'Pluxee', value:true},
+        {key:'banco_chile_20',label:'Banco De Chile 20%', value:true}
       ]
     }
   },
@@ -651,6 +654,9 @@ export default {
     settingAmipass:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.amipass') } },
     settingMulticaja:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.multicaja') } },
     settingEdenred:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.edenred') } },
+    settingPedidosYa:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.pedidos_ya') } },
+    settingPluxee:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.pluxee') } },
+    settingBancoChile20:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.banco_chile_20') } },
 
     getCounters: {
       get(){
@@ -690,6 +696,9 @@ export default {
             if(this.settingCheque) this.listCounter.push( ['Cheque', '$'+this.formatNumber(String(request.cheque))]);
             if(this.settingStateBank) this.listCounter.push( ['Trasnbank', '$'+this.formatNumber(String(request.banco))]);
             if(this.settingEdenred) this.listCounter.push( ['Edenred', '$'+this.formatNumber(String(request.edenred))]);
+            if(this.settingPedidosYa) this.listCounter.push( ['Pedidos Ya', '$'+this.formatNumber(String(request.pedidos_ya))]);
+            if(this.settingPluxee) this.listCounter.push( ['Pluxee', '$'+this.formatNumber(String(request.pluxee))]);
+            if(this.settingBancoChile20) this.listCounter.push( ['Banco De Chile 20%', '$'+this.formatNumber(String(request.banco_chile_20))]);
             
           }
           if(this.fastSellInstalled){

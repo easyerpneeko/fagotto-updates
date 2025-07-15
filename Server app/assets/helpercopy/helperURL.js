@@ -1,0 +1,1 @@
+const URL=($url) => {return `http://154.53.34.255/api${$url}`;};

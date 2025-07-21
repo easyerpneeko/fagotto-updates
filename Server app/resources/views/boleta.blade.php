@@ -171,6 +171,19 @@
       
         Descuento: <span class="ml-3 fs12">${{ number_format($sell['discount']) }}</span>
     </p>
+    
+    @if(isset($sell['specialPayment']) && $sell['specialPayment']['paymentType'] === 'banco_chile_20')
+    <p class="text-spacing-3 header-title text-right text-uppercase mb-1 mt-1 fs12 text-bold">
+        SUBTOTAL: <span class="ml-3 fs12">${{ formatoChilenoBoleta($sell['specialPayment']['originalTotal']) }}</span>
+    </p>
+    <p class="text-spacing-3 header-title text-right text-uppercase mb-1 mt-1 fs12 text-bold">
+        DESCUENTO BANCO CHILE 20%
+    </p>
+    <p class="text-spacing-3 header-title text-right text-uppercase mb-1 mt-1 fs12 text-bold">
+        DESCUENTO: <span class="ml-3 fs12">-${{ formatoChilenoBoleta($sell['specialPayment']['discountAmount']) }}</span>
+    </p>
+    @endif
+    
     <p class="text-spacing-3 header-title text-right text-uppercase mb-1 mt-1 fs12 text-bold">
         TOTAL: <span class="ml-3 fs12">${{ formatoChilenoBoleta($sell['total'] - $sell['discount']) }}</span>
     </p>

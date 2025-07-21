@@ -226,9 +226,24 @@ if (isset($order['envs']) && isset($order['envs']->sii_logo) && isset($order['en
         <?php } ?>
       </table>
       @if(!$order['view_total'])
-        <p class="text-spacing-3 header-title text-right text-uppercase mb-1 mt-1 text-bold">
-          TOTAL: <span class="ml-3">${{ formatoChileno($order['total']) }}</span>
-        </p>
+        @if(isset($order['specialPayment']) && $order['specialPayment']['paymentMethod'] === 'banco_chile_20')
+          <p class="text-spacing-3 header-title text-right text-uppercase mb-1 mt-1 text-bold">
+            SUBTOTAL: <span class="ml-3">${{ formatoChileno($order['specialPayment']['originalTotal']) }}</span>
+          </p>
+          <p class="text-spacing-3 header-title text-center text-uppercase mb-1 mt-1 text-bold">
+            DESCUENTO BANCO CHILE 20%
+          </p>
+          <p class="text-spacing-3 header-title text-right text-uppercase mb-1 mt-1 text-bold">
+            DESCUENTO: <span class="ml-3">-${{ formatoChileno($order['specialPayment']['discountAmount']) }}</span>
+          </p>
+          <p class="text-spacing-3 header-title text-right text-uppercase mb-1 mt-1 text-bold">
+            TOTAL: <span class="ml-3">${{ formatoChileno($order['total']) }}</span>
+          </p>
+        @else
+          <p class="text-spacing-3 header-title text-right text-uppercase mb-1 mt-1 text-bold">
+            TOTAL: <span class="ml-3">${{ formatoChileno($order['total']) }}</span>
+          </p>
+        @endif
       @endif
       
       @if($order['ticket_description'] != '')

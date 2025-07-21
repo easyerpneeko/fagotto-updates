@@ -422,8 +422,7 @@ export default {
           return false;
         }
         
-        // Actualizar el total con el 20% de descuento
-        this.total = totalWithDiscount;
+        // NO actualizar this.total aquí, se hará después de agregar la información especial
       }
 
       // Datos basicos
@@ -435,17 +434,26 @@ export default {
       
       // Si es el método de pago especial con 20%, agregar información extra para reportes
       if (val === 'banco_chile_20') {
+        const originalTotal = this.total;
+        const twentyPercentDiscount = originalTotal * 0.20;
+        const totalWithDiscount = originalTotal - twentyPercentDiscount;
+        
         this.ticketData.specialPayment = {
           paymentType: 'banco_chile_20',
           method: 'Banco De Chile 20%',
           description: 'Pago especial con 20% de descuento disponible solo lunes y martes',
-          originalTotal: this.total / 0.80, // Total original antes del descuento
-          discountAmount: (this.total / 0.80) - this.total, // Cantidad del descuento
-          finalTotal: this.total,
+          originalTotal: originalTotal,
+          discountAmount: twentyPercentDiscount,
+          finalTotal: totalWithDiscount,
+          discountPercentage: 20,
           date: this.chileTime ? this.chileTime.toISOString() : new Date().toISOString(),
           dayOfWeek: this.chileTime ? this.chileTime.getDay() : new Date().getDay(),
           enabled: this.isSpecialPaymentDay
         };
+        
+        // Actualizar el total con el descuento para el procesamiento
+        this.total = totalWithDiscount;
+        this.ticketData.total = totalWithDiscount;
       }
       
       if (this.ticket_description) {

@@ -108,6 +108,14 @@ class OrderController extends Controller
       $order->board   = (isset($board) && $board) ? $board : null;
     }
 
+    // Procesar información especial del pago si existe
+    if (isset($order->special_payment_info)) {
+      $specialPaymentInfo = json_decode($order->special_payment_info, true);
+      if ($specialPaymentInfo) {
+        $order['specialPayment'] = $specialPaymentInfo;
+      }
+    }
+
     $b64Doc = $this->printPDF($order, 'ticket');
     $result = [
       'ticket' => $b64Doc
@@ -165,6 +173,15 @@ class OrderController extends Controller
     $order->products  = $_request['products'];
     $order->total     = $_request['total'];
     //$order->client_ticket    = $_request['client_ticket'];
+    
+    // Procesar información especial del pago si existe
+    if (isset($order->special_payment_info)) {
+      $specialPaymentInfo = json_decode($order->special_payment_info, true);
+      if ($specialPaymentInfo) {
+        $order['specialPayment'] = $specialPaymentInfo;
+      }
+    }
+    
     $b64Doc           = $this->printPDF($order, 'ticket');
 
     $result = [
@@ -248,6 +265,14 @@ class OrderController extends Controller
     $order->waiter = Waiter::find($order->waiter_id);
     if (!$order->waiter) return response()->json("Mesero no encontrado", 404);
 
+    // Procesar información especial del pago si existe
+    if (isset($order->special_payment_info)) {
+      $specialPaymentInfo = json_decode($order->special_payment_info, true);
+      if ($specialPaymentInfo) {
+        $order['specialPayment'] = $specialPaymentInfo;
+      }
+    }
+
     $order['ticket_description'] = CurrentApp::ConfStr('modulos.ventas.submodulos.ticket.ajustes.ticket_description');
     $b64Doc = $this->printPDF($order, 'ticket_deuda');
     HistoryCoffeHelper::create('coffe_order_on-print-total', 'Se ha imprimido el total de una orden ' . $order->id, $order);
@@ -275,6 +300,14 @@ class OrderController extends Controller
     // Verificando existencia del mesero
     $order->waiter = Waiter::find($order->waiter_id);
     if (!$order->waiter) return response()->json("Mesero no encontrado", 404);
+
+    // Procesar información especial del pago si existe
+    if (isset($order->special_payment_info)) {
+      $specialPaymentInfo = json_decode($order->special_payment_info, true);
+      if ($specialPaymentInfo) {
+        $order['specialPayment'] = $specialPaymentInfo;
+      }
+    }
 
     $order['ticket_description'] = CurrentApp::ConfStr('modulos.ventas.submodulos.ticket.ajustes.ticket_description');
     $b64Doc = $this->printPDF($order, 'ticket');

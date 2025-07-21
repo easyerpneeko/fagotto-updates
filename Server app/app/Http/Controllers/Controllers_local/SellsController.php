@@ -266,6 +266,15 @@ class SellsController extends Controller
       else return response()->json("Error del servidor", 500);
     }
 
+    // Procesar información especial del pago (Banco De Chile 20%)
+    if (isset($_request['special_payment_info'])) {
+      $specialPaymentInfo = json_decode($_request['special_payment_info'], true);
+      if ($specialPaymentInfo) {
+        $sell->special_payment_info = $_request['special_payment_info'];
+        $sell->save();
+      }
+    }
+
     // Si la venta se crea con exito pasar el estado de la orden a procesada si existe una orden
     if (isset($_request['order'])) {
       $order = Order::find($_request['order']);
@@ -364,8 +373,30 @@ class SellsController extends Controller
         $query['response_folio'] = $this->printPDF($request, $sell->id, true, true);
       }
 
+      // Variables para controlar impresión y evitar duplicados
+      $requiresSpecialPrint = false;
+      $printedMethods = [];
+
       if (isset($_request['type_sell'])) {
-        if ($_request['type_sell'] == "other" || $_request['type_sell'] == "rappi" || $_request['type_sell'] == "junaeb" || $_request['type_sell'] == "uber" || $_request['type_sell'] == "transferencia" || $_request['type_sell'] == "credito") $query['response_folio'] = $this->printPDF($request, $sell->id, true, true);
+        if ($_request['type_sell'] == "other" || $_request['type_sell'] == "rappi" || $_request['type_sell'] == "junaeb" || $_request['type_sell'] == "uber" || $_request['type_sell'] == "transferencia" || $_request['type_sell'] == "credito") {
+          $query['response_folio'] = $this->printPDF($request, $sell->id, true, true);
+          $requiresSpecialPrint = true;
+          $printedMethods[] = $_request['type_sell'];
+        }
+      }
+
+      // Condiciones de impresión específicas para métodos other_type que requieren doble impresión
+      if (isset($_request['other_type']) && !$requiresSpecialPrint) {
+        $methodsRequiringDoubleprint = ['amipass', 'banco_chile_20', 'pluxee', 'pedidos_ya'];
+        
+        if (in_array($_request['other_type'], $methodsRequiringDoubleprint)) {
+          // Imprimir boleta local para métodos que la requieren
+          if (CurrentApp::ConfStr('modulos.ventas.submodulos.sii.ajustes.boleta_local')) {
+            $query['response_folio'] = $this->printPDF($request, $sell->id, true, true);
+          }
+          // Marcar que se imprimió un método específico
+          $printedMethods[] = $_request['other_type'];
+        }
       }
     } // CurrentApp::ConfStr('modulos.ventas.submodulos.sii')
 
@@ -501,6 +532,15 @@ class SellsController extends Controller
         if (!$sell) {
             if (isset($_request['ticket'])) return "Error del servidor";
             else return response()->json("Error del servidor", 500);
+        }
+
+        // Procesar información especial del pago (Banco De Chile 20%)
+        if (isset($_request['special_payment_info'])) {
+            $specialPaymentInfo = json_decode($_request['special_payment_info'], true);
+            if ($specialPaymentInfo) {
+                $sell->special_payment_info = $_request['special_payment_info'];
+                $sell->save();
+            }
         }
 
         // Si la venta se crea con exito pasar el estado de la orden a procesada si existe una orden
@@ -673,8 +713,30 @@ class SellsController extends Controller
                 $query['response_folio'] = $this->printPDF($request, $sell->id, true, true);
             }
 
+            // Variables para controlar impresión y evitar duplicados
+            $requiresSpecialPrint = false;
+            $printedMethods = [];
+
             if (isset($_request['type_sell'])) {
-                if ($_request['type_sell'] == "other" || $_request['type_sell'] == "rappi" || $_request['type_sell'] == "junaeb" || $_request['type_sell'] == "uber" || $_request['type_sell'] == "transferencia" || $_request['type_sell'] == "credito") $query['response_folio'] = $this->printPDF($request, $sell->id, true, true);
+                if ($_request['type_sell'] == "other" || $_request['type_sell'] == "rappi" || $_request['type_sell'] == "junaeb" || $_request['type_sell'] == "uber" || $_request['type_sell'] == "transferencia" || $_request['type_sell'] == "credito") {
+                    $query['response_folio'] = $this->printPDF($request, $sell->id, true, true);
+                    $requiresSpecialPrint = true;
+                    $printedMethods[] = $_request['type_sell'];
+                }
+            }
+
+            // Condiciones de impresión específicas para métodos other_type que requieren doble impresión
+            if (isset($_request['other_type']) && !$requiresSpecialPrint) {
+                $methodsRequiringDoubleprint = ['amipass', 'banco_chile_20', 'pluxee', 'pedidos_ya'];
+                
+                if (in_array($_request['other_type'], $methodsRequiringDoubleprint)) {
+                    // Imprimir boleta local para métodos que la requieren
+                    if (CurrentApp::ConfStr('modulos.ventas.submodulos.sii.ajustes.boleta_local')) {
+                        $query['response_folio'] = $this->printPDF($request, $sell->id, true, true);
+                    }
+                    // Marcar que se imprimió un método específico
+                    $printedMethods[] = $_request['other_type'];
+                }
             }
         }
 
@@ -1197,6 +1259,15 @@ class SellsController extends Controller
     $database = Config::get('database.connections.mysql_local.database');
 
     $sell = $this->getSell($id, true);
+    
+    // Procesar información especial del pago si existe
+    if (isset($sell['special_payment_info'])) {
+      $specialPaymentInfo = json_decode($sell['special_payment_info'], true);
+      if ($specialPaymentInfo) {
+        $sell['specialPayment'] = $specialPaymentInfo;
+      }
+    }
+    
     //$order = DB::table($database.'.orders')->where('id', $sell['order_id'])->first();
     //$waiter = DB::table($database.'.waiters')->where('id', $order['waiter_id'])->first();
     $app = CurrentApp::App();

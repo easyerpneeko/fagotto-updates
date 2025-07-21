@@ -1,17 +1,13 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
-// const { autoUpdater } = require('electron-updater');
-import { autoUpdater } from "electron-updater"
+const { autoUpdater } = require('electron-updater');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+const https = require('https');
 
 import ConfigHelper from '../renderer/helpers/ConfigHelper.js';
 import Connection from '../renderer/helpers/Connection.js';
 import BaseUrl from '../renderer/helpers/baseUrl.js';
-// const fs = require('fs');
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
-//const fetch = require('electron-fetch');
-import fetch from 'electron-fetch';
-import { log } from 'console';
 
 /**
  * Set `__static` path to static files in production
@@ -41,6 +37,7 @@ async function createMainWindow() {/**/
     height: 563,
     useContentSize: true,
     width: 1000,
+    title: 'Fagotto Chile',
     webPreferences: { nodeIntegration: true, contextIsolation: false, enableRemoteModule: true }
   })
 
@@ -66,32 +63,137 @@ function initApp() {
   });*/
   console.log('App Init');
   appInitialized = true;
-  ConfigHelper.InitializeAplication(fetch);
+  ConfigHelper.InitializeAplication();
   createMainWindow();
 }
 
-// Read GitHub token from file
-const tokenFilePath = path.resolve(__dirname, '..', '..', 'gh_token.json');
-let githubToken = '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'; // Hardcoded for now
+// Read GitHub token from environment variable or file
+let githubToken = process.env.GH_TOKEN || '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';
 
-console.log('🔍 Looking for token file at:', tokenFilePath);
-console.log('🔍 File exists:', fs.existsSync(tokenFilePath));
+console.log('🔍 Looking for GitHub token...');
+console.log('🔑 Token from environment:', process.env.GH_TOKEN ? 'Present' : 'Missing');
 
 try {
-  const configFile = fs.readFileSync(tokenFilePath, 'utf8');
-  console.log('📄 Config file content:', configFile);
-  const config = JSON.parse(configFile);
-  githubToken = config.token;
-  console.log('✅ GitHub token loaded successfully from file');
+  const tokenFilePath = path.resolve(__dirname, '..', '..', 'gh_token.json');
+  if (fs.existsSync(tokenFilePath)) {
+    const configFile = fs.readFileSync(tokenFilePath, 'utf8');
+    const config = JSON.parse(configFile);
+    if (config.token) {
+      githubToken = config.token;
+      console.log('✅ GitHub token loaded from file');
+    }
+  }
 } catch (error) {
-  console.error('❌ Error loading GitHub token from file, using hardcoded:', error.message);
-  console.log('🔑 Using hardcoded token:', githubToken ? 'Present' : 'Missing');
+  console.error('❌ Error loading token from file:', error.message);
+}
+
+console.log('🔑 Final token configured:', githubToken ? 'Present' : 'Missing');
+
+// Custom fetch function for binary downloads
+function customFetchBinary(url, options = {}) {
+  return new Promise((resolve, reject) => {
+    const urlObj = new URL(url);
+    const requestOptions = {
+      hostname: urlObj.hostname,
+      path: urlObj.pathname + urlObj.search,
+      method: options.method || 'GET',
+      headers: options.headers || {}
+    };
+
+    const req = https.request(requestOptions, (res) => {
+      // Handle redirects
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        console.log('📍 Redirect to:', res.headers.location);
+        customFetchBinary(res.headers.location, options).then(resolve).catch(reject);
+        return;
+      }
+      
+      // Create response object compatible with fetch API
+      const response = {
+        ok: res.statusCode >= 200 && res.statusCode < 300,
+        status: res.statusCode,
+        statusCode: res.statusCode,  // Also provide statusCode for compatibility
+        statusText: res.statusMessage,
+        statusMessage: res.statusMessage,  // Also provide statusMessage for compatibility
+        headers: res.headers,
+        data: null  // Will be set when data is received
+      };
+      
+      if (!response.ok) {
+        // For non-success responses, just return the response object
+        resolve(response);
+        return;
+      }
+      
+      const chunks = [];
+      
+      res.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+      
+      res.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        response.data = buffer;
+        response.buffer = () => Promise.resolve(buffer);
+        response.arrayBuffer = () => Promise.resolve(buffer);
+        resolve(response);
+      });
+    });
+    
+    req.on('error', (error) => {
+      reject(error);
+    });
+    
+    req.end();
+  });
+}
+
+// Custom fetch function using https module
+function customFetch(url, options = {}) {
+  return new Promise((resolve, reject) => {
+    const urlObj = new URL(url);
+    const requestOptions = {
+      hostname: urlObj.hostname,
+      path: urlObj.pathname + urlObj.search,
+      method: options.method || 'GET',
+      headers: options.headers || {}
+    };
+
+    const req = https.request(requestOptions, (res) => {
+      let data = '';
+      
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      
+      res.on('end', () => {
+        const response = {
+          ok: res.statusCode >= 200 && res.statusCode < 300,
+          status: res.statusCode,
+          statusCode: res.statusCode,
+          statusText: res.statusMessage,
+          statusMessage: res.statusMessage,
+          headers: res.headers,
+          data: data,
+          text: () => Promise.resolve(data),
+          json: () => Promise.resolve(JSON.parse(data))
+        };
+        resolve(response);
+      });
+    });
+    
+    req.on('error', (error) => {
+      reject(error);
+    });
+    
+    req.end();
+  });
 }
 
 // Configure auto-updater
-console.log('Standard auto-updater DISABLED - using custom handler');
+console.log('Configuring auto-updater for private repo...');
 
-// Standard auto-updater disabled for private repos
+// DISABLE standard auto-updater for private repos - use custom handler only
 // autoUpdater.setFeedURL({
 //   provider: "github",
 //   owner: "easyerpneeko",
@@ -100,23 +202,21 @@ console.log('Standard auto-updater DISABLED - using custom handler');
 //   token: githubToken,
 // });
 
-console.log('Standard auto-updater DISABLED');
-// console.log('Feed URL:', autoUpdater.getFeedURL());
+console.log('✅ Using CUSTOM auto-updater for private repo');
+console.log('🔑 Token configured:', githubToken ? 'Present' : 'Missing');
 
-// Set update check interval (check every 5 minutes)
-// autoUpdater.checkForUpdatesAndNotify(); // Disabled for private repos
+// DISABLE standard auto-updater for private repos
+// autoUpdater.checkForUpdatesAndNotify(); 
 
 app.on('ready', () => {
   initApp();
   
-  // Check for updates using custom handler (always check)
-  console.log('🔄 Starting custom update check for private repo...');
+  // Use ONLY custom update checker for private repos
+  console.log('🔄 Using custom update checker for private repo...');
   console.log('NODE_ENV:', process.env.NODE_ENV);
-  console.log('App is ready, scheduling update check...');
   setTimeout(() => {
-    console.log('⏰ Timeout reached, calling handlePrivateRepoUpdate...');
     handlePrivateRepoUpdate();
-  }, 3000); // Wait 3 seconds before checking for updates
+  }, 3000); // Wait 3 seconds after app startup
 });
 
 app.on('window-all-closed', () => {
@@ -138,50 +238,49 @@ ipcMain.on('app_version', (event) => {
   event.sender.send('app_version', { version: app.getVersion() });
 });
 
-// Handle update download request from renderer
-ipcMain.on('download_update', async (event, data) => {
-  try {
-    console.log('📥 Download update requested:', data);
-    
-    // Get latest release info
-    const response = await fetch('https://api.github.com/repos/easyerpneeko/fagotto-updates/releases/latest', {
-      headers: {
-        'Authorization': `token ${githubToken}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status}`);
-    }
-    
-    const release = await response.json();
-    
-    // Find the .exe file
-    const exeAsset = release.assets.find(asset => 
-      asset.name.endsWith('.exe') && 
-      asset.name.includes('fagotto-erp-app-setup')
-    );
-    
-    if (!exeAsset) {
-      throw new Error('No se encontró el archivo .exe');
-    }
-    
-    console.log('📊 Manual download - Asset info:', {
-      id: exeAsset.id,
-      name: exeAsset.name,
-      size: exeAsset.size,
-      url: exeAsset.url
-    });
-    
-    // Start download with authenticated request
-    await downloadFileWithAuth(exeAsset, release.tag_name.replace('v', ''));
-    
-  } catch (error) {
-    console.error('❌ Error in download_update handler:', error);
-    event.sender.send('download_error', { error: error.message });
-  }
-});
+// Handle update download request from renderer (DISABLED - using automatic download instead)
+// ipcMain.on('download_update', async (event, data) => {
+//   try {
+//     console.log('📥 Download update requested:', data);
+//     
+//     // Get latest release info (no auth needed for public repos)
+//     const response = await customFetch('https://api.github.com/repos/easyerpneeko/fagotto-updates/releases/latest', {
+//       headers: {
+//         'Accept': 'application/vnd.github.v3+json'
+//       }
+//     });
+//     
+//     if (!response.ok) {
+//       throw new Error(`Error: ${response.status}`);
+//     }
+//     
+//     const release = await response.json();
+//     
+//     // Find the .exe file
+//     const exeAsset = release.assets.find(asset => 
+//       asset.name.endsWith('.exe') && 
+//       asset.name.includes('fagotto-erp-app-setup')
+//     );
+//     
+//     if (!exeAsset) {
+//       throw new Error('No se encontró el archivo .exe');
+//     }
+//     
+//     console.log('📊 Manual download - Asset info:', {
+//       id: exeAsset.id,
+//       name: exeAsset.name,
+//       size: exeAsset.size,
+//       url: exeAsset.url
+//     });
+//     
+//     // Start download with authenticated request
+//     await downloadFileWithAuth(exeAsset, release.tag_name.replace('v', ''));
+//     
+//   } catch (error) {
+//     console.error('❌ Error in download_update handler:', error);
+//     event.sender.send('download_error', { error: error.message });
+//   }
+// });
 
 // Download file with authentication and progress
 async function downloadFileWithAuth(asset, version) {
@@ -208,30 +307,18 @@ async function downloadFileWithAuth(asset, version) {
         });
       }
       
-      // Try browser_download_url first for private repos
-      let downloadUrl = asset.browser_download_url;
-      let headers = {
-        'Authorization': `token ${githubToken}`,
-        'Accept': 'application/octet-stream'
-      };
+      // For public repos, use direct download URL without authentication
+      const downloadUrl = asset.browser_download_url;
       
-      console.log('📥 Trying browser_download_url:', downloadUrl);
+      console.log('📥 Downloading from public repo (no auth):', downloadUrl);
       
-      let response = await fetch(downloadUrl, { headers });
-      
-      // If browser_download_url fails, try assets API
-      if (!response.ok) {
-        console.log('❌ browser_download_url failed, trying assets API...');
-        downloadUrl = `https://api.github.com/repos/easyerpneeko/fagotto-updates/releases/assets/${asset.id}`;
-        console.log('📥 Trying assets API URL:', downloadUrl);
-        
-        response = await fetch(downloadUrl, { headers });
-      }
+      const response = await customFetchBinary(downloadUrl);
       
       if (!response.ok) {
         console.error('❌ Download response:', response.status, response.statusText);
-        console.error('❌ Response headers:', Array.from(response.headers.entries()));
-        throw new Error(`Download failed: ${response.status}`);
+        console.error('❌ Response headers:', response.headers);
+        console.error('❌ Download URL tried:', downloadUrl);
+        throw new Error(`Error al descargar: ${response.status}`);
       }
       
       // Create downloads folder if it doesn't exist
@@ -276,42 +363,78 @@ async function downloadFileWithAuth(asset, version) {
 
 // Download with progress tracking
 async function downloadWithProgress(response, filePath, totalSize) {
-  return new Promise((resolve, reject) => {
-    const writer = fs.createWriteStream(filePath);
-    let downloadedSize = 0;
-    
-    response.body.on('data', (chunk) => {
-      downloadedSize += chunk.length;
-      writer.write(chunk);
+  return new Promise(async (resolve, reject) => {
+    try {
+      const writer = fs.createWriteStream(filePath);
       
-      // Calculate and send progress
-      const percent = totalSize > 0 ? Math.round((downloadedSize / totalSize) * 100) : 0;
+      // Get buffer from response data
+      const buffer = response.data;
+      const totalBytes = totalSize || buffer.length;
       
+      // Simulate progress for better UX since we download the entire buffer at once
+      const chunkSize = Math.max(1024 * 1024, Math.floor(buffer.length / 20)); // 1MB chunks or 20 steps
+      let downloadedSize = 0;
+      
+      const startTime = Date.now();
+      
+      // Send initial progress
       if (mainWindow) {
         mainWindow.webContents.send('download_progress', {
-          percent: percent,
-          downloadedBytes: downloadedSize,
-          totalBytes: totalSize
+          percent: 0,
+          downloadedBytes: 0,
+          totalBytes: totalBytes,
+          speed: 0
         });
       }
       
-      console.log(`📊 Progress: ${percent}% (${downloadedSize}/${totalSize} bytes)`);
-    });
-    
-    response.body.on('end', () => {
+      // Write buffer in chunks to simulate progress
+      for (let offset = 0; offset < buffer.length; offset += chunkSize) {
+        const chunk = buffer.slice(offset, Math.min(offset + chunkSize, buffer.length));
+        writer.write(chunk);
+        downloadedSize += chunk.length;
+        
+        // Calculate progress
+        const percent = totalBytes > 0 ? Math.round((downloadedSize / totalBytes) * 100) : 0;
+        const elapsed = Date.now() - startTime;
+        const speed = elapsed > 0 ? Math.round((downloadedSize * 1000) / elapsed) : 0; // bytes per second
+        
+        // Send progress update
+        if (mainWindow) {
+          mainWindow.webContents.send('download_progress', {
+            percent: Math.min(percent, 100),
+            downloadedBytes: downloadedSize,
+            totalBytes: totalBytes,
+            speed: speed
+          });
+        }
+        
+        console.log(`📊 Progress: ${Math.min(percent, 100)}% (${downloadedSize}/${totalBytes} bytes) - Speed: ${Math.round(speed / 1024)}KB/s`);
+        
+        // Small delay to make progress visible
+        if (offset + chunkSize < buffer.length) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+      }
+      
       writer.end();
+      
+      // Send final progress
+      if (mainWindow) {
+        mainWindow.webContents.send('download_progress', {
+          percent: 100,
+          downloadedBytes: totalBytes,
+          totalBytes: totalBytes,
+          speed: 0
+        });
+      }
+      
       console.log('✅ Download completed successfully');
       resolve();
-    });
-    
-    response.body.on('error', (error) => {
-      writer.destroy();
+      
+    } catch (error) {
+      console.error('❌ Error in downloadWithProgress:', error);
       reject(error);
-    });
-    
-    writer.on('error', (error) => {
-      reject(error);
-    });
+    }
   });
 }
 
@@ -337,40 +460,42 @@ autoUpdater.on('update-not-available', (info) => {
 });
 
 autoUpdater.on('error', (err) => {
-  console.error('🚨 Error in auto-updater:', err);
-  console.error('Error details:', JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
+  console.error('🚨 Standard auto-updater error (expected for private repos):', err.message);
   
-  // Skip standard auto-updater errors for private repos
-  if (err.message && err.message.includes('404')) {
-    console.log('🔄 404 Error detected - Using custom private repo handler...');
-    handlePrivateRepoUpdate();
-  } else {
-    // Send error to renderer for other types of errors
-    if (mainWindow) {
-      mainWindow.webContents.send('update_error', err.message);
-    }
-  }
+  // Always use custom private repo handler for any standard updater error
+  console.log('🔄 Fallback to custom private repo handler...');
+  handlePrivateRepoUpdate();
 });
+
+// Track download state to prevent multiple downloads
+let isDownloading = false;
+let downloadStartTime = null;
 
 // Custom update handler for private repositories
 async function handlePrivateRepoUpdate(updateInfo = null) {
   try {
     console.log('🔍 handlePrivateRepoUpdate called');
-    console.log('📂 Current directory:', process.cwd());
-    console.log('🔑 GitHub token:', githubToken ? 'Present' : 'Missing');
+    console.log(' GitHub token:', githubToken ? 'Present' : 'Missing');
     
-    const response = await fetch('https://api.github.com/repos/easyerpneeko/fagotto-updates/releases/latest', {
+    // Reset download state when checking for updates
+    if (!isDownloading) {
+      console.log('🔄 Resetting download state for new check');
+    }
+    
+    // Check for updates in public repo
+    const response = await customFetch('https://api.github.com/repos/easyerpneeko/fagotto-updates/releases/latest', {
       headers: {
-        'Authorization': `token ${githubToken}`,
-        'Accept': 'application/vnd.github.v3+json'
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'fagotto-erp-app'
       }
     });
     
     if (!response.ok) {
-      throw new Error(`Error al obtener release: ${response.status}`);
+      console.error('❌ API Response error:', response.status, response.statusText);
+      throw new Error(`Error al obtener release: ${response.status} - ${response.statusText}`);
     }
     
-    const release = await response.json();
+    const release = JSON.parse(response.data);
     const currentVersion = app.getVersion();
     
     console.log('📊 Current version:', currentVersion);
@@ -389,18 +514,41 @@ async function handlePrivateRepoUpdate(updateInfo = null) {
         });
       }
       
-      // Start automatic download
-      startAutomaticDownload(release);
+      // Start automatic download only if not already downloading
+      if (!isDownloading) {
+        startAutomaticDownload(release);
+      } else {
+        console.log('⏳ Download already in progress, skipping...');
+      }
     } else {
       console.log('✅ Ya tienes la última versión');
+      if (mainWindow) {
+        mainWindow.webContents.send('update_not_available', {
+          currentVersion: currentVersion,
+          latestVersion: release.tag_name.replace('v', '')
+        });
+      }
     }
   } catch (error) {
     console.error('❌ Error checking private repo updates:', error);
+    if (mainWindow) {
+      mainWindow.webContents.send('update_error', {
+        error: `Error verificando actualizaciones: ${error.message}`
+      });
+    }
   }
 }
 
 // Download update with progress for private repos
 async function startAutomaticDownload(release) {
+  if (isDownloading) {
+    console.log('⏳ Download already in progress, skipping...');
+    return;
+  }
+  
+  isDownloading = true;
+  downloadStartTime = Date.now();
+  
   const maxRetries = 3;
   let retryCount = 0;
   
@@ -427,30 +575,26 @@ async function startAutomaticDownload(release) {
           fileSize: exeAsset.size,
           version: release.tag_name.replace('v', '')
         });
-      }
-      
-      // Try browser_download_url first
-      let downloadUrl = exeAsset.browser_download_url;
-      let headers = {
-        'Authorization': `token ${githubToken}`,
-        'Accept': 'application/octet-stream'
-      };
-      
-      console.log('📥 Trying browser_download_url:', downloadUrl);
-      
-      let response = await fetch(downloadUrl, { headers });
-      
-      // If browser_download_url fails, try assets API
-      if (!response.ok) {
-        console.log('❌ browser_download_url failed, trying assets API...');
-        downloadUrl = `https://api.github.com/repos/easyerpneeko/fagotto-updates/releases/assets/${exeAsset.id}`;
-        console.log('📥 Trying assets API URL:', downloadUrl);
         
-        response = await fetch(downloadUrl, { headers });
+        // Send initial progress
+        mainWindow.webContents.send('download_progress', {
+          percent: 0,
+          downloadedBytes: 0,
+          totalBytes: exeAsset.size,
+          speed: 0
+        });
       }
+      
+      // For public repos, use direct download URL
+      const downloadUrl = exeAsset.browser_download_url;
+      console.log('📥 Downloading from public repo:', downloadUrl);
+      
+      const response = await customFetchBinary(downloadUrl);
       
       if (!response.ok) {
         console.error('❌ Download response:', response.status, response.statusText);
+        console.error('❌ Response headers:', response.headers);
+        console.error('❌ Download URL tried:', downloadUrl);
         throw new Error(`Error al descargar: ${response.status}`);
       }
       
@@ -472,6 +616,10 @@ async function startAutomaticDownload(release) {
         });
       }
       
+      // Reset download state
+      isDownloading = false;
+      downloadStartTime = null;
+      
       return; // Success, exit retry loop
       
     } catch (error) {
@@ -483,6 +631,11 @@ async function startAutomaticDownload(release) {
         await new Promise(resolve => setTimeout(resolve, 2000));
       } else {
         console.error('❌ Max retries reached, giving up');
+        
+        // Reset download state on failure
+        isDownloading = false;
+        downloadStartTime = null;
+        
         if (mainWindow) {
           mainWindow.webContents.send('download_error', {
             error: error.message
@@ -545,4 +698,23 @@ ipcMain.on('install_update', (event, filePath) => {
     console.error('Error installing update:', error);
     event.reply('install_error', error.message);
   }
+});
+
+// Cancel download handler
+ipcMain.on('cancel_download', () => {
+  console.log('🛑 Download cancelled by user');
+  isDownloading = false;
+  downloadStartTime = null;
+  
+  if (mainWindow) {
+    mainWindow.webContents.send('download_cancelled');
+  }
+});
+
+// Force check for updates (reset state)
+ipcMain.on('force_check_updates', () => {
+  console.log('🔄 Force check for updates requested - resetting state');
+  isDownloading = false;
+  downloadStartTime = null;
+  handlePrivateRepoUpdate();
 });

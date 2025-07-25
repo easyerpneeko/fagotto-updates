@@ -459,6 +459,15 @@ export default {
             icon: 'fas fa-truck-loading'
           });
         }
+        
+        //Modulo de Uber Eats
+        menu.push({
+          label: 'Uber Eats',
+          route: '/inicio/uber-eats',
+          icon: 'fas fa-motorcycle',
+          badge: 'NEW'
+        });
+        
         //Modulo de pedidos de pasteles
         if (reposteria) {
           menu.push({

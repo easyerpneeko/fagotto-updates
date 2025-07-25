@@ -1,177 +1,174 @@
 <template>
     <div class="modal fade" id="pedidoUrgente" tabindex="-1" role="dialog" aria-labelledby="pedidoUrgente"
         aria-hidden="true" data-backdrop="false">
-        <div class="modal-dialog lg-modal modal-dialog-centered" role="document">
+        <div class="modal-dialog lg-modal modal-dialog-centered" role="document" style="max-width: 1000px; margin: auto;">
             <div class="modal-content">
-                <div class="modal-header bg-primario">
-                    <h5 class="modal-title">Preparar pedido</h5>
+                <div class="modal-header bg-gradient">
+                    <h5 class="modal-title fw-bold">🚨 Preparar pedido urgente</h5>
                     <button type="button" class="close text-white" @click="closeModal(false)" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body p-0" style="overflow: auto; max-height: 70vh;">
-                    <div class="d-flex flex-wrap justify-content-space-beetwen">
-                        <div class="col-md-5">
+                    <div class="row g-3 p-3">
+                        <div class="col-md-5 p-3">
                             <div class="row d-flex">
                                 <div class="col-md-12 mb-3">
-                                    <div class="row d-flex justify-content-start">
-                                        <h5 class="modal-title p-2 m-1">Detallado del pedido</h5>
-                                        <hr>
-                                    </div>
+                                    <h5 class="modal-title fw-bold">📋 Seleccionar productos</h5>
+                                    <hr class="mt-2">
                                 </div>
 
-                                <div class="col-md-12 p-2 m-1">
-                                    <div class="row">
-                                        <span class="m-0 p-0">
-                                            <template v-for="(producto, index) in productos">
-                                                <button v-if="(producto.name != 'Despacho' && producto.name != 'Queso')" type="button"
-                                                    @click="addProduct(producto)"
-                                                    class="m-1 btn-width btn bg-primario text-white text-capitalize col-md-5">
-                                                    {{ producto.name.toUpperCase() }} <i class="fa fa-plus"></i>
-                                                </button>
-                                            </template>
-                                        </span>
+                                <div class="col-md-12 mb-3">
+                                    <h6 class="text-muted mb-2 fw-bold">🍽️ Productos disponibles</h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <template v-for="(producto, index) in productos">
+                                            <button v-if="(producto.name != 'Despacho' && producto.name != 'Queso')" type="button"
+                                                @click="addProduct(producto)"
+                                                class="btn btn-outline-primary btn-sm rounded-pill product-btn"
+                                                title="Click para añadir al pedido urgente">
+                                                🛒 {{ producto.name }} <i class="fa fa-plus ms-1"></i>
+                                            </button>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-md-7">
-                            <h5 class="modal-title p-2 m-1">Detallado del pedido</h5>
-                            <hr>
-                            <table class="table">
-                                <thead class="thead-dark">
+                        <div class="col-md-7 p-3">
+                            <h5 class="modal-title mb-3 fw-bold">📋 Detalle del pedido urgente</h5>
+                            
+                            <table class="table table-sm table-striped table-hover">
+                                <thead class="table-dark">
                                     <tr>
                                         <th scope="col">Producto</th>
                                         <th scope="col">Cantidad</th>
                                         <th scope="col"></th>
-                                        <th scope="col">Precio Unitario</th>
+                                        <th scope="col">Precio Unit.</th>
                                         <th scope="col">Precio Total</th>
-                                        <th scope="col">Remover</th>
+                                        <th scope="col" class="text-center">Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-if="productosPedido.length > 0" v-for="(producto, index) in productosPedido"
-                                        :key="index">
-                                        <td>{{ producto.name }}</td>
+                                    <template v-if="productosPedido.length > 0">
+                                        <tr v-for="(producto, index) in productosPedido" :key="index">
+                                            <td class="fw-bold">{{ producto.name }}</td>
 
-                                        <!-- Cantidad -->
-                                       
-                                        <td v-if="(producto.category == 4)">
-                                            <input min="1" class="fieldEdit" type="number" v-model="producto.quantity"
-                                                @change="calcularMontos()" />
-                                            Kg
-                                        </td>
-                                        <!-- POR UNIDAD -->
-                                        <td v-if="(producto.category == 1 && producto.name != 'Vaso' && producto.name != 'Bolsa de Queso')">
-                                            <input min="1" class="fieldEdit" type="number" v-model="producto.quantity" @change="calcularMontos()" />
-                                            Unidad(es)
-                                        </td>
-                                        <td v-if="(producto.name == 'Vaso')">
-                                            <input min="27" step="27" class="fieldEdit" type="number" v-model="producto.quantity" @change="calcularMontos()" />
-                                            'Unidad(es)'
-                                        </td>
-                                        <td v-if="(producto.name == 'Bolsa de Queso')">
-                                            <input min="1" class="fieldEdit" type="number" v-model="producto.quantity" @change="calcularMontos()" />
-                                            {{ producto.price+" gr" }}
-                                        </td>
-                                        <!-- OPCIONALES -->
-                                        <td v-if="(producto.category == 3)">
-                                            <input min="1" class="fieldEdit" type="number" v-model="producto.quantity"
-                                                @change="calcularMontos()" />
-                                            {{ (producto.name == 'Botella de Huevos 1L' ? 'Botellas(s)' : 'Unidad(es)') }}
-                                        </td>
-                                         <!-- SALSAS -->
-                                        <td v-if="(producto.category == 2)">
-                                            <input class="fieldEdit" :min="producto.min_quantity" :step="producto.min_quantity" type="number" v-model="producto.vasos" @change="calcularMontos()" />
-                                            Vasos
-                                        </td>
+                                            <!-- Cantidad -->
+                                           
+                                            <td v-if="(producto.category == 4)">
+                                                <input min="1" class="form-control form-control-sm" type="number" v-model="producto.quantity"
+                                                    @change="calcularMontos()" />
+                                                <small class="text-muted">Kg</small>
+                                            </td>
+                                            <!-- POR UNIDAD -->
+                                            <td v-if="(producto.category == 1 && producto.name != 'Vaso' && producto.name != 'Bolsa de Queso')">
+                                                <input min="1" class="form-control form-control-sm" type="number" v-model="producto.quantity" @change="calcularMontos()" />
+                                                <small class="text-muted">Unidad(es)</small>
+                                            </td>
+                                            <td v-if="(producto.name == 'Vaso')">
+                                                <input min="27" step="27" class="form-control form-control-sm" type="number" v-model="producto.quantity" @change="calcularMontos()" />
+                                                <small class="text-muted">Unidad(es)</small>
+                                            </td>
+                                            <td v-if="(producto.name == 'Bolsa de Queso')">
+                                                <input min="1" class="form-control form-control-sm" type="number" v-model="producto.quantity" @change="calcularMontos()" />
+                                                <small class="text-muted">{{ producto.price + " gr" }}</small>
+                                            </td>
+                                            <!-- OPCIONALES -->
+                                            <td v-if="(producto.category == 3)">
+                                                <input min="1" class="form-control form-control-sm" type="number" v-model="producto.quantity"
+                                                    @change="calcularMontos()" />
+                                                <small class="text-muted">{{ (producto.name == 'Botella de Huevos 1L' ? 'Botellas(s)' : 'Unidad(es)') }}</small>
+                                            </td>
+                                             <!-- SALSAS -->
+                                            <td v-if="(producto.category == 2)">
+                                                <input class="form-control form-control-sm" :min="producto.min_quantity" :step="producto.min_quantity" type="number" v-model="producto.vasos" @change="calcularMontos()" />
+                                                <small class="text-muted">Vasos</small>
+                                            </td>
 
-                                        <!-- Kilos de salsa -->
-                                        <td v-if="(producto.category == 2)">
-                                            {{ (producto.quantity = (producto.vasos * producto.price) / 1000) }} kg
-                                        </td>
-                                        <td v-if="(producto.category != 2)">
+                                            <!-- Kilos de salsa -->
+                                            <td v-if="(producto.category == 2)">
+                                                <span class="text-success fw-bold">{{ (producto.quantity = (producto.vasos * producto.price) / 1000) }} kg</span>
+                                            </td>
+                                            <td v-if="(producto.category != 2)">
 
-                                        </td>
+                                            </td>
 
-                                        <!-- Precio unitario -->
-                                        <td>
-                                            ${{ (producto.compra * 1) }}
-                                        </td>
-                                        <!-- Precio Total -->
-                                        <td v-if="(producto.category == 2)">
-                                            ${{ (formatNumber(producto.vasos * producto.compra)) }}
-                                        </td>
-                                        <td v-else>
-                                            ${{ (formatNumber(producto.quantity * producto.compra)) }}
-                                        </td>
-                                        <!-- Remover -->
-                                        <td>
-                                            <button class="btn btn-danger btn-m" @click="removeProduct(index)">
-                                                <i class="fa fa-times-circle"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr v-else>
-                                        <td colspan="5">
-                                            No hay productos añadidos
+                                            <!-- Precio unitario -->
+                                            <td class="fw-bold">
+                                                ${{ (producto.compra * 1) }}
+                                            </td>
+                                            <!-- Precio Total -->
+                                            <td v-if="(producto.category == 2)" class="fw-bold text-success">
+                                                ${{ (formatNumber(producto.vasos * producto.compra)) }}
+                                            </td>
+                                            <td v-else class="fw-bold text-success">
+                                                ${{ (formatNumber(producto.quantity * producto.compra)) }}
+                                            </td>
+                                            <!-- Remover -->
+                                            <td class="text-center">
+                                                <button class="btn btn-danger btn-sm rounded-pill" @click="removeProduct(index)" title="Eliminar producto">
+                                                    <i class="fa fa-times"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr v-if="productosPedido.length === 0">
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            <i class="fa fa-shopping-cart fa-2x mb-2"></i>
+                                            <br>No hay productos añadidos
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
 
-                            <table class="table table-bordered">
-                                <thead class="thead-dark">
-                                    <tr>
-                                        <th scope="col">Descripcion</th>
-                                        <th scope="col">Monto</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Monto neto</td>
-                                        <td>${{ formatNumber(this.montoNeto) }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td v-if="emergency">Despacho</td>
-                                        <td v-else>Despacho {{ this.despacho * 100 }}%</td>
-
-                                        <td>${{ formatNumber(this.montoDespacho) }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>IVA {{ this.iva * 100 }}%</td>
-
-                                        <td>${{ formatNumber(this.montoIva) }}</td>
-                                    </tr>
-                                    <tr v-if="this.emergency">
-                                        <td>Cargo de Emergencia (+{{this.emergencia * 100}}%)</td>
-
-                                        <td>${{ formatNumber(this.montoEmergencia) }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Total</td>
-                                        <td>${{ formatNumber(this.totalPrice) }}
-                                        </td>
-                                    </tr>
-
-                                </tbody>
-                            </table>
+                            <!-- Resumen de montos en card -->
+                            <div class="card shadow-sm">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title text-muted mb-2 fw-bold">💰 Resumen de costos urgente</h6>
+                                    <table class="table table-sm mb-0">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th scope="col">Descripción</th>
+                                                <th scope="col" class="text-end">Monto</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Monto neto</td>
+                                                <td class="text-end fw-bold">${{ formatNumber(this.montoNeto) }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td v-if="emergency">Despacho urgente</td>
+                                                <td v-else>Despacho {{ this.despacho * 100 }}%</td>
+                                                <td class="text-end">${{ formatNumber(this.montoDespacho) }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>IVA {{ this.iva * 100 }}%</td>
+                                                <td class="text-end">${{ formatNumber(this.montoIva) }}</td>
+                                            </tr>
+                                            <tr v-if="this.emergency" class="table-warning">
+                                                <td class="fw-bold">🚨 Cargo de emergencia (+{{this.emergencia * 100}}%)</td>
+                                                <td class="text-end fw-bold">${{ formatNumber(this.montoEmergencia) }}</td>
+                                            </tr>
+                                            <tr class="table-danger">
+                                                <td class="fw-bold">Total</td>
+                                                <td class="text-end fw-bold fs-5">${{ formatNumber(this.totalPrice) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="modal-footer justify-content-end d-flex">
-                    <!-- <div class="custom-control custom-checkbox pb-3">
-                        <input type="checkbox" class="custom-control-input" id="emergency" checked disabled @change="calcularMontos()">
-                        <label class="custom-control-label" for="emergency">Emergencia(+10%)</label>
-                    </div> -->
-                    <div>
-                        <button type="button" class="btn bg-dark text-white" @click="closeModal()">
-                        Cerrar
+                <div class="modal-footer p-3">
+                    <div class="d-flex justify-content-end gap-3 w-100 mt-4">
+                        <button type="button" class="btn btn-outline-dark btn-lg" @click="closeModal()" title="Cerrar sin guardar cambios">
+                            <i class="fa fa-times-circle me-2"></i>Cerrar
                         </button>
-                        <button type="button" @click="addProducts()" class="btn bg-primario text-white">
-                            Agregar Productos
+                        <button type="button" @click="addProducts()" class="btn btn-danger btn-lg" title="Confirmar pedido urgente">
+                            <i class="fa fa-exclamation-triangle me-2"></i>Agregar productos urgente
                         </button>
                     </div>
                 </div>
@@ -385,9 +382,16 @@ export default {
 </script>
 
 <style scoped media="screen">
+/* Estilos personalizados para el modal de pedido urgente */
+.bg-gradient {
+    background: linear-gradient(to right, #dc3545, #fd7e14);
+    color: white;
+}
+
 .table td,
 .table th {
     padding: 0.5rem;
+    vertical-align: middle;
 }
 
 .btn-m {
@@ -398,17 +402,11 @@ export default {
 
 .conteoVasos {
     padding: 10px;
-    /* font-weight: bold; */
     font-size: 14px;
     border-radius: 5px;
     box-shadow: 0px 2px 4px rgb(0 0 0 / 20%), 0px 4px 8px rgb(0 0 0 / 10%);
     background-color: #343a40;
     color: white;
-}
-
-table thead th {
-    vertical-align: bottom !important;
-    border-bottom: none !important;
 }
 
 .btn-outline-info {
@@ -418,5 +416,89 @@ table thead th {
 
 .fieldEdit {
     width: 80px;
+}
+
+/* Mejoras para el espaciado y visual */
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.gap-3 {
+    gap: 1rem;
+}
+
+.rounded-pill {
+    border-radius: 50rem !important;
+}
+
+.shadow-sm {
+    box-shadow: 0 .125rem .25rem rgba(0,0,0,.075) !important;
+}
+
+.fw-bold {
+    font-weight: 700 !important;
+}
+
+.fs-5 {
+    font-size: 1.25rem !important;
+}
+
+/* Estilo para botones de productos */
+.product-btn {
+    font-size: 0.85rem;
+    padding: 0.3rem 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.product-btn:hover {
+    background-color: #e3f2fd !important;
+    transform: scale(1.03);
+    border-color: #1976d2 !important;
+}
+
+/* Modal más centrado */
+.modal-dialog {
+    max-width: 1000px;
+    margin: auto;
+}
+
+/* Para compatibilidad con gap en flex */
+@supports not (gap: 0.5rem) {
+    .d-flex.gap-2 > * + * {
+        margin-left: 0.5rem;
+    }
+    .d-flex.gap-3 > * + * {
+        margin-left: 1rem;
+    }
+}
+
+/* Mejoras adicionales para accesibilidad */
+.btn:focus {
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.me-2 {
+    margin-right: 0.5rem;
+}
+
+.ms-1 {
+    margin-left: 0.25rem;
+}
+
+.mt-4 {
+    margin-top: 1.5rem;
+}
+
+/* Estilos específicos para pedido urgente */
+.table-warning {
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+.table-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.text-success {
+    color: #198754 !important;
 }
 </style>

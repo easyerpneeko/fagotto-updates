@@ -1,78 +1,29 @@
 <template>
-  <div class="bg-home ">
-    <div class="pt-5 pb-3 px-3 px-sm-5">
-      <div id="ofBar">
-        <div id="ofBar-content">
-          <b>Hey {{ this.me.fullname }} !</b> No olvides cerrar tu turno antes de cuadrar la caja. ¡Gracias!
-        </div>
-      </div>
-    </div>
-    <div :class="['bg-parallax-home', (feeds != 'Failed to fetch' && feeds && feeds.length > 0) ? '' : 'bg-full-height']">
-      <div class="rgbaBlack d-flex flex-column justify-content-center align-items-center py-5">
-        <img class="home_logo" src="../assets/logo.png" alt="fagotto-erp">
-        <h2 class="text-bienvenida">
-          Bienvenido a tu mejor aplicación de gestión en negocios
-        </h2>
-
-      </div>
-      <!-- <div class="gray-text-version" v-if="true">
-        <b id="version"></b>
-      </div> -->
-
-
-    </div>
-
-    <div v-if="feeds != 'Failed to fetch' && feeds && feeds.length > 0" class="pt-5 pb-3 px-3 px-sm-5">
-      <h4 class="mb-4">Ultimas notícias</h4>
-
-      <div class="mx-sm-2 m-0 p-0" v-for="(feed, index) in feeds" :key="index">
-        <feed-card :feed="feed" />
-      </div>
-    </div>
-
-    <div v-if="feeds != 'Failed to fetch' && feeds && feeds.length > 0" class="pt-5 pb-3 px-3 px-sm-5">
-      <h4 class="mb-4">Folios Disponibles</h4>
-
-      <div class="container">
-        <div class="row">
-          <div class="col-md-4 col-xl-3">
-            <div class="card bg-c-blue order-card">
-              <div class="card-block">
-                <h6 class="m-b-20">Facturas</h6>
-                <h2 class="text-right"><i class="fa fa-file-alt f-left"></i><span>{{ this.foliosFactura }}</span></h2>
-              </div>
-            </div>
+  <div class="bg-home-gradient">
+    <div class="bg-full-height-gradient">
+      <div class="welcome-overlay d-flex flex-column justify-content-center align-items-center py-5">
+        
+        <!-- Hero Welcome Card - Profesional y Atractivo -->
+        <div class="welcome-content-only text-center p-5 my-4">
+          <div class="welcome-logo-container mb-4">
+            <img class="home_logo" src="../assets/logo.png" alt="fagotto-erp">
           </div>
-
-          <div class="col-md-4 col-xl-3">
-            <div class="card bg-c-green order-card">
-              <div class="card-block">
-                <h6 class="m-b-20">Boletas</h6>
-                <h2 class="text-right"><i class="fa fa-file-contract f-left"></i><span>{{ this.foliosBoleta }}</span></h2>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-4 col-xl-3">
-            <div class="card bg-c-yellow order-card">
-              <div class="card-block">
-                <h6 class="m-b-20">Nota de credito</h6>
-                <h2 class="text-right"><i class="fa fa-file-invoice f-left"></i><span>{{ this.foliosNotaCredito }}</span>
-                </h2>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-4 col-xl-3">
-            <div class="card bg-c-pink order-card">
-              <div class="card-block">
-                <h6 class="m-b-20">Guia de Despacho</h6>
-                <h2 class="text-right"><i class="fa fa-file-import f-left"></i><span>{{ this.foliosGuiaDespacho }}</span>
-                </h2>
-              </div>
+          
+          <div class="welcome-content">
+            <h1 class="welcome-title mb-3">
+              <span class="greeting-time">{{ greetingMessage }}</span>, 
+              <span class="user-name">{{ this.me.fullname }}</span>! 👋
+            </h1>
+            <p class="welcome-subtitle">
+              Tu sistema está listo para <span class="highlight-text">seguir creciendo</span> 🚀
+            </p>
+            <div class="welcome-badge">
+              <i class="fas fa-rocket me-2"></i>
+              Fagotto ERP 
             </div>
           </div>
         </div>
+
       </div>
     </div>
     
@@ -83,7 +34,6 @@
 </template>
 
 <script>
-import feedCard from '@/components/cards/feedCard.vue';
 import Loader from '@/helpers/Loader';
 import ConfigHelper from '@/helpers/ConfigHelper.js';
 import autoUpdate from '../components/autoUpdate.vue';
@@ -91,129 +41,38 @@ import autoUpdate from '../components/autoUpdate.vue';
 export default {
   name: 'home',
   props: ['value', 'feedsWatch'],
-  components: { feedCard, autoUpdate },
+  components: { autoUpdate },
   data() {
     return {
-      foliosFactura: 0,
-      foliosBoleta: 0,
-      foliosNotaCredito: 0,
-      foliosGuiaDespacho: 0,
       xml_string: null,
       app_id: 0,
     }
   },
   async mounted() {
-
-    if (this.feedsWatch) {
-      this.offOn = true;
-      Loader.dinamic();
-      await this.$store.dispatch('main/getFeeds');
-      await this.getFolios()
-      Loader.hide();
-      this.offOn = false;
-    } else {
-      this.feeds = null;
-    }
     console.log('USUARIO LOGUEADO', this.me);
-
   },
   computed: {
     offOn: {
       get() { return this.value },
       set(offOn) { this.$emit('input', offOn) }
     },
-    feeds: {
-      get() { return this.$store.getters['main/getFeeds'] },
-      set(val) { return this.$store.commit('main/setProperty', { key: 'feeds', data: val }) }
-    },
     me: { get() { return this.$store.getters['main/user']; } },
 
     siiInstalled: { async get() { return await ConfigHelper.ConfStr('modulos.ventas.submodulos.sii'); } },
 
+    // Computed para saludo dinámico
+    greetingMessage() {
+      const hora = new Date().getHours();
+      if (hora < 12) return 'Buenos días';
+      if (hora < 18) return 'Buenas tardes';
+      return 'Buenas noches';
+    }
+
   },
   watch: {
-    async feedsWatch(val) {
-      if (val) {
-        this.offOn = true;
-        await this.$store.dispatch('main/getFeeds');
-        await this.getFolios()
-        // console.log('SII:', this.siiInstalled);
-        this.offOn = false;
-      }
-    }
+    // Watch removido - ya no necesitamos feeds
   },
   methods: {
-    countFolios(request) {
-      if (request.data.length > 0) {
-        request.data.map((item) => {
-          if (item.type == 'factura') this.foliosFactura++;
-          if (item.type == 'boleta') this.foliosBoleta++;
-          if (item.type == 'nota_de_credito') this.foliosNotaCredito++;
-          if (item.type == 'guia_de_despacho') this.foliosGuiaDespacho++;
-        });
-      }
-    },
-    // Cargar folios
-    async sendFolios(xml_string = false) {
-      if (xml_string !== false) this.xml_string = xml_string;
-
-      // Verificando campo
-      // if(this.xml_string == '' || this.xml_string == null) return this.$toastr.error('Por favor inserte un xml', 'Error');
-      if (this.xml_string == '' || this.xml_string == null) console.log('El campo esta vacio');
-
-      let loader = this.$loading.show({
-        color: '#007bff',
-        width: 80,
-        height: 80,
-        backgroundColor: '#000000',
-        opacity: 0.8,
-        zIndex: 9999,
-      });
-      var data = new FormData();
-      data.append('xml_string', this.xml_string);
-      // Iniciando peticion
-      // id:this.app.Id
-      var request = await this.$store.dispatch('main/sendFolios', { id: this.app_id, data });
-      // Verificando datos
-      // if(!request.success) this.$toastr.error(request.data, 'Error');
-      if (!request.success) console.log('Error: ', request.data);
-      else {
-        this.xml_string = null;
-        this.$refs.xmlFile.files = null;
-        await this.getFolios()
-        // this.$toastr.success(request.data, 'Exitoso');
-        console.log('Exitoso');
-      }
-      loader.hide();
-    },
-    // Traer los folios
-    async getFolios() {
-      // this.folios.map((key)=>{
-      //   key.value = 0;
-      // });
-      // Iniciando peticion
-      let app = await this.getApp();
-      console.log('app id:', this.app_id);
-      var request = await this.$store.dispatch('main/getFolios', this.app_id);
-      // Verificando datos
-      this.countFolios(request);
-    },
-
-    async XMLToString() {
-      var fileInInput = this.$refs.xmlFile.files[0];
-      var reader = new FileReader();
-      var _this = this;
-
-      var file = reader.onload = ((theFile) => {
-        return async function (e) {
-          await _this.sendFolios(e.target.result);
-        }
-      })(fileInInput);
-
-      reader.readAsText(fileInInput);
-
-    },
-
     async getApp() {
       var request = await this.$store.dispatch('main/refreshData', '?slim');
       this.app_id = request.data.Id;
@@ -223,56 +82,45 @@ export default {
 }
 </script>
 <style scoped>
-#ofBar {
-  background-color: #192b5f;
-  color: #fff;
-  padding: 10px;
-  text-align: center;
-  position: fixed;
+/* ===== FONDO GRADIENTE COMPLETO PARA TODA LA PÁGINA ===== */
+.bg-home-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-home-gradient::before {
+  content: '';
+  position: absolute;
   top: 0;
   left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+  animation: page-shine 8s infinite;
+  pointer-events: none;
+}
+
+@keyframes page-shine {
+  0% { transform: translateX(-100%) translateY(-100%); }
+  50% { transform: translateX(100%) translateY(100%); }
+  100% { transform: translateX(-100%) translateY(-100%); }
+}
+
+.bg-full-height-gradient {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.welcome-overlay {
+  position: relative;
+  z-index: 2;
   width: 100%;
-  z-index: 1000;
-  display: flex;
-  /* Cambio: Usar display flex para alinear elementos internos */
-  justify-content: space-between;
-  /* Cambio: Espaciado uniforme entre elementos internos */
-  align-items: center;
-  /* Cambio: Alinear elementos verticalmente al centro */
-}
-
-#ofBar-logo img {
-  max-width: 100px;
-}
-
-#ofBar-content {
-  font-size: 18px;
-  flex: 1;
-  /* Cambio: Permitir que el contenido ocupe el espacio restante */
-}
-
-#ofBar-right {
-  display: flex;
-  align-items: center;
-}
-
-#btn-bar {
-  background-color: #27ae60;
-  color: #fff;
-  padding: 8px 15px;
-  text-decoration: none;
-  margin-left: 10px;
-  /* Cambio: Ajustar margen izquierdo para separar el botón del texto */
-  border-radius: 5px;
-}
-
-#btn-bar:hover {
-  background-color: #2ecc71;
-}
-
-#close-bar {
-  cursor: pointer;
-  font-size: 20px;
 }
 
 .order-card {
@@ -332,5 +180,184 @@ export default {
 .bg-one {
   background-color: var(--primary);
   color: #fff !important;
+}
+
+/* ===== NUEVO HERO WELCOME STYLES SIN CUADRO ===== */
+.welcome-content-only {
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+  animation: welcome-float-subtle 8s ease-in-out infinite alternate;
+}
+
+@keyframes welcome-float-subtle {
+  0% { 
+    transform: translateY(0px);
+  }
+  100% { 
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes welcome-shine {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+  100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+}
+
+.welcome-logo-container {
+  position: relative;
+  z-index: 2;
+}
+
+.home_logo {
+  max-width: 140px;
+  filter: drop-shadow(0 15px 30px rgba(0,0,0,0.4));
+  transition: transform 0.5s ease;
+  animation: logo-glow 4s ease-in-out infinite alternate;
+}
+
+@keyframes logo-glow {
+  0% { 
+    filter: drop-shadow(0 15px 30px rgba(0,0,0,0.4));
+  }
+  100% { 
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6)) drop-shadow(0 0 20px rgba(255,255,255,0.3));
+  }
+}
+
+.home_logo:hover {
+  transform: scale(1.1) rotate(3deg);
+}
+
+.welcome-content {
+  position: relative;
+  z-index: 2;
+  color: white;
+}
+
+.welcome-title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 8px 16px rgba(0,0,0,0.5);
+  animation: title-pulse 6s ease-in-out infinite alternate;
+}
+
+@keyframes title-pulse {
+  0% { 
+    text-shadow: 0 8px 16px rgba(0,0,0,0.5);
+  }
+  100% { 
+    text-shadow: 0 12px 24px rgba(0,0,0,0.7), 0 0 30px rgba(255,255,255,0.2);
+  }
+}
+
+.greeting-time {
+  background: linear-gradient(45deg, #fff, #e1d5ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+}
+
+.user-name {
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+  text-transform: capitalize;
+}
+
+.welcome-subtitle {
+  font-size: 1.3rem;
+  margin-bottom: 2rem;
+  opacity: 0.95;
+  line-height: 1.6;
+  text-shadow: 0 4px 8px rgba(0,0,0,0.4);
+  animation: subtitle-glow 5s ease-in-out infinite alternate;
+}
+
+@keyframes subtitle-glow {
+  0% { 
+    text-shadow: 0 4px 8px rgba(0,0,0,0.4);
+  }
+  100% { 
+    text-shadow: 0 6px 12px rgba(0,0,0,0.6), 0 0 20px rgba(255,255,255,0.1);
+  }
+}
+
+.highlight-text {
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 600;
+}
+
+.welcome-badge {
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 50px;
+  padding: 15px 30px;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: 1rem;
+  backdrop-filter: blur(10px);
+  transition: all 0.4s ease;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+  animation: badge-float 7s ease-in-out infinite alternate;
+}
+
+@keyframes badge-float {
+  0% { 
+    transform: translateY(0px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+  }
+  100% { 
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+  }
+}
+
+.welcome-badge:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.8);
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+}
+
+.welcome-badge i {
+  color: #ffd700;
+  font-size: 1.1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .welcome-content-only {
+    margin: 0 15px;
+    padding: 2rem !important;
+  }
+  
+  .welcome-title {
+    font-size: 2.2rem;
+  }
+  
+  .welcome-subtitle {
+    font-size: 1.1rem;
+  }
+  
+  .home_logo {
+    max-width: 120px;
+  }
+  
+  .welcome-badge {
+    padding: 12px 24px;
+    font-size: 0.9rem;
+  }
 }
 </style>

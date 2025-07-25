@@ -101,6 +101,10 @@ export default new Router({
           component: require('@/views/pedidos.vue').default
         },
         {
+          path: 'uber-eats',
+          component: require('@/components/uber-eats/UberEatsOrders.vue').default
+        },
+        {
           path: 'reposteria',
           component: require('@/views/reposteria.vue').default
         },

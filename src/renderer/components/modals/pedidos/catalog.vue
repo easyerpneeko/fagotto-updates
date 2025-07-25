@@ -1,35 +1,29 @@
 <template>
   <div class="modal fade" id="modalCatalog" tabindex="-1" role="dialog" aria-labelledby="modalCatalog"
     aria-hidden="true" data-backdrop="false">
-    <div class="modal-dialog lg-modal modal-dialog-centered" role="document">
+    <div class="modal-dialog lg-modal modal-dialog-centered" role="document" style="max-width: 1000px; margin: auto;">
       <div class="modal-content">
-        <div class="modal-header bg-primario">
-          <h5 class="modal-title">Preparar pedido</h5>
+        <div class="modal-header bg-gradient">
+          <h5 class="modal-title fw-bold">🛒 Preparar pedido</h5>
           <button type="button" class="close text-white" @click="closeModal(false)" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body p-0" style="overflow: auto; max-height: 70vh;">
-          <div class="d-flex flex-wrap justify-content-space-beetwen">
-            <div class="col-md-6">
-              <!-- <h5 class="modal-title">Elegir productos</h5> -->
-              <!-- <hr> -->
+          <div class="row g-3 p-3">
+            <div class="col-md-6 p-3">
               <div class="row d-flex">
                 <div class="col-md-12 mb-3">
-                  <div class="row d-flex justify-content-start">
-                    <h5 class="modal-title p-2 m-1">Detallado del pedido</h5>
-                    <hr>
-                  </div>
-
+                  <h5 class="modal-title">📋 Información de productos</h5>
+                  <hr class="mt-2">
                 </div>
 
-                <div class="col-md-12 p-2 m-1">
-                  <table class="table table-borderless">
-                    <thead class="thead-dark">
+                <div class="col-md-12 mb-3">
+                  <table class="table table-sm table-striped table-hover text-nowrap">
+                    <thead class="table-dark">
                       <tr>
                         <th scope="col">Producto</th>
                         <th scope="col">Cantidad</th>
-                        <!-- <th scope="col">Vasos</th> -->
                       </tr>
                     </thead>
                     <tbody>
@@ -45,173 +39,182 @@
 
                           <td v-else-if="producto.name == 'Botella de Huevos 1L' || producto.name == 'Harina'">
                             {{ formatearMonto(producto.price) }} Vasos
-                            <i class="fas fa-info-circle" data-toggle="tooltip" data-placement="top"
+                            <i class="fas fa-info-circle ms-1" data-toggle="tooltip" data-placement="top"
                               :title="`Esto equivale a ${formatearMonto(producto.price)} Vasos`"></i>
                           </td>
 
                           <td v-else>{{ formatearMonto(producto.price) }}</td>
                         </template>
-                        <!-- <td>{{ producto.vasos }}</td> -->
                       </tr>
                     </tbody>
                   </table>
                 </div>
-                <div class="col-md-12 p-2 m-1">
-                  <div class="row">
-                    <span class="m-0 p-0">
-                      <button v-for="(salsa, id) in salsasDisponibles" :key="id" type="button" @click="addSalsa(salsa)"
-                        class="m-1 btn-width btn bg-primario text-white text-capitalize col-md-3"
-                        :disabled="salsa.stock < salsa.min_stock">
-                        {{ salsa.name }} <i class="fa fa-plus"></i>
-                      </button>
-                    </span>
-
+                
+                <div class="col-md-12 mb-3">
+                  <h6 class="text-muted mb-2 fw-bold">🌶️ Salsas disponibles</h6>
+                  <div class="d-flex flex-wrap gap-2">
+                    <button v-for="(salsa, id) in salsasDisponibles" :key="id" type="button" @click="addSalsa(salsa)"
+                      class="btn btn-outline-primary btn-sm rounded-pill product-btn"
+                      :disabled="salsa.stock < salsa.min_stock"
+                      title="Click para añadir al pedido">
+                      🛒 {{ salsa.name }} <i class="fa fa-plus ms-1"></i>
+                    </button>
                   </div>
                 </div>
-                <div class="col-md-12 p-2 m-1">
-                  <div class="row">
-                    <span class="m-0 p-0">
-                      <button v-for="(producto, id) in opcionalesDisponibles" :key="id" type="button"
-                        @click="addOpcional(producto)"
-                        class="m-1 btn-width btn bg-primario text-white text-capitalize col-md-4">
-                        {{ producto.name }} <i class="fa fa-plus"></i>
-                      </button>
-                    </span>
-
+                
+                <div class="col-md-12 mb-3">
+                  <h6 class="text-muted mb-2 fw-bold">🍽️ Productos opcionales</h6>
+                  <div class="d-flex flex-wrap gap-2">
+                    <button v-for="(producto, id) in opcionalesDisponibles" :key="id" type="button"
+                      @click="addOpcional(producto)"
+                      class="btn btn-outline-success btn-sm rounded-pill product-btn"
+                      title="Click para añadir al pedido">
+                      ➕ {{ producto.name }} <i class="fa fa-plus ms-1"></i>
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="col-md-6">
-              <h5 class="modal-title p-2 m-1">Detallado del pedido</h5>
-              <hr>
-              <table class="table">
-                <thead class="thead-dark">
+            <div class="col-md-6 p-3">
+              <h5 class="modal-title mb-3 fw-bold">📋 Detalle del pedido</h5>
+              
+              <table class="table table-sm table-striped table-hover">
+                <thead class="table-dark">
                   <tr>
                     <th scope="col">Producto</th>
                     <th scope="col">Cantidad</th>
-                    <!-- <th scope="col">Precio</th> -->
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(producto, id) in productosPedido" :key="id">
                     <template v-if="producto.name == 'Botella de Huevos 1L'">
-                      <th>{{ producto.name }}</th>
-                      <th>{{ producto.quantity }}</th>
-                      <td class=" d-none">${{ producto.costo = formatearMonto(producto.quantity * producto.compra) }}
+                      <td class="fw-bold">{{ producto.name }}</td>
+                      <td class="fw-bold">{{ producto.quantity }}</td>
+                      <td class="d-none">${{ producto.costo = formatearMonto(producto.quantity * producto.compra) }}
                       </td>
                     </template>
                     <template v-if="producto.name == 'Queso' || producto.name == 'Harina'">
-                      <th>{{ producto.name }}</th>
-                      <th>{{ producto.quantity }}kg</th>
+                      <td class="fw-bold">{{ producto.name }}</td>
+                      <td class="fw-bold">{{ producto.quantity }}kg</td>
                       <td class="d-none">${{ producto.costo = formatearMonto(producto.quantity * producto.compra) }}
                       </td>
                     </template>
                     <template v-if="producto.name == 'Vaso'">
-                      <td class="bg-primary">{{ producto.name }}</td>
-                      <td class="bg-primary">{{ producto.quantity }}</td>
+                      <td class="bg-primary text-white fw-bold">{{ producto.name }}</td>
+                      <td class="bg-primary text-white fw-bold">{{ producto.quantity }}</td>
                       <td class="bg-primary d-none">${{ producto.costo = formatearMonto(producto.quantity *
                         producto.price )}}</td>
                     </template>
                   </tr>
-
                 </tbody>
               </table>
 
               <!-- Tabla Salsas -->
-              <table class="table table-bordered" v-if="salsasPedido.length > 0">
-                <thead class="thead-dark">
-                  <tr>
-                    <th scope="col">Salsa</th>
-                    <th scope="col">Cantidad</th>
-                    <th scope="col">Vasos</th>
-                    <th scope="col">Precio</th>
-                    <th scope="col">Eliminar</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(salsa, index) in salsasPedido" :key="index">
-                    <td>{{ salsa.name }}</td>
-                    <td>{{ salsa.quantity }}kg</td>
-                    <td>
-                      <input @input="validateInput()" :min="salsa.min_quantity" @change="calcularVasosSalsas()"
-                        :step="salsa.min_quantity" class="fieldEdit" type="number" v-model="salsa.vasos" />
-                    </td>
-                    <td>${{ formatearMonto(salsa.costo = salsa.vasos * precioVaso) }}</td>
-                    <td>
-                      <button class="btn btn-danger btn-m" @click="removeSalsa(index)">
-                        <i class="fa fa-times-circle"></i>
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div v-if="salsasPedido.length > 0" class="mb-3">
+                <h6 class="text-muted mb-2 fw-bold">🌶️ Salsas seleccionadas</h6>
+                <table class="table table-sm table-striped table-hover">
+                  <thead class="table-dark">
+                    <tr>
+                      <th scope="col">Salsa</th>
+                      <th scope="col">Cantidad</th>
+                      <th scope="col">Vasos</th>
+                      <th scope="col">Precio</th>
+                      <th scope="col" class="text-center">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(salsa, index) in salsasPedido" :key="index">
+                      <td>{{ salsa.name }}</td>
+                      <td>{{ salsa.quantity }}kg</td>
+                      <td>
+                        <input @input="validateInput()" :min="salsa.min_quantity" @change="calcularVasosSalsas()"
+                          :step="salsa.min_quantity" class="form-control form-control-sm" type="number" v-model="salsa.vasos" />
+                      </td>
+                      <td class="fw-bold text-success">${{ formatearMonto(salsa.costo = salsa.vasos * precioVaso) }}</td>
+                      <td class="text-center">
+                        <button class="btn btn-danger btn-sm rounded-pill" @click="removeSalsa(index)" title="Eliminar salsa">
+                          <i class="fa fa-times"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
-              <!-- Tabla opcionale -->
-              <table class="table table-bordered" v-if="opcionalPedido.length > 0">
-                <thead class="thead-dark">
-                  <tr>
-                    <th scope="col">Producto</th>
-                    <th scope="col">Precio</th>
-                    <th scope="col">Cantidad</th>
-                    <th scope="col">Eliminar</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(producto, index) in opcionalPedido" :key="index">
-                    <td>{{ producto.name }}</td>
-                    <td>
-                      <input min="1" @change="calcularPrecioOpcionales()" class="fieldEdit" type="number"
-                        v-model="producto.quantity" />
-                    </td>
-                    <td>${{ formatearMonto(producto.costo = producto.price * 1) }}</td>
-                    <td>
-                      <button class="btn btn-danger btn-m" @click="removeOpcional(index)">
-                        <i class="fa fa-times-circle"></i>
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              <table class="table table-bordered">
-                <thead class="thead-dark">
-                  <tr>
-                    <th scope="col">Descripcion</th>
-                    <th scope="col">Monto</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Monto neto</td>
-                    <td>${{ formatearMonto(this.montoNeto = (this.vasos * this.precioVaso) + (this.montoOpcionales)) }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Despacho {{ this.despacho * 100 }}%</td>
-                    <td>${{ formatearMonto(this.montoDespacho = this.montoNeto * this.despacho) }}</td>
-                  </tr>
-                  <tr>
-                    <td>IVA {{ this.iva * 100 }}%</td>
-                    <td>${{ formatearMonto(this.montoIva = (this.montoNeto * this.iva)) }}</td>
-                  </tr>
-                  <tr>
-                    <td>Total</td>
-                    <td>${{ formatearMonto(this.montoNeto + this.montoDespacho + this.montoIva) }}</td>
-                  </tr>
-                </tbody>
-              </table>
+              <!-- Tabla opcionales -->
+              <div v-if="opcionalPedido.length > 0" class="mb-3">
+                <h6 class="text-muted mb-2 fw-bold">🍽️ Productos opcionales</h6>
+                <table class="table table-sm table-striped table-hover">
+                  <thead class="table-dark">
+                    <tr>
+                      <th scope="col">Producto</th>
+                      <th scope="col">Cantidad</th>
+                      <th scope="col">Precio</th>
+                      <th scope="col" class="text-center">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(producto, index) in opcionalPedido" :key="index">
+                      <td>{{ producto.name }}</td>
+                      <td>
+                        <input min="1" @change="calcularPrecioOpcionales()" class="form-control form-control-sm" type="number"
+                          v-model="producto.quantity" />
+                      </td>
+                      <td class="fw-bold text-success">${{ formatearMonto(producto.costo = producto.price * 1) }}</td>
+                      <td class="text-center">
+                        <button class="btn btn-danger btn-sm rounded-pill" @click="removeOpcional(index)" title="Eliminar producto">
+                          <i class="fa fa-times"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <!-- Resumen de montos en card -->
+              <div class="card shadow-sm">
+                <div class="card-body p-3">
+                  <h6 class="card-title text-muted mb-2 fw-bold">💰 Resumen de costos</h6>
+                  <table class="table table-sm mb-0">
+                    <thead class="table-dark">
+                      <tr>
+                        <th scope="col">Descripción</th>
+                        <th scope="col" class="text-end">Monto</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Monto neto</td>
+                        <td class="text-end fw-bold">${{ formatearMonto(this.montoNeto = (this.vasos * this.precioVaso) + (this.montoOpcionales)) }}</td>
+                      </tr>
+                      <tr>
+                        <td>Despacho {{ this.despacho * 100 }}%</td>
+                        <td class="text-end">${{ formatearMonto(this.montoDespacho = this.montoNeto * this.despacho) }}</td>
+                      </tr>
+                      <tr>
+                        <td>IVA {{ this.iva * 100 }}%</td>
+                        <td class="text-end">${{ formatearMonto(this.montoIva = (this.montoNeto * this.iva)) }}</td>
+                      </tr>
+                      <tr class="table-success">
+                        <td class="fw-bold">Total</td>
+                        <td class="text-end fw-bold fs-5">${{ formatearMonto(this.montoNeto + this.montoDespacho + this.montoIva) }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="modal-footer justify-content-end ">
-          <div>
-            <button type="button" class="btn bg-dark text-white" @click="closeModal()">
-              Cerrar
+        <div class="modal-footer p-3">
+          <div class="d-flex justify-content-end gap-3 w-100 mt-4">
+            <button type="button" class="btn btn-outline-dark btn-lg" @click="closeModal()" title="Cerrar sin guardar cambios">
+              <i class="fa fa-times-circle me-2"></i>Cerrar
             </button>
-            <button type="button" @click="addProducts()" class="btn bg-primario text-white">
-              Agregar Productos
+            <button type="button" @click="addProducts()" class="btn btn-success btn-lg" title="Confirmar y agregar productos al pedido">
+              <i class="fa fa-check-circle me-2"></i>Agregar productos
             </button>
           </div>
         </div>
@@ -608,9 +611,16 @@ export default {
 </script>
 
 <style scoped media="screen">
+/* Estilos personalizados para el modal de catálogo */
+.bg-gradient {
+  background: linear-gradient(to right, #2196f3, #21cbf3);
+  color: white;
+}
+
 .table td,
 .table th {
   padding: 0.5rem;
+  vertical-align: middle;
 }
 
 .btn-m {
@@ -621,7 +631,6 @@ export default {
 
 .conteoVasos {
   padding: 10px;
-  /* font-weight: bold; */
   font-size: 14px;
   border-radius: 5px;
   box-shadow: 0px 2px 4px rgb(0 0 0 / 20%), 0px 4px 8px rgb(0 0 0 / 10%);
@@ -629,13 +638,84 @@ export default {
   color: white;
 }
 
-table thead th {
-  vertical-align: bottom !important;
-  border-bottom: none !important;
-}
-
 .btn-outline-info {
   padding-top: 0.3rem !important;
   padding-bottom: 0.3rem !important;
+}
+
+/* Mejoras para el espaciado y visual */
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.gap-3 {
+  gap: 1rem;
+}
+
+.rounded-pill {
+  border-radius: 50rem !important;
+}
+
+.shadow-sm {
+  box-shadow: 0 .125rem .25rem rgba(0,0,0,.075) !important;
+}
+
+.fw-bold {
+  font-weight: 700 !important;
+}
+
+.fs-5 {
+  font-size: 1.25rem !important;
+}
+
+/* Estilo para botones de productos */
+.product-btn {
+  font-size: 0.85rem;
+  padding: 0.3rem 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.product-btn:hover {
+  background-color: #e3f2fd !important;
+  transform: scale(1.03);
+  border-color: #1976d2 !important;
+}
+
+.btn-outline-success.product-btn:hover {
+  background-color: #e8f5e8 !important;
+  border-color: #28a745 !important;
+}
+
+/* Modal más centrado */
+.modal-dialog {
+  max-width: 1000px;
+  margin: auto;
+}
+
+/* Para compatibilidad con gap en flex */
+@supports not (gap: 0.5rem) {
+  .d-flex.gap-2 > * + * {
+    margin-left: 0.5rem;
+  }
+  .d-flex.gap-3 > * + * {
+    margin-left: 1rem;
+  }
+}
+
+/* Mejoras adicionales para accesibilidad */
+.btn:focus {
+  box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25);
+}
+
+.me-2 {
+  margin-right: 0.5rem;
+}
+
+.ms-1 {
+  margin-left: 0.25rem;
+}
+
+.mt-4 {
+  margin-top: 1.5rem;
 }
 </style>

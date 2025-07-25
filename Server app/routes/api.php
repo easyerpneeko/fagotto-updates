@@ -562,6 +562,34 @@ Route::group(['middleware' => ['AppSecurity']], function () {
 
 });
 
+// ============ RUTAS DE UBER EATS API ============
+// Endpoints públicos (sin middleware) para OAuth y webhooks
+Route::group(['prefix' => 'uber-eats'], function () {
+  // OAuth callback - debe ser accesible públicamente por Uber
+  Route::get('/auth/callback', 'Controllers_local\UberEatsController@handleOAuthCallback');
+  
+  // Webhook para recibir notificaciones en tiempo real - público para Uber
+  Route::post('/webhook', 'Controllers_local\UberEatsController@webhook');
+});
+
+// Rutas protegidas de Uber Eats API
+Route::group(['prefix' => 'uber-eats', 'middleware' => ['AppSecurity']], function () {
+  // Estado de conexión
+  Route::get('/connection-status', 'Controllers_local\UberEatsController@getConnectionStatus');
+  
+  // Gestión de pedidos
+  Route::get('/orders/pending', 'Controllers_local\UberEatsController@getPendingOrders');
+  Route::get('/orders/active', 'Controllers_local\UberEatsController@getActiveOrders');
+  
+  // Acciones de pedidos
+  Route::post('/orders/{orderId}/accept', 'Controllers_local\UberEatsController@acceptOrder');
+  Route::post('/orders/{orderId}/reject', 'Controllers_local\UberEatsController@rejectOrder');
+  Route::post('/orders/{orderId}/status', 'Controllers_local\UberEatsController@updateOrderStatus');
+  Route::post('/orders/{orderId}/cancel', 'Controllers_local\UberEatsController@cancelOrder');
+  
+  // Configuración de tienda
+  Route::get('/store/config', 'Controllers_local\UberEatsController@getStoreConfig');
+});
 
 Route::group(['middleware' => ['AppSecurity','JwtMiddleware']], function () {
   Route::post('broadcasting/auth',function (Request $request){ 

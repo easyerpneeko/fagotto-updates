@@ -102,7 +102,7 @@ export default new Router({
         },
         {
           path: 'uber-eats',
-          component: require('@/components/uber-eats/UberEatsOrders.vue').default
+          component: require('@/components/pages/UberEatsDashboard.vue').default
         },
         {
           path: 'reposteria',

@@ -210,7 +210,7 @@
                 Ticket + Junaeb
               </button>
               <button v-if="settingUber" @click="viewTicket('uber')" type="button" class="btn bg-primario text-white">
-                Ticket + Uber
+                Ticket + Uber (Boleta SII)
               </button>
               <button v-if="settingNotaCredito" @click="viewTicket('nota_de_credito')" type="button"
                 class="btn bg-primario text-white">
@@ -425,6 +425,15 @@ export default {
         // NO actualizar this.total aquí, se hará después de agregar la información especial
       }
 
+      // Si es Uber, confirmar que se genere boleta SII
+      if (val === 'uber') {
+        const confirmMessage = `¿Confirmar venta con Uber Eats?\n\nSe generará una boleta del SII\nTotal: $${this.formatNumber(this.total)}`;
+        
+        if (!confirm(confirmMessage)) {
+          return false;
+        }
+      }
+
       // Datos basicos
       this.ticketData = {
         products: this.productoSend,
@@ -481,7 +490,15 @@ export default {
       if (this.board && this.board.order) this.ticketData.order = this.board.order;
       else this.ticketData.order = false;
 
-      if (val) this.typeCreateTicket = val;
+      // Si es Uber, configurar para generar boleta SII
+      if (val === 'uber') {
+        this.typeCreateTicket = 'boleta';
+        // Agregar información de que es una venta de Uber
+        this.ticketData.paymentMethod = 'uber';
+        this.ticketData.paymentDescription = 'Ticket + Uber (Boleta SII)';
+      } else {
+        if (val) this.typeCreateTicket = val;
+      }
       $('#createTicket').modal('show');
 
     },

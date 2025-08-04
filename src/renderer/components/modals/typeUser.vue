@@ -27,18 +27,23 @@
           </div>
         </div>
         <div class="modal-footer">
+          <button type="button" class="btn bg-info text-white mr-2" @click="openAddPermissionModal" :disabled="waitResponse">
+            <i class="fas fa-plus"></i> Añadir Privilegio
+          </button>
           <button type="button" class="btn bg-secundario text-white" data-dismiss="modal" :disabled="waitResponse">Cerrar</button>
           <button type="button" class="btn text-white align-self-end btn-primary" @click="openModal(false)">Crear</button>
         </div>
       </div>
     </div>
     <crudRoles @refreshData="refreshData" @closeModal="closeModal" :dataEdit="dataEdit"/>
+    <addPermission @permissionAdded="onPermissionAdded"/>
   </div>
 </template>
 
 <script>
 import $ from 'jquery';
 import crudRoles from './crudRoles.vue';
+import addPermission from './addPermission.vue';
 import ConfigHelper from '@/helpers/ConfigHelper';
 export default{
   data(){
@@ -51,7 +56,8 @@ export default{
     this.refreshData();
   },
   components:{
-    crudRoles
+    crudRoles,
+    addPermission
   },
   methods:{
     async refreshData(){
@@ -91,6 +97,14 @@ export default{
     },
     closeModal(){
       $('#crudRoles').modal('hide');
+    },
+    // Funciones para el modal de añadir privilegios
+    openAddPermissionModal() {
+      $('#addPermissionModal').modal('show');
+    },
+    onPermissionAdded(newPermission) {
+      this.$awn.success(`Privilegio "${newPermission.description}" añadido exitosamente`, {labels:{success:'PRIVILEGIO AÑADIDO'}});
+      this.refreshData();
     },
   },
   computed:{

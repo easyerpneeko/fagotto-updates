@@ -16,6 +16,7 @@ class Kernel extends ConsoleKernel
         Commands\CrearmiBasedeDatos::class,
         Commands\MigrationsSeeds::class,
         Commands\ejecutateGlobalMigration::class,
+        Commands\RestoreSiiConfig::class,
     ];
 
     /**

@@ -9,24 +9,35 @@
         </button>
       </div>
       <div class="modal-body">
+        <!-- Alerta cuando está en modo edición sin permisos -->
+        <div v-if="edit && !canEditAdvanced" class="alert alert-warning" role="alert">
+          <i class="fas fa-exclamation-triangle"></i>
+          <strong>Sin permisos:</strong> No tienes autorización para editar productos. Solo puedes ver la información.
+        </div>
+
+        <!-- Alerta cuando está en modo creación sin permisos -->
+        <div v-if="!edit && !canEditAdvanced" class="alert alert-danger" role="alert">
+          <i class="fas fa-ban"></i>
+          <strong>Acceso denegado:</strong> No tienes autorización para crear productos.
+        </div>
 
         <div class="d-flex flex-wrap row">
           <div class="form-group col-12">
             <label for="name">Nombre</label>
-            <input id="name" type="text" class="form-control" placeholder="Nombre" :disabled="waitResponse" :class="{ 'invalid-input': submitted && !isValidName}"
+            <input id="name" type="text" class="form-control" placeholder="Nombre" :disabled="waitResponse || !canEditAdvanced" :class="{ 'invalid-input': submitted && !isValidName}"
             v-model="name" @keyup.enter="newProduct">
           </div>
           <div><hr></div>
           <div class="form-group col-12" v-if="barcodeInstalled">
             <label for="barcode">Codigo de Barras</label>
-            <input id="barcode" type="text" class="form-control" placeholder="Codigo de Barras" :disabled="waitResponse" :class="{ 'invalid-input': submitted && !isValidBarcode}"
+            <input id="barcode" type="text" class="form-control" placeholder="Codigo de Barras" :disabled="waitResponse || !canEditAdvanced" :class="{ 'invalid-input': submitted && !isValidBarcode}"
             v-model="barcode" @keyup.enter="newProduct">
           </div>
           <div class="form-group  col-12" v-if="!precioVariante" >
             <label for="priceInput">Precio de Venta</label>
             <div class="input-group mb-3">
               <span class="input-group-text" id="basic-addon1">$</span>
-              <input type="number" class="form-control" placeholder="Precio" :disabled="waitResponse" :class="{ 'invalid-input': submitted && !isValidPrice}"
+              <input type="number" class="form-control" placeholder="Precio" :disabled="waitResponse || !canEditAdvanced" :class="{ 'invalid-input': submitted && !isValidPrice}"
               v-model="price" @keyup.enter="newProduct" id="priceInput" maxlength="15" v-if="!precioVariante" @keypress="pricesCalcToPrice">
             </div>
            
@@ -175,7 +186,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn bg-secundario text-white" data-dismiss="modal" @click="selectProduct">Cerrar</button>
-        <button type="button" class="btn bg-primario text-white" :disabled="waitResponse"
+        <button type="button" class="btn bg-primario text-white" :disabled="waitResponse || !canEditAdvanced"
         @click="newProduct">{{(!this.edit) ? 'Crear' : 'Editar'}}</button>
       </div>
     </div>
@@ -286,6 +297,7 @@ export default {
       }
     },
     newProductSell:{ get(){ return ConfigHelper.HavePermission('crear_productos_nueva_venta'); } },
+    canEditAdvanced: { get(){ return ConfigHelper.HavePermission('editar_productos_avanzado'); } },
     
     isValidName: {
       get() {return this.name.length > 0}

@@ -44,6 +44,7 @@ define('permissions_default',[
   'tipos_usuarios_gestion'  => 'Gestionar tipos de usuarios', //Mas peligrosa
   'usuarios_gestion'        => 'Gestionar usuarios',
   'usuarios_obtener'        => 'Obtener usuarios',
+  'mi_privilegio_global'    => 'Mi privilegio disponible globalmente',
 ]);
 
 class Aplication extends Model

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EASY REPORTES</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+    <!--styles-->
+    <link href="../assets/css/dashboard.css" rel="stylesheet">
+    <link href="../assets/css/pedidos.css" rel="stylesheet">
+    <link href="../assets/css/global.css" rel="stylesheet">
+    <!--helpers-->
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+    <script src="../assets/helpers/helperFunctions.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        .text-label {
+            font-size: 12px;
+            font-weight: lighter;
+            color: rgb(23, 27, 53);
+        }
+
+        .text-uppercase {
+            text-transform: uppercase;
+        }
+
+        .full-modal {
+            background-color: rgba(0, 0, 0, 0.212);
+            /*efecto desenfoque*/
+            /*-webkit-backdrop-filter: blur(1px);*/
+            /*backdrop-filter: blur(1px);*/
+            /*efecto desenfoque*/
+            padding-left: 80px !important;
+            /*shadow la derecha*/
+        }
+
+        .full-modal-dialog {
+
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .full-modal-content {
+
+            height: 100% !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+        }
+
+        .full-modal-body {
+            overflow-y: auto;
+        }
+
+        .modal-dialog-small{
+            min-width: 500px;
+            max-width: 700px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loader" class="loading hide">
+        <div class="spin"></div>
+    </div>
+    <header class="navbar navbar-dawrk sticky-top bg-primary flex-md-nowrap p-0 shadow"
+        style="display: flex; justify-content: center; height: 50px;">
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse"
+            data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </header>
+
+    <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
+    <!-- <div class="navbar-nav">
+        <div class="nav-item text-nowrap">
+            <a class="nav-link px-5 mx-5" href="#" id="btn-restore">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesion
+            </a>
+        </div>
+    </div> -->
+    <!-- </header> -->
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3" style="overflow-y: scroll; height:800px;">
+                    <ul class="nav nav-pills flex-column mb-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="./dashboard.html">
+                                <span data-feather="home"></span>
+                                <i class="fa fa-home"></i>
+                                Tablero
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="./pedidos.html">
+                                <i class="fas fa-box"></i>
+                                Noticias
+                            </a>
+                        </li>
+
+                    </ul>
+                    <h6
+                        class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Sucursales</span>
+                        <a class="link-secondary" href="#" aria-label="Add a new report">
+                            <span data-feather="plus-circle"></span>
+                        </a>
+                    </h6>
+                    <ul class="nav flex-column mb-2 list-group" id="sucursales-list">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span data-feather="file-text"></span>
+                                CARGANDO...
+                            </a>
+                        </li>
+                    </ul>
+
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+
+                <!-- TOOLBAR -->
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Productos</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0 gap-4">
+                        <div class="d-flex justify-content-start align-items-center gap-2 mr-1">
+                            <label for="Category">Categoria</label>
+                            <select class="form-control" id="category">
+                                <option value="null" class="text-capitalize">Todas</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex justify-content-start align-items-center gap-2 mr-1">
+                            <button type="button" class="btn btn-primary form-control"
+                                onclick="getProducts()">Buscar</button>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row d-flex justify-content-between">
+                    <div class="col-12 card p-0">
+                        <div class="card-header text-white bg-primary">
+                            <h5>Productos</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="tablas-container">
+                                <h4>Noticias</h4>
+                                <p>
+                                    En esta seccion estaran las noticias concernientes a los productos, para estar al
+                                    tanto de los ultimos cambios e informacion relevante
+                                </p>
+                            </div>
+                            <div class="card-footer" id="footer-container">
+                                <nav aria-label="pagination">
+                                    <ul class="pagination" id="pagination">
+                                        <!-- <li class="page-item"><a class="page-link" href="#">Previa</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">1</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">Siguiente</a></li> -->
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+
+                    </div>
+            </main>
+        </div>
+    </div>
+    <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/stock_products.js"></script>
+    <script>
+        (!_store().serial.isset()) ? window.location.href = "../index.html" : "";
+
+        const _btn_restart = $("#btn-restore");
+
+        _btn_restart.click(function () {
+            _store().serial.delete();           //borramos el serial
+            _store().session.delete()           //borramos la session
+            _store().session.user().delete()    //borramos el usuario
+            //renviamos  a index
+            window.location.href = "../index.html"
+
+        })
+
+        
+    </script>
+</body>
+
+</html>

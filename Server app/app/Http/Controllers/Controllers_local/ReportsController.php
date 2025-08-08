@@ -16,6 +16,7 @@ use App\models_local\Expense;
 use App\User;
 use App\Aplication;
 use App\Helpers\ConectionDB;
+use App\Helpers\PaymentMethodHelper;
 // Helpers
 use App\Helpers\CurrentApp;
 use Config;
@@ -26,6 +27,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+
+// Excel
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\File;
+use App\Exports\CustomReportExport;
 
 
 define('_cantidad_total', 2);
@@ -164,7 +170,28 @@ class ReportsController extends Controller
     // $database2 = Config::get('database.connections.mysql_local.database');
 
     //Obtenemos las  ventas
-    $ventas = Sell::whereBetween('created_at', [$_request['startDate'], $_request['endDate']])->get();
+    $ventasQuery = Sell::whereBetween('created_at', [$_request['startDate'], $_request['endDate']]);
+    
+    // Si hay parámetros de filtrado de métodos de pago específicos, aplicar filtros
+    $hasPaymentFilters = false;
+    $paymentMethodsToInclude = [];
+    
+    // Verificar qué métodos de pago están solicitados
+    $paymentMethods = [
+        'fastSell', 'boleta', 'factura', 'noSii', 'amipass', 'rappi', 'uber', 'junaeb', 
+        'multicaja', 'edenred', 'sodexo', 'convenio_empresa', 'debito', 'credito', 
+        'transferencia', 'cheque', 'banco', 'pluxee', 'pedidos_ya', 'guia_despacho', 
+        'banco_chile_20', 'nota_de_credito', 'efectivo'
+    ];
+    
+    foreach ($paymentMethods as $method) {
+        if (isset($_request[$method])) {
+            $hasPaymentFilters = true;
+            $paymentMethodsToInclude[] = $method;
+        }
+    }
+    
+    $ventas = $ventasQuery->get();
 
    // Inicializar el contador de tipos de ventas
     $counters = [
@@ -227,6 +254,53 @@ class ReportsController extends Controller
     
     //datos_opcionales
     foreach ($ventas as $venta) {
+      $shouldIncludeThisSale = false;
+      
+      // Si no hay filtros específicos, incluir todas las ventas (comportamiento original)
+      if (!$hasPaymentFilters) {
+          $shouldIncludeThisSale = true;
+      } else {
+          // Verificar si esta venta coincide con algún filtro solicitado
+          
+          // Verificar fast sells
+          if (in_array('fastSell', $paymentMethodsToInclude) && $venta->fast_sell) {
+              $shouldIncludeThisSale = true;
+          }
+          
+          // Verificar ventas sin SII
+          if (in_array('noSii', $paymentMethodsToInclude) && !$venta->sell_folio) {
+              $shouldIncludeThisSale = true;
+          }
+          
+          // Verificar ventas con folio SII
+          if ($venta->sell_folio) {
+              $folio = Folio::where('sell_id', $venta->id)->first();
+              if ($folio) {
+                  if (in_array('factura', $paymentMethodsToInclude) && $folio->type == 'factura') {
+                      $shouldIncludeThisSale = true;
+                  }
+                  if (in_array('boleta', $paymentMethodsToInclude) && $folio->type == 'boleta') {
+                      $shouldIncludeThisSale = true;
+                  }
+              }
+          }
+          
+          // Verificar otros tipos de pago
+          foreach ($ajustes as $key => $config) {
+              if (in_array($key, $paymentMethodsToInclude)) {
+                  if (in_array($venta->other_type, $config[1]) || in_array($venta->paymode, $config[1]) || in_array($venta->type_sell, $config[1])) {
+                      $shouldIncludeThisSale = true;
+                      break;
+                  }
+              }
+          }
+      }
+      
+      // Solo procesar la venta si debe incluirse según los filtros
+      if (!$shouldIncludeThisSale) {
+          continue;
+      }
+      
       // calculado el total de todas las ventas
       $counters['balanceTotal']  += (float) $venta->total;
       // calculando la ganancia total
@@ -252,14 +326,14 @@ class ReportsController extends Controller
       }
 
       // Procesar ventas sin SII
-      if (!$counted && !$venta->sell_folio && isset($_REQUEST['noSii'])) {
+      if (!$counted && !$venta->sell_folio && isset($_request['noSii'])) {
           $counters['noSii'] += $venta->total;
       } elseif (!$counted && $venta->sell_folio) {
           $folio = Folio::where('sell_id', $venta->id)->first();
           if ($folio) {
-              if (isset($_REQUEST['factura']) && $folio->type == 'factura') {
+              if (isset($_request['factura']) && $folio->type == 'factura') {
                   $counters['factura'] += $venta->total;
-              } elseif (isset($_REQUEST['boleta']) && $folio->type == 'boleta') {
+              } elseif (isset($_request['boleta']) && $folio->type == 'boleta') {
                   $counters['boleta'] += $venta->total;
               }
           } else {
@@ -268,8 +342,81 @@ class ReportsController extends Controller
       }
 
     }
+    
+    // Después de procesar todas las ventas, asegurar que los métodos de pago configurados aparezcan
+    // aunque no tengan ventas (con valor 0)
+    $activePaymentMethods = PaymentMethodHelper::getActivePaymentMethods();
+    
+    foreach ($activePaymentMethods as $method) {
+        // Asegurar que todos los métodos configurados aparezcan en los contadores
+        if (!isset($counters[$method])) {
+            $counters[$method] = 0;
+        }
+    }
+    
+    // También verificar los métodos especiales
+    if (isset($_request['noSii'])) {
+        if (!isset($counters['noSii'])) {
+            $counters['noSii'] = 0;
+        }
+    }
 
-    $products_sells = ProductSell::whereBetween('created_at', [$_request['startDate'], $_request['endDate']])->get();
+    // Solo procesar productos si hay ventas que cumplan con los filtros
+    $products_sells = ProductSell::whereBetween('created_at', [$_request['startDate'], $_request['endDate']]);
+    
+    // Si hay filtros de métodos de pago, también filtrar los productos vendidos
+    if ($hasPaymentFilters) {
+        $validSellIds = [];
+        foreach ($ventas as $venta) {
+            $shouldIncludeThisSale = false;
+            
+            // Repetir la misma lógica de filtrado para obtener IDs válidos
+            if (in_array('fastSell', $paymentMethodsToInclude) && $venta->fast_sell) {
+                $shouldIncludeThisSale = true;
+            }
+            
+            if (in_array('noSii', $paymentMethodsToInclude) && !$venta->sell_folio) {
+                $shouldIncludeThisSale = true;
+            }
+            
+            if ($venta->sell_folio) {
+                $folio = Folio::where('sell_id', $venta->id)->first();
+                if ($folio) {
+                    if (in_array('factura', $paymentMethodsToInclude) && $folio->type == 'factura') {
+                        $shouldIncludeThisSale = true;
+                    }
+                    if (in_array('boleta', $paymentMethodsToInclude) && $folio->type == 'boleta') {
+                        $shouldIncludeThisSale = true;
+                    }
+                }
+            }
+            
+            foreach ($ajustes as $key => $config) {
+                if (in_array($key, $paymentMethodsToInclude)) {
+                    if (in_array($venta->other_type, $config[1]) || in_array($venta->paymode, $config[1]) || in_array($venta->type_sell, $config[1])) {
+                        $shouldIncludeThisSale = true;
+                        break;
+                    }
+                }
+            }
+            
+            if ($shouldIncludeThisSale) {
+                $validSellIds[] = $venta->id;
+            }
+        }
+        
+        if (!empty($validSellIds)) {
+            $products_sells = $products_sells->whereIn('sell', $validSellIds);
+        } else {
+            // Si no hay ventas válidas, no hay productos vendidos
+            $products_sells = collect([]);
+            $counters['quantityTotal'] = 0;
+            $counters['typeProducts'] = 0;
+            return response()->json($counters);
+        }
+    }
+    
+    $products_sells = $products_sells->get();
     $uniqueProducts = [];
 
     // Array para guardar el reporte de productos
@@ -927,6 +1074,139 @@ class ReportsController extends Controller
       return response()->json($result);
   }
   
+  /**
+   * Exportar Excel personalizado con todos los datos de reportes
+   */
+  public function exportCustomExcel(Request $request)
+  {
+      try {
+          $startDate = $request->input('startDate', date('Y-m-d'));
+          $endDate = $request->input('endDate', date('Y-m-d') . ' 23:59:59');
+          $id = $request->input('id');
+          
+          // Debug: Log de parámetros recibidos
+          \Log::info('Excel Export - Parámetros recibidos:', [
+              'startDate' => $startDate,
+              'endDate' => $endDate,
+              'id' => $id,
+              'all_params' => $request->all()
+          ]);
+          
+          // MÉTODO DIRECTO: Obtener ventas directamente de la base de datos sin filtros complejos
+          $database2 = Config::get('database.connections.mysql_local.database');
+          
+          $sellsData = DB::table($database2 . '.sells')
+              ->where('sells.trash', 0)
+              ->where('sells.created_at', '>=', $startDate)
+              ->where('sells.created_at', '<=', $endDate)
+              ->leftJoin($database2 . '.users', 'users.id', 'sells.user')
+              ->select(
+                  'sells.id',
+                  'sells.total',
+                  'sells.created_at',
+                  'sells.updated_at',
+                  'sells.type_sell',
+                  'sells.paymode',
+                  'sells.other_type',
+                  'users.fullname as user_name'
+              )
+              ->orderBy('sells.created_at', 'desc')
+              ->get();
+          
+          // Convertir a array para facilitar el manejo
+          $sellsArray = $sellsData->toArray();
+          
+          // Debug: Log de cantidad de ventas encontradas
+          \Log::info('Excel Export - Ventas encontradas (método directo):', [
+              'count' => count($sellsArray),
+              'first_sell' => !empty($sellsArray) ? $sellsArray[0] : 'no data',
+              'date_range' => "FROM {$startDate} TO {$endDate}",
+              'database' => $database2
+          ]);
+          
+          // Obtener contadores usando el método existente
+          $countersRequest = new Request([
+              'startDate' => $startDate,
+              'endDate' => $endDate,
+              'id' => $id
+          ]);
+          $countersData = $this->getCounters($countersRequest, true);
+          
+          // Crear directorio si no existe
+          $excelDir = storage_path('app/public/excel');
+          if (!File::exists($excelDir)) {
+              File::makeDirectory($excelDir, 0755, true);
+          }
+          
+          // Crear el Excel
+          $filename = 'reporte_completo_' . time() . '.xlsx';
+          $fullPath = $excelDir . '/' . $filename;
+          
+          Excel::store(new CustomReportExport($countersData, $sellsArray, $startDate, $endDate), 'excel/' . $filename, 'public');
+          
+          // Verificar que el archivo se creó correctamente
+          if (!File::exists($fullPath)) {
+              throw new \Exception('No se pudo crear el archivo Excel');
+          }
+          
+          \Log::info('Excel Export - Archivo creado exitosamente:', [
+              'path' => $fullPath,
+              'size' => File::size($fullPath)
+          ]);
+          
+          return $this->handlerGetFile($fullPath);
+          
+      } catch (\Exception $e) {
+          \Log::error('Excel Export Error:', [
+              'error' => $e->getMessage(),
+              'trace' => $e->getTraceAsString()
+          ]);
+          return response()->json('Error al crear excel: ' . $e->getMessage(), 500);
+      }
+  }
   
+  /**
+   * Transformar archivo a base64
+   */
+  public function handlerGetFile($path) 
+  {
+      try {
+          if (!File::exists($path)) {
+              \Log::error('Excel Handler - Archivo no encontrado:', ['path' => $path]);
+              return response()->json('Error al crear excel - archivo no encontrado', 500);
+          }
+          
+          $fileSize = File::size($path);
+          \Log::info('Excel Handler - Procesando archivo:', [
+              'path' => $path,
+              'size' => $fileSize
+          ]);
+          
+          if ($fileSize === 0) {
+              \Log::error('Excel Handler - Archivo vacío:', ['path' => $path]);
+              return response()->json('Error al crear excel - archivo vacío', 500);
+          }
+          
+          $file = File::get($path);
+          $b64Doc = chunk_split(base64_encode($file));
+          
+          // Eliminar archivo temporal
+          File::delete($path);
+          
+          \Log::info('Excel Handler - Archivo procesado exitosamente:', [
+              'original_size' => $fileSize,
+              'base64_length' => strlen($b64Doc)
+          ]);
+          
+          return response()->json($b64Doc, 200);
+          
+      } catch (\Exception $e) {
+          \Log::error('Excel Handler Error:', [
+              'error' => $e->getMessage(),
+              'path' => $path
+          ]);
+          return response()->json('Error al procesar excel: ' . $e->getMessage(), 500);
+      }
+  }
   
 }

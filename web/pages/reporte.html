@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EASY REPORTES</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="../assets/css/garzon.css">
+    <link rel="stylesheet" href="../assets/css/global.css">
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+    <!--helpers-->
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+</head>
+
+<body class="body container">
+    <div class="row">
+        <div><br></div>
+        <div class="col-12">
+            <h1 class="fw-light">User : <span id="waiters-name">CARGANDO</span> </h1>
+        </div>
+        <div class="row">
+            <div class="col">
+                <h3>Presione calcular para cargar los datos</h3>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-2 mb-sm-2">
+                    <input type="date" id="startDate" class="form-control">
+                </div>
+                <div class="col-md-4 mb-2 mb-sm-2">
+                    <input type="date" id="endDate" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <button type="button" class="btn btn-success form-control" onclick="calculate()">Calcular</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">Escoja un rango de fecha</div>
+            </div>
+            <div class="row d-flex">
+                <!-- Gastos del día -->
+                <div class="col-12 w-auto">
+                    <hr>
+                    <h5>Gastos del día</h5>
+                    <div class="container table-responsive">
+                        <table class="table table-bordered ">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-gastos">
+                                <tr>
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- contadores -->
+                <div class="col-12 w-auto">
+                    <hr>
+                    <h5>Contadores</h5>
+                    <div class="container table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>M Pagos</th>
+                                    <th>Totales</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-contadores"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Estadisticas de productos -->
+                <div class="col-12 w-auto">
+                    <hr>
+                    <h5>Estadisticas de productos</h5>
+                    <div class="container table-responsive">
+                        <table class="table table-bordered ">
+                            <thead>
+                                <tr>
+                                    <th>Nombre del Producto</th>
+                                    <th>Stock Vendido</th>
+                                    <th>Valor del Producto</th>
+                                    <th>Ganancia</th>
+                                    <th>Total Vendido</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-productos">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Meseros -->
+                <div class="col-12 w-auto">
+                    <hr>
+                    <h5>Meseros</h5>
+                    <div class="container table-responsive">
+                        <table class="table table-bordered ">
+                            <thead>
+                                <tr>
+                                    <th>Mesero</th>
+                                    <th>Mesas atendidas</th>
+                                    <th>Total</th>
+                                    <th>Propina</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-meseros">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+
+            $(document).ready(function () {
+                _name.text(_store().session.user().get("username")) //obtenemos el nombre del usuario
+                // requestLoadCounters()
+            })
+
+            const _name = $("#waiters-name")
+            // const _list = $("#waiters-list")
+            // const _waiter_list = []
+            var startDateValue;
+            var endDateValue;
+
+            function calculate() {
+                startDateValue = document.getElementById("startDate").value;
+                // Obtener el valor de endDate
+                endDateValue = document.getElementById("endDate").value;
+                startDate = startDateValue + ' 06:00:00';
+                endDate = endDateValue + ' 23:59:59';
+
+                requestLoadCounters()
+            }
+
+            function getNowDate() {
+                const currentDate = new Date();
+                const year = currentDate.getFullYear();
+                const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+                const day = String(currentDate.getDate()).padStart(2, '0');
+                const hours = String(currentDate.getHours()).padStart(2, '0');
+                const minutes = String(currentDate.getMinutes()).padStart(2, '0');
+                const seconds = String(currentDate.getSeconds()).padStart(2, '0');
+
+                return `${year}-${month}-${day}`
+            }
+
+            //¿ (Js) ( cargamos a los waiterses ) _______________________________________________________________________________________________________________________________
+            function requestLoadCounters() {
+
+                __conection({
+                    // url: generarURLApi(`/local/report/counters?startDate=${startDate}&endDate=${endDate}`),
+                    url: generarURLApi(`/local/report/counters?params=true&factura=true&boleta=true&guia_despacho=true&fastSell=true&noSii=true&amipass=true&edenred=true&multicaja=true&convenio_empresa=true&startDate=${startDate}&endDate=${endDate}`),
+                    header: credentials(),
+                    dev: true,
+                    method: 'GET'
+
+                }, {}, function (request) {
+                    console.log("counters", request);
+
+                    let counters = request.counters;
+                    const mapeoClaves = {
+                        "init_money": "Monto Inicial",
+                        "balanceTotal": "Saldo Total",
+                        "gananciaTotal": "Ganancia Total",
+                        "facturas": "Facturas",
+                        "boletas": "Boletas",
+                        "guia_despacho": "Guia Despacho",
+                        "fastSells": "Efectivo",
+                        "noSii": "Trasnbank",
+                        "debito": "Debito",
+                        "transferencia": "Transferencia",
+                        "cheque": "Cheque",
+                        "banco": "Banco",
+                        "amipass": "Amipass",
+                        "multicaja": "Multicaja",
+                        "convenio_empresa": "Convenio Empresa",
+                        "edenred": "Edenred",
+                        "expenses_day": "Gastos Del Día",
+                        "totalToExpenses": "Total - Gastos"
+                        // Agrega aquí el resto de tus mapeos
+                    };
+                    
+                    //contadores
+                    // Función para cargar los datos en la tabla
+                    function cargarDatosEnTablaCounters(datos) {
+                        const tbody = document.getElementById('tabla-contadores');
+                        tbody.innerHTML = ''; // Limpiar la tabla existente
+
+                        for (const clave in datos) {
+                            const valor = datos[clave];
+                            const claveTraducida = mapeoClaves[clave] || clave; // Traducir la clave, o usar la original si no hay traducción
+                            // const fila = `<tr><td>${claveTraducida}</td><td>${valor}</td></tr>`;
+                            // tbody.innerHTML += fila;
+                        }
+                    }
+                    // Llamar a la función con tus datos JSON
+                    cargarDatosEnTablaCounters(counters);
+
+                    //productos
+                    let products = request.products;
+
+                    function cargarProductosEnTabla(productos) {
+                        const tbody = document.getElementById('tabla-productos');
+                        tbody.innerHTML = '';
+
+                        productos.forEach(producto => {
+                            const fila = `<tr>
+                                            <td>${producto[1]}</td>
+                                            <td>${producto[2]}</td>
+                                            <td>${producto[3]}</td>
+                                            <td>${producto[4]}</td>
+                                            <td>${producto[5]}</td>
+                                        </tr>`;
+                            tbody.innerHTML += fila;
+                        });
+                    }
+
+                    cargarProductosEnTabla(products);
+
+                    //Gastos
+                    let gastos = request.expenses;
+                    function cargarGastosEnTabla(gastos) {
+                        const tbody = document.getElementById('tabla-gastos');
+                        tbody.innerHTML = '';
+
+                        gastos.forEach(gasto => {
+                            const fila = `<tr>
+                                            <td>${gasto.name}</td>
+                                            <td>${gasto.balance}</td>
+                                        </tr>`;
+                            tbody.innerHTML += fila;
+                        });
+                    }
+
+                    cargarGastosEnTabla(gastos);
+
+                    //Meseros
+                    let meseros = request.waiters;
+
+                    function cargarMeserosEnTabla(meseros) {
+                        const tbody = document.getElementById('tabla-meseros');
+                        tbody.innerHTML = '';   
+                        meseros.forEach(meseros => {
+                            const fila = `<tr>
+                                            <td>${meseros.waiter}</td>
+                                            <td>${meseros.conteoDataMesa}</td>
+                                            <td>${meseros.total}</td>
+                                            <td>${meseros.propina}</td>
+                                        </tr>`;
+                            tbody.innerHTML += fila;
+                        });
+                    }
+
+                    cargarMeserosEnTabla(meseros);
+                });
+            }
+            function handleSelectWaiter(id) {
+                const waiter = _waiter_list[id]
+                _store().waiter.set(waiter)
+                window.location.href = "boards.html"
+                //sumar los porductos con su cantidad
+            }
+        </script>
+</body>
+
+</html>

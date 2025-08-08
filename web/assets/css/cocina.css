@@ -1,0 +1,131 @@
+:root {
+  --bg: #000000;
+  --card-bg: #ffffff;
+  --card-ligth: rgb(37, 37, 37);
+  --card-text: #fff;
+  --text: #707070;
+
+  --primary: #0B4F6C;
+  --secondary: #6CCFF6;
+  --secondary-light: rgba(108, 207, 246, 0.6);
+  --tertiary: lightslategray;
+  --background-1: rgba(230, 230, 230, 1);
+  --primary-dark: #292F36;
+  --secondary-dark: #f5f9fc;
+}
+
+body {
+  background-color: var(--bg);
+}
+
+.bodys-header {
+  background: #000000;
+  /* background: linear-gradient(135deg, rgba(20,20,20,1) 76%, rgba(100,106,111,1) 76%);  */
+}
+
+.bodys-header span {
+  position: absolute;
+  right: 10px;
+  top: 32px !important;
+}
+
+.card {
+  padding: 10px;
+  font-size: 12px;
+  font-family: 'Verdana';
+}
+
+.card-header {
+  padding: 24px;
+  padding-bottom: 15px;
+  border-radius: calc(.25rem - 1px) calc(.25rem - 1px) 0 0;
+  background: linear-gradient(to top, #001b8d, #120089, #012379);
+  color: white;
+}
+
+.card-header-emergency {
+  padding: 24px;
+  padding-bottom: 15px;
+  border-radius: calc(.25rem - 1px) calc(.25rem - 1px) 0 0;
+  background: linear-gradient(to top, #00c5e6, #00c2e4, #0085ce);
+  color: white;
+}
+
+.slick-carousel .card {
+  height: 400px; /* Altura por defecto */
+  box-sizing: border-box;
+}
+
+.slick-carousel .slick-slide {
+  padding: 10px; /* Espaciado por defecto */
+}
+
+@media (max-width: 768px) {
+  .slick-carousel .card {
+      height: 300px; /* Ajusta la altura para resoluciones pequeñas */
+  }
+  .slick-carousel .slick-slide {
+      padding: 5px; /* Ajusta el espaciado para resoluciones pequeñas */
+  }
+}
+
+@media (max-width: 480px) {
+  .slick-carousel .card {
+      height: 250px; /* Ajusta la altura para resoluciones muy pequeñas */
+  }
+  .slick-carousel .slick-slide {
+      padding: 2px; /* Ajusta el espaciado para resoluciones muy pequeñas */
+  }
+}
+
+.card-header span {
+  margin-left: 5px;
+}
+
+.card-body {
+  font-size: 14px;
+}
+
+.card-body ul {
+  padding: 0;
+  margin: 0;
+}
+
+.card-body ul li {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+.card-body ul li b {
+  /* font-size: 18px; */
+}
+
+.card-footer {
+  background-color: #e5e5e5;
+}
+
+.col-md-3 {
+  margin-top: 15px;
+}
+
+.bg-primary {
+  background-color: var(--primary);
+  color: white !important;
+}
+
+/* 
+.item-a {
+  grid-row: 1 / 3;
+}
+ 
+.item-b {
+  grid-column: 3 / 5;
+}
+ 
+.item-c {
+  grid-row: 2 / 4;
+}
+ 
+.item-d {
+  grid-column: 3 / 5;
+} */

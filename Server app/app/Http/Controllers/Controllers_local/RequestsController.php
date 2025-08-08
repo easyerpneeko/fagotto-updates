@@ -43,7 +43,7 @@ class RequestsController extends Controller
             'contact_name' => 'required|string|max:70',
             'contact_phone' => 'required|string|max:20',
             'paymode' => 'required',
-            'payment_method' => 'nullable|string|in:contado,credito,pedidos_ya,fluxi',
+            'payment_method' => 'nullable|string|in:contado,credito,efectivo,debito,transferencia,cheque,banco,amipass,multicaja,edenred,convenio_empresa,sodexo,rappi,junaeb,uber,pedidos_ya,pluxee,banco_chile_20,fluxi',
             'invoice_type' => 'nullable|string|in:ticket,boleta',
             'voucher' => 'nullable|file',
             'status' => 'required',

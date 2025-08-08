@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EASY REPORTES</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+    <!--styles-->
+    <link href="../assets/css/dashboard.css" rel="stylesheet">
+    <link href="../assets/css/pedidos.css" rel="stylesheet">
+    <link href="../assets/css/global.css" rel="stylesheet">
+    <!--helpers-->
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+    <script src="../assets/helpers/helperFunctions.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        /* ========== VARIABLES CSS MEJORADAS ========== */
+        :root {
+            --primary-color: #3b82f6;
+            --primary-rgb: 59, 130, 246;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --background-gradient: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+            --card-background: rgba(255, 255, 255, 0.8);
+            --glass-background: rgba(255, 255, 255, 0.1);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #9ca3af;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --border-radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ========== ESTILOS BASE MEJORADOS ========== */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--background-gradient);
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        /* ========== HEADER MODERNO MEJORADO ========== */
+        .modern-header {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .modern-header .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        /* ========== SIDEBAR MODERNO ========== */
+        .modern-sidebar {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+        .modern-sidebar .nav-link {
+            color: var(--text-secondary);
+            padding: 0.875rem 1.5rem;
+            margin: 0.25rem 1rem;
+            border-radius: 12px;
+            transition: var(--transition);
+            font-weight: 500;
+            border: none;
+            background: none;
+        }
+
+        .modern-sidebar .nav-link:hover,
+        .modern-sidebar .nav-link.active {
+            background: var(--primary-gradient);
+            color: white;
+            transform: translateX(4px);
+            box-shadow: var(--shadow);
+        }
+
+        .modern-sidebar .nav-link i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* ========== CARDS MODERNOS ========== */
+        .modern-card {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            overflow: hidden;
+        }
+
+        .modern-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modern-card .card-header {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .modern-card .card-body {
+            padding: 1.5rem;
+        }
+
+        /* ========== BOTONES MODERNOS ========== */
+        .btn-modern {
+            border-radius: 12px;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            transition: var(--transition);
+            border: none;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-modern.btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn-modern.btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-modern.btn-outline-secondary {
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .btn-modern.btn-outline-secondary:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* ========== TOOLBAR MODERNO ========== */
+        .modern-toolbar {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .modern-toolbar h1 {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        /* ========== INPUTS MODERNOS ========== */
+        .form-control-modern {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            transition: var(--transition);
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+        }
+
+        .form-control-modern:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+            background: white;
+        }
+
+        /* ========== TABLAS MODERNAS ========== */
+        .table-modern {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .table-modern thead th {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .table-modern tbody tr {
+            transition: var(--transition);
+        }
+
+        .table-modern tbody tr:hover {
+            background: rgba(var(--primary-rgb), 0.05);
+        }
+
+        .table-modern tbody td {
+            padding: 1rem;
+            border-color: var(--border-color);
+        }
+
+        /* ========== LOADER MODERNO ========== */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading.hide {
+            display: none;
+        }
+
+        .spin {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ========== LEGACY STYLES (MANTENEMOS COMPATIBILIDAD) ========== */
+        .text-label {
+            font-size: 12px;
+            font-weight: lighter;
+            color: var(--text-primary);
+        }
+
+        .text-uppercase {
+            text-transform: uppercase;
+        }
+
+        .full-modal {
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            padding-left: 80px !important;
+        }
+
+        .full-modal-dialog {
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .full-modal-content {
+            height: 100% !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+        }
+
+        .full-modal-body {
+            overflow-y: auto;
+        }
+
+        .modal-dialog-small{
+            min-width: 500px;
+            max-width: 700px;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .modern-header {
+                padding: 1rem;
+            }
+            
+            .modern-toolbar {
+                padding: 1rem;
+            }
+            
+            .modern-card .card-body {
+                padding: 1rem;
+            }
+            
+            .btn-modern {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loader" class="loading hide">
+        <div class="spin"></div>
+    </div>
+    <header class="navbar navbar-dawrk sticky-top bg-primary flex-md-nowrap p-0 shadow"
+        style="display: flex; justify-content: center; height: 50px;">
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse"
+            data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </header>
+
+    <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
+    <!-- <div class="navbar-nav">
+        <div class="nav-item text-nowrap">
+            <a class="nav-link px-5 mx-5" href="#" id="btn-restore">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesion
+            </a>
+        </div>
+    </div> -->
+    <!-- </header> -->
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3" style="overflow-y: scroll; height:800px;">
+                    <ul class="nav nav-pills flex-column mb-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="./dashboard.html">
+                                <span data-feather="home"></span>
+                                <i class="fa fa-home"></i>
+                                Tablero
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="./pedidos.html">
+                                <i class="fas fa-box"></i>
+                                Noticias
+                            </a>
+                        </li>
+
+                    </ul>
+                    <h6
+                        class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Sucursales</span>
+                        <a class="link-secondary" href="#" aria-label="Add a new report">
+                            <span data-feather="plus-circle"></span>
+                        </a>
+                    </h6>
+                    <ul class="nav flex-column mb-2 list-group" id="sucursales-list">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span data-feather="file-text"></span>
+                                CARGANDO...
+                            </a>
+                        </li>
+                    </ul>
+
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+
+                <!-- TOOLBAR -->
+                <div
+                    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Pedidos</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="getThisDay()">
+                                <span data-feather="calendar"></span>
+                                Este dia
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="getThisWeek()">
+                                <span data-feather="calendar"></span>
+                                Esta semana
+                            </button>
+                            <!-- <button type="button" class="btn btn-sm btn-outline-secondary">
+                                <span data-feather="calendar"></span>
+                                Este mes
+                            </button> -->
+                        </div>
+
+                        <div class="d-flex justify-content-start align-items-center gap-2 mr-1">
+                            <label for="start">Desde:</label>
+                            <input type="date" id="startDate" class="form-control">
+
+                            <label for="end">Hasta:</label>
+                            <input type="date" id="endDate" class="form-control">
+
+                            <button type="button" class="btn btn-primary form-control"
+                                onclick="getByDate()">Buscar</button>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row d-flex justify-content-between">
+                    <div class="col-12 card p-0">
+                        <div class="card-header text-white bg-primary">
+                            <h5>Pedidos</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="tablas-container">
+                                <h4>Noticias</h4>
+                                <p>
+                                    En esta seccion estaran las noticias concernientes a los pedidos, para estar al
+                                    tanto de los ultimos cambios e informacion relevante
+                                </p>
+                            </div>
+                            <div class="card-footer" id="footer-container">
+                                <nav aria-label="pagination">
+                                    <ul class="pagination" id="pagination">
+                                        <!-- <li class="page-item"><a class="page-link" href="#">Previa</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">1</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">Siguiente</a></li> -->
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- Button trigger modal -->
+
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="productsModal" tabindex="-1" aria-labelledby="productsModalLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="productsModalLabel">Pedido # - 0</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="row d-flex">
+                                                <div class="col-md-12">
+                                                    <ul class="list-group" id="data-pedido">
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col">#</th>
+                                                        <th scope="col">PRODUCTO</th>
+                                                        <th scope="col">CANT</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="table-products">
+
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr class="table-dark">
+                                                        <td colspan="3"><b>TOTAL: </b> <b id="total"></b></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary"
+                                        data-bs-dismiss="modal">Cerrar</button>
+                                    <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--Modal guia despacho-->
+                    <!-- <div style="" class="modal fade" id="newGuiaDespachoModal" tabindex="-1" role="dialog" aria-labelledby="clientCreate" aria-hidden="true" data-backdrop="false">
+                        <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Creando: Guia de Despacho</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body row">
+
+                                    <div class="form-group col-md-6 col-12">
+                                        <label for="tipo-despacho">Despacho por cuenta de:</label>
+                                        <select class="form-control" id="tipo-despacho" v-model="TipoDespacho">
+                                        <option value="1" selected>Receptor</option>
+                                        <option value="2">Emisor</option>
+                                        <option value="3">Tercero</option>
+                                    </select>
+                                        <select class="form-select" aria-label="tipo-despacho" id="tipo-despacho"
+                                            v-model="TipoDespacho">
+                                            <option value="1" selected>Receptor</option>
+                                            <option value="2">Emisor</option>
+                                            <option value="3">Tercero</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-6 col-12">
+                                        <div class="mb-3">
+                                            <label for="translado">Translado</label>
+                                            <select class="form-control" id="Translado" v-model="Translado">
+                                            <option value="1" selected>Operacion Constituyente</option>
+                                            <option value="2">Venta por Efectuar</option>
+                                            <option value="3">Consignacion</option>
+                                            <option value="4">Entrega gratuita</option>
+                                            <option value="5">Traslados internos</option>
+                                            <option value="6">Otro traslado (no venta)</option>
+                                            <option value="7">Guía de devolución</option>
+                                            <option value="8">Traslado para exportación. (no venta)</option>
+                                            <option value="9">Venta para exportación</option>
+                                        </select>
+                                            <select class="form-select" aria-label="traslado" id="traslado"
+                                                v-model="traslado">
+                                                <option value="1" selected>Operacion Constituyente</option>
+                                                <option value="2">Venta por Efectuar</option>
+                                                <option value="3">Consignacion</option>
+                                                <option value="4">Entrega gratuita</option>
+                                                <option value="5">Traslados internos</option>
+                                                <option value="6">Otro traslado (no venta)</option>
+                                                <option value="7">Guía de devolución</option>
+                                                <option value="8">Traslado para exportación. (no venta)</option>
+                                                <option value="9">Venta para exportación</option>
+                                            </select>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-md-6 col-12">
+                                        <div class="mb-3">
+                                            <label for="rut" class="form-label">Rut del cliente</label>
+                                            <input id="rut" @change="serchClient(false)" type="text"
+                                                class="form-control"
+                                                :class="['form-control', (rut != '' || rut != null) ? 'text-uppercase' : ''] "
+                                                placeholder="Rut del cliente" :disabled="waitResponse" v-model="rut"
+                                                @keyup.enter="newClient" maxlength="10">
+                                        </div>
+                                    </div>
+                                    <div v-if="clientsPhone" class="form-group col-12">
+                                        <div class="mb-3">
+                                            <label for="phone" class="form-label">Telefono</label>
+                                            <input id="phone" type="text" class="form-control" placeholder="Telefono"
+                                                :disabled="waitResponse" v-model="phone" @keyup.enter="newClient"
+                                                maxlength="20">
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-6 col-12">
+                                        <div class="mb-3">
+                                            <label for="razon_social" class="form-label">Razon social</label>
+                                            <input id="razon_social" type="text" class="form-control"
+                                                placeholder="Razon social" :disabled="waitResponse"
+                                                v-model="razon_social" @keyup.enter="newClient" maxlength="100">
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-6 col-12" v-if="siiInstalado">
+                                        <div class="mb-3">
+                                            <label for="direction" class="form-label">Dirección</label>
+                                            <input id="direction" type="text" class="form-control"
+                                                placeholder="Dirección" :disabled="waitResponse" v-model="direction"
+                                                @keyup.enter="newClient" maxlength="70">
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-6 col-12" v-if="siiInstalado">
+                                        <div class="mb-3">
+                                            <label for="giro" class="form-label">Giro del receptor</label>
+                                            <input id="giro" type="text" class="form-control"
+                                                placeholder="Giro del receptor" :disabled="waitResponse" v-model="giro"
+                                                @keyup.enter="newClient" maxlength="80">
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-6 col-12">
+                                        <div class="mb-3">
+                                            <label for="city" class="form-label">Ciudad</label>
+                                            <input id="city" type="text" class="form-control" placeholder="Ciudad"
+                                                :disabled="waitResponse" v-model="city" @keyup.enter="newClient"
+                                                maxlength="20">
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-6 col-12">
+                                        <div class="mb-3">
+                                            <label for="comuna" class="form-label">Comuna</label>
+                                            <input id="comuna" type="text" class="form-control" placeholder="Comuna"
+                                                :disabled="waitResponse" v-model="comuna" @keyup.enter="newClient"
+                                                maxlength="20">
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-6 col-12" hidden="true">
+                                        <div class="mb-3">
+                                            <label for="observacion" class="form-label">Observacion</label>
+                                            <input id="observacion" type="text" class="form-control"
+                                                placeholder="Observacion" :disabled="waitResponse" v-model="observacion"
+                                                @keyup.enter="newClient" maxlength="20">
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-6 col-12">
+                                        <div class="mb-3">
+                                            <label for="folio-ref" class="form-label">Referencia</label>
+                                            <input id="folio-ref" type="text" class="form-control"
+                                                placeholder="Referencia de Folio" :disabled="waitResponse"
+                                                v-model="comment" maxlength="18">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-info" data-bs-dismiss="modal">Cerrar</button>
+                                    <button type="button" class="btn btn-primary">Crear Guia de Despacho</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
+
+                    <!-- Cliente modal -->
+                    <div style="" class="modal full-modal fade" id="clientCreate" tabindex="-1" role="dialog" aria-labelledby="clientCreate" aria-hidden="true" data-backdrop="false">
+                        <div class="modal-dialog modal-dialog-small modal-md modal-dialog-centered" role="document">
+                            <div class="modal-content full-modal-content">
+                                <div class="modal-header bg-success">
+                                    <h5 class="modal-title">Datos del cliente/factura</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body full-modal-body row">
+                                    <!-- RUT DEL CLIENTE -->
+                                    <div class="mb-3 col-md-8 col-4">
+                                        <label for="rut" class="form-label">Rut del cliente</label>
+                                        <input type="text" class="form-control text-uppercase" id="rut" placeholder="________-_" maxlength="10">
+                                    </div>
+                                    <div class="mb-3 col-md-4 col-4">
+                                        <label for="buscar" class="form-label">Buscar Cliente</label>
+                                        <button class="btn btn-primary d-block" onclick="getClient()">Buscar</button>
+                                    </div>
+                                    <!--/RUT DEL CLIENTE-->
+
+                                    <!-- FECHAS -->
+                                    <div class="mb-3 col-md-6 col-12">
+                                        <label class="form-label" for="fecha_emision">Fecha de Emision</label>
+                                        <input class="form-control" type="date" id="fecha_emision" placeholder="Fecha Emision"></input>
+                                    </div>
+                                    <div class="mb-3 col-md-6 col-12">
+                                        <label class="form-label" for="fecha_vencimiento">Fecha de Vencimiento</label>
+                                        <input class="form-control" type="date" id="fecha_vencimiento" placeholder="Fecha vencimiento"></input>
+                                    </div>
+                                   <!-- /FECHAS -->
+
+                                   <!-- FORMA DE PAGO -->
+                                    <div class="mb-3 form-group col-md-6 col-12">
+                                        <label class="form-label" for="forma-de-pago">Forma de pago</label>
+                                        <select class="form-select" id="forma_pago">
+                                            <option value="1" selected>Contado</option>
+                                            <option value="2">Credito</option>
+                                            <option value="3">Gratuito</option>
+                                        </select>
+                                    </div>
+                                    <!-- /FORMA DE PAGO -->
+
+                                    <!-- NUMERO DE TRANSACCION -->
+                                    <div class="mb-3 form-group col-md-6 col-12">
+                                        <label class="form-label" for="nro_transaccion">Nro Transaccion</label>
+                                        <input id="nro_transaccion" type="number" class="form-control form-control-border" placeholder="Nro Transaccion" id="nro_transaccion" maxlength="100">
+                                    </div>
+                                    <!-- /NUMERO DE TRANSACCION -->
+
+                                    <!-- RAZON SOCIAL -->
+                                    <div class="mb-3 form-group col-12">
+                                        <label class="form-label" for="razon_social">Razon social</label>
+                                        <input id="razon_social" type="text" class="form-control form-control-border" placeholder="Razon social" id="razon_social" maxlength="100">
+                                    </div>
+                                    <!-- /RAZON SOCIAL -->
+
+                                    <div v-if="client_phone" class="mb-3 form-group col-12">
+                                        <label class="form-label" for="phone">Telefono</label>
+                                        <input id="phone" type="text" class="form-control form-control-border" placeholder="Telefono" id="phone" maxlength="20">
+                                    </div>
+                                    <!-- v-if="siiInstalado" -->
+                                    <div class="mb-3 form-group col-md-6 col-12">
+                                        <label class="form-label" for="direction">Dirección</label>
+                                        <input id="direction" type="text" class="form-control form-control-border checked" placeholder="Dirección" id="direction" maxlength="70">
+                                    </div>
+                                    <div class="mb-3 form-group col-md-6 col-12" >
+                                        <label class="form-label" for="giro">Giro del receptor</label>
+                                        <input id="giro" type="text" class="form-control form-control-border" placeholder="Giro del receptor" maxlength="80">
+                                    </div>
+                                    <!-- / v-if="siiInstalado" -->
+
+                                    <div class="mb-3 form-group col-md-6 col-12">
+                                        <label class="form-label" for="city">Ciudad</label>
+                                        <input id="city" type="text" class="form-control form-control-border" placeholder="Ciudad" id="city" maxlength="20">
+                                    </div>
+                                    <div class="mb-3 form-group col-md-6 col-12">
+                                        <label class="form-label" for="comuna">Comuna</label>
+                                        <input id="comuna" type="text" class="form-control form-control-border" placeholder="Comuna" id="comuna" maxlength="20">
+                                    </div>
+                                    <div class="mb-3 form-group col-12">
+                                        <label class="form-label" for="observacion">Observacion</label>
+                                        <input id="observacion" type="text" class="form-control form-control-border" placeholder="Observacion" id="observacion" maxlength="20">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <!-- <button type="button" class="btn btn-danger " onclick="closeModalCliente()">Cerrar</button> -->
+                                    <button type="button" class="btn btn-success " onclick="facturarPedido()">Aceptar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Cancelar Factura (Nota de Crédito) -->
+                    <div style="" class="modal full-modal fade" id="cancelarFacturaModal" tabindex="-1" role="dialog" aria-labelledby="cancelarFacturaModal" aria-hidden="true" data-backdrop="false">
+                        <div class="modal-dialog modal-dialog-small modal-md modal-dialog-centered" role="document">
+                            <div class="modal-content full-modal-content">
+                                <div class="modal-header bg-warning">
+                                    <h5 class="modal-title">
+                                        <i class="fa-solid fa-times-circle me-2"></i>
+                                        Cancelar Factura - Nota de Crédito
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body full-modal-body">
+                                    <!-- FECHA DE CANCELACIÓN -->
+                                    <div class="mb-3">
+                                        <label class="form-label" for="fecha_cancelacion">
+                                            <i class="fa-solid fa-calendar me-1"></i>
+                                            Fecha de Cancelación
+                                        </label>
+                                        <input class="form-control" type="date" id="fecha_cancelacion" required>
+                                        <small class="form-text text-muted">Fecha en que se emite la nota de crédito</small>
+                                    </div>
+
+                                    <!-- INFORMACIÓN ADICIONAL -->
+                                    <div class="alert alert-warning d-flex align-items-center" role="alert">
+                                        <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                                        <div>
+                                            <strong>¡Atención!</strong> Esta acción generará una Nota de Crédito que anulará completamente la factura del pedido. 
+                                            Esta operación no se puede deshacer.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        <i class="fa-solid fa-times me-1"></i>
+                                        Cancelar
+                                    </button>
+                                    <button type="button" class="btn btn-warning" onclick="procesarNotaCredito()">
+                                        <i class="fa-solid fa-file-invoice me-1"></i>
+                                        Generar Nota de Crédito
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </main>
+        </div>
+    </div>
+    <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/pedidos.js"></script>
+    <script>
+        (!_store().serial.isset()) ? window.location.href = "../index.html" : "";
+
+        const _btn_restart = $("#btn-restore");
+
+        _btn_restart.click(function () {
+            _store().serial.delete();           //borramos el serial
+            _store().session.delete()           //borramos la session
+            _store().session.user().delete()    //borramos el usuario
+            //renviamos  a index
+            window.location.href = "../index.html"
+
+        })
+
+        
+    </script>
+</body>
+
+</html>

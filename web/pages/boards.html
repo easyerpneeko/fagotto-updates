@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EASY MESAS</title>
+    <link rel="stylesheet" href="../assets/css/global.css">
+    <link rel="stylesheet" href="../assets/css/board.css">
+    <link rel="stylesheet" href="../assets/plugins/bootstrap/css/bootstrap.min.css">
+        <link href="../assets/css/dashboard.css" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="../assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+    <!--helpers-->
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+    <script src="../assets/helpers/helperParse.js"></script>
+</head>
+
+<body class="body">
+    <header class="navbar navbar-dark sticky-top bg-primary flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">
+            <img src="../assets/brand/logo-white.png" width="120px">
+        </a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse"
+            data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
+        <div class="navbar-nav">
+            <div class="nav-item text-nowrap">
+                <a class="nav-link px-5 mx-5" href="#" id="btn-restore">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesion
+                </a>
+            </div>
+        </div>
+    </header>
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block text-white sidebar collapse">
+                <div class="position-sticky pt-3" style="overflow-y: scroll; height:800px;">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="./dashboard.html">
+                                <span data-feather="home"></span>
+                                <i class="fa fa-home"></i>
+                                Tablero
+                            </a>
+                        </li>
+                    </ul>
+            </nav>
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <!-- TOOLBAR -->
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Mesas</h1>
+                    <div>
+                        <h1 class="h2" id="waiter-name">Cargando...</h1>
+                    </div>
+                </div>
+                <div class="row gap-3 d-flex justify-content-start" id="board-list"></div>
+            </main>
+        </div>
+    </div>
+
+    <div class="modal fade full-modal modal-control" id="modal-show-product" data-bs-backdrop="static"
+        data-bs-keyboard="false" tabindex="-1" aria-labelledby="modal-show-productLabel" aria-hidden="true">
+        <div class="modal-dialog full-modal-dialog">
+            <div class="modal-content full-modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="modal-show-productLabel">ORDEN</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body full-modal-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="prodcut-container">
+                                <div class="list-group" id="product-list">
+                                    <button type="button" class="list-group-item list-title
+                                            list-group-item-action active" aria-current="true">
+                                        <i class="fa-solid fa-cart-shopping"></i> LISTA DE PRODUCTOS
+                                    </button>
+                                    <div class="list-group">
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="prodcut-container">
+                                <ul class="list-group" id="car">
+
+                                    <li class="list-group-item">
+                                        <h5>INGRESAR PRODUCTO</h5>
+                                    </li>
+
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="input-group ">
+                        <input type="text" class="form-control" placeholder="COMENTARIO" id="commit">
+                    </div>
+                    <div type="button" class="fw-bold total" disabled>
+                        TOTAL $ <span id="total" key="0">0</span>
+                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">CANCELAR</button>
+                    <button type="button" class="btn btn-primary" id="send">ENVIAR ORDEN</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+        const _nameBoss = $("#boss-name")
+        const _nameWaiter = $("#waiter-name")
+        const _commit = $("#commit")
+        const _SendVentas = $("#send")
+        const _total = $("#total")
+        const _list = $("#board-list")
+
+        const _modalVenta = $("#modal-show-product") //modal de venta y carga de productos
+        const _list_product = $("#product-list")
+        const _list_car = $("#car")
+        const _board_list = []
+
+        let _TOOGLE = false
+        let _PRODUCT = [];
+        let _CATEGORY = []
+        let _BOARD = null;
+        let _CATEGORYName = []
+        let _PRECARGA = { order: null, product: null }
+        const _VENTA = { waiter: null, board: null, products: [], total: 0 }
+
+        $(document).ready(function () {
+            _nameBoss.text(_store().session.user().get("username")) //obtenemos el nombre del usuario
+            _nameWaiter.text(_store().waiter.get("name"))   //cargamos el nombre d ela mesera
+            console.log(_store().waiter.get())
+            requestLoadBoard()      //cargamos las mesas
+            requestLoadCategoria() // cargamos las cafeterias
+
+            //test
+            //handleOpenOrder()
+        })
+
+        function precarga_clear() { _PRECARGA = { order: null, product: null } }
+        function toogleCategory(id) {
+            /**
+             * FUNCTION toogleCategory
+             * @description esta funcion abre y cierra las categorias
+             * @param {node} id : HTML DOOM
+             * @return {null}
+             */
+
+            const nodeCategory = $(id)
+            const nodeFather = nodeCategory.parent()
+            const products = nodeFather.find(".togle ")
+            if (_TOOGLE !== false && _TOOGLE !== id) { toogleCategory(_TOOGLE) } //?cerramos el antiguo toogle
+
+            if (_TOOGLE === id) {
+                products.hide(100); _TOOGLE = false;
+            } else {
+                products.show(200); _TOOGLE = id //guardamos el toogle reciente
+            }
+        }
+
+        function permision(board) {
+            if (board.order === null) {
+                return `onClick="handleSelectBoard(${board.id},'new')"`
+            } else {
+                if (parseInt(_store().waiter.get("id")) === parseInt(board.waiter.id)) {
+                    return `onClick="handleSelectBoard(${board.id},'edit')"`
+                } else {
+                    return `onClick="handleSelectBoard(${board.id},'error')"`
+                }
+                //onClick="handleSelectBoard(${board.id},${board.order!==null?"'edit'":"'new'"})"
+            }
+
+        }
+
+        //¿ (Js) ( cargamos a los waiterses ) _______________________________________________________________________________________________________________________________
+        function requestLoadBoard() {
+            /**
+             * REQUEST MESAS GET
+             * @description esta funcion llama todas las mesas del negocio
+             * @param {null}
+             * @return {null}
+             */
+
+            __conection({
+                url: generarURLApi("/app/local/cafeteria"),
+                header: credentials(),
+            }, {}, function (request) {
+                console.log("boards", request)
+                //condicional si no tiene garzones probar
+                _list.find("button").remove()
+                if (is_array(request)) {
+                    for (let key in request) {
+                        let board = request[key]
+                        _board_list[board.id] = board  //guardamos las board en una lista de boards
+                        _list.append(`
+                        <button class="btn-board btn ${board.order === null ? "btn-primary" : "btn-board-ocupado "} col col-12 col-sm-2" ${permision(board)}>
+                            ${board.order !== null ? `<span class="badge ${parseInt(_store().waiter.get("id")) === parseInt(board.waiter.id) ? "bg-success" : "bg-warning"} rounded-pill text-dark">${board.waiter.name}</span>` : ""} ${board.name} 
+                        </button>`)
+                    }
+                }
+            })
+        }
+
+        function requestLoadCategoria() {
+            /**
+             * REQUEST CATEGORIA GET 
+             * @description esta funcion llama todas las categorias del negocio
+             * @param {null}
+             * @return {null}
+             */
+
+            __conection({
+                url: generarURLApi("/app/local/categories"),
+                header: credentials(),
+            }, {}, function (request) {
+                if (is_array(request)) {
+                    for (let key in request) {
+                        let a = request[key]
+                        _CATEGORYName[a.id] = a
+                    }
+                    //console.log("category",_CATEGORYName)
+                }
+            })
+        }
+        function requestLoadProduct() {
+            /**
+             * REQUEST PRODUCTOS GET 
+             * @description esta funcion llama todas los productos
+             * @param {null}
+             * @return {null}
+             */
+
+            _list_product.find("div").remove() //borramos todas las categforias y productos
+            _list_car.find("li").remove()
+            _PRODUCT = [];
+            _CATEGORY = []
+            _VENTA.waiter = null
+            _VENTA.board = null
+            _VENTA.products = []
+            _VENTA.total = 0;
+
+            __conection({
+                url: generarURLApi("/app/local/products/sell"),
+                header: credentials(),
+            }, {}, function (request) {
+                //condicional si no tiene garzones probar
+                _list_product.find("div").remove() //borramos todas las categforias y productos
+                _list_car.find("li").remove()
+                if (is_array(request)) {
+                    let time = 300;             //time
+                    let productCount = 100  //productos x time
+
+                    let productos = request
+                    let i = 0;
+                    let _time = 0;
+                    let interval = setInterval(() => {
+                        for (let index = 0; index < productCount; index++) //añade 100 productos por x time
+                        {
+                            if (i < productos.length) {
+                                let producto = productos[i];
+                                let category = "no category"
+                                if (!is_undefined(_CATEGORYName[producto.category])) { category = _CATEGORYName[producto.category].name }
+
+                                _PRODUCT[producto.id] = { render: null, product: producto }  //agregamos todos los productos a la lista
+                                if (is_undefined(_CATEGORY[category])) {
+                                    _CATEGORY[category] = { render: null, list: [] }
+                                    $HtmlADD = ` 
+                                    <div class="list-group" >
+                                        <button type="button" onclick="toogleCategory(this)" 
+                                        class="list-group-item list-group-item-action bg-primary text-light" 
+                                        style="border-radius: 10px;height:64px; border-color: white; border-width: 2px;" aria-current="true" >
+                                        <i class="fa-solid fa-list"></i> ${category} 
+                                        </button>
+                                    </div>`
+                                    $HtmlADD = $($HtmlADD);
+                                    _list_product.append($HtmlADD)
+                                    _CATEGORY[category].render = $HtmlADD
+                                }
+                                _CATEGORY[category].list.push(producto)
+                                _CATEGORY[category].render.append(`
+                                <button type="button" style="display:none;"  
+                                class="togle list-group-item list-group-item-action" 
+                                    onClick="handleSelectProduct(${producto.id})">
+                                   ${producto.name}
+                                <span class="badge bg-primary rounded-pill" style="float: right;border: 2px white solid;font-size: 0.8rem;">
+                                    $ ${formatNumber(producto.price)}
+                                </span>
+                                </button>`)
+                                i++;
+                            } else {
+                                clearInterval(interval);
+                                //cargamos los productos que esten en precarga
+                                if (is_array(_PRECARGA.product)) {
+                                    console.log("precarga")
+                                    _PRECARGA.product.map((item) => {
+                                        for (var i = 1; i <= item.quantity; i++) {
+                                            handleSelectProduct(item.id)//añadimos productos 
+                                        }
+                                    })
+                                    _commit.val(_PRECARGA.commit)
+                                }
+                                return false
+                            }
+                        }
+                        console.log("Productos cargados: " + i);
+                    }, time);
+                }
+            })
+        }
+
+
+        function requestProductSend() {
+            /**
+             * REQUEST ENVIAR ORDEN SET
+             * @description esta funcion envia la orden
+             * @param {null}
+             * @return {null}
+             */
+
+            //_VENTA = {waiter:null,board:null,products:[],total:0}
+            const carrito = _list_car.find("li")
+            carrito.map((index, item) => {
+                if (item != null) {
+                    //console.log(index,item)
+                    let render = $(item)
+                    let id = render.attr("key") //obtenemos la id
+                    let product = _PRODUCT[parseInt(id)].product
+                    let count = render.find(".count").text()
+                    let price = parseInt(render.find(".price").attr("key"))
+
+                    //calculo diferencial de cantidad (solo si sedetecta una edicion)
+                    if (is_array(_PRECARGA.product)) {
+                        if (!is_undefined(_PRECARGA._list_[product.id])) {
+                            count = parseInt(count) - parseInt(_PRECARGA._list_[product.id].quantity)
+                        }
+                    }
+
+                    _VENTA.products.push({
+                        "id": id,
+                        "name": product.name,
+                        "price": product.price,
+                        "quantity": count,
+                        "prices": [],
+                        "cecina": false,
+                        "ganancia": product.ganancia,
+                        "LastVariantPrice": null,
+                        "subtotal": price,
+                        "precioAnterior": product.price
+                    })
+                    _VENTA.total += parseFloat(price)
+                }
+            })
+            _VENTA.products = JSON.stringify(_VENTA.products)
+            _VENTA.waiter = _store().waiter.get("id")
+            _VENTA.board = _BOARD.id
+
+            //edicion
+            if (is_array(_PRECARGA.product)) {
+                _VENTA.waiter = _PRECARGA.waiter
+                _VENTA.board = _PRECARGA.board
+            }
+
+            console.log("PRODUCT", _VENTA)
+
+            __conection({
+                url: generarURLApi(`/app/local/ticket${is_array(_PRECARGA.product) ? "/" + String(_PRECARGA.order) : ""}`),
+                method: "POST",
+                header: credentials(),
+                dev: true,
+            }, {
+                "waiter_id": String(_VENTA.waiter),
+                "board_id": String(_VENTA.board),
+                "total": String(_VENTA.total),
+                "products": _VENTA.products,
+
+                "description": _commit.val(),
+
+            }, function (request) {
+                if (!is_undefined(request.ticket)) {
+                    _console.log("ORDEN ENVIADA", "")
+                    setTimeout(() => {
+                        location.reload()
+                    }, 3000);
+                } else {
+                    _console.color("whithe", "red").log("ORDEN NO ENVIADA", "")
+                }
+            })
+        }
+
+
+        //¿==============================================================================================================================================
+        //? (Js) ( CONTROL DE BOTONES ) ----------------------------
+        //¿==============================================================================================================================================
+
+        _SendVentas.click(function () {
+            console.log("send")
+            requestProductSend()
+            _SendVentas.text("ENVIANDO ORDEN")
+            _SendVentas.addClass("disabled")
+        })
+
+
+        function handleSelectBoard(id, type) {
+            if (type === "error") {
+                alert("NO SE PUEDE MODIFICAR ESTA MESA por que esta  administrada por otro garzon")
+                return false;
+            }
+            const board = _board_list[id]
+            _BOARD = board
+            precarga_clear()//limpiamos la precarga
+            if (type === "edit") {
+                _PRECARGA.product = JSON.parse(board.order.products)//desparseamos los productos
+                _PRECARGA._list_ = []
+                _PRECARGA.product.forEach(element => {
+                    _PRECARGA._list_[element.id] = element
+                });
+                _PRECARGA.order = board.order.id;
+                _PRECARGA.waiter = board.waiter.id
+                _PRECARGA.board = board.id
+                _PRECARGA.commit = board.order.description
+
+            }
+
+            handleOpenOrder()
+
+            //_store().board.set(board)
+            //window.location.href = "boards.html" 
+        }
+
+        function handleOpenOrder() {
+            _modalVenta.modal("show")
+            requestLoadProduct() //cargamos todos los productos
+        }
+
+        function handleSelectProduct(id) {
+            const product = _PRODUCT[id].product
+            const render = _PRODUCT[id].render
+
+            if (render === null) {
+                $HTMLADD = `
+                <li class="list-group-item" key="${product.id}" >
+                    <div class="">
+
+                        <div class="d-flex justify-content-between">
+                            <h5>${product.name}</h5>
+                            <div class="btn-group ">
+                                <button class="fw-bold btn product-delete" 
+                                    style="color: white;border: 2px #dc3545 solid;padding: 5px;max-height: 25px;font-size: .5rem;background: #dc3545;box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2), 0px 4px 8px rgba(0, 0, 0, 0.1);"
+                                    onClick="handleDeleteOrden('-',${product.id})"> <i class="fa fa-minus"></i>
+                                </button>
+                                <div>
+                                    <span class="" style=" max-height: 25px;">
+                                        <span class="count" style="margin: 10px;" >1</span>
+                                    </span>
+                                </div>
+                                <button class="fw-bold btn product-add"
+                                        style="color: white;border: 2px #0600de solid;padding: 5px;max-height: 25px;font-size: .5rem;background: #0600de;box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2), 0px 4px 8px rgba(0, 0, 0, 0.1);"        
+                                        onClick="handleDeleteOrden('+',${product.id})"> <i class="fa fa-plus"> </i> 
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between"> 
+                            <div>
+                                <p class="col-12">$<span class="price" key="${(product.price)}"> ${formatNumber(product.price)}</span></p>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </li>`
+                $HTMLADD = $($HTMLADD)
+                _list_car.append($HTMLADD)
+                _PRODUCT[id].render = $HTMLADD
+                _total.text(formatNumber(parseFloat(_total.attr("key")) + parseFloat(product.price)))
+
+                _total.attr("key", (parseFloat(_total.attr("key")) + parseFloat(product.price)))
+
+            } else {
+                const price = render.find(".price")
+
+                const count = render.find(".count")
+                let total = String(parseFloat(product.price) * (parseFloat(count.text()) + 1))
+                price.text(formatNumber(total))
+                price.attr("key", total)
+                count.text(parseInt(count.text()) + 1)
+
+                _total.text(formatNumber(parseFloat(_total.attr("key")) + parseFloat(product.price)))
+                _total.attr("key", (parseFloat(_total.attr("key")) + parseFloat(product.price)))
+            }
+        }
+
+        function handleDeleteOrden(type, id) {
+            let render = _PRODUCT[id].render
+            const product = _PRODUCT[id].product
+            const price = render.find(".price")
+            const count = render.find(".count")
+            let total = 0;
+
+            switch (type) {
+                case "+":
+                    total = String(parseFloat(product.price) * (parseFloat(count.text()) + 1))
+                    price.text(formatNumber(total))
+                    price.attr("key", total)
+                    count.text(parseInt(count.text()) + 1)
+
+                    _total.text(formatNumber(parseFloat(_total.attr("key")) + parseFloat(product.price)))
+                    _total.attr("key", (parseFloat(_total.attr("key")) + parseFloat(product.price)))
+                    break;
+                case "-":
+                    total = String(parseFloat(product.price) * (parseFloat(count.text()) - 1))
+                    price.text(formatNumber(total))
+                    price.attr("key", total)
+                    count.text(parseInt(count.text()) - 1)
+                    if (parseInt(count.text()) <= 0) {
+                        render.remove()
+                        _PRODUCT[id].render = null;
+                    }
+
+                    _total.text(formatNumber(parseFloat(_total.attr("key")) - parseFloat(product.price)))
+                    _total.attr("key", (parseFloat(_total.attr("key")) - parseFloat(product.price)))
+                    break;
+            }
+
+
+        }
+
+    </script>
+</body>
+
+</html>

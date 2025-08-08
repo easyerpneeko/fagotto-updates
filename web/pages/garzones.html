@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EASY GARZONES</title>
+    <link rel="stylesheet" href="../assets/plugins/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/garzon.css">
+    <link rel="stylesheet" href="../assets/css/global.css">
+    <link href="../assets/css/dashboard.css" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="../assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../assets/plugins/bootstrap/css/css/"></script>
+    <!--helpers-->
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+</head>
+
+<body class="body">
+    <header class="navbar navbar-dark sticky-top bg-primary flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">
+            <img src="../assets/brand/logo-white.png" width="120px">
+        </a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse"
+            data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
+        <div class="navbar-nav">
+            <div class="nav-item text-nowrap">
+                <a class="nav-link px-5 mx-5" href="#" id="btn-restore">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesion
+                </a>
+            </div>
+        </div>
+    </header>
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block text-white sidebar collapse">
+                <div class="position-sticky pt-3" style="overflow-y: scroll; height:800px;">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="./dashboard.html">
+                                <span data-feather="home"></span>
+                                <i class="fa fa-home"></i>
+                                Tablero
+                            </a>
+                        </li>
+                    </ul>
+
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <!-- TOOLBAR -->
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h2 class="h2">Garzones</h2>
+                    <h2 class="h2" id="waiters-name">Cargando...</h2>
+                </div>
+                <div class="row d-flex justify-content-between" id="waiters-list"></div>
+            </main>
+        </div>
+    </div>
+    <script>
+        const _name = $("#waiters-name")
+        const _list = $("#waiters-list")
+        const _waiter_list = []
+        $(document).ready(function () {
+            _name.text(_store().session.user().get("username")) //obtenemos el nombre del usuario
+            requestLoadWaiters()
+        })
+
+
+        //¿ (Js) ( cargamos a los waiterses ) _______________________________________________________________________________________________________________________________
+        function requestLoadWaiters() {
+
+            __conection({
+                url: generarURLApi("/app/local/all/waiters"),
+                header: credentials(),
+                dev: true
+            }, {}, function (request) {
+                //console.log("garzon",request)
+                //condicional si no tiene garzones probar
+                _list.find("button").remove()
+                if (is_array(request)) {
+                    for (let key in request) {
+                        let waiter = request[key]
+                        _waiter_list[waiter.id] = waiter  //guardamos las waiter en una lista de waiters
+                        _list.append(`<button class="btn-garzon col btn btn-primary col-12 col-sm-2" onClick="handleSelectWaiter(${waiter.id})">${waiter.name}</button>`)
+                    }
+                }
+            })
+        }
+
+
+        function handleSelectWaiter(id) {
+            const waiter = _waiter_list[id]
+            _store().waiter.set(waiter)
+            window.location.href = "boards.html"
+            //sumar los porductos con su cantidad
+
+
+        }
+
+
+
+    </script>
+</body>
+
+</html>

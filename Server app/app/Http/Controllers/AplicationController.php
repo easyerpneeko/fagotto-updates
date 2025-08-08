@@ -14,6 +14,7 @@ use App\DataBase;
 use App\Client;
 use DateTime;
 use Artisan;
+use Auth;
 use App\Http\Controllers\Controllers_local\ReportsController;
 use App\Http\Controllers\Controllers_local\RequestsController;
 
@@ -50,17 +51,39 @@ class AplicationController extends Controller {
 
   public function getAppsPedidosNew(Request $request, RequestsController $RequestsController) {
     $currentApp = CurrentApp::App();
+    $user = Auth::user();
+    $appKey = $request->header('App-Key');
 
-   $apps = Aplication::where('client',$currentApp->client)->where('active',1)->with('database')->get();
+    // SEGURIDAD: Llaves especiales pueden ver todas las aplicaciones sin autenticación de usuario
+    $specialKeys = ['1455-93EC-02ED-41A8-735D', '13E3-F7FB-35EB-E7CE-3541']; // super y admin
+    
+    // Si es llave especial, no requiere usuario autenticado
+    if (in_array($appKey, $specialKeys)) {
+        $apps = Aplication::where('client',$currentApp->client)->where('active',1)->with('database')->get();
+    } 
+    // Si no es llave especial, verificar autenticación de usuario
+    else {
+        // Si no hay usuario autenticado, denegar acceso
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
+        
+        // Si es usuario maestro, puede ver todas las aplicaciones
+        if ($user->username === 'master') {
+            $apps = Aplication::where('client',$currentApp->client)->where('active',1)->with('database')->get();
+        } else {
+            $apps = collect([$currentApp]); // Solo la aplicación actual para usuarios normales
+        }
+    }
 
     foreach ($apps as $app) {
-        $connection = new ConectionDB($app); // Suponiendo que $app contiene la información de la base de datos
-        $connection->set_database($app->database); // Reconectar a la base de datos
-        $connection->ChangeDBToApp($app, $reconect = true); // Reconectar a la base de datos
+        $connection = new ConectionDB($app);
+        $connection->set_database($app->database);
+        $connection->ChangeDBToApp($app, $reconect = true);
         
-        $cantPedidosNew = $RequestsController->getCantPedidosNew(); // Llamar al método getCantPedidosNew del controlador ReportsController pasando la request como parámetro
+        $cantPedidosNew = $RequestsController->getCantPedidosNew();
         
-        $app->pedidosNew = $cantPedidosNew; // Guardar los datos de contadores en un array asociativo con el nombre de la aplicación
+        $app->pedidosNew = $cantPedidosNew;
     }
 
     return response()->json($apps);
@@ -68,20 +91,41 @@ class AplicationController extends Controller {
 
   public function getAppCounters(Request $request, ReportsController $reportsController)  {
       $currentApp = CurrentApp::App();
-     $apps = Aplication::where('client',$currentApp->client)->where('active',1)->with('database')->get();
+      $user = Auth::user();
+      $appKey = $request->header('App-Key');
+
+      // SEGURIDAD: Llaves especiales pueden ver todas las aplicaciones sin autenticación de usuario
+      $specialKeys = ['1455-93EC-02ED-41A8-735D', '13E3-F7FB-35EB-E7CE-3541']; // super y admin
+      
+      // Si es llave especial, no requiere usuario autenticado
+      if (in_array($appKey, $specialKeys)) {
+          $apps = Aplication::where('client',$currentApp->client)->where('active',1)->with('database')->get();
+      } 
+      // Si no es llave especial, verificar autenticación de usuario
+      else {
+          // Si no hay usuario autenticado, denegar acceso
+          if (!$user) {
+              return response()->json(['error' => 'Usuario no autenticado'], 401);
+          }
+          
+          // Si es usuario maestro, puede ver todas las aplicaciones
+          if ($user->username === 'master') {
+              $apps = Aplication::where('client',$currentApp->client)->where('active',1)->with('database')->get();
+          } else {
+              $apps = collect([$currentApp]); // Solo la aplicación actual para usuarios normales
+          }
+      }
       
       $appCounters = [];
 
       foreach ($apps as $app) {
-          // $connection = new ConectionDB($app); // Suponiendo que $app contiene la información de la base de datos
-          // $connection->set_database($app->database); // Reconectar a la base de datos
-          $connection = new ConectionDB($app); // Suponiendo que $app contiene la información de la base de datos
-          $connection->set_database($app->database); // Reconectar a la base de datos
-          $connection->ChangeDBToApp($app, $reconect = true); // Reconectar a la base de datos
+          $connection = new ConectionDB($app);
+          $connection->set_database($app->database);
+          $connection->ChangeDBToApp($app, $reconect = true);
           
-          $counters = $reportsController->getCounters($request); // Llamar al método getCounters del controlador ReportsController pasando la request como parámetro
+          $counters = $reportsController->getCounters($request);
           
-          $appCounters[$app->id.','.$app->name  ] = $counters; // Guardar los datos de contadores en un array asociativo con el nombre de la aplicación
+          $appCounters[$app->id.','.$app->name] = $counters;
       }
   
       return response()->json($appCounters);
@@ -89,17 +133,40 @@ class AplicationController extends Controller {
 
   public function getAppRequests(Request $request, RequestsController $RequestsController)  {
     $currentApp = CurrentApp::App();
-   $apps = Aplication::where('client',$currentApp->client)->where('active',1)->with('database')->get();
+    $user = Auth::user();
+    $appKey = $request->header('App-Key');
+
+    // SEGURIDAD: Llaves especiales pueden ver todas las aplicaciones sin autenticación de usuario
+    $specialKeys = ['1455-93EC-02ED-41A8-735D', '13E3-F7FB-35EB-E7CE-3541']; // super y admin
+    
+    // Si es llave especial, no requiere usuario autenticado
+    if (in_array($appKey, $specialKeys)) {
+        $apps = Aplication::where('client',$currentApp->client)->where('active',1)->with('database')->get();
+    } 
+    // Si no es llave especial, verificar autenticación de usuario
+    else {
+        // Si no hay usuario autenticado, denegar acceso
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
+        
+        // Si es usuario maestro, puede ver todas las aplicaciones
+        if ($user->username === 'master') {
+            $apps = Aplication::where('client',$currentApp->client)->where('active',1)->with('database')->get();
+        } else {
+            $apps = collect([$currentApp]); // Solo la aplicación actual para usuarios normales
+        }
+    }
     
     $appRequests = [];
 
     foreach ($apps as $app) {
-        $connection = new ConectionDB($app); // Suponiendo que $app contiene la información de la base de datos
-        $connection->ChangeDBToApp($app, $reconect = true); // Reconectar a la base de datos
+        $connection = new ConectionDB($app);
+        $connection->ChangeDBToApp($app, $reconect = true);
         
-        $requests = $RequestsController->index($request); // Llamar al método index del controlador ReportsController pasando la request como parámetro
+        $requests = $RequestsController->index($request);
         
-        $appRequests[$app->name] = $requests; // Guardar los datos de contadores en un array asociativo con el nombre de la aplicación
+        $appRequests[$app->name] = $requests;
     }
 
     return response()->json($appRequests);
@@ -451,17 +518,39 @@ class AplicationController extends Controller {
   // REPOSTERIA
   public function getAppsPedidosNewReposteria(Request $request, RequestsController $RequestsController) {
     $currentApp = CurrentApp::App();
+    $user = Auth::user();
+    $appKey = $request->header('App-Key');
 
-   $apps = Aplication::where('client',$currentApp->client)->where('active',1)->with('database')->get();
+    // SEGURIDAD: Llaves especiales pueden ver todas las aplicaciones sin autenticación de usuario
+    $specialKeys = ['1455-93EC-02ED-41A8-735D', '13E3-F7FB-35EB-E7CE-3541']; // super y admin
+    
+    // Si es llave especial, no requiere usuario autenticado
+    if (in_array($appKey, $specialKeys)) {
+        $apps = Aplication::where('client',$currentApp->client)->where('active',1)->with('database')->get();
+    } 
+    // Si no es llave especial, verificar autenticación de usuario
+    else {
+        // Si no hay usuario autenticado, denegar acceso
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
+        
+        // Si es usuario maestro, puede ver todas las aplicaciones
+        if ($user->username === 'master') {
+            $apps = Aplication::where('client',$currentApp->client)->where('active',1)->with('database')->get();
+        } else {
+            $apps = collect([$currentApp]); // Solo la aplicación actual para usuarios normales
+        }
+    }
 
     foreach ($apps as $app) {
-        $connection = new ConectionDB($app); // Suponiendo que $app contiene la información de la base de datos
-        $connection->set_database($app->database); // Reconectar a la base de datos
-        $connection->ChangeDBToApp($app, $reconect = true); // Reconectar a la base de datos
+        $connection = new ConectionDB($app);
+        $connection->set_database($app->database);
+        $connection->ChangeDBToApp($app, $reconect = true);
         
-        $cantPedidosNew = $RequestsController->getCantPedidosNewReposteria(); // Llamar al método getCantPedidosNewReposteria del controlador ReportsController pasando la request como parámetro
+        $cantPedidosNew = $RequestsController->getCantPedidosNewReposteria();
         
-        $app->pedidosNew = $cantPedidosNew; // Guardar los datos de contadores en un array asociativo con el nombre de la aplicación
+        $app->pedidosNew = $cantPedidosNew;
     }
 
     return response()->json($apps);

@@ -1,0 +1,67 @@
+*{
+    padding: 0;
+    margin: 0;
+}
+
+body{
+    background-color: rgb(243, 243, 243);
+    /* height: 100vh; */
+    /* display: flex; */
+    /* justify-content: center; */
+    /* align-items: center;  */
+
+}
+.card .card-header {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
+.card .card-body span{
+    font-weight: 100;
+    font-size: 0.9rem;
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
+.card .card-body input{
+    text-align: center;
+    border-radius: 0;
+    font-weight: 100;
+}
+
+.card .card-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card .card-footer button{
+    border-radius: 0;
+    text-transform: uppercase;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.418)
+}
+
+
+.btn-restore{
+
+    position: fixed;
+    top: 0;
+    right: 0;
+    margin: 1rem;
+    font-size: 0.8rem;
+    text-decoration: none;
+    border-radius: 5px;
+}
+.bg-easy{
+    background-color: #0b4f6c!important;
+}

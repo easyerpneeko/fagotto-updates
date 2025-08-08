@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FagottoERP - Login</title>
+
+    <!-- Modern CSS Design -->
+    <link rel="stylesheet" href="../assets/css/loginpage_modern.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <!--helpers-->
+    <script src="../assets/helpers/helperAlert.js"></script>
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+</head>
+
+<body>
+    <div class="theme-switch-wrapper">
+        <label class="theme-switch" for="checkbox">
+            <input type="checkbox" id="checkbox" />
+            <div class="slider round">
+                <div class="icon sun">☀️</div>
+                <div class="icon moon">🌙</div>
+            </div>
+        </label>
+    </div>
+
+    <div class="login-container">
+        <!-- Floating shine particles -->
+        <div class="shine-particles">
+            <div class="particle particle-1"></div>
+            <div class="particle particle-2"></div>
+            <div class="particle particle-3"></div>
+            <div class="particle particle-4"></div>
+            <div class="particle particle-5"></div>
+            <div class="particle particle-6"></div>
+        </div>
+        
+        <!-- Ripple effect -->
+        <div class="ripple-container">
+            <div class="ripple ripple-1"></div>
+            <div class="ripple ripple-2"></div>
+            <div class="ripple ripple-3"></div>
+        </div>
+        
+        <div class="login-content">
+            <!-- Centered login form -->
+            <div class="form-section-centered">
+                <div class="form-container">
+                    <div class="logo-header">
+                        <img src="../assets/css/logo.png" alt="EasyERP Logo" class="login-logo">
+                    </div>
+                    
+                    <div class="form-header">
+                        <h2>Iniciar Sesión</h2>
+      
+                    </div>
+
+                    <form id="loginForm" class="modern-form">
+                        <div class="form-group">
+                            <label for="username">Usuario</label>
+                            <div class="input-group">
+                                <span class="input-icon">👤</span>
+                                <input type="text" 
+                                       id="username" 
+                                       name="username" 
+                                       class="form-input" 
+                                       placeholder="Ingresa tu usuario"
+                                       required>
+                            </div>
+                            <div class="error-message" id="username-error"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Contraseña</label>
+                            <div class="input-group">
+                                <span class="input-icon">🔒</span>
+                                <input type="password" 
+                                       id="password" 
+                                       name="password" 
+                                       class="form-input" 
+                                       placeholder="Ingresa tu contraseña"
+                                       required>
+                                <span class="password-toggle" id="passwordToggle">👁️</span>
+                            </div>
+                            <div class="error-message" id="password-error"></div>
+                        </div>
+
+                        <div class="form-options">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="remember" name="remember">
+                                <label for="remember">Recordarme</label>
+                            </div>
+                            <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+                        </div>
+
+                        <button type="button" id="btn-login" class="login-button">
+                            <span class="button-text">Iniciar Sesión</span>
+                            <span class="loading-spinner" style="display: none;">
+                                <div class="spinner"></div>
+                                <span>Iniciando...</span>
+                            </span>
+                        </button>
+                    </form>
+
+                    <!-- Alert messages -->
+                    <div class="alert-container">
+                        <div class="alert-error" id="errorAlert" style="display: none;">
+                            <span class="alert-icon">❌</span>
+                            <span class="alert-text">Usuario o contraseña incorrectos</span>
+                        </div>
+                        <div class="alert-success" id="successAlert" style="display: none;">
+                            <span class="alert-icon">✅</span>
+                            <span class="alert-text">¡Login exitoso! Redirigiendo...</span>
+                        </div>
+                    </div>
+
+                    <div class="support-info">
+                        <p>¿Necesitas ayuda?</p>
+                        <div class="support-contacts">
+                            <a href="tel:+56949939922" class="support-link">
+                                <span class="icon">📞</span>
+                                <span>+56 9 4993 9922</span>
+                            </a>
+                            <a href="mailto:soporte@fagottoerp.com" class="support-link">
+                                <span class="icon">✉️</span>
+                                <span>soporte@fagotto.cl</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <button class="btn-restore" id="btn-restore">
+                        <span class="icon">🚪</span>
+                        <span>Salir</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Theme switcher functionality
+            const themeSwitch = document.querySelector('#checkbox');
+            const body = document.body;
+
+            // Check for saved theme preference or default to 'dark'
+            const currentTheme = localStorage.getItem('loginTheme') || 'dark';
+            body.classList.add(currentTheme + '-theme');
+            
+            if (currentTheme === 'dark') {
+                themeSwitch.checked = true;
+            }
+
+            themeSwitch.addEventListener('change', function() {
+                if (this.checked) {
+                    body.classList.remove('light-theme');
+                    body.classList.add('dark-theme');
+                    localStorage.setItem('loginTheme', 'dark');
+                } else {
+                    body.classList.remove('dark-theme');
+                    body.classList.add('light-theme');
+                    localStorage.setItem('loginTheme', 'light');
+                }
+            });
+
+            // Password toggle functionality
+            $('#passwordToggle').click(function() {
+                const passwordInput = $('#password');
+                const toggleIcon = $(this);
+                
+                if (passwordInput.attr('type') === 'password') {
+                    passwordInput.attr('type', 'text');
+                    toggleIcon.text('🙈');
+                } else {
+                    passwordInput.attr('type', 'password');
+                    toggleIcon.text('👁️');
+                }
+            });
+
+            // Live validation
+            function validateInput(input, errorElement, validationFn, errorMessage) {
+                const value = input.val().trim();
+                const isValid = validationFn(value);
+                
+                if (!isValid && value !== '') {
+                    input.addClass('error');
+                    errorElement.text(errorMessage).show();
+                } else {
+                    input.removeClass('error');
+                    errorElement.hide();
+                }
+                
+                return isValid || value === '';
+            }
+
+            // Username validation
+            $('#username').on('input blur', function() {
+                validateInput(
+                    $(this),
+                    $('#username-error'),
+                    (value) => value.length >= 3,
+                    'El usuario debe tener al menos 3 caracteres'
+                );
+            });
+
+            // Password validation
+            $('#password').on('input blur', function() {
+                validateInput(
+                    $(this),
+                    $('#password-error'),
+                    (value) => value.length >= 4,
+                    'La contraseña debe tener al menos 4 caracteres'
+                );
+            });
+
+            // Input focus animations
+            $('.form-input').on('focus', function() {
+                $(this).closest('.form-group').addClass('focused');
+            });
+
+            $('.form-input').on('blur', function() {
+                if (!$(this).val()) {
+                    $(this).closest('.form-group').removeClass('focused');
+                }
+            });
+
+            // Check if inputs have values on page load
+            $('.form-input').each(function() {
+                if ($(this).val()) {
+                    $(this).closest('.form-group').addClass('focused');
+                }
+            });
+
+            // Form submission with Enter key
+            $(document).keydown(function(e) {
+                if (e.key === 'Enter' && !$('#btn-login').prop('disabled')) {
+                    e.preventDefault();
+                    $('#btn-login').click();
+                }
+            });
+
+            // ESC key to clear form
+            $(document).keydown(function(e) {
+                if (e.key === 'Escape') {
+                    $('#username, #password').val('').removeClass('error');
+                    $('.error-message').hide();
+                    $('.form-group').removeClass('focused');
+                    hideAlerts();
+                }
+            });
+
+            // Alert functions
+            function showAlert(type, message) {
+                hideAlerts();
+                const alertElement = type === 'error' ? $('#errorAlert') : $('#successAlert');
+                if (message) {
+                    alertElement.find('.alert-text').text(message);
+                }
+                alertElement.fadeIn(300);
+                
+                if (type === 'error') {
+                    setTimeout(() => {
+                        alertElement.fadeOut(300);
+                    }, 4000);
+                }
+            }
+
+            function hideAlerts() {
+                $('.alert-error, .alert-success').fadeOut(200);
+            }
+
+            // Store alert functions globally for use in login function
+            window.showAlert = showAlert;
+            window.hideAlerts = hideAlerts;
+        });
+
+        // Original functionality preserved
+        (!_store().serial.isset()) ? window.location.href = "../index.html" : "";
+
+        const _username = $("#username");
+        const _password = $("#password");
+        const _login = $("#btn-login");
+        const _btn_restart = $("#btn-restore");
+
+        // Clear session
+        _store().session.delete();
+        _store().session.user().delete();
+
+        _login.click(function () {
+            // Validate before submitting
+            const username = _username.val().trim();
+            const password = _password.val().trim();
+            
+            if (username.length < 3) {
+                _username.addClass('error');
+                $('#username-error').text('El usuario debe tener al menos 3 caracteres').show();
+                _username.focus();
+                return;
+            }
+            
+            if (password.length < 4) {
+                _password.addClass('error');
+                $('#password-error').text('La contraseña debe tener al menos 4 caracteres').show();
+                _password.focus();
+                return;
+            }
+
+            // Show loading state
+            const buttonText = _login.find('.button-text');
+            const spinner = _login.find('.loading-spinner');
+            
+            buttonText.hide();
+            spinner.show();
+            _login.prop('disabled', true).addClass('loading');
+            hideAlerts();
+
+            __conection({
+                url: generarURLApi("/local/login"),
+                header: { "app-key": _store().serial.get() },
+            }, {
+                username: username,
+                password: password,
+            }, function (request) {
+                // Reset button state
+                buttonText.show();
+                spinner.hide();
+                _login.prop('disabled', false).removeClass('loading');
+
+                if (request === "Credenciales invalidas") { 
+                    showAlert('error', 'Usuario o contraseña incorrectos');
+                    _username.addClass('error');
+                    _password.addClass('error');
+                    console.log("CREDENCIALES INVALIDAR"); 
+                    return 0; 
+                }
+                
+                _store().session.set(request.token);                         // Save token
+                _store().session.user().set(JSON.stringify(request.user));   // Save user
+                showAlert('success', '¡Login exitoso! Redirigiendo...');
+                
+                setTimeout(() => { 
+                    window.location.href = "dashboard.html" 
+                }, 1500);
+            });
+        });
+
+        _btn_restart.click(function () {
+            _store().serial.delete();           // Delete serial
+            _store().session.delete();          // Delete session
+            _store().session.user().delete();   // Delete user
+            // Redirect to index
+            window.location.href = "../index.html";
+        });
+    </script>
+</body>
+
+</html>

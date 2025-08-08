@@ -1,0 +1,11 @@
+body {
+    height: 100%!important;
+    width: 100%!important;
+    background-color: #0b4f6c;
+}
+.container{
+    max-width: 100%!important;
+}
+.bg-easy{
+    background-color: #0b4f6c!important;
+}

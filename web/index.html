@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EasyERP</title>
+
+    <!-- Modern CSS Design -->
+    <link rel="stylesheet" href="assets/css/csslogin.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="assets/js/jquery-3.6.0.min.js"></script>
+    <!--helpers-->
+    <script src="assets/helpers/helperURL.js"></script>
+    <script src="assets/helpers/helperSpecial.js"></script>
+    <script src="assets/helpers/helperRoutes.js"></script>
+    <script src="assets/helpers/helperStore.js"></script>
+    <script src="assets/helpers/helperRequest.js"></script>
+    <script src="assets/helpers/helperAlert.js"></script>
+</head>
+
+<body>
+    <!-- Main Container -->
+    <div class="modern-container">
+        <!-- Left Side - Login Form -->
+        <div class="login-section">
+            <!-- Back Arrow -->
+            <a href="#" class="back-arrow">←</a>
+            
+            <!-- Dark Mode Toggle -->
+            <button class="theme-toggle" id="theme-toggle"></button>
+            
+            <!-- Login Content Container -->
+            <div class="login-content">
+                <!-- Logo Section -->
+                <div class="logo-section">
+                    <img src="./assets/css/logo.png" alt="FagottoERP" class="app-logo">
+                </div>
+            
+            <!-- Header Section -->
+            <div class="header-section">
+                <h1 class="main-title">Sincronizar</h1>
+                <p class="subtitle">Conecta tu local para comenzar a operar con FagottoERP</p>
+                
+                <!-- Status Indicator -->
+                <div class="status-indicator" id="status-indicator">
+                    <span class="status-icon">⚠️</span>
+                    <span class="status-text">Conexión no establecida</span>
+                </div>
+            </div>
+
+            <!-- Form Section -->
+            <div class="form-section">
+                <div class="input-group">
+                    <div class="input-with-icon">
+                        <span class="input-icon">🔑</span>
+                        <input type="text" class="form-input" name="serial" id="serial"
+                            placeholder="0000-0000-0000-0000" required value="" maxlength="35">
+                    </div>
+                    <div class="input-validation" id="input-validation"></div>
+                </div>
+                
+                <button class="submit-btn" id="btn-send" type="submit" disabled>
+                    <span class="btn-text">Sincronizar Negocio</span>
+                    <span class="btn-spinner" style="display: none;">
+                        <div class="spinner"></div>
+                        Sincronizando...
+                    </span>
+                </button>
+                
+                <!-- Help Section -->
+                <div class="help-section">
+                    <button class="help-btn" id="help-btn">
+                        <span>❓</span>
+                        ¿Dónde encuentro mi serial?
+                    </button>
+                </div>
+            </div>
+
+            <!-- Alert Section -->
+            <div class="alert-section" id="alert-container" role="alert"></div>
+            
+            <!-- Footer Help -->
+            <div class="footer-help">
+                <a href="#" class="help-link">¿Necesitas ayuda? Contáctanos aquí</a>
+            </div>
+            </div> <!-- Close login-content -->
+        </div>
+
+        <!-- Right Side - Decorative -->
+        <div class="decorative-section">
+            <div class="decorative-elements">
+                <!-- Floating Cards Centered -->
+                
+                <div class="floating-card card-2">
+                    <div class="card-security-title">Sistema Seguro</div>
+                    <div class="card-security-text">Tus datos están protegidos con encriptación avanzada y tecnología de última generación</div>
+                </div>
+            </div>
+
+            <!-- Floating Icons Container -->
+            <div class="floating-icons-container">
+                <div class="floating-icon icon-1">
+                    <svg width="24" height="24" fill="none" stroke="#667eea" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                </div>
+                
+                <div class="floating-icon icon-2">
+                    <svg width="24" height="24" fill="none" stroke="#10b981" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                
+                <div class="floating-icon icon-3">
+                    <svg width="24" height="24" fill="none" stroke="#f59e0b" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const _btn_send = $("#btn-send");
+        const _input_seral = $("#serial");
+        const _alert_container = $("#alert-container");
+        const _status_indicator = $("#status-indicator");
+        const _input_validation = $("#input-validation");
+        const _help_btn = $("#help-btn");
+        const _theme_toggle = $("#theme-toggle");
+
+        // Dark mode functionality
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark'; // Cambié 'light' por 'dark'
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Initialize theme on page load
+        initTheme();
+
+        // Theme toggle event
+        _theme_toggle.click(function() {
+            toggleTheme();
+        });
+
+        // Función personalizada para mostrar notificaciones
+        function notificacion(type, message, duration) {
+            _alert_container.removeClass('alert-success alert-danger alert-info');
+            _alert_container.addClass('alert-' + type);
+            _alert_container.text(message);
+            _alert_container.show();
+            
+            setTimeout(() => {
+                _alert_container.hide();
+            }, duration);
+        }
+
+        // Función para actualizar el estado de conexión
+        function updateStatus(status, message, icon) {
+            _status_indicator.removeClass('connected error');
+            if (status !== 'warning') {
+                _status_indicator.addClass(status);
+            }
+            _status_indicator.find('.status-text').text(message);
+            _status_indicator.find('.status-icon').text(icon);
+        }
+
+        // Función para validar formato de serial
+        function validateSerialFormat(serial) {
+            // Aceptar cualquier serial con formato alfanumérico de 4 caracteres separados por guiones
+            // Mínimo 4 grupos, máximo lo que sea necesario
+            const pattern = /^([A-Fa-f0-9]{4}-){3,}[A-Fa-f0-9]{4}$/;
+            return pattern.test(serial);
+        }
+
+        // Función para formatear serial mientras escribe
+        function formatSerial(value) {
+            // Remover todo lo que no sea número o letra (A-F, a-f, 0-9)
+            const cleanValue = value.replace(/[^A-Fa-f0-9]/g, '').toUpperCase();
+            
+            // Agregar guiones cada 4 caracteres
+            const formatted = cleanValue.replace(/([A-Fa-f0-9]{4})(?=[A-Fa-f0-9])/g, '$1-');
+            
+            return formatted;
+        }
+
+        // Validación en tiempo real del input
+        _input_seral.on('input', function() {
+            const rawValue = $(this).val();
+            const formatted = formatSerial(rawValue);
+            
+            // Actualizar el valor con formato
+            $(this).val(formatted);
+            
+            // Validar y mostrar feedback
+            if (formatted.length === 0) {
+                _input_validation.removeClass('valid invalid').css('opacity', '0');
+                _btn_send.prop('disabled', true);
+            } else if (validateSerialFormat(formatted)) {
+                _input_validation.removeClass('invalid').addClass('valid').text('✓ Formato válido').css('opacity', '1');
+                _btn_send.prop('disabled', false);
+            } else if (formatted.length > 0) {
+                _input_validation.removeClass('valid').addClass('invalid').text('✗ Formato: grupos de 4 caracteres alfanuméricos separados por guiones').css('opacity', '1');
+                _btn_send.prop('disabled', true);
+            }
+        });
+
+        // Botón de ayuda
+        _help_btn.click(function() {
+            alert('El serial es un código único que identifica tu negocio.\nFormato: grupos de 4 caracteres alfanuméricos separados por guiones\nEjemplos:\n• 13E3-F7FB-35EB-E7CE-3541\n\nPuedes encontrarlo en:\n• Email de bienvenida\n¿No lo tienes?\nContáctanos para obtenerlo +56949939922.');
+        });
+
+        // si se encuentra un serial redirigir esta pagina
+        if (_store().serial.isset()) { 
+            updateStatus('connected', 'Negocio ya sincronizado ✓', '✅');
+            setTimeout(() => {
+                window.location.href = "pages/login.html";
+            }, 2000);
+        } else {
+            updateStatus('warning', 'Conexión no establecida', '⚠️');
+        }
+
+        _btn_send.click(function () {
+            // Prevenir múltiples clicks
+            if (_btn_send.hasClass('loading')) return;
+            
+            // Agregar animación de carga al botón
+            _btn_send.addClass('loading');
+            
+            // Actualizar estado
+            updateStatus('info', 'Sincronizando...', '🔄');
+            notificacion("info", "Verificando serial...", 3000);
+            
+            if (_input_seral.val() == "" || !validateSerialFormat(_input_seral.val())) { 
+                notificacion("danger", "Por favor ingresa un serial válido", 3000); 
+                updateStatus('error', 'Serial inválido', '❌');
+                // Remover animación de carga
+                _btn_send.removeClass('loading');
+                return console.log("EL SERIAL NO ES VÁLIDO") 
+            }
+            
+            __conection({
+                url: generarURLApi("/app/getApp"),
+                header: {
+                    "app-key": _input_seral.val()
+                }
+            }, {},
+                function (request) {
+                    // Remover animación de carga
+                    _btn_send.removeClass('loading');
+                    
+                    if (request === "Serial no encontrado.") { 
+                        notificacion("danger", "Serial no encontrado en el sistema", 4000); 
+                        updateStatus('error', 'Serial no encontrado', '❌');
+                        return console.log("EL SERIAL NO FUE ENCONTRADO") 
+                    }
+                    
+                    // Éxito
+                    notificacion("success", "¡Negocio sincronizado correctamente!", 3000);
+                    updateStatus('connected', 'Sincronizado con éxito ✓', '✅');
+                    
+                    _store().serial.set(_input_seral.val());
+                    _store().id.set(request.Id);
+                    
+                    setTimeout(() => { 
+                        window.location.href = "pages/login.html" 
+                    }, 3000);
+                })
+        })
+
+//         function mostrarMantenimiento() {
+//   const mensajeDiv = document.createElement('div');
+//   mensajeDiv.style.cssText = `
+//     position: fixed;
+//     top: 0;
+//     left: 0;
+//     width: 100%;
+//     height: 100%;
+//     background-color: rgba(0, 0, 0, 0.8);
+//     color: white;
+//     font-size: 2em;
+//     display: flex;
+//     justify-content: center;
+//     align-items: center;
+//     z-index: 9999;
+//   `;
+//   mensajeDiv.textContent = 'Sistema en Mantenimiento';
+//   document.body.appendChild(mensajeDiv);
+//   document.documentElement.style.overflow = 'hidden'; // Evita el desplazamiento
+//   document.body.style.overflow = 'hidden';
+// }
+
+// mostrarMantenimiento();
+    </script>
+</body>
+
+</html>
+
+

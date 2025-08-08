@@ -399,6 +399,9 @@ Route::group(['middleware' => ['AppSecurity']], function () {
             Route::post('/local/reports/pdf', 'Controllers_local\ReportsController@printReport');
             Route::get('/local/report/sells/top', 'Controllers_local\ReportsController@getTopSells');
             Route::get('/local/report/sells/byhour', 'Controllers_local\ReportsController@getSellsByHour');
+            
+            // Nueva ruta para Excel personalizado
+            Route::get('/local/report/excel', 'Controllers_local\ReportsController@exportCustomExcel');
           });
 
           // Submodulo de gastos del dia

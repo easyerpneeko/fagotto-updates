@@ -54,10 +54,6 @@
         }
 
         /* ========== ESTILOS BASE MEJORADOS ========== */
-        * {
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
             background: var(--background-gradient);
@@ -68,41 +64,21 @@
         }
 
         /* ========== HEADER MODERNO MEJORADO ========== */
-        .modern-header {
-            background: var(--card-background);
+        .navbar.sticky-top {
+            background: var(--primary-gradient) !important;
+            box-shadow: var(--shadow-lg);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
-            padding: 1rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .modern-header .navbar-brand {
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: var(--primary-color);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 200px;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
         }
 
         /* ========== SIDEBAR MODERNO ========== */
-        .modern-sidebar {
+        .sidebar {
             background: var(--card-background);
             backdrop-filter: blur(20px);
             border-right: 1px solid var(--border-color);
             box-shadow: var(--shadow);
-            height: calc(100vh - 80px);
-            overflow-y: auto;
         }
 
-        .modern-sidebar .nav-link {
+        .sidebar .nav-link {
             color: var(--text-secondary);
             padding: 0.875rem 1.5rem;
             margin: 0.25rem 1rem;
@@ -113,89 +89,27 @@
             background: none;
         }
 
-        .modern-sidebar .nav-link:hover,
-        .modern-sidebar .nav-link.active {
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
             background: var(--primary-gradient);
             color: white;
             transform: translateX(4px);
             box-shadow: var(--shadow);
         }
 
-        .modern-sidebar .nav-link i {
+        .sidebar .nav-link i {
             margin-right: 0.75rem;
             width: 20px;
             text-align: center;
         }
 
-        /* ========== CARDS MODERNOS ========== */
-        .modern-card {
-            background: var(--card-background);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-            overflow: hidden;
-        }
-
-        .modern-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .modern-card .card-header {
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            padding: 1.25rem 1.5rem;
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        .modern-card .card-body {
-            padding: 1.5rem;
-        }
-
-        /* ========== BOTONES MODERNOS ========== */
-        .btn-modern {
-            border-radius: 12px;
-            font-weight: 500;
-            padding: 0.75rem 1.5rem;
-            transition: var(--transition);
-            border: none;
-            box-shadow: var(--shadow);
-        }
-
-        .btn-modern:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .btn-modern.btn-primary {
-            background: var(--primary-gradient);
-            color: white;
-        }
-
-        .btn-modern.btn-success {
-            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
-            color: white;
-        }
-
-        .btn-modern.btn-outline-secondary {
-            background: var(--glass-background);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-        }
-
-        .btn-modern.btn-outline-secondary:hover {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
+        /* ========== MAIN CONTENT AREA ========== */
+        main.col-md-9 {
+            background: transparent;
         }
 
         /* ========== TOOLBAR MODERNO ========== */
-        .modern-toolbar {
+        .d-flex.justify-content-between.flex-wrap {
             background: var(--card-background);
             backdrop-filter: blur(20px);
             border: 1px solid var(--border-color);
@@ -205,7 +119,7 @@
             margin-bottom: 2rem;
         }
 
-        .modern-toolbar h1 {
+        .d-flex.justify-content-between.flex-wrap h1 {
             background: var(--primary-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -214,32 +128,93 @@
             margin: 0;
         }
 
-        /* ========== INPUTS MODERNOS ========== */
-        .form-control-modern {
+        /* ========== CARD PRINCIPAL MODERNO ========== */
+        .col-12.card {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            overflow: hidden;
+        }
+
+        .col-12.card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .col-12.card .card-header {
+            background: var(--primary-gradient) !important;
+            color: white;
+            border: none;
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .col-12.card .card-body {
+            padding: 1.5rem;
+        }
+
+        /* ========== BOTONES MODERNOS SOLO EN TOOLBAR ========== */
+        .btn-toolbar .btn {
+            border-radius: 12px;
+            font-weight: 500;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-toolbar .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-toolbar .btn-outline-secondary {
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .btn-toolbar .btn-outline-secondary:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .btn-toolbar .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+        }
+
+        /* ========== INPUTS MODERNOS SOLO EN TOOLBAR ========== */
+        .btn-toolbar .form-control {
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 0.75rem 1rem;
+            padding: 0.5rem 1rem;
             transition: var(--transition);
             background: var(--card-background);
             backdrop-filter: blur(20px);
         }
 
-        .form-control-modern:focus {
+        .btn-toolbar .form-control:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
             background: white;
         }
 
         /* ========== TABLAS MODERNAS ========== */
-        .table-modern {
+        #tablas-container .table {
             background: var(--card-background);
             backdrop-filter: blur(20px);
             border-radius: var(--border-radius);
             overflow: hidden;
             box-shadow: var(--shadow);
+            margin-top: 1rem;
         }
 
-        .table-modern thead th {
+        #tablas-container .table thead th {
             background: var(--primary-gradient);
             color: white;
             border: none;
@@ -247,17 +222,60 @@
             padding: 1rem;
         }
 
-        .table-modern tbody tr {
+        #tablas-container .table tbody tr {
             transition: var(--transition);
         }
 
-        .table-modern tbody tr:hover {
+        #tablas-container .table tbody tr:hover {
             background: rgba(var(--primary-rgb), 0.05);
         }
 
-        .table-modern tbody td {
+        #tablas-container .table tbody td {
             padding: 1rem;
             border-color: var(--border-color);
+        }
+
+        /* ========== BOTONES DE ACCIÓN EN TABLA ========== */
+        #tablas-container .btn {
+            border-radius: 8px;
+            font-size: 0.875rem;
+            padding: 0.5rem 0.75rem;
+            margin: 0.125rem;
+            transition: var(--transition);
+        }
+
+        #tablas-container .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ========== PAGINACIÓN MODERNA ========== */
+        .pagination {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            box-shadow: var(--shadow);
+        }
+
+        .pagination .page-link {
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            margin: 0 0.125rem;
+            transition: var(--transition);
+        }
+
+        .pagination .page-link:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+
+        .pagination .page-item.active .page-link {
+            background: var(--primary-gradient);
+            border-color: var(--primary-color);
         }
 
         /* ========== LOADER MODERNO ========== */
@@ -293,61 +311,111 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* ========== LEGACY STYLES (MANTENEMOS COMPATIBILIDAD) ========== */
-        .text-label {
-            font-size: 12px;
-            font-weight: lighter;
-            color: var(--text-primary);
+        /* ========== PROTECCIÓN DE MODALES ========== */
+        /* Resetear estilos para que los modales mantengan su apariencia original */
+        .modal * {
+            box-sizing: border-box;
         }
 
-        .text-uppercase {
-            text-transform: uppercase;
+        .modal .modal-content {
+            background: white !important;
+            border: none !important;
+            border-radius: 0.375rem !important;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
         }
 
+        .modal .modal-header {
+            border-bottom: 1px solid #dee2e6 !important;
+            padding: 1rem !important;
+        }
+
+        .modal .modal-body {
+            padding: 1rem !important;
+        }
+
+        .modal .modal-footer {
+            border-top: 1px solid #dee2e6 !important;
+            padding: 1rem !important;
+        }
+
+        .modal .btn {
+            border-radius: 0.375rem !important;
+            font-weight: 400 !important;
+            padding: 0.375rem 0.75rem !important;
+            transition: all 0.15s ease-in-out !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .modal .btn:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .modal .form-control {
+            border: 1px solid #ced4da !important;
+            border-radius: 0.375rem !important;
+            padding: 0.375rem 0.75rem !important;
+            background: white !important;
+            backdrop-filter: none !important;
+        }
+
+        .modal .form-control:focus {
+            border-color: #86b7fe !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+        }
+
+        .modal .table {
+            background: white !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+        }
+
+        .modal .table thead th {
+            background: #f8f9fa !important;
+            color: #212529 !important;
+            border-bottom: 2px solid #dee2e6 !important;
+            padding: 0.75rem !important;
+        }
+
+        .modal .table tbody tr:hover {
+            background: rgba(0, 0, 0, 0.075) !important;
+        }
+
+        .modal .table tbody td {
+            padding: 0.75rem !important;
+            border-top: 1px solid #dee2e6 !important;
+        }
+
+        /* ========== LEGACY STYLES PARA MODALES ESPECÍFICOS ========== */
         .full-modal {
-            background-color: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            padding-left: 80px !important;
-        }
-
-        .full-modal-dialog {
-            height: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
+            background-color: rgba(0, 0, 0, 0.6) !important;
+            backdrop-filter: blur(8px) !important;
         }
 
         .full-modal-content {
-            height: 100% !important;
-            border: 0 !important;
+            background: white !important;
+            border: none !important;
             border-radius: 0 !important;
-            background: var(--card-background);
-            backdrop-filter: blur(20px);
         }
 
-        .full-modal-body {
-            overflow-y: auto;
-        }
-
-        .modal-dialog-small{
+        .modal-dialog-small {
             min-width: 500px;
             max-width: 700px;
         }
 
         /* ========== RESPONSIVE ========== */
         @media (max-width: 768px) {
-            .modern-header {
+            .d-flex.justify-content-between.flex-wrap {
                 padding: 1rem;
             }
             
-            .modern-toolbar {
+            .col-12.card .card-body {
                 padding: 1rem;
             }
             
-            .modern-card .card-body {
-                padding: 1rem;
-            }
-            
-            .btn-modern {
+            .btn-toolbar .btn {
                 padding: 0.5rem 1rem;
                 font-size: 0.875rem;
             }

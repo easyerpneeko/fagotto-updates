@@ -51,6 +51,14 @@
                 </div>
                 
                 <div class="col-md-12 mb-3">
+                  <!-- Mensaje informativo de precios -->
+                  <div class="alert alert-info mb-3" style="background-color: #fff3cd; border-color: #ffeaa7; color: #856404;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>💰 Información de precios:</strong><br>
+                    <span style="color: #d63384; font-weight: bold;">• ALFREDO y BOLOÑESA: $1.508 por vaso</span><br>
+                    <span style="color: #198754; font-weight: bold;">• Otras salsas: $1.875 por vaso</span>
+                  </div>
+                  
                   <h6 class="text-muted mb-2 fw-bold">🌶️ Salsas disponibles</h6>
                   <div class="d-flex flex-wrap gap-2">
                     <button v-for="(salsa, id) in salsasDisponibles" :key="id" type="button" @click="addSalsa(salsa)"
@@ -90,19 +98,19 @@
                   <tr v-for="(producto, id) in productosPedido" :key="id">
                     <template v-if="producto.name == 'Botella de Huevos 1L'">
                       <td class="fw-bold">{{ producto.name }}</td>
-                      <td class="fw-bold">{{ producto.quantity }}</td>
+                      <td class="fw-bold">{{ producto.quantity }} botellas</td>
                       <td class="d-none">${{ producto.costo = formatearMonto(producto.quantity * producto.compra) }}
                       </td>
                     </template>
                     <template v-if="producto.name == 'Queso' || producto.name == 'Harina'">
                       <td class="fw-bold">{{ producto.name }}</td>
-                      <td class="fw-bold">{{ producto.quantity }}kg</td>
+                      <td class="fw-bold">{{ producto.name == 'Queso' ? producto.quantity + 'kg' : producto.quantity + ' unidades' }}</td>
                       <td class="d-none">${{ producto.costo = formatearMonto(producto.quantity * producto.compra) }}
                       </td>
                     </template>
                     <template v-if="producto.name == 'Vaso'">
                       <td class="bg-primary text-white fw-bold">{{ producto.name }}</td>
-                      <td class="bg-primary text-white fw-bold">{{ producto.quantity }}</td>
+                      <td class="bg-primary text-white fw-bold">{{ producto.quantity }} unidades</td>
                       <td class="bg-primary d-none">${{ producto.costo = formatearMonto(producto.quantity *
                         producto.price )}}</td>
                     </template>
@@ -131,7 +139,7 @@
                         <input @input="validateInput()" :min="salsa.min_quantity" @change="calcularVasosSalsas()"
                           :step="salsa.min_quantity" class="form-control form-control-sm" type="number" v-model="salsa.vasos" />
                       </td>
-                      <td class="fw-bold text-success">${{ formatearMonto(salsa.costo = salsa.vasos * precioVaso) }}</td>
+                      <td class="fw-bold text-success">${{ formatearMonto(salsa.costo = salsa.vasos * getPrecioSalsa(salsa)) }}</td>
                       <td class="text-center">
                         <button class="btn btn-danger btn-sm rounded-pill" @click="removeSalsa(index)" title="Eliminar salsa">
                           <i class="fa fa-times"></i>
@@ -186,7 +194,7 @@
                     <tbody>
                       <tr>
                         <td>Monto neto</td>
-                        <td class="text-end fw-bold">${{ formatearMonto(this.montoNeto = (this.vasos * this.precioVaso) + (this.montoOpcionales)) }}</td>
+                        <td class="text-end fw-bold">${{ formatearMonto(this.montoNeto = this.calcularMontoNetoReal()) }}</td>
                       </tr>
                       <tr>
                         <td>Despacho {{ this.despacho * 100 }}%</td>
@@ -405,6 +413,8 @@ export default {
         }
         this.validateInput(salsa);
         salsa.quantity = ((salsa.vasos * salsaDisponible.quantity) / 1000).toFixed(2);
+        // Calcular costo con precio específico por salsa
+        salsa.costo = salsa.vasos * this.getPrecioSalsa(salsa);
       });
 
       this.calcularCantidades();
@@ -602,6 +612,24 @@ export default {
     validateInput(salsa) {
       // Redondea al múltiplo más cercano
       salsa.vasos = Math.round(salsa.vasos / salsa.min_quantity) * salsa.min_quantity;
+    },
+    getPrecioSalsa(salsa) {
+      // Precios específicos para ALFREDO y BOLOÑESA
+      if (salsa.name === 'ALFREDO' || salsa.name === 'BOLOÑESA') {
+        return 1508;
+      }
+      // Precio normal para las demás salsas
+      return this.precioVaso;
+    },
+    calcularMontoNetoReal() {
+      // Calcular el monto neto sumando el costo real de cada salsa
+      let montoSalsas = 0;
+      this.salsasPedido.forEach((salsa) => {
+        montoSalsas += salsa.vasos * this.getPrecioSalsa(salsa);
+      });
+      
+      // Agregar el costo de los productos opcionales
+      return montoSalsas + this.montoOpcionales;
     }
   },
   computed: {

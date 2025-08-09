@@ -219,14 +219,25 @@ Reloj de arena: En espera.">
                                             <tbody>
                                                 <tr v-for="(producto, id) in jsonTableProducts.items" :key="id">
                                                     <td>{{ producto.name }}</td>
-                                                    <td>{{ (producto.name != 'Vaso'
-                                                        && producto.name != 'Botella de Huevos 1L'
+                                                    <td>{{ 
+                                                        // Casos específicos con sus unidades
+                                                        producto.name == 'Botella de Huevos 1L' ? producto.quantity + ' botellas' :
+                                                        producto.name == 'Aceite Vegetal 5L' ? producto.quantity + ' unidades' :
+                                                        producto.name == 'Pliego (124 stickers)' ? producto.quantity + ' Pliego' :
+                                                        // Productos que van en kg
+                                                        (producto.name != 'Vaso'
                                                         && producto.name != 'Sandwich'
                                                         && producto.name != 'Aceite de oliva 5kg'
-                                                        && producto.name != 'Aceite Vegetal 1L'
                                                         && producto.name != 'Harina'
-                                                        && producto.name != 'Bolsa') ?
-                                                        producto.quantity + 'kg' : producto.quantity }}</td>
+                                                        && producto.name != 'Bolsa'
+                                                        && producto.name != 'Focaccia Salame'
+                                                        && producto.name != 'Focaccia Pesto'
+                                                        && producto.name != 'Pliego (124 stickers)'
+                                                        && producto.name != 'Focaccia alleato'
+                                                        && producto.name != 'Focaccia Pollo Pimenton'
+                                                        && producto.name != 'papel mantequilla (Focaccia)'
+                                                        && producto.name != 'Papel Mantequilla (Bandeja)') ?
+                                                        producto.quantity + 'kg' : producto.quantity + ' unidades' }}</td>
                                                     <!-- <td>{{ }}</td> -->
                                                 </tr>
                                             </tbody>

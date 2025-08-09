@@ -258,6 +258,35 @@ function verPedido(app_id, id) {
             
             let fila = "";
 
+            // Función para determinar la unidad correcta
+            function getUnidadProducto(product) {
+                // Casos específicos con sus unidades
+                if (product.name === 'Botella de Huevos 1L') {
+                    return product.quantity + ' botellas';
+                }
+                if (product.name === 'Aceite Vegetal 5L') {
+                    return product.quantity + ' unidades';
+                }
+                if (product.name === 'Pliego (124 stickers)') {
+                    return product.quantity + ' Pliego';
+                }
+                
+                // Productos que NO van en kg (van en unidades)
+                const productosUnidades = [
+                    'Vaso', 'Sandwich', 'Aceite de oliva 5kg', 'Harina', 'Bolsa',
+                    'Focaccia Salame', 'Focaccia Pesto', 'Focaccia alleato', 
+                    'Focaccia Pollo Pimenton', 'papel mantequilla (Focaccia)', 
+                    'Papel Mantequilla (Bandeja)'
+                ];
+                
+                if (productosUnidades.includes(product.name)) {
+                    return product.quantity + ' unidades';
+                }
+                
+                // Productos que van en kg
+                return product.quantity + ' kg';
+            }
+
             if(products[product].id == 2){
                  fila = `<tr>
                                 <td>${i}</td> 
@@ -268,8 +297,7 @@ function verPedido(app_id, id) {
                 fila = `<tr>
                     <td>${i}</td> 
                     <td>${products[product].name.toUpperCase()}</td> 
-                    <td>${products[product].category !== 1 && products[product].category !== 3  
-                        ? `${products[product].quantity} Kg` : products[product].quantity}</td>  
+                    <td>${getUnidadProducto(products[product])}</td>  
                 </tr>`;
             }
             

@@ -1394,6 +1394,13 @@
                         <div>
                             <h1 class="h2 mb-1 text-gradient">Dashboard Ejecutivo</h1>
                             <p class="text-muted mb-0">Análisis de rendimiento en tiempo real</p>
+                            <!-- Indicador de filtro activo -->
+                            <div id="filtro-activo" class="mt-2" style="display: none;">
+                                <span class="badge bg-primary">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span id="texto-filtro">Filtrando datos...</span>
+                                </span>
+                            </div>
                         </div>
                     </div>
                     
@@ -1669,6 +1676,17 @@
     <script src="../assets/js/dashboard-kpis.js"></script>
     <script src="../assets/js/dashboard.js"></script>
     <script src="../assets/js/cocinafagotto.js"></script>
+    <!-- 
+    ========================================
+    DEBUG: Si los filtros de fecha no funcionan
+    ========================================
+    1. Abre la consola del navegador (F12)
+    2. Selecciona una fecha en el filtro
+    3. Haz clic en "Buscar"
+    4. Revisa los logs en la consola para ver dónde falla
+    5. También puedes ejecutar: checkDashboardKPIs() en la consola
+    ========================================
+    -->
     <script>
         (!_store().serial.isset()) ? window.location.href = "../index.html" : "";
 

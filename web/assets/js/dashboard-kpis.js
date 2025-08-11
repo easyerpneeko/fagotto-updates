@@ -2,18 +2,61 @@
 class DashboardKPIs {
     // Inicializar elementos KPI
     constructor() {
+        console.log('=== INICIALIZANDO DashboardKPIs ===');
+        
         this.kpiElements = {
             ventasTotales: document.getElementById('kpi-ventas-totales'),
             sucursalTop: document.getElementById('kpi-sucursal-top'),
             peorNegocio: document.getElementById('kpi-peor-negocio'),
             facturasTotales: document.getElementById('kpi-facturas-totales')
         };
+        
+        console.log('Elementos KPI inicializados:', this.kpiElements);
+        
+        // Verificar que todos los elementos existan
+        let elementosFaltantes = [];
+        for (const [key, element] of Object.entries(this.kpiElements)) {
+            if (!element) {
+                elementosFaltantes.push(key);
+            }
+        }
+        
+        if (elementosFaltantes.length > 0) {
+            console.warn('Elementos KPI faltantes:', elementosFaltantes);
+        } else {
+            console.log('Todos los elementos KPI encontrados correctamente');
+        }
+    }
+
+    // Método para reinicializar elementos si es necesario
+    reinitialize() {
+        console.log('Reinicializando elementos KPI...');
+        this.constructor();
     }
 
     // Actualizar KPIs copiando exactamente la lógica de cargarCounterEnTabla
     updateFromCounterData(request) {
         console.log('=== ACTUALIZANDO KPIs ===');
         console.log('Request data:', request);
+        
+        // Verificar si formatearMontoChile está disponible
+        if (typeof formatearMontoChile !== 'function') {
+            console.error('formatearMontoChile no está definida');
+            console.log('Funciones disponibles en window:', Object.getOwnPropertyNames(window).filter(name => name.includes('format')));
+            return;
+        } else {
+            console.log('formatearMontoChile está disponible');
+        }
+        
+        // Verificar elementos KPI
+        console.log('Elementos KPI:', this.kpiElements);
+        for (const [key, element] of Object.entries(this.kpiElements)) {
+            if (!element) {
+                console.error(`Elemento KPI no encontrado: ${key}`);
+            } else {
+                console.log(`Elemento KPI OK: ${key}`, element);
+            }
+        }
         
         // Copiar exactamente la lógica de cargarCounterEnTabla para Fagotto Franquicias
         let totalSucursales = 0;
@@ -63,44 +106,93 @@ class DashboardKPIs {
         }
 
         // Actualizar los elementos con animaciones
-        if (this.kpiElements.ventasTotales) {
-            this.animateUpdate(this.kpiElements.ventasTotales, formatearMontoChile(totalSucursales));
-            console.log('Actualizado ventas totales:', formatearMontoChile(totalSucursales));
-        }
-        if (this.kpiElements.sucursalTop) {
-            this.animateUpdate(this.kpiElements.sucursalTop, mejorSucursal.name);
-            console.log('Actualizada mejor sucursal:', mejorSucursal.name);
-        }
-        if (this.kpiElements.peorNegocio) {
-            this.animateUpdate(this.kpiElements.peorNegocio, peorSucursal.name);
-            console.log('Actualizado peor negocio:', peorSucursal.name);
-        }
-        if (this.kpiElements.facturasTotales) {
-            this.animateUpdate(this.kpiElements.facturasTotales, formatearMontoChile(totalFacturas));
-            console.log('Actualizado facturas totales:', formatearMontoChile(totalFacturas));
+        try {
+            if (this.kpiElements.ventasTotales) {
+                const valorFormateado = formatearMontoChile(totalSucursales);
+                this.animateUpdate(this.kpiElements.ventasTotales, valorFormateado);
+                console.log('Actualizado ventas totales:', valorFormateado);
+            }
+            if (this.kpiElements.sucursalTop) {
+                this.animateUpdate(this.kpiElements.sucursalTop, mejorSucursal.name);
+                console.log('Actualizada mejor sucursal:', mejorSucursal.name);
+            }
+            if (this.kpiElements.peorNegocio) {
+                this.animateUpdate(this.kpiElements.peorNegocio, peorSucursal.name);
+                console.log('Actualizado peor negocio:', peorSucursal.name);
+            }
+            if (this.kpiElements.facturasTotales) {
+                const valorFormateado = formatearMontoChile(totalFacturas);
+                this.animateUpdate(this.kpiElements.facturasTotales, valorFormateado);
+                console.log('Actualizado facturas totales:', valorFormateado);
+            }
+            console.log('=== ACTUALIZACION KPIs COMPLETADA ===');
+        } catch (updateError) {
+            console.error('Error durante la actualización de KPIs:', updateError);
         }
     }
 
     // Función para animar la actualización de valores
     animateUpdate(element, newValue) {
-        // Agregar clase de loading
-        element.classList.add('loading');
+        console.log('Animando actualización:', element, 'con valor:', newValue);
         
-        setTimeout(() => {
-            // Remover loading y actualizar valor
-            element.classList.remove('loading');
-            element.textContent = newValue;
-            element.classList.add('updated');
+        if (!element) {
+            console.error('Elemento no encontrado para animación');
+            return;
+        }
+        
+        try {
+            // Agregar clase de loading
+            element.classList.add('loading');
             
-            // Remover clase de actualizado después de la animación
             setTimeout(() => {
-                element.classList.remove('updated');
-            }, 600);
-        }, 300);
+                // Remover loading y actualizar valor
+                element.classList.remove('loading');
+                element.textContent = newValue;
+                element.classList.add('updated');
+                
+                console.log('Elemento actualizado:', element.id, 'con texto:', element.textContent);
+                
+                // Remover clase de actualizado después de la animación
+                setTimeout(() => {
+                    element.classList.remove('updated');
+                }, 600);
+            }, 300);
+        } catch (animationError) {
+            console.error('Error en animación:', animationError);
+            // Fallback: actualizar directamente sin animación
+            if (element) {
+                element.textContent = newValue;
+            }
+        }
     }
 }
 
 // Inicializar
 document.addEventListener('DOMContentLoaded', function() {
-    window.dashboardKPIs = new DashboardKPIs();
+    console.log('=== DOM CARGADO - Inicializando DashboardKPIs ===');
+    
+    // Verificar que formatearMontoChile esté disponible
+    if (typeof formatearMontoChile !== 'function') {
+        console.warn('formatearMontoChile no está disponible en DOMContentLoaded');
+    } else {
+        console.log('formatearMontoChile está disponible');
+    }
+    
+    try {
+        window.dashboardKPIs = new DashboardKPIs();
+        console.log('DashboardKPIs inicializado exitosamente');
+        console.log('window.dashboardKPIs:', window.dashboardKPIs);
+    } catch (error) {
+        console.error('Error inicializando DashboardKPIs:', error);
+    }
 });
+
+// Función de utilidad para verificar el estado
+window.checkDashboardKPIs = function() {
+    console.log('=== ESTADO DASHBOARD KPIs ===');
+    console.log('window.dashboardKPIs existe:', !!window.dashboardKPIs);
+    console.log('formatearMontoChile disponible:', typeof formatearMontoChile);
+    if (window.dashboardKPIs) {
+        console.log('Elementos KPI:', window.dashboardKPIs.kpiElements);
+    }
+};

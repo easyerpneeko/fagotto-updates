@@ -547,7 +547,12 @@ class StringXML {
 
       foreach ($products as $key => $value) {
           if ($value->category === 2) {
-              $unitario = round(bcdiv($value->costo, $value->vasos, 2));
+              // Precio diferenciado para ALFREDO/BOLOÑESA en emergencia
+              if ($value->name === 'ALFREDO' || $value->name === 'BOLOÑESA') {
+                  $unitario = 377; // 1508 ÷ 4 = 377
+              } else {
+                  $unitario = round(bcdiv(1875, 4, 2)); // 468.75 para otras salsas
+              }
               $quantity = $value->vasos;
               $total = bcmul($quantity, $unitario, 2);
           } else {
@@ -711,6 +716,25 @@ class StringXML {
           unset($products[$key]); }
       }
 
+      // Determinar si el pedido tiene solo salsas ALFREDO/BOLOÑESA
+      $soloAlfredoBolonesa = true;
+      $tieneSalsas = false;
+      
+      foreach ($products as $value) {
+        if ($value->category === 2) { // Solo evaluar salsas
+          $tieneSalsas = true;
+          if ($value->name !== 'ALFREDO' && $value->name !== 'BOLOÑESA') {
+            $soloAlfredoBolonesa = false;
+            break;
+          }
+        }
+      }
+      
+      // Si no hay salsas en el pedido, usar precio normal
+      if (!$tieneSalsas) {
+        $soloAlfredoBolonesa = false;
+      }
+
       $XML_DETALLE = '';
       // Varibles para los calculos y el xml
       $i = 1;
@@ -724,11 +748,21 @@ class StringXML {
         //Cant productos que conforman la formula Vaso (Salsa,Queso,Huevo,Harina) = 4;
         $cantidadProd = 4;
 
-        $montoPorcentaje = $precioVaso / $cantidadProd;  // 25% para cada producto
+        // Si el pedido tiene solo ALFREDO/BOLOÑESA, usar precio 1508, sino usar precio normal 1875
+        if ($soloAlfredoBolonesa) {
+          $montoPorcentaje = 1508 / $cantidadProd;  // 377 para cada producto
+        } else {
+          $montoPorcentaje = $precioVaso / $cantidadProd;  // 25% para cada producto
+        }
         
         //Salsas
         if($value->category === 2){
-          $unitario = round($montoPorcentaje, 2);
+          // Si el pedido tiene solo ALFREDO/BOLOÑESA, todos usan 377
+          if ($soloAlfredoBolonesa || $value->name === 'ALFREDO' || $value->name === 'BOLOÑESA') {
+              $unitario = 377; // 1508 ÷ 4 = 377
+          } else {
+              $unitario = round($montoPorcentaje, 2); // 468.75 para otras salsas
+          }
           $quantity = $value->vasos;
           $total = round($value->vasos * $unitario);
 
@@ -753,8 +787,8 @@ class StringXML {
 
         //Por unidad 
         }else if($value->category === 1){
-          $unitario = round($montoPorcentaje, 2);
-          $quantity = $value->quantity * $value->price;
+          $unitario = round($montoPorcentaje * $value->price, 2); // precio unitario por item completo
+          $quantity = $value->quantity; // cantidad real de items
           $total = round($quantity * $unitario);
         }
 

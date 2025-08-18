@@ -369,6 +369,12 @@ Route::group(['middleware' => ['AppSecurity']], function () {
               Route::put('/local/sell/nota_de_credito/boleta/{sellId}', 'SIIController@notaDeCreditoBoleta');
             });
 
+            // Rutas para Franquiciados
+            Route::group(['prefix' => 'franquiciados'], function () {
+              Route::get('/facturas', 'Controllers_local\FranquiciadosController@obtenerTodasLasFacturas');
+              Route::post('/buscar', 'Controllers_local\FranquiciadosController@buscarFacturas');
+            });
+
 
             Route::group(['middleware' => ['HavePermission:crear_venta']], function () {
               Route::post('/local/sell', 'Controllers_local\SellsController@newSell');

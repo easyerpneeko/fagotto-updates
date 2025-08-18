@@ -450,6 +450,12 @@ export default {
             route: '/inicio/folios',
             icon: 'fa-file-upload'
           });
+
+          menu.push({
+            label: 'Franquiciados',
+            route: '/inicio/franquiciados',
+            icon: 'fas fa-handshake'
+          });
         }
         //Modulo de pedidos
         if (pedidos) {

@@ -97,6 +97,10 @@ export default new Router({
           component: require('@/views/folios.vue').default
         },
         {
+          path: 'franquiciados',
+          component: require('@/views/franquiciados.vue').default
+        },
+        {
           path: 'pedidos',
           component: require('@/views/pedidos.vue').default
         },

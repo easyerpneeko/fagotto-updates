@@ -254,9 +254,10 @@
             }
             
             __conection({
-                url: generarURLApi("/app/getApp"),
+                url: generarURLApi("/getApp"),
+                method: "GET",
                 header: {
-                    "app-key": _input_seral.val()
+                    "App-Key": _input_seral.val()
                 }
             }, {},
                 function (request) {

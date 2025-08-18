@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cocina - Ordenes</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- jQuery -->
+    <script src="/assets/js/jquery-3.6.0.min.js"></script>
+    
+    <!-- Helpers -->
+    <script src="/assets/helpers/helperURL.js"></script>
+    <script src="/assets/helpers/helperSpecial.js"></script>
+    <script src="/assets/helpers/helperRequest.js"></script>
+    <script src="/assets/helpers/helperStore.js"></script>
+    <script src="/assets/helpers/helperAlert.js"></script>
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .header-cocina {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .orden-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .orden-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .cursor-pointer {
+            cursor: pointer;
+        }
+        
+        .orden-card.cursor-pointer:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            border-color: #28a745;
+        }
+        
+        .orden-card.cursor-pointer:hover .orden-header {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        }
+        
+        .orden-card.cursor-pointer:active {
+            transform: translateY(-2px) scale(0.98);
+            transition: all 0.1s ease;
+        }
+        
+        .orden-actions {
+            pointer-events: auto;
+        }
+        
+        /* Estilos para órdenes urgentes */
+        .orden-urgente {
+            border: 2px solid #dc3545 !important;
+            position: relative;
+            animation: pulse-border 2s infinite;
+        }
+        
+        .badge-urgente {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #dc3545;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            z-index: 10;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .tiempo-urgente {
+            color: #dc3545 !important;
+            font-weight: bold;
+        }
+        
+        @keyframes pulse-border {
+            0% { border-color: #dc3545; }
+            50% { border-color: #ff6b7a; }
+            100% { border-color: #dc3545; }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .orden-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .orden-header.pending {
+            background: linear-gradient(135deg, #ffc107 0%, #ff8c00 100%);
+        }
+        
+        .orden-header.process {
+            background: linear-gradient(135deg, #17a2b8 0%, #007bff 100%);
+        }
+        
+        .orden-header.complete {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .orden-numero {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .orden-tiempo {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .orden-body {
+            padding: 20px;
+        }
+        
+        .producto-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .producto-nombre {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .producto-cantidad {
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .producto-observaciones {
+            color: #6c757d;
+            font-style: italic;
+            margin-top: 8px;
+        }
+        
+        /* Estilos para comentarios */
+        .comentarios-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 15px;
+        }
+        
+        .comentarios-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .comentarios-text {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #17a2b8;
+            font-style: italic;
+            color: #495057;
+            line-height: 1.4;
+        }
+        
+        .orden-actions {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-cocina {
+            border-radius: 25px;
+            padding: 8px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-process {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-complete {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .no-ordenes {
+            text-align: center;
+            padding: 50px 20px;
+            color: #6c757d;
+        }
+        
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header-cocina">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-0">
+                        <i class="fas fa-utensils me-2"></i>
+                        Panel de Cocina
+                    </h1>
+                    <p class="mb-0 opacity-75">Gestión de órdenes en tiempo real</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="d-flex align-items-center justify-content-end">
+                        <div class="me-3">
+                            <small>Última actualización:</small><br>
+                            <span id="ultima-actualizacion">--:--:--</span>
+                        </div>
+                        <button class="btn btn-light btn-sm" onclick="cargarOrdenes()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="container mb-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-outline-primary btn-sm filter-btn active" data-status="todos">
+                        <i class="fas fa-list"></i> Todas las Órdenes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="container">
+        <div id="loading" class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando órdenes...</span>
+            </div>
+        </div>
+
+        <div id="ordenes-container" class="row" style="display: none;">
+            <!-- Las órdenes se cargarán aquí dinámicamente -->
+        </div>
+
+        <div id="no-ordenes" class="no-ordenes" style="display: none;">
+            <i class="fas fa-utensils fa-3x mb-3 text-muted"></i>
+            <h4>No hay órdenes disponibles</h4>
+            <p>Las nuevas órdenes aparecerán aquí automáticamente</p>
+        </div>
+    </div>
+
+    <!-- Botón de actualización flotante -->
+    <button class="btn btn-primary refresh-btn" onclick="cargarOrdenes()" title="Actualizar órdenes">
+        <i class="fas fa-sync-alt"></i>
+    </button>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let ordenesData = [];
+        let filtroActual = 'todos';
+        let intervalId;
+        
+        // Lista de órdenes completadas localmente (persiste en localStorage)
+        let ordenesCompletadasLocal = JSON.parse(localStorage.getItem('ordenesCompletadasLocal') || '[]');
+        
+        // Función para marcar orden como completada localmente
+        function marcarOrdenCompletadaLocal(ordenId) {
+            if (!ordenesCompletadasLocal.includes(ordenId)) {
+                ordenesCompletadasLocal.push(ordenId);
+                localStorage.setItem('ordenesCompletadasLocal', JSON.stringify(ordenesCompletadasLocal));
+            }
+        }
+        
+        // Función para verificar si una orden está completada localmente
+        function esOrdenCompletadaLocal(ordenId) {
+            return ordenesCompletadasLocal.includes(ordenId);
+        }
+
+        $(document).ready(function() {
+            // Verificar autenticación
+            if (!_store().serial.isset()) {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // Cargar órdenes inicial
+            cargarOrdenes();
+            
+            // Configurar actualización automática cada 30 segundos
+            intervalId = setInterval(cargarOrdenes, 30000);
+            
+            // Event listeners para filtros
+            $('.filter-btn').click(function() {
+                $('.filter-btn').removeClass('active');
+                $(this).addClass('active');
+                filtroActual = $(this).data('status');
+                mostrarOrdenes();
+            });
+        });
+
+        function cargarOrdenes() {
+            $('#loading').show();
+            $('#ordenes-container').hide();
+            $('#no-ordenes').hide();
+
+            const serial = _store().serial.get();
+            
+            if (!serial) {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            __conection({
+                url: generarURLApi("/app/local/cafeteria/modo_cocina/orders_kitchens"),
+                method: "POST",
+                header: credentials()
+            }, {}, function(response) {
+                $('#loading').hide();
+                
+                try {
+                    let ordenes = [];
+                    
+                    if (Array.isArray(response)) {
+                        ordenes = response;
+                    } else if (response && response.success && Array.isArray(response.data)) {
+                        ordenes = response.data;
+                    } else if (response && Array.isArray(response.data)) {
+                        ordenes = response.data;
+                    } else {
+                        $('#no-ordenes').show();
+                        return;
+                    }
+                    
+                    if (ordenes.length > 0) {
+                        const ordenesPendientes = ordenes.filter(orden => {
+                            const estado = orden.kitchen_state || 'pending';
+                            return estado !== 'closed' && estado !== 'cancelled' && estado !== 'close' && estado !== 'complete';
+                        });
+                        
+                        ordenesPendientes.sort((a, b) => {
+                            const fechaA = new Date(a.created_at || a.updated_at || 0);
+                            const fechaB = new Date(b.created_at || b.updated_at || 0);
+                            return fechaB - fechaA;
+                        });
+                        
+                        if (ordenesPendientes.length > 0) {
+                            ordenesData = ordenesPendientes.slice(0, 20);
+                            mostrarOrdenes();
+                            actualizarUltimaActualizacion();
+                        } else {
+                            $('#no-ordenes').show();
+                        };
+                    } else {
+                        $('#no-ordenes').show();
+                    }
+                } catch (error) {
+                    $('#no-ordenes').show();
+                }
+            }, function(error) {
+                $('#loading').hide();
+            });
+        }
+        
+        // Función para cargar comentarios de las órdenes originales
+        async function cargarComentariosOrdenes(ordenes) {
+            const promesas = ordenes.map(orden => {
+                return new Promise((resolve) => {
+                    if (!orden.order_id) {
+                        resolve();
+                        return;
+                    }
+                    
+                    // Consultar la orden original por ID
+                    __conection({
+                        url: generarURLApi(`/app/local/cafeteria/orders/${orden.order_id}`),
+                        method: "GET",
+                        header: credentials()
+                    }, {}, function(response) {
+                        if (response && response.data) {
+                            const ordenOriginal = response.data;
+                            
+                            // Buscar comentarios en la orden original
+                            orden._comentarios = ordenOriginal.comments || 
+                                                ordenOriginal.observations || 
+                                                ordenOriginal.notes || 
+                                                ordenOriginal.special_instructions || 
+                                                ordenOriginal.customer_notes || '';
+                        }
+                        
+                        resolve();
+                    }, function(error) {
+                        resolve();
+                    });
+                });
+            });
+            
+            await Promise.all(promesas);
+        }
+
+        function mostrarOrdenes() {
+            const container = $('#ordenes-container');
+            container.empty();
+
+            if (!ordenesData || ordenesData.length === 0) {
+                $('#no-ordenes').show();
+                container.hide();
+                return;
+            }
+
+            // FILTRAR órdenes completadas localmente
+            const ordenesFiltradas = ordenesData.filter(orden => {
+                const ordenId = orden.id;
+                const completadaLocal = esOrdenCompletadaLocal(ordenId);
+                return !completadaLocal;
+            });
+
+            if (ordenesFiltradas.length === 0) {
+                $('#no-ordenes').show();
+                container.hide();
+                return;
+            }
+
+            $('#no-ordenes').hide();
+            container.show();
+
+            // Añadir información de urgencia antes de generar tarjetas
+            const ahora = new Date();
+            ordenesFiltradas.forEach((orden, index) => {
+                const fechaCreacion = new Date(orden.created_at || orden.updated_at || ahora);
+                const minutosTranscurridos = (ahora - fechaCreacion) / (1000 * 60);
+                orden._esUrgente = minutosTranscurridos > 15;
+                orden._tiempoEspera = minutosTranscurridos;
+            });
+
+            // Generar tarjetas
+            ordenesFiltradas.forEach((orden, index) => {
+                try {
+                    const ordenHtml = generarTarjetaOrden(orden);
+                    container.append(ordenHtml);
+                } catch (error) {
+                    // Error silencioso
+                }
+            });
+        }
+
+        function generarTarjetaOrden(orden) {
+            try {
+                // Datos básicos
+                const ordenId = orden.id || 'N/A';
+                const numeroOrden = orden.order_id || orden.id || 'N/A';
+                const estado = orden.kitchen_state || 'pending';
+                
+                // Comentarios/observaciones
+                let comentarios = '';
+                
+                // 1. BUSCAR EN ORDEN ORIGINAL ANIDADA (aquí están los comentarios!)
+                if (orden.order && orden.order.description && orden.order.description.trim() && orden.order.description !== '.') {
+                    comentarios = orden.order.description.trim();
+                }
+                
+                // 2. Buscar en campos directos como fallback
+                if (!comentarios) {
+                    const camposPosibles = [
+                        'description', 'comments', 'comment', 'observations', 'notes', 'special_instructions', 
+                        'customer_notes', 'order_notes', 'kitchen_notes', 'waiter_notes',
+                        'details', 'remarks', 'instructions'
+                    ];
+                    
+                    for (let campo of camposPosibles) {
+                        if (orden[campo] && typeof orden[campo] === 'string' && orden[campo].trim()) {
+                            comentarios = orden[campo].trim();
+                            break;
+                        }
+                    }
+                }
+                
+                // 3. También buscar en productos si tienen observaciones
+                if (!comentarios && orden.products) {
+                    try {
+                        let productos = typeof orden.products === 'string' ? JSON.parse(orden.products) : orden.products;
+                        if (Array.isArray(productos)) {
+                            for (let producto of productos) {
+                                if (producto.observations || producto.notes || producto.comments) {
+                                    comentarios = producto.observations || producto.notes || producto.comments;
+                                    break;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        // Error silencioso
+                    }
+                }
+                
+                // Calcular tiempo transcurrido desde la creación
+                const fechaCreacion = orden.created_at || orden.updated_at;
+                const tiempoTranscurrido = fechaCreacion ? calcularTiempoTranscurrido(fechaCreacion) : 'Ahora';
+                
+                // Parsear productos de forma segura
+                let productos = [];
+                try {
+                    if (typeof orden.products === 'string') {
+                        productos = JSON.parse(orden.products);
+                    } else if (Array.isArray(orden.products)) {
+                        productos = orden.products;
+                    }
+                } catch (e) {
+                    productos = [];
+                }
+                
+                // Generar HTML de productos
+                let productosHtml = '';
+                if (productos && productos.length > 0) {
+                    productos.forEach(producto => {
+                        const nombre = producto.name || 'Producto';
+                        const cantidad = producto.quantity || 1;
+                        
+                        productosHtml += `
+                            <div class="producto-item">
+                                <div class="producto-nombre">${nombre}</div>
+                                <div class="producto-cantidad">Cantidad: ${cantidad}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    productosHtml = '<div class="text-muted">Sin productos</div>';
+                }
+                
+                // HTML final
+                return `
+                    <div class="col-lg-4 col-md-6 col-sm-12">
+                        <div class="orden-card cursor-pointer ${orden._esUrgente ? 'orden-urgente' : ''}" 
+                             data-orden-id="${ordenId}" 
+                             data-urgente="${orden._esUrgente || false}"
+                             onclick="marcarComoCompletada(${ordenId})">
+                            ${orden._esUrgente ? '<div class="badge-urgente">¡URGENTE!</div>' : ''}
+                            <div class="orden-header ${estado}">
+                                <div>
+                                    <div class="orden-numero">Orden #${numeroOrden}</div>
+                                    <div class="orden-tiempo ${orden._esUrgente ? 'tiempo-urgente' : ''}">${tiempoTranscurrido}</div>
+                                </div>
+                                <div>
+                                    <span class="status-badge status-${estado}">
+                                        ${getStatusText(estado)}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="orden-body">
+                                <div class="mb-3">
+                                    <strong>Mesa:</strong> ${orden.board_name || orden.waiter_name || `Orden ${numeroOrden}`}
+                                </div>
+                                
+                                <div class="productos-list">
+                                    ${productosHtml}
+                                </div>
+                                
+                                ${comentarios ? `
+                                <div class="comentarios-section mt-3">
+                                    <div class="comentarios-header">
+                                        <i class="fas fa-comment-alt text-info"></i>
+                                        <strong class="text-info">Comentarios:</strong>
+                                    </div>
+                                    <div class="comentarios-text">
+                                        ${comentarios}
+                                    </div>
+                                </div>
+                                ` : ''}
+                                
+                                <div class="text-center mt-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-hand-pointer"></i> Click para completar
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                return `<div class="col-12"><div class="alert alert-danger">Error generando orden ${orden.id}</div></div>`;
+            }
+        }
+
+        function generarBotonesAccion(orden) {
+            // Sin botones - solo click en la tarjeta
+            return '';
+        }
+
+        function cambiarEstado(ordenId, nuevoEstado) {
+            // ENDPOINT CORRECTO encontrado en las rutas del backend
+            const updateUrl = generarURLApi(`/app/local/cafeteria/modo_cocina/orders_kitchens/${ordenId}`);
+            
+            // Preparar los datos como JSON
+            const data = {
+                kitchenState: nuevoEstado
+            };
+            
+            // Obtener credenciales
+            const creds = credentials();
+            
+            // Usar fetch directamente para mejor control de errores
+            fetch(updateUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...creds
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`Server error: ${response.status} - ${text}`);
+                    });
+                }
+                
+                return response.json();
+            })
+            .then(result => {
+                // Verificar en BD después de 1 segundo
+                setTimeout(() => {
+                    verificarActualizacion(ordenId);
+                }, 1000);
+                
+            })
+            .catch(error => {
+                // Intentar con FormData como backup
+                const formData = new FormData();
+                formData.append('kitchenState', nuevoEstado);
+                
+                __conection({
+                    url: updateUrl,
+                    method: "POST",
+                    header: credentials()
+                }, formData, function(response) {
+                    setTimeout(() => {
+                        verificarActualizacion(ordenId);
+                    }, 1000);
+                }, function(error) {
+                    // Error silencioso
+                });
+            });
+        }
+
+        function getStatusText(status) {
+            switch(status) {
+                case 'pending': return 'Pendiente';
+                case 'process': return 'En Proceso';
+                case 'complete': return 'Completada';
+                case 'closed': return 'Cerrada';
+                case 'close': return 'Cerrada';
+                case 'cancelled': return 'Cancelada';
+                default: return 'Pendiente';
+            }
+        }
+
+        function calcularTiempoTranscurrido(fechaCreacion) {
+            const ahora = new Date();
+            const creacion = new Date(fechaCreacion);
+            const diferencia = Math.floor((ahora - creacion) / 1000 / 60); // en minutos
+            
+            if (diferencia < 1) return 'Hace menos de 1 min';
+            if (diferencia < 60) return `Hace ${diferencia} min`;
+            
+            const horas = Math.floor(diferencia / 60);
+            const minutos = diferencia % 60;
+            return `Hace ${horas}h ${minutos}m`;
+        }
+
+        // Función para verificar si una orden específica fue actualizada
+        function verificarActualizacion(ordenId) {
+            // Recargar órdenes y verificar si la orden sigue apareciendo
+            __conection({
+                url: generarURLApi("/app/local/cafeteria/modo_cocina/orders_kitchens"),
+                method: "POST",
+                header: credentials()
+            }, {}, function(response) {
+                let ordenes = Array.isArray(response) ? response : (response.data || []);
+                
+                // Buscar si la orden todavía existe y está pendiente
+                const ordenSigueActiva = ordenes.find(orden => 
+                    orden.id == ordenId && (orden.kitchen_state === 'pending' || orden.kitchen_state === 'process' || !orden.kitchen_state)
+                );
+                
+                if (ordenSigueActiva) {
+                    alert(`La orden ${ordenId} no se actualizó correctamente en la base de datos. Sigue con estado: ${ordenSigueActiva.kitchen_state || 'pending'}`);
+                } else {
+                    // Ahora sí, remover de la vista
+                    const ordenCard = document.querySelector(`[data-orden-id="${ordenId}"]`);
+                    if (ordenCard) {
+                        ordenCard.style.transition = 'all 0.3s ease';
+                        ordenCard.style.transform = 'scale(0.8)';
+                        ordenCard.style.opacity = '0.5';
+                        
+                        setTimeout(() => {
+                            ordenCard.closest('.col-lg-4, .col-md-6, .col-sm-12').remove();
+                            
+                            const ordenesRestantes = document.querySelectorAll('.orden-card').length;
+                            if (ordenesRestantes === 0) {
+                                mostrarSinOrdenes();
+                            }
+                        }, 300);
+                    }
+                }
+            }, function(error) {
+                // Error silencioso
+            });
+        }
+
+        // Función para marcar como completada al hacer click en la tarjeta
+        function marcarComoCompletada(ordenId) {
+            // 1. MARCAR COMO COMPLETADA LOCALMENTE (persiste en localStorage)
+            marcarOrdenCompletadaLocal(ordenId);
+            
+            // 2. ELIMINAR VISUALMENTE INMEDIATAMENTE 
+            $(`[data-orden-id="${ordenId}"]`).fadeOut(300, function() {
+                $(this).remove();
+                
+                // Verificar si quedan órdenes
+                const ordenesRestantes = document.querySelectorAll('.orden-card').length;
+                if (ordenesRestantes === 0) {
+                    $('#no-ordenes').show();
+                }
+            });
+            
+            // 3. INTENTAR CAMBIAR ESTADO EN BACKGROUND (opcional)
+            const formData = new FormData();
+            formData.append('kitchenState', 'complete');
+            
+            __conection({
+                url: generarURLApi(`/app/local/cafeteria/modo_cocina/orders_kitchens/${ordenId}`),
+                method: "POST",
+                header: credentials()
+            }, formData, function(response) {
+                // Estado actualizado correctamente
+            }, function(error) {
+                // Error actualizando BD pero orden ya está marcada localmente
+            });
+        }
+        
+        // Función para limpiar caché local de órdenes completadas
+        // Función alternativa con método PUT
+        function cambiarEstadoPUT(ordenId, nuevoEstado) {
+            const data = {
+                kitchen_state: nuevoEstado,
+                id: ordenId
+            };
+            
+            __conection({
+                url: generarURLApi(`/app/local/cafeteria/modo_cocina/orders_kitchens/${ordenId}`),
+                method: "PUT",
+                header: credentials()
+            }, data, function(response) {
+                if (response && (response.success !== false)) {
+                    const ordenCard = document.querySelector(`[data-orden-id="${ordenId}"]`);
+                    if (ordenCard) {
+                        ordenCard.style.transition = 'all 0.3s ease';
+                        ordenCard.style.transform = 'scale(0.8)';
+                        ordenCard.style.opacity = '0.5';
+                        
+                        setTimeout(() => {
+                            ordenCard.closest('.col-lg-4, .col-md-6, .col-sm-12').remove();
+                            
+                            const ordenesRestantes = document.querySelectorAll('.orden-card').length;
+                            if (ordenesRestantes === 0) {
+                                mostrarSinOrdenes();
+                            }
+                        }, 300);
+                    }
+                } else {
+                    alert('Error al completar la orden con PUT. Probando con POST...');
+                    // Fallback a POST
+                    cambiarEstado(ordenId, nuevoEstado);
+                }
+            }, function(error) {
+                cambiarEstado(ordenId, nuevoEstado);
+            });
+        }
+
+        function mostrarSinOrdenes() {
+            const container = document.getElementById('ordenesContainer');
+            if (container) {
+                container.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-info text-center" id="no-ordenes">
+                            <i class="fas fa-utensils fa-3x mb-3 text-muted"></i>
+                            <h4>No hay órdenes pendientes</h4>
+                            <p class="text-muted">Todas las órdenes han sido completadas</p>
+                            <button class="btn btn-primary" onclick="cargarOrdenes()">
+                                <i class="fas fa-refresh"></i> Actualizar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function mostrarError(mensaje) {
+            const container = document.getElementById('ordenesContainer');
+            if (container) {
+                container.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger text-center">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                            <h5>Error</h5>
+                            <p>${mensaje}</p>
+                            <button class="btn btn-outline-danger" onclick="cargarOrdenes()">
+                                Reintentar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function actualizarUltimaActualizacion() {
+            const ahora = new Date();
+            const tiempo = ahora.toLocaleTimeString();
+            $('#ultima-actualizacion').text(tiempo);
+        }
+
+        // Función de notificación simple
+        function notificacion(tipo, mensaje, duracion) {
+            // Crear elemento de notificación
+            const notif = $(`
+                <div class="alert alert-${tipo} alert-dismissible fade show position-fixed" 
+                     style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                    ${mensaje}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `);
+            
+            $('body').append(notif);
+            
+            // Auto-remover después del tiempo especificado
+            setTimeout(() => {
+                notif.alert('close');
+            }, duracion);
+        }
+
+        // Limpiar interval al salir de la página
+        window.addEventListener('beforeunload', function() {
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -561,8 +561,8 @@ export default {
 
           this.$set(this.productosPedido, producto, this.productosFijos[producto]);
           this.vasosMinimos = Math.ceil(this.productosFijos[producto].min_quantity);
-          //para obtener el precio del vaso
-          this.precioVaso = this.productosFijos[producto].price;
+          //para obtener el precio del vaso - CORREGIDO: usar precio fijo 1875 para salsas normales
+          this.precioVaso = 1875; // Precio fijo para salsas normales (no ALFREDO/BOLOÑESA)
 
         } else if (this.productosFijos[producto].category === 2) {
           // const salsaDisponible = {

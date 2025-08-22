@@ -279,7 +279,88 @@
                     <button type="button" class="btn btn-primary" onclick="descargarPDF()">
                         <i class="fas fa-download me-1"></i>Descargar PDF
                     </button>
+                    <button type="button" class="btn btn-danger" onclick="abrirModalCancelarFactura()">
+                        <i class="fas fa-ban me-1"></i>Cancelar Factura
+                    </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Cancelar Factura -->
+    <div class="modal fade" id="cancelarFacturaModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-ban me-2"></i>Cancelar Factura - Nota de Crédito
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>¡Atención!</strong> Esta acción generará una Nota de Crédito que anulará la factura original.
+                        Esta operación no se puede deshacer.
+                    </div>
+
+                    <form id="formCancelarFactura">
+                        <input type="hidden" id="cancel_app_id" name="app_id">
+                        <input type="hidden" id="cancel_pedido_id" name="pedido_id">
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="folio_referencia" class="form-label">
+                                    <i class="fas fa-hashtag me-1"></i>Folio de la Factura a Cancelar
+                                </label>
+                                <input type="number" class="form-control" id="folio_referencia" name="folio_referencia" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_referencia" class="form-label">
+                                    <i class="fas fa-calendar me-1"></i>Fecha de la Factura Original
+                                </label>
+                                <input type="date" class="form-control" id="fecha_referencia" name="fecha_referencia" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_emision" class="form-label">
+                                    <i class="fas fa-calendar-plus me-1"></i>Fecha de Emisión de la Nota
+                                </label>
+                                <input type="date" class="form-control" id="fecha_emision" name="fecha_emision" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="motivo_cancelacion" class="form-label">
+                                    <i class="fas fa-comment me-1"></i>Motivo de Cancelación
+                                </label>
+                                <select class="form-select" id="motivo_cancelacion" name="motivo_cancelacion" required>
+                                    <option value="">Selecciona un motivo...</option>
+                                    <option value="1">Anula documento de referencia</option>
+                                    <option value="2">Corrige montos</option>
+                                    <option value="3">Corrige datos del receptor</option>
+                                    <option value="4">Corrige datos del emisor</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="observaciones" class="form-label">
+                                <i class="fas fa-sticky-note me-1"></i>Observaciones Adicionales
+                            </label>
+                            <textarea class="form-control" id="observaciones" name="observaciones" rows="3" maxlength="200"></textarea>
+                            <small class="text-muted">Máximo 200 caracteres</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="procesarNotaCredito()">
+                        <i class="fas fa-file-invoice me-1"></i>Generar Nota de Crédito
+                    </button>
                 </div>
             </div>
         </div>

@@ -93,6 +93,10 @@ export default new Router({
           component: require('@/views/expenses.vue').default
         },
         {
+          path: 'arqueo-caja',
+          component: require('@/views/arqueo-caja.vue').default
+        },
+        {
           path: 'folios',
           component: require('@/views/folios.vue').default
         },

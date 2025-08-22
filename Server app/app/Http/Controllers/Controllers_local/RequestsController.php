@@ -830,4 +830,82 @@ class RequestsController extends Controller
       }
       return response()->json($b64Doc, 200);
     }
+
+    public function cancelarFactura(Request $request, $pedido_id)
+    {
+        $_request = $request->all();
+        $_request['type_sell'] = 'nota_de_credito'; // ← CLAVE: marca como nota de crédito
+        $_request['pedido_id'] = $pedido_id;
+        
+        // Obtener app_id del pedido (buscar en todas las apps si no se especifica)
+        if (!isset($_request['app_id'])) {
+            // Buscar el pedido en la base de datos principal para obtener app_id
+            $pedido_main = DB::table('requests')->where('id', $pedido_id)->first();
+            if (!$pedido_main) {
+                return response()->json(['success' => false, 'message' => 'Pedido no encontrado'], 404);
+            }
+            $_request['app_id'] = $pedido_main->app_id;
+        }
+        
+        $app_id = $_request['app_id'];
+        
+        // Buscamos el pedido EN LA SUCURSAL (mismo patrón que facturarPedido)
+        $app = Aplication::where('id', $app_id)->with('database')->first();
+        
+        if (!$app) {
+            return response()->json(['success' => false, 'message' => 'Aplicación no encontrada'], 404);
+        }
+        
+        $pedido = DB::table($app->database->name.'.requests')->where('id', $pedido_id)->first();
+
+        if (!$pedido) {
+            return response()->json(['success' => false, 'message' => 'Pedido no encontrado'], 404);
+        }
+        
+        // Usuario logueado (mismo patrón que facturarPedido)
+        $user = Auth::user()->id;
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Usuario no encontrado'], 404);
+        }
+        
+        $_request['user'] = $user;
+        
+        // Para nota de crédito, no necesitamos crear/editar cliente
+        // El cliente ya existe de la factura original
+        
+        $query = array(
+            'success' => false,
+            'id' => $pedido->id, 
+            'response_folio' => false, 
+            'message' => '',
+            'dataEnviada' => $_request
+        );
+
+        // Verificar configuración SII (mismo patrón que facturarPedido)
+        if (CurrentApp::ConfStr('modulos.ventas.submodulos.sii')) {
+            if (CurrentApp::ConfStr('modulos.ventas.submodulos.sii.ajustes.factura')) {
+                // Procesar nota de crédito usando el SIIController (adaptado del patrón de facturación)
+                $asingFolio = SIIController::processNotaCreditoPedido($_request, $pedido, null, $app);
+                
+                if (isset($asingFolio)) {
+                    if (!$asingFolio['success']) {
+                        $query['response_folio'] = $asingFolio['content'];
+                        $query['message'] = $asingFolio['message'] ?? 'Error al generar la nota de crédito';
+                        return response()->json($query, $asingFolio['code'] ?? 400);
+                    }
+                    $query['success'] = true;
+                    $query['response_folio'] = $asingFolio['content'];
+                    $query['message'] = 'Nota de crédito generada exitosamente';
+                }
+            } else {
+                $query['message'] = 'El módulo de facturación SII no está configurado';
+                return response()->json($query, 400);
+            }
+        } else {
+            $query['message'] = 'El módulo SII no está habilitado';
+            return response()->json($query, 400);
+        }
+
+        return response()->json($query, 200);
+    }
 }

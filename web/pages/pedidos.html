@@ -877,7 +877,69 @@
         </div>
     </div>
     <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../assets/js/pedidos.js"></script>
+    <script src="../assets/js/pedidos_v2.js"></script>
+    <script>
+        // OVERRIDE función procesarNotaCredito para forzar POST
+        async function procesarNotaCredito() {
+            const fechaCancelacion = document.getElementById('fecha_cancelacion').value;
+            
+            if (!fechaCancelacion) {
+                alert('❌ Error: Debe seleccionar una fecha de cancelación.');
+                return;
+            }
+
+            const confirmacion = confirm(
+                `¿Estás seguro de que deseas cancelar la factura del pedido ${pedidoIdCancelar}?\n\n` +
+                `Se generará una Nota de Crédito.`
+            );
+            
+            if (!confirmacion) {
+                return;
+            }
+
+            try {
+                activateLoader();
+                
+                // FORZAR OBJETO NORMAL (NO FormData)
+                const datos = {
+                    cancelDate: fechaCancelacion
+                };
+                
+                console.log('ENVIANDO POST con datos:', datos);
+                
+                await __conection(
+                    {
+                        url: generarURLApi(`/web/pedido/cancelar-factura/${pedidoIdCancelar}`),
+                        header: credentials(),
+                        dev: true,
+                        method: 'POST',
+                    },
+                    datos,
+                    function (request) {
+                        desactivateLoader();
+                        console.log('Respuesta nota de crédito:', request);
+                        
+                        if (request.success) {
+                            if (request.response_folio) {
+                                generatePDF(request.response_folio);
+                            }
+                            
+                            alert('✅ Nota de Crédito generada exitosamente.');
+                            $('#cancelarFacturaModal').modal('hide');
+                            getPedidos();
+                        } else {
+                            alert('❌ Error: ' + (request.message || 'No se pudo generar la nota de crédito.'));
+                        }
+                    }
+                );
+
+            } catch (error) {
+                desactivateLoader();
+                console.error("Error al procesar nota de crédito:", error);
+                alert('❌ Error de conexión al procesar la nota de crédito.');
+            }
+        }
+    </script>
     <script>
         (!_store().serial.isset()) ? window.location.href = "../index.html" : "";
 

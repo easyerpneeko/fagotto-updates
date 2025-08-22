@@ -268,6 +268,14 @@
       </div>
     </div>
 
+    <!-- Modal Nota de Crédito -->
+    <ModalNotaCredito
+      v-if="mostrandoModalNotaCredito && facturaParaNotaCredito"
+      :factura="facturaParaNotaCredito"
+      @cerrar="cerrarModalNotaCredito"
+      @notaCreditoGenerada="onNotaCreditoGenerada"
+    />
+
   </div>
 </template>
 
@@ -277,9 +285,13 @@ import BaseUrl from '@/helpers/baseUrl.js';
 import ConfigHelper from '@/helpers/ConfigHelper.js';
 import FormatNumber from '@/helpers/FormatNumber.js';
 import Loader from '@/helpers/Loader';
+import ModalNotaCredito from '@/components/modals/franquiciados/modalNotaCredito.vue';
 
 export default {
   name: 'Franquiciados',
+  components: {
+    ModalNotaCredito
+  },
   data() {
     return {
       filtros: {
@@ -292,7 +304,9 @@ export default {
       },
       facturas: [],
       todasLasFacturas: [], // Array para mantener todas las facturas sin filtrar
-      loading: false
+      loading: false,
+      mostrandoModalNotaCredito: false,
+      facturaParaNotaCredito: null
     };
   },
   computed: {
@@ -459,7 +473,39 @@ export default {
     },
 
     abrirModalNotaCredito(factura) {
-      this.$awn.info('Función Nota de Crédito en desarrollo');
+      // Verificar que la factura esté en estado válido
+      if (factura.trash === 1) {
+        this.$awn.alert('No se puede generar nota de crédito para facturas eliminadas');
+        return;
+      }
+      
+      if (factura.cancel === 1) {
+        this.$awn.alert('Esta factura ya está cancelada');
+        return;
+      }
+
+      // Mostrar modal de nota de crédito
+      this.facturaParaNotaCredito = factura;
+      this.mostrandoModalNotaCredito = true;
+    },
+
+    cerrarModalNotaCredito() {
+      this.mostrandoModalNotaCredito = false;
+      this.facturaParaNotaCredito = null;
+    },
+
+    onNotaCreditoGenerada(facturaActualizada) {
+      // Actualizar la factura en la lista
+      const index = this.facturas.findIndex(f => f.id === facturaActualizada.id);
+      if (index !== -1) {
+        this.facturas[index] = { ...this.facturas[index], ...facturaActualizada };
+      }
+      
+      this.cerrarModalNotaCredito();
+      this.$awn.success('Nota de Crédito generada exitosamente');
+      
+      // Recargar las facturas para reflejar cambios
+      this.cargarTodasLasFacturas();
     },
 
     getEstadoBadge(estado) {

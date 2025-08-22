@@ -296,6 +296,7 @@ export default {
       var sellsGestion = ConfigHelper.HavePermission('gestionar_ventas');
       var reportsGestion = ConfigHelper.HavePermission('gestionar_reportes');
       var expensesGestion = ConfigHelper.HavePermission('gestionar_gastos');
+      var arqueoGestion = ConfigHelper.HavePermission('gestionar_arqueo') || ConfigHelper.HavePermission('obtener_arqueo');
       var getWaiters = ConfigHelper.HavePermission('obtener_meseros');
       var boardsModify = ConfigHelper.HavePermission('gestionar_mesas');
       var getBoards = ConfigHelper.HavePermission('obtener_mesas');
@@ -387,6 +388,13 @@ export default {
                 icon: 'fa-coins'
               });
             }
+            
+            // Submodulo de arqueo de caja - SIEMPRE VISIBLE
+            menu.push({
+              label: 'Arqueo de Caja',
+              route: '/inicio/arqueo-caja',
+              icon: 'fa-cash-register'
+            });
 
           }
         }

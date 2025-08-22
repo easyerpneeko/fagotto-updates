@@ -408,6 +408,36 @@ Route::group(['middleware' => ['AppSecurity']], function () {
             
             // Nueva ruta para Excel personalizado
             Route::get('/local/report/excel', 'Controllers_local\ReportsController@exportCustomExcel');
+            
+            // Rutas para Arqueo de Caja
+            Route::get('/local/report/arqueo-resumen', 'Controllers_local\ArqueoCajaController@getResumenDia');
+            
+            // Información del negocio para arqueo
+            Route::get('/local/negocio/info', function() {
+                $app = \App\Helpers\CurrentApp::App();
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'id' => $app->id,
+                        'nombre' => $app->name,
+                        'direccion' => $app->direction ?? '',
+                        'telefono' => $app->phone ?? '',
+                        'email' => $app->email ?? ''
+                    ]
+                ]);
+            });
+          });
+
+          // Rutas de Arqueo de Caja
+          Route::group(['middleware' => ['HavePermission:gestionar_arqueo']], function () {
+            Route::post('/local/arqueo/guardar', 'Controllers_local\ArqueoCajaController@guardarArqueo');
+            Route::put('/local/arqueo/{id}', 'Controllers_local\ArqueoCajaController@actualizarArqueo');
+            Route::delete('/local/arqueo/{id}', 'Controllers_local\ArqueoCajaController@eliminarArqueo');
+          });
+          Route::group(['middleware' => ['HavePermission:obtener_arqueo']], function () {
+            Route::get('/local/arqueo/historial', 'Controllers_local\ArqueoCajaController@getHistorial');
+            Route::get('/local/arqueo/fecha', 'Controllers_local\ArqueoCajaController@getArqueoPorFecha');
+            Route::get('/local/arqueo/reporte', 'Controllers_local\ArqueoCajaController@reporteArqueos');
           });
 
           // Submodulo de gastos del dia
@@ -525,6 +555,8 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::put('/local/request/hide/{app_id}/{id}', 'Controllers_local\RequestsController@hide');
           //Facturar Pedido
           Route::post('/web/pedido/facturar', 'Controllers_local\RequestsController@facturarPedido'); 
+          //Cancelar Factura (Nota de Crédito) - WEB
+          Route::post('/web/pedido/cancelar-factura/{pedido_id}', 'Controllers_local\RequestsController@cancelarFactura'); 
 
           //Cobros
           Route::post('/local/payment', 'Controllers_local\PaymentController@newPayment');

@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EASY ARQUEO - Reportes de Arqueo</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!--helpers-->
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+    <script src="../assets/helpers/helperFunctions.js"></script>
+
+    <!--styles-->
+    <link rel="stylesheet" href="../assets/css/global.css">
+
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --background-gradient: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+            --card-background: rgba(255, 255, 255, 0.9);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            background: var(--background-gradient);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .reporte-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .reporte-card {
+            background: var(--card-background);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .reporte-header {
+            background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+            color: white;
+            padding: 20px;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .arqueo-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .table th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            border: none;
+            padding: 15px;
+        }
+
+        .table td {
+            padding: 15px;
+            border-color: #f1f5f9;
+        }
+
+        .btn-reporte {
+            background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-reporte:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+            color: white;
+        }
+
+        .status-exacto {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-sobrante {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-faltante {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="reporte-container">
+        <!-- Header -->
+        <div class="reporte-card">
+            <div class="reporte-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-1"><i class="fas fa-chart-bar me-3"></i>Reportes de Arqueo de Caja</h2>
+                        <p class="mb-0 opacity-75">Análisis y estadísticas de arqueos</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="arqueo_caja.html" class="btn btn-light">
+                            <i class="fas fa-arrow-left me-2"></i>Volver al Arqueo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="reporte-card">
+            <div class="card-body p-4">
+                <h5 class="mb-3"><i class="fas fa-filter me-2"></i>Filtros de Búsqueda</h5>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="fechaInicio" class="form-label">Fecha Inicio</label>
+                        <input type="date" class="form-control" id="fechaInicio">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="fechaFin" class="form-label">Fecha Fin</label>
+                        <input type="date" class="form-control" id="fechaFin">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtroEstado" class="form-label">Estado</label>
+                        <select class="form-select" id="filtroEstado">
+                            <option value="">Todos los estados</option>
+                            <option value="exacto">Exacto</option>
+                            <option value="sobrante">Sobrante</option>
+                            <option value="faltante">Faltante</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button class="btn btn-reporte w-100" id="buscarReportes">
+                            <i class="fas fa-search me-2"></i>Buscar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalArqueos">0</div>
+                    <div class="stat-label">Total Arqueos</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="promedioContado">$0</div>
+                    <div class="stat-label">Promedio Contado</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalDiferencias">$0</div>
+                    <div class="stat-label">Total Diferencias</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="porcentajeExactos">0%</div>
+                    <div class="stat-label">Arqueos Exactos</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Gráfico de Diferencias -->
+            <div class="col-lg-6">
+                <div class="reporte-card">
+                    <div class="card-body p-4">
+                        <h5 class="mb-3"><i class="fas fa-chart-line me-2"></i>Evolución de Diferencias</h5>
+                        <div class="chart-container">
+                            <canvas id="chartDiferencias"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráfico de Estados -->
+            <div class="col-lg-6">
+                <div class="reporte-card">
+                    <div class="card-body p-4">
+                        <h5 class="mb-3"><i class="fas fa-chart-pie me-2"></i>Distribución por Estado</h5>
+                        <div class="chart-container">
+                            <canvas id="chartEstados"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Arqueos -->
+        <div class="reporte-card">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="fas fa-table me-2"></i>Historial de Arqueos</h5>
+                    <button class="btn btn-outline-success" id="exportarExcel">
+                        <i class="fas fa-file-excel me-2"></i>Exportar Excel
+                    </button>
+                </div>
+                
+                <div class="arqueo-table">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Total Contado</th>
+                                <th>Ventas Efectivo</th>
+                                <th>Diferencia</th>
+                                <th>Estado</th>
+                                <th>Usuario</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaArqueos">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>Cargando datos...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación -->
+                <nav aria-label="Paginación de arqueos" class="mt-3">
+                    <ul class="pagination justify-content-center" id="paginacion">
+                        <!-- Se llenará dinámicamente -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ReportesArqueo {
+            constructor() {
+                this.arqueos = [];
+                this.estadisticas = {};
+                this.paginaActual = 1;
+                this.itemsPorPagina = 10;
+                this.chartDiferencias = null;
+                this.chartEstados = null;
+                
+                this.init();
+            }
+
+            init() {
+                this.setFechasDefault();
+                this.bindEvents();
+                this.buscarReportes();
+            }
+
+            setFechasDefault() {
+                const hoy = new Date();
+                const hace30Dias = new Date();
+                hace30Dias.setDate(hoy.getDate() - 30);
+                
+                $('#fechaInicio').val(hace30Dias.toISOString().split('T')[0]);
+                $('#fechaFin').val(hoy.toISOString().split('T')[0]);
+            }
+
+            bindEvents() {
+                $('#buscarReportes').on('click', () => {
+                    this.buscarReportes();
+                });
+
+                $('#exportarExcel').on('click', () => {
+                    this.exportarExcel();
+                });
+            }
+
+            buscarReportes() {
+                const fechaInicio = $('#fechaInicio').val();
+                const fechaFin = $('#fechaFin').val();
+                const estado = $('#filtroEstado').val();
+
+                this.showLoading();
+
+                $.ajax({
+                    url: generarURLApi(`/local/arqueo/reporte?startDate=${fechaInicio}&endDate=${fechaFin}&estado=${estado}`),
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${getTokenFromStorage()}`
+                    },
+                    success: (response) => {
+                        this.hideLoading();
+                        if (response.success) {
+                            this.arqueos = response.data || [];
+                            this.estadisticas = response.estadisticas || {};
+                            this.updateEstadisticas();
+                            this.renderTabla();
+                            this.renderCharts();
+                        } else {
+                            this.showError('Error al cargar reportes');
+                        }
+                    },
+                    error: (xhr, status, error) => {
+                        this.hideLoading();
+                        console.error('Error al cargar reportes:', error);
+                        this.showError('Error de conexión al cargar reportes');
+                    }
+                });
+            }
+
+            updateEstadisticas() {
+                $('#totalArqueos').text(this.estadisticas.total_arqueos || 0);
+                $('#promedioContado').text('$' + this.formatMoney(this.estadisticas.promedio_contado || 0));
+                $('#totalDiferencias').text('$' + this.formatMoney(Math.abs(this.estadisticas.total_diferencias || 0)));
+                
+                const porcentajeExactos = this.arqueos.length > 0 ? 
+                    ((this.arqueos.filter(a => a.diferencia === 0).length / this.arqueos.length) * 100).toFixed(1) : 0;
+                $('#porcentajeExactos').text(porcentajeExactos + '%');
+            }
+
+            renderTabla() {
+                let html = '';
+                
+                if (this.arqueos.length === 0) {
+                    html = '<tr><td colspan="7" class="text-center text-muted py-4">No se encontraron arqueos en el período seleccionado</td></tr>';
+                } else {
+                    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+                    const fin = inicio + this.itemsPorPagina;
+                    const arqueosPagina = this.arqueos.slice(inicio, fin);
+                    
+                    arqueosPagina.forEach((arqueo) => {
+                        const fecha = new Date(arqueo.fecha_arqueo).toLocaleDateString('es-CL');
+                        const estado = this.getEstadoArqueo(arqueo.diferencia);
+                        const estadoClass = this.getEstadoClass(arqueo.diferencia);
+                        
+                        html += `
+                            <tr>
+                                <td>${fecha}</td>
+                                <td>$${this.formatMoney(arqueo.total_contado)}</td>
+                                <td>$${this.formatMoney(arqueo.total_ventas_efectivo)}</td>
+                                <td class="${arqueo.diferencia >= 0 ? 'text-success' : 'text-danger'}">
+                                    $${this.formatMoney(arqueo.diferencia)}
+                                </td>
+                                <td><span class="${estadoClass}">${estado}</span></td>
+                                <td>${arqueo.usuario_nombre || 'Sistema'}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="reportesArqueo.verDetalle(${arqueo.id})">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                $('#tablaArqueos').html(html);
+                this.renderPaginacion();
+            }
+
+            renderPaginacion() {
+                const totalPaginas = Math.ceil(this.arqueos.length / this.itemsPorPagina);
+                let html = '';
+                
+                if (totalPaginas > 1) {
+                    // Botón anterior
+                    html += `
+                        <li class="page-item ${this.paginaActual === 1 ? 'disabled' : ''}">
+                            <a class="page-link" href="#" onclick="reportesArqueo.cambiarPagina(${this.paginaActual - 1})">Anterior</a>
+                        </li>
+                    `;
+                    
+                    // Números de página
+                    for (let i = 1; i <= totalPaginas; i++) {
+                        html += `
+                            <li class="page-item ${i === this.paginaActual ? 'active' : ''}">
+                                <a class="page-link" href="#" onclick="reportesArqueo.cambiarPagina(${i})">${i}</a>
+                            </li>
+                        `;
+                    }
+                    
+                    // Botón siguiente
+                    html += `
+                        <li class="page-item ${this.paginaActual === totalPaginas ? 'disabled' : ''}">
+                            <a class="page-link" href="#" onclick="reportesArqueo.cambiarPagina(${this.paginaActual + 1})">Siguiente</a>
+                        </li>
+                    `;
+                }
+                
+                $('#paginacion').html(html);
+            }
+
+            cambiarPagina(pagina) {
+                const totalPaginas = Math.ceil(this.arqueos.length / this.itemsPorPagina);
+                if (pagina >= 1 && pagina <= totalPaginas) {
+                    this.paginaActual = pagina;
+                    this.renderTabla();
+                }
+            }
+
+            renderCharts() {
+                this.renderChartDiferencias();
+                this.renderChartEstados();
+            }
+
+            renderChartDiferencias() {
+                const ctx = document.getElementById('chartDiferencias').getContext('2d');
+                
+                if (this.chartDiferencias) {
+                    this.chartDiferencias.destroy();
+                }
+                
+                const labels = this.arqueos.map(a => new Date(a.fecha_arqueo).toLocaleDateString('es-CL'));
+                const diferencias = this.arqueos.map(a => a.diferencia);
+                
+                this.chartDiferencias = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Diferencias ($)',
+                            data: diferencias,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            renderChartEstados() {
+                const ctx = document.getElementById('chartEstados').getContext('2d');
+                
+                if (this.chartEstados) {
+                    this.chartEstados.destroy();
+                }
+                
+                const exactos = this.arqueos.filter(a => a.diferencia === 0).length;
+                const sobrantes = this.arqueos.filter(a => a.diferencia > 0).length;
+                const faltantes = this.arqueos.filter(a => a.diferencia < 0).length;
+                
+                this.chartEstados = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Exactos', 'Sobrantes', 'Faltantes'],
+                        datasets: [{
+                            data: [exactos, sobrantes, faltantes],
+                            backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            verDetalle(id) {
+                const arqueo = this.arqueos.find(a => a.id === id);
+                if (arqueo) {
+                    // Mostrar modal con detalle del arqueo
+                    alert(`Detalle del arqueo:\nFecha: ${arqueo.fecha_arqueo}\nTotal: $${this.formatMoney(arqueo.total_contado)}\nDiferencia: $${this.formatMoney(arqueo.diferencia)}`);
+                }
+            }
+
+            exportarExcel() {
+                const fechaInicio = $('#fechaInicio').val();
+                const fechaFin = $('#fechaFin').val();
+                const estado = $('#filtroEstado').val();
+                
+                window.open(generarURLApi(`/local/arqueo/export?startDate=${fechaInicio}&endDate=${fechaFin}&estado=${estado}&format=excel`), '_blank');
+            }
+
+            // Utilidades
+            formatMoney(amount) {
+                return parseInt(amount).toLocaleString('es-CL');
+            }
+
+            getEstadoArqueo(diferencia) {
+                if (diferencia === 0) return 'Exacto';
+                if (diferencia > 0) return 'Sobrante';
+                return 'Faltante';
+            }
+
+            getEstadoClass(diferencia) {
+                if (diferencia === 0) return 'status-exacto';
+                if (diferencia > 0) return 'status-sobrante';
+                return 'status-faltante';
+            }
+
+            showLoading() {
+                $('#tablaArqueos').html('<tr><td colspan="7" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Cargando datos...</td></tr>');
+            }
+
+            hideLoading() {
+                // El loading se oculta cuando se renderizan los datos
+            }
+
+            showError(message) {
+                $('#tablaArqueos').html(`<tr><td colspan="7" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle me-2"></i>${message}</td></tr>`);
+            }
+        }
+
+        // Inicializar cuando el documento esté listo
+        $(document).ready(function() {
+            window.reportesArqueo = new ReportesArqueo();
+        });
+    </script>
+</body>
+
+</html>

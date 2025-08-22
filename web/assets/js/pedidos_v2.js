@@ -50,17 +50,17 @@ function getThisWeek() {
     const month = String(currentDate.getMonth() + 1).padStart(2, '0');
     const day = String(currentDate.getDate()).padStart(2, '0');
 
-    // Obtener el día de la semana (0-6)
+    // Obtener el dÃ­a de la semana (0-6)
     const currentDayOfWeek = currentDate.getDay();
 
-    // Calcular la fecha del primer día de la semana (lunes)
+    // Calcular la fecha del primer dÃ­a de la semana (lunes)
     const firstDayOfWeek = new Date(currentDate);
     firstDayOfWeek.setDate(day - currentDayOfWeek + 1);
 
     const firstDay = String(firstDayOfWeek.getDate()).padStart(2, '0');
     const firstMonth = String(firstDayOfWeek.getMonth() + 1).padStart(2, '0');
 
-    // Calcular la fecha del último día de la semana (domingo)
+    // Calcular la fecha del Ãºltimo dÃ­a de la semana (domingo)
     const lastDayOfWeek = new Date(currentDate);
     lastDayOfWeek.setDate(day - currentDayOfWeek + 7);
 
@@ -207,17 +207,17 @@ async function getPedidos(startDate = null, endDate = null, page) {
                     const tablasContainer = document.getElementById('tablas-container');
                     tablasContainer.innerHTML = "NO HAY PEDIDOS";
                 }
-                // Lógica de paginación
+                // LÃ³gica de paginaciÃ³n
                 // const totalPages = Math.ceil(apps.length / itemsPerPage);
                 let paginationHtml = '<ul class="pagination d-flex col-12 justify-content-center">';
                 currentPage = page;
-                // Crear los controles de paginación
+                // Crear los controles de paginaciÃ³n
                 for (let i = 1; i <= 10; i++) {
                     paginationHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" onclick="getPedidos('${startDate}', '${endDate}', ${i})">${i}</a></li>`;
                 }
                 paginationHtml += '</ul>';
 
-                // Mostrar los controles de paginación en la página
+                // Mostrar los controles de paginaciÃ³n en la pÃ¡gina
                 document.getElementById('pagination').innerHTML = paginationHtml;
             }
         });
@@ -258,9 +258,9 @@ function verPedido(app_id, id) {
             
             let fila = "";
 
-            // Función para determinar la unidad correcta
+            // FunciÃ³n para determinar la unidad correcta
             function getUnidadProducto(product) {
-                // Casos específicos con sus unidades
+                // Casos especÃ­ficos con sus unidades
                 if (product.name === 'Botella de Huevos 1L') {
                     return product.quantity + ' botellas';
                 }
@@ -335,7 +335,7 @@ function verPedido(app_id, id) {
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-start">
                             <div class="ms-2 me-auto">
-                                <div class="fw-bold">Reseña</div>
+                                <div class="fw-bold">ReseÃ±a</div>
                                 ${pedido.review}
                             </div>
                         </li>`;
@@ -476,7 +476,7 @@ function openModalCliente(id){
 function openModalCancelarFactura(id){
     pedidoIdCancelar = id;
     
-    // Establecer fecha actual como fecha de cancelación
+    // Establecer fecha actual como fecha de cancelaciÃ³n
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('fecha_cancelacion').value = today;
     
@@ -495,11 +495,11 @@ function closeModalCancelarFactura(){
 function validateRUT() {
     const rutField = document.getElementById('rut');
     const rut = rutField.value.trim();
-    // Expresión regular para formato de RUT chileno 
+    // ExpresiÃ³n regular para formato de RUT chileno 
     const rutRegex = /^\d{8}-[kK0-9]$/;
 
     if (!rutRegex.test(rut)) {
-        alert('El RUT ingresado no es válido. Debe tener 8 dígitos antes del guion y un dígito verificador (0-9 o K).');
+        alert('El RUT ingresado no es vÃ¡lido. Debe tener 8 dÃ­gitos antes del guion y un dÃ­gito verificador (0-9 o K).');
         rutField.classList.add('is-invalid');
         return false;
     } else {
@@ -566,7 +566,7 @@ function validateForm() {
     });
 
     if (nroTransaccion && isNaN(nroTransaccion)) {
-        alert('El número de transacción debe ser un número válido.');
+        alert('El nÃºmero de transacciÃ³n debe ser un nÃºmero vÃ¡lido.');
         isValid = false;
     }
     if(!validateRUT()){
@@ -661,15 +661,15 @@ async function generatePDF(base64PDF) {
     // Nombre del archivo con UUID
     const fileName = `factura_${uuid}.pdf`;
 
-    // Crear un enlace y abrir el PDF en una nueva pestaña
+    // Crear un enlace y abrir el PDF en una nueva pestaÃ±a
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.target = '_blank'; // Esto abrirá el PDF en una nueva pestaña
+    a.target = '_blank'; // Esto abrirÃ¡ el PDF en una nueva pestaÃ±a
     a.download = fileName;
     a.click();
 
-    // Revocar la URL del blob después de usarla
+    // Revocar la URL del blob despuÃ©s de usarla
     window.URL.revokeObjectURL(url);
 }
 
@@ -696,11 +696,12 @@ async function procesarNotaCredito() {
     try {
         activateLoader();
         
-        // Crear FormData como en la aplicación .exe
-        const formData = new FormData();
-        formData.append('cancelDate', fechaCancelacion);
+        // Enviar como objeto normal, NO como FormData
+        const datos = {
+            cancelDate: fechaCancelacion
+        };
         
-        // NOTA DE CRÉDITO - Actualizado 2025-08-21
+        // NOTA DE CRÉDITO - Actualizado 2025-08-21 - V2
         await __conection(
             {
                 url: generarURLApi(`/web/pedido/cancelar-factura/${pedidoIdCancelar}`),
@@ -708,7 +709,7 @@ async function procesarNotaCredito() {
                 dev: true,
                 method: 'POST',
             },
-            formData,
+            datos, // Objeto normal en lugar de FormData
             function (request) {
                 desactivateLoader();
                 console.log('Respuesta nota de crédito:', request);
@@ -772,4 +773,3 @@ async function verFacturaPDF(pedidoId) {
         alert('❌ Error de conexión al obtener la factura.');
     }
 }
-

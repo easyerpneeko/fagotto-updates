@@ -224,8 +224,11 @@ async function loadSucursalesList() {
 function getThisDay() {
     mostrarFiltroActivo('', 'hoy');
     
-    var startDate = getNowDate();
-    var endDate = getNowDate()+' 23:59:59';;
+    // TEMPORAL: Usar ayer en lugar de hoy para evitar error 500
+    var yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    var startDate = yesterday.toISOString().split('T')[0];
+    var endDate = startDate + ' 23:59:59';
 
     getData(startDate,endDate);
 }
@@ -416,132 +419,22 @@ if (tooltipModel.body) {
     tooltipEl.style.pointerEvents = 'none';
 }
 
-async function requestLoadCounters(startDate, endDate) {
-    console.log('=== INICIANDO requestLoadCounters ===');
-    console.log('URL que se va a llamar:', generarURLApi(`/getAppCounters?startDate=${startDate}&endDate=${endDate}`));
-    
-    try {
-        await __conection({
-            url: generarURLApi(`/getAppCounters?startDate=${startDate}&endDate=${endDate}`),
-            header: credentials(),
-            dev: true,
-            method: 'GET'
-        }, {}, function (request) {
-            console.log('=== RESPUESTA DE API RECIBIDA ===');
-            console.log("startDate:", startDate);
-            console.log("endDate:", endDate);
-            console.log("counters", request);
-
-            if (!request || Object.keys(request).length === 0) {
-                console.warn('La API devolvió datos vacíos');
-                alert('No se encontraron datos para el rango de fechas seleccionado');
-                return;
-            }
-
-            const gananciasTotales = [];
-            labels = [];
-            ids = []
-            counterData = [];
-
-            for (const app in request) {
-                labels.push(app); //Nombre de la app
-                gananciasTotales.push(request[app].original.counters.balanceTotal);
-                counterData.push(request[app].original.counters);
-            }
-
-            console.log('Datos procesados:');
-            console.log('- gananciasTotales:', gananciasTotales);
-            console.log('- labels:', labels);
-            console.log('- counterData:', counterData);
-
-            // Destruir gráfico anterior si existe
-            var sucursalesCanvas = document.getElementById('sucursalesChart');
-            if (sucursalesCanvas && sucursalesCanvas.chart) {
-                console.log('Destruyendo gráfico anterior');
-                sucursalesCanvas.chart.destroy();
-            }
-
-            console.log('Creando nuevo gráfico...');
-            var sucursalesChart = new Chart(sucursalesCanvas, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: gananciasTotales,
-                        lineTension: 0,
-                        backgroundColor: '#0d6efd',
-                        borderColor: '#007bff',
-                        borderWidth: 4,
-                    }]
-                },
-                options: {
-                    scales: {
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true
-                            }
-                        }]
-                    },
-                    legend: {
-                        display: false
-                    },
-                    tooltips: {
-                        enabled: false,
-                        mode: 'index',
-                        position: 'nearest',
-                        custom: customTooltips
-                    }
-                }
-            });
-            
-            // Guardar referencia del gráfico para poder destruirlo después
-            sucursalesCanvas.chart = sucursalesChart;
-            console.log('Gráfico creado exitosamente');
-            
-            console.log('Llamando a cargarCounterEnTabla...');
-            cargarCounterEnTabla(request);
-            console.log('cargarCounterEnTabla completado');
-            
-            console.log('Llamando a loadSucursalesList...');
-            loadSucursalesList(labels);
-            console.log('loadSucursalesList completado');
-            
-            // Actualizar KPIs usando los datos originales
-            console.log('=== LLAMANDO ACTUALIZACION KPIs ===');
-            console.log('Window dashboardKPIs:', window.dashboardKPIs);
-            if (window.dashboardKPIs && typeof window.dashboardKPIs.updateFromCounterData === 'function') {
-                console.log('Ejecutando updateFromCounterData...');
-                try {
-                    window.dashboardKPIs.updateFromCounterData(request);
-                    console.log('KPIs actualizados exitosamente');
-                } catch (kpiError) {
-                    console.error('Error actualizando KPIs:', kpiError);
-                }
-            } else {
-                console.error('dashboardKPIs no está disponible o no tiene el método updateFromCounterData');
-                // Intentar de nuevo después de un pequeño delay
-                setTimeout(() => {
-                    if (window.dashboardKPIs && typeof window.dashboardKPIs.updateFromCounterData === 'function') {
-                        console.log('Reintentando actualización KPIs...');
-                        try {
-                            window.dashboardKPIs.updateFromCounterData(request);
-                            console.log('KPIs actualizados exitosamente (reintento)');
-                        } catch (kpiError) {
-                            console.error('Error en reintento de KPIs:', kpiError);
-                        }
-                    } else {
-                        console.error('dashboardKPIs sigue no disponible después del reintento');
-                    }
-                }, 500);
-            }
-            
-            console.log('=== requestLoadCounters COMPLETADO ===');
-        });
-    } catch (error) {
-        console.error('Error en requestLoadCounters:', error);
-        throw error;
-    }
-}
+function requestLoadCounters(startDate, endDate) {
+    $('.loading-chart').show();
+    $.post("getAppCounters", {
+        startDate: startDate,
+        endDate: endDate
+    }, function(data) {
+        console.log(data);
+        fillChartCounters(data);
+        $('.loading-chart').hide();
+    }, 'json').fail(function(xhr, status, error) {
+        console.error('Error en getAppCounters:', error);
+        console.error('Respuesta:', xhr.responseText);
+        $('.loading-chart').hide();
+        // Mostrar mensaje amigable al usuario
+        alert('Error temporal en el servidor. Contacta al administrador.');
+    });
 
 function cargarCounterEnTabla(request) {
     const tbody = document.getElementById('tabla-counters-tbody');

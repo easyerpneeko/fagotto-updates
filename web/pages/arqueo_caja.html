@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EASY ARQUEO - Arqueo de Caja</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+
+    <!--helpers-->
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+    <script src="../assets/helpers/helperFunctions.js"></script>
+    
+    <!--arqueo caja functions-->
+    <script src="../assets/js/arqueo_caja.js"></script>
+
+    <!--styles-->
+    <link rel="stylesheet" href="../assets/css/global.css">
+
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --background-gradient: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+            --card-background: rgba(255, 255, 255, 0.9);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            background: var(--background-gradient);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .arqueo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .arqueo-card {
+            background: var(--card-background);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .arqueo-header {
+            background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+            color: white;
+            padding: 20px;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .denomination-card {
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .denomination-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.1);
+        }
+
+        .denomination-input {
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            border: none;
+            background: transparent;
+        }
+
+        .denomination-input:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+        .total-section {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .btn-arqueo {
+            background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-arqueo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+            color: white;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-abierto {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-cerrado {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .arqueo-history {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="arqueo-container">
+        <!-- Header -->
+        <div class="arqueo-card">
+            <div class="arqueo-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-1"><i class="fas fa-cash-register me-3"></i>Arqueo de Caja</h2>
+                        <p class="mb-0 opacity-75">Control y registro de efectivo en caja</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <span class="status-badge status-abierto" id="statusBadge">
+                            <i class="fas fa-circle me-1"></i>Caja Abierta
+                        </span>
+                        <a href="reportes_arqueo.html" class="btn btn-light ms-2">
+                            <i class="fas fa-chart-bar me-1"></i>Reportes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Panel de Conteo -->
+            <div class="col-lg-8">
+                <div class="arqueo-card">
+                    <div class="card-body p-4">
+                        <h4 class="mb-4"><i class="fas fa-calculator me-2"></i>Conteo de Efectivo</h4>
+                        
+                        <!-- Billetes -->
+                        <div class="mb-4">
+                            <h5 class="text-secondary mb-3">💵 Billetes</h5>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="denomination-card p-3">
+                                        <div class="text-center">
+                                            <h6 class="mb-2">$20.000</h6>
+                                            <input type="number" class="form-control denomination-input" 
+                                                   id="bill_20000" value="0" min="0">
+                                            <small class="text-muted">Cantidad</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="denomination-card p-3">
+                                        <div class="text-center">
+                                            <h6 class="mb-2">$10.000</h6>
+                                            <input type="number" class="form-control denomination-input" 
+                                                   id="bill_10000" value="0" min="0">
+                                            <small class="text-muted">Cantidad</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="denomination-card p-3">
+                                        <div class="text-center">
+                                            <h6 class="mb-2">$5.000</h6>
+                                            <input type="number" class="form-control denomination-input" 
+                                                   id="bill_5000" value="0" min="0">
+                                            <small class="text-muted">Cantidad</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="denomination-card p-3">
+                                        <div class="text-center">
+                                            <h6 class="mb-2">$2.000</h6>
+                                            <input type="number" class="form-control denomination-input" 
+                                                   id="bill_2000" value="0" min="0">
+                                            <small class="text-muted">Cantidad</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="denomination-card p-3">
+                                        <div class="text-center">
+                                            <h6 class="mb-2">$1.000</h6>
+                                            <input type="number" class="form-control denomination-input" 
+                                                   id="bill_1000" value="0" min="0">
+                                            <small class="text-muted">Cantidad</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Monedas -->
+                        <div class="mb-4">
+                            <h5 class="text-secondary mb-3">🪙 Monedas</h5>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <div class="denomination-card p-3">
+                                        <div class="text-center">
+                                            <h6 class="mb-2">$500</h6>
+                                            <input type="number" class="form-control denomination-input" 
+                                                   id="coin_500" value="0" min="0">
+                                            <small class="text-muted">Cantidad</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="denomination-card p-3">
+                                        <div class="text-center">
+                                            <h6 class="mb-2">$100</h6>
+                                            <input type="number" class="form-control denomination-input" 
+                                                   id="coin_100" value="0" min="0">
+                                            <small class="text-muted">Cantidad</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="denomination-card p-3">
+                                        <div class="text-center">
+                                            <h6 class="mb-2">$50</h6>
+                                            <input type="number" class="form-control denomination-input" 
+                                                   id="coin_50" value="0" min="0">
+                                            <small class="text-muted">Cantidad</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="denomination-card p-3">
+                                        <div class="text-center">
+                                            <h6 class="mb-2">$10</h6>
+                                            <input type="number" class="form-control denomination-input" 
+                                                   id="coin_10" value="0" min="0">
+                                            <small class="text-muted">Cantidad</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total -->
+                        <div class="total-section">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h4 class="mb-0">Total Efectivo Contado:</h4>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <h2 class="mb-0" id="totalCounted">$0</h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Observaciones -->
+                        <div class="mt-4">
+                            <label for="observaciones" class="form-label">Observaciones</label>
+                            <textarea class="form-control" id="observaciones" rows="3" 
+                                      placeholder="Ingrese cualquier observación sobre el arqueo..."></textarea>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="mt-4 text-center">
+                            <button class="btn btn-arqueo me-3" id="guardarArqueo">
+                                <i class="fas fa-save me-2"></i>Guardar Arqueo
+                            </button>
+                            <button class="btn btn-outline-secondary me-3" id="limpiarFormulario">
+                                <i class="fas fa-broom me-2"></i>Limpiar
+                            </button>
+                            <button class="btn btn-outline-primary" id="imprimirArqueo">
+                                <i class="fas fa-print me-2"></i>Imprimir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Información -->
+            <div class="col-lg-4">
+                <!-- Resumen del Día -->
+                <div class="arqueo-card">
+                    <div class="card-body p-4">
+                        <h5 class="mb-3"><i class="fas fa-chart-line me-2"></i>Resumen del Día</h5>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Ventas en Efectivo:</span>
+                                <strong id="ventasEfectivo">$0</strong>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Total Ventas:</span>
+                                <strong id="totalVentas">$0</strong>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Diferencia:</span>
+                                <strong id="diferencia" class="text-success">$0</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historial de Arqueos -->
+                <div class="arqueo-card">
+                    <div class="card-body p-4">
+                        <h5 class="mb-3"><i class="fas fa-history me-2"></i>Últimos Arqueos</h5>
+                        <div class="arqueo-history" id="historialArqueos">
+                            <!-- Se llenará dinámicamente -->
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-clock fa-2x mb-2"></i>
+                                <p>Cargando historial...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer">
+        <!-- Los toasts se insertarán aquí dinámicamente -->
+    </div>
+
+    <script>
+        // El script principal se maneja en arqueo_caja.js
+        // Aquí solo agregamos configuraciones específicas si son necesarias
+    </script>
+</body>
+
+</html>

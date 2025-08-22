@@ -20,38 +20,57 @@ git commit -m "feat: descripción de los cambios realizados - v1.11.X"
 git push origin fagotto-dev
 ```
 
-### 4. **Configurar Token de GitHub**
-```powershell
-$env:GH_TOKEN = "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"
-```
-
-### 5. **Verificar Token**
-```powershell
-echo $env:GH_TOKEN
-```
-
-### 6. **Ejecutar Build**
+### 4. **Ejecutar Build**
 ```powershell
 node .electron-vue/build.js
 ```
 
-### 7. **Ejecutar Deploy**
+### 5. **Deploy con Token (COMANDO ÚNICO - SOLUCIÓN DEFINITIVA)**
 ```powershell
+# ⚠️ IMPORTANTE: Usar token + deploy en UNA SOLA LÍNEA
+# Esto evita que electron-builder pierda el token durante el empaquetado
+$env:GH_TOKEN="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"; npx electron-builder build --win --publish always
+```
+
+### 6. **❌ NO USAR (Método que falla)**
+```powershell
+# ❌ ESTO NO FUNCIONA - electron-builder pierde el token
+$env:GH_TOKEN = "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"
 npx electron-builder build --win --publish always
 ```
 
 ---
 
-## ⚡ Comando Rápido (Un Solo Paso)
-
-Una vez configurado el token, puedes usar:
+## ⚡ Comando Rápido (Un Solo Paso) - **MÉTODO GARANTIZADO**
 
 ```powershell
-# Configurar token una sola vez por sesión
-$env:GH_TOKEN = "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"
+# Build + Deploy en comandos separados pero seguros
+node .electron-vue/build.js
 
-# Deploy completo
-node .electron-vue/build.js && npx electron-builder build --win --publish always
+# Deploy con token configurado en la misma línea (FUNCIONA 100%)
+$env:GH_TOKEN="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"; npx electron-builder build --win --publish always
+```
+
+## ⚠️ **PROBLEMA COMÚN Y SOLUCIÓN**
+
+### **❌ Error Típico:**
+```
+Error: GitHub Personal Access Token is not set, neither programmatically, nor using env "GH_TOKEN"
+```
+
+### **✅ Causa y Solución:**
+- **Problema:** electron-builder crea procesos hijo que no heredan variables de entorno configuradas por separado
+- **Solución:** Configurar el token **en la misma línea** del comando de deploy
+
+### **✅ Comando Correcto:**
+```powershell
+$env:GH_TOKEN="TOKEN"; npx electron-builder build --win --publish always
+```
+
+### **❌ Comando que Falla:**
+```powershell
+$env:GH_TOKEN = "TOKEN"
+npx electron-builder build --win --publish always
 ```
 
 ---
@@ -77,10 +96,10 @@ node .electron-vue/build.js && npx electron-builder build --win --publish always
 
 ## ⚠️ Problemas Comunes y Soluciones
 
-### **Error: GitHub Token inválido**
+### **Error: GitHub Token inválido - SOLUCIÓN DEFINITIVA**
 ```powershell
-# Solución: Reconfigurar token
-$env:GH_TOKEN = "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"
+# ✅ USAR ESTE COMANDO (token + deploy en una línea)
+$env:GH_TOKEN="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"; npx electron-builder build --win --publish always
 ```
 
 ### **Error: electron-builder no encontrado**
@@ -95,6 +114,11 @@ npx electron-builder build --win --publish always
 npm run build:clean
 node .electron-vue/build.js
 ```
+
+### **⚠️ IMPORTANTE: Proceso de empaquetado de electron-builder**
+- electron-builder **SIEMPRE** crea procesos hijo durante el empaquetado
+- Estos procesos **NO HEREDAN** variables de entorno configuradas en comandos separados
+- **SOLUCIÓN:** Configurar token en la misma línea del comando de deploy
 
 ---
 
@@ -122,5 +146,11 @@ Al completar el deploy exitosamente verás:
 
 ---
 
-**Última actualización:** Agosto 9, 2025 - v1.11.13 ✅
-**Próxima versión:** v1.11.14
+**Última actualización:** Agosto 18, 2025 - v1.11.14 ✅  
+**Solución token definitiva:** Aplicada y documentada ✅  
+**Próxima versión:** v1.11.15
+
+**🔧 Fix Aplicado:**
+- Solución definitiva para error de GitHub Token en electron-builder
+- Comando único que garantiza el deploy exitoso
+- Documentación actualizada con método que funciona 100%

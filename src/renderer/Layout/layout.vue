@@ -21,10 +21,25 @@
           <ul class="nav nav-pills nav-sidebar flex-column"
             style="flex-wrap: nowrap; max-height: 60vh; overflow-y: auto">
             <li v-for="(option, index) in menu" :key="index" class="nav-item pt-1" v-if="menu && menu.length > 0">
-              <router-link tag="a" :to="option.route"
-                :class="['text-white nav-link', ($route.path == option.route) ? 'active' : '', { 'open-link': drawer, 'disabled': offOn }]">
+              <router-link 
+                tag="a" 
+                :to="option.route"
+                :class="[
+                  'text-white nav-link', 
+                  ($route.path == option.route) ? 'active' : '', 
+                  { 
+                    'open-link': drawer, 
+                    'disabled': offOn,
+                    'turno-blocked': !turnoActivo && option.requiresTurno 
+                  }
+                ]"
+                @click.native="handleMenuClick(option, $event)"
+              >
                 <i :class="['nav-icon fas', option.icon]"></i>
-                <p class="navar-text ">{{ option.label }}</p>
+                <p class="navar-text">
+                  {{ option.label }}
+                  <i v-if="!turnoActivo && option.requiresTurno" class="fas fa-lock ml-1" style="font-size: 0.8rem; opacity: 0.7;"></i>
+                </p>
               </router-link>
             </li>
           </ul>
@@ -70,7 +85,7 @@
 
     <modal-expirated @refreshApp="refreshApp" v-model="dataExpired" />
     <ifConnected @refresh="initIntervalConnected" />
-    <initMoney />
+    <!-- initMoney eliminado - Ahora se maneja en arqueo-caja.vue -->
 
   </div>
 </template>
@@ -80,7 +95,7 @@
 import ifConnected from '@/components/modals/ifConnected.vue';
 import ModalExpirated from '../components/modals/expired.vue';
 import boardsActives from '@/components/boardsActives.vue';
-import initMoney from '@/components/modals/initMoney.vue';
+// initMoney eliminado - Ya no se usa
 
 
 // Helpers y plugins
@@ -90,7 +105,7 @@ import ConfigHelper from '@/helpers/ConfigHelper';
 import $ from 'jquery';
 
 export default {
-  components: { ModalExpirated, boardsActives, initMoney, ifConnected },
+  components: { ModalExpirated, boardsActives, ifConnected },
   name: 'layout',
   data() {
     return {
@@ -99,7 +114,8 @@ export default {
       drawer: false,
       drawerPanel: true,
       dataExpired: null,
-      feedsWatch: false
+      feedsWatch: false,
+      turnoActivo: false
     }
   },
   async mounted() {
@@ -116,12 +132,23 @@ export default {
       }
       Loader.hide();
       this.offOn = false;
-      // Monto inicial
-      if (ConfigHelper.ConfStr('modulos.ventas.submodulos.reporte') && ConfigHelper.HavePermission('monto_inicial')) this.verifyInitMoney();
+      // Verificar estado del turno
+      this.verificarEstadoTurno();
+      // Monto inicial - ELIMINADO: Se maneja en arqueo-caja.vue
+      // if (ConfigHelper.ConfStr('modulos.ventas.submodulos.reporte') && ConfigHelper.HavePermission('monto_inicial')) this.verifyInitMoney();
       this.feedsWatch = true;
     }, 2000);
 
-
+    // Listener para cambios en localStorage (cuando se inicia/termina turno)
+    window.addEventListener('storage', this.onStorageChange);
+    
+    // Listener para evento personalizado de turno
+    window.addEventListener('turnoChanged', this.onTurnoChanged);
+    
+    // También revisar cada 5 segundos por si acaso
+    setInterval(() => {
+      this.verificarEstadoTurno();
+    }, 5000);
 
     // Verificacion de la app cada 5 minutos
     setInterval(async () => {
@@ -163,6 +190,13 @@ export default {
 
     },
   },
+
+  beforeDestroy() {
+    // Limpiar listeners al destruir el componente
+    window.removeEventListener('storage', this.onStorageChange);
+    window.removeEventListener('turnoChanged', this.onTurnoChanged);
+  },
+
   methods: {
     // Verificar conexion a internet
     initIntervalConnected(isRefresh = false) {
@@ -183,17 +217,8 @@ export default {
       return true;
     },
 
-    // Monto inicial
-    async verifyInitMoney() {
-      // let request = await this.$store.dispatch('main/getMyInitMoney');
-      // if(request.success && request.data){
-      //   $('#initMoney').modal('show');
-      // }
-      let start_workshift = localStorage.getItem('start_workshift');
-      if (start_workshift === null) {
-        $('#initMoney').modal('show');
-      }
-    },
+    // Monto inicial - ELIMINADO: Se maneja en arqueo-caja.vue
+    // async verifyInitMoney() { ... }
 
     // Funcion para verificar serial en JSON
     verifyJson() {
@@ -316,7 +341,8 @@ export default {
           menu.push({
             label: 'Usuarios',
             route: '/inicio/usuarios',
-            icon: 'fa-user-alt'
+            icon: 'fa-user-alt',
+            requiresTurno: true
           });
         };
         // Modulo de productos
@@ -325,7 +351,8 @@ export default {
             menu.push({
               label: 'Productos',
               route: '/inicio/productos',
-              icon: 'fa-dolly-flatbed'
+              icon: 'fa-dolly-flatbed',
+              requiresTurno: true
             });
         };
         // Modulo de clientes
@@ -333,7 +360,8 @@ export default {
           menu.push({
             label: 'Clientes',
             route: '/inicio/clientes',
-            icon: 'fa-users'
+            icon: 'fa-users',
+            requiresTurno: true
           });
         };
         // Modulo de seguimientos de clientes compras
@@ -341,7 +369,8 @@ export default {
           menu.push({
             label: 'Seguimientos de ventas',
             route: '/inicio/seguimientos',
-            icon: 'fas fa-chart-line'
+            icon: 'fas fa-chart-line',
+            requiresTurno: true
           });
         };
 
@@ -352,7 +381,8 @@ export default {
             menu.push({
               label: 'Nueva venta',
               route: '/inicio/nueva/venta',
-              icon: 'fa-shopping-cart'
+              icon: 'fa-shopping-cart',
+              requiresTurno: true
             });
           }
           if (sellsGestion) {
@@ -361,7 +391,8 @@ export default {
               menu.push({
                 label: 'Ventas',
                 route: '/inicio/ventas',
-                icon: 'fa-clipboard-list'
+                icon: 'fa-clipboard-list',
+                requiresTurno: true
               });
 
             // Submodulos de venta rapida
@@ -369,7 +400,8 @@ export default {
               menu.push({
                 label: 'Venta rapida',
                 route: '/inicio/nueva/venta/rapida',
-                icon: 'fa-shipping-fast'
+                icon: 'fa-shipping-fast',
+                requiresTurno: true
               });
             }
             // Submodulos de reporte
@@ -377,7 +409,8 @@ export default {
               menu.push({
                 label: 'Reportes',
                 route: '/inicio/reportes',
-                icon: 'fa-scroll'
+                icon: 'fa-scroll',
+                requiresTurno: true
               });
             }
             // Submodulos de gastos del dia
@@ -385,15 +418,17 @@ export default {
               menu.push({
                 label: 'Gastos',
                 route: '/inicio/gastos',
-                icon: 'fa-coins'
+                icon: 'fa-coins',
+                requiresTurno: true
               });
             }
             
-            // Submodulo de arqueo de caja - SIEMPRE VISIBLE
+            // Submodulo de arqueo de caja - SIEMPRE VISIBLE - NO REQUIERE TURNO
             menu.push({
               label: 'Arqueo de Caja',
               route: '/inicio/arqueo-caja',
-              icon: 'fa-cash-register'
+              icon: 'fa-cash-register',
+              requiresTurno: false
             });
 
           }
@@ -403,20 +438,23 @@ export default {
           menu.push({
             label: this.envs.name_panel_tickets.value,
             route: '/inicio/cafeteria',
-            icon: 'fa-coffee'
+            icon: 'fa-coffee',
+            requiresTurno: true
           });
           if (getWaiters) {
             menu.push({
               label: 'Meseros',
               route: '/inicio/meseros',
-              icon: 'fa-user-friends'
+              icon: 'fa-user-friends',
+              requiresTurno: true
             });
           }
           if (boardsModify && getBoards) {
             menu.push({
               label: 'Mesas',
               route: '/inicio/mesas',
-              icon: 'fa-clipboard-list'
+              icon: 'fa-clipboard-list',
+              requiresTurno: true
             });
           }
           console.log('kitchen kitchenMode kitchenMode', kitchenMode);
@@ -425,7 +463,8 @@ export default {
             menu.push({
               label: 'Cocina',
               route: '/inicio/cafeteria/kitchen-mode/kitchen',
-              icon: 'fa-sticky-note'
+              icon: 'fa-sticky-note',
+              requiresTurno: true
             });
           }
         }
@@ -438,14 +477,16 @@ export default {
               menu.push({
                 label: 'Creacion de orden',
                 route: '/inicio/client-orders/mobile-devices/create',
-                icon: 'fa-shopping-cart'
+                icon: 'fa-shopping-cart',
+                requiresTurno: true
               });
             }
             if (retrieveClientOrdersPermission) {
               menu.push({
                 label: 'Lista de ordenes',
                 route: '/inicio/client-orders/mobile-devices/lista',
-                icon: 'fa-clipboard-list'
+                icon: 'fa-clipboard-list',
+                requiresTurno: true
               });
             }
           }
@@ -456,13 +497,15 @@ export default {
             label: 'Cargar Folios',
             // label: this.envs.name_panel_tickets.value,
             route: '/inicio/folios',
-            icon: 'fa-file-upload'
+            icon: 'fa-file-upload',
+            requiresTurno: true
           });
 
           menu.push({
             label: 'Franquiciados',
             route: '/inicio/franquiciados',
-            icon: 'fas fa-handshake'
+            icon: 'fas fa-handshake',
+            requiresTurno: true
           });
         }
         //Modulo de pedidos
@@ -470,7 +513,8 @@ export default {
           menu.push({
             label: 'Crear Pedido',
             route: '/inicio/pedidos',
-            icon: 'fas fa-truck-loading'
+            icon: 'fas fa-truck-loading',
+            requiresTurno: true
           });
         }
         
@@ -479,7 +523,8 @@ export default {
           label: 'Uber Eats',
           route: '/inicio/uber-eats',
           icon: 'fas fa-motorcycle',
-          badge: 'NEW'
+          badge: 'NEW',
+          requiresTurno: true
         });
         
         //Modulo de pedidos de pasteles
@@ -487,7 +532,8 @@ export default {
           menu.push({
             label: 'Pedido Reposteria',
             route: '/inicio/reposteria',
-            icon: 'fas fa-birthday-cake'
+            icon: 'fas fa-birthday-cake',
+            requiresTurno: true
           });
         }
         //Modulo de operaciones
@@ -495,7 +541,8 @@ export default {
           menu.push({
             label: 'Crear Operacion',
             route: '/inicio/operaciones',
-            icon: 'fas fa-cogs'
+            icon: 'fas fa-cogs',
+            requiresTurno: true
           });
         }
 
@@ -504,7 +551,8 @@ export default {
           menu.push({
             label: 'Devoluciones',
             route: '/inicio/devoluciones',
-            icon: 'fas fa-undo-alt'
+            icon: 'fas fa-undo-alt',
+            requiresTurno: true
           });
         }
 
@@ -522,7 +570,8 @@ export default {
           menu.push({
             label: 'Ingredientes',
             route: '/inicio/ingredients',
-            icon: 'far fa-file-alt'
+            icon: 'far fa-file-alt',
+            requiresTurno: true
           })
         }
         // console.log(menu);
@@ -538,6 +587,73 @@ export default {
         }
         this.$router.push('/login');
       });
+    },
+
+    // Verificar si hay un turno activo
+    verificarEstadoTurno() {
+      try {
+        const turnoLocal = localStorage.getItem('turnoActivo');
+        const fechaLocal = localStorage.getItem('fechaTurno');
+        const fechaHoy = new Date().toISOString().split('T')[0];
+        
+        // Limpiar turnos de días anteriores automáticamente
+        if (fechaLocal && fechaLocal !== fechaHoy) {
+          console.log('🛡️ LAYOUT: Limpiando turno de día anterior:', fechaLocal);
+          localStorage.removeItem('turnoActivo');
+          localStorage.removeItem('fechaTurno');
+          localStorage.removeItem('horaInicioTurno');
+          localStorage.removeItem('montoInicialTurno');
+          this.turnoActivo = false;
+          return;
+        }
+        
+        // Si hay un turno local del día de hoy, permitir acceso
+        if (turnoLocal === 'true' && fechaLocal === fechaHoy) {
+          this.turnoActivo = true;
+          console.log('🛡️ LAYOUT: ✅ Turno activo encontrado');
+        } else {
+          this.turnoActivo = false;
+          console.log('🛡️ LAYOUT: ❌ No hay turno activo');
+        }
+        
+      } catch (error) {
+        console.error('🛡️ LAYOUT: Error verificando estado del turno:', error);
+        this.turnoActivo = false;
+      }
+    },
+
+    // Escuchar cambios en localStorage (cuando se inicia/termina turno desde otro componente)
+    onStorageChange(event) {
+      if (event.key === 'turnoActivo' || event.key === 'fechaTurno') {
+        console.log('🔄 LAYOUT: Detectado cambio en turno desde storage:', event.key, event.newValue);
+        this.verificarEstadoTurno();
+      }
+    },
+
+    // Escuchar evento personalizado de cambio de turno
+    onTurnoChanged(event) {
+      console.log('🔔 LAYOUT: Recibido evento de cambio de turno:', event.detail);
+      this.verificarEstadoTurno();
+    },
+
+    // Manejar click en elementos del menú
+    handleMenuClick(option, event) {
+      // Si la opción requiere turno y no hay turno activo
+      if (option.requiresTurno && !this.turnoActivo) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // Mostrar mensaje y redirigir al arqueo
+        this.$awn.warning('Debes iniciar un turno de caja antes de acceder a esta sección', {
+          labels: { warning: 'TURNO REQUERIDO' }
+        });
+        
+        setTimeout(() => {
+          this.$router.push('/inicio/arqueo-caja');
+        }, 1500);
+        
+        return false;
+      }
     },
   }
 }
@@ -658,11 +774,23 @@ export default {
     position: absolute;
     height: 95vh;
   }
-
-
-
-
-
-
 }
+
+/* Estilos para opciones bloqueadas por turno */
+.turno-blocked {
+  opacity: 0.5;
+  pointer-events: none;
+  color: #999 !important;
+}
+
+.turno-blocked .lock-icon {
+  color: #dc3545;
+  margin-left: 5px;
+}
+
+.turno-blocked:hover {
+  background-color: transparent !important;
+  cursor: not-allowed;
+}
+
 </style>

@@ -17,6 +17,8 @@ import requests from './requests';
 import operations from './operations';
 //Devoluciones
 import devolutions from './devolutions';
+//Arqueo de Caja
+import arqueo from './arqueo';
 
 // Modulo de cafeteria
 import cafeteria from './cafeteria/cafeteria';
@@ -43,6 +45,7 @@ export default new Vuex.Store({
     requests,
     operations,
     devolutions,
+    arqueo,
     'cafeteria/kitchen': cafeteria_kitchen,
     'client_orders/mobile_devices': co_mobile_devices,
     clients,

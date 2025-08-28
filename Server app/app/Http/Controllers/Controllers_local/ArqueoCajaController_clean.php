@@ -8,8 +8,6 @@ use App\models_local\ArqueoCaja;
 use App\models_local\TurnoCaja;
 use App\models_local\Sell;
 use App\Helpers\CurrentApp;
-use App\Helpers\ConectionDB;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -45,24 +43,22 @@ class ArqueoCajaController extends Controller
             }
             
             try {
-                // Configurar la conexión a la base de datos correcta
-                $app = CurrentApp::App();
-                if ($app && $app->database) {
-                    ConectionDB::ChangeDBToApp($app, true);
-                    Log::info('Base de datos configurada:', ['database' => $app->database->name]);
+                // Obtener app_id de forma segura
+                $appId = 1;
+                try {
+                    $app = CurrentApp::App();
+                    if ($app && isset($app->id)) {
+                        $appId = $app->id;
+                    }
+                } catch (Exception $e) {
+                    Log::warning('No se pudo obtener app_id:', ['error' => $e->getMessage()]);
                 }
                 
-                // Obtener la base de datos local configurada dinámicamente
-                $database = Config::get('database.connections.mysql_local.database');
-                Log::info('Consultando ventas desde BD:', ['database' => $database]);
-                
-                // Obtener ventas del período usando la conexión correcta
-                $sells = DB::connection('mysql_local')->table('sells')
-                            ->whereBetween('date', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+                // Obtener ventas del período
+                $sells = Sell::whereBetween('date', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+                            ->where('app_id', $appId)
                             ->where('type', '!=', 'cotizacion')
                             ->get();
-                
-                Log::info('Ventas encontradas:', ['count' => $sells->count(), 'database' => $database]);
                 
                 foreach ($sells as $sell) {
                     $total = ($sell->net_total ?? 0) + ($sell->taxes_total ?? 0);
@@ -130,261 +126,49 @@ class ArqueoCajaController extends Controller
     }
 
     /**
-     * Verificar estado del turno actual
-     */
-    public function estadoTurno(Request $request)
-    {
-        try {
-            // Configurar conexión
-            $app = CurrentApp::App();
-            if ($app && $app->database) {
-                ConectionDB::ChangeDBToApp($app, true);
-            }
-
-            $usuarioId = $request->get('usuario_id', 1);
-            $appId = $app->id ?? 58;
-
-            // Buscar turno abierto
-            $turnoAbierto = TurnoCaja::turnoAbiertoParaUsuario($usuarioId, $appId);
-
-            if ($turnoAbierto) {
-                return response()->json([
-                    'success' => true,
-                    'turno_abierto' => true,
-                    'turno' => $turnoAbierto,
-                    'puede_hacer_arqueo' => $turnoAbierto->puede_hacer_arqueo,
-                    'mensaje' => 'Tienes un turno abierto desde ' . $turnoAbierto->fecha_inicio->format('H:i')
-                ]);
-            } else {
-                return response()->json([
-                    'success' => true,
-                    'turno_abierto' => false,
-                    'puede_iniciar_turno' => true,
-                    'mensaje' => 'No hay turno abierto. Puedes iniciar uno nuevo.'
-                ]);
-            }
-
-        } catch (Exception $e) {
-            Log::error('Error verificando estado del turno:', ['error' => $e->getMessage()]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al verificar estado del turno'
-            ], 500);
-        }
-    }
-
-    /**
-     * Iniciar nuevo turno
-     */
-    public function iniciarTurno(Request $request)
-    {
-        try {
-            // Configurar conexión
-            $app = CurrentApp::App();
-            if ($app && $app->database) {
-                ConectionDB::ChangeDBToApp($app, true);
-            }
-
-            $usuarioId = $request->get('usuario_id', 1);
-            $usuarioNombre = $request->get('usuario_nombre', 'Usuario Sistema');
-            $appId = $app->id ?? 58;
-            $appNombre = $app->name_public ?? $app->name ?? 'Aplicación Local';
-
-            // Verificar que no haya turno abierto
-            $turnoExistente = TurnoCaja::turnoAbiertoParaUsuario($usuarioId, $appId);
-            if ($turnoExistente) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Ya tienes un turno abierto. Debes cerrarlo antes de iniciar uno nuevo.'
-                ], 400);
-            }
-
-            // Crear nuevo turno
-            $nuevoTurno = TurnoCaja::iniciarTurno($usuarioId, $usuarioNombre, $appId, $appNombre);
-
-            Log::info('Turno iniciado:', ['turno_id' => $nuevoTurno->id, 'usuario' => $usuarioNombre]);
-
-            return response()->json([
-                'success' => true,
-                'turno' => $nuevoTurno,
-                'message' => 'Turno iniciado correctamente'
-            ]);
-
-        } catch (Exception $e) {
-            Log::error('Error iniciando turno:', ['error' => $e->getMessage()]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al iniciar turno: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Cerrar turno con arqueo
-     */
-    public function cerrarTurnoConArqueo(Request $request)
-    {
-        try {
-            // Configurar conexión
-            $app = CurrentApp::App();
-            if ($app && $app->database) {
-                ConectionDB::ChangeDBToApp($app, true);
-            }
-
-            $usuarioId = $request->get('usuario_id', 1);
-            $appId = $app->id ?? 58;
-
-            // Buscar turno abierto
-            $turnoAbierto = TurnoCaja::turnoAbiertoParaUsuario($usuarioId, $appId);
-            if (!$turnoAbierto) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No tienes un turno abierto para cerrar.'
-                ], 400);
-            }
-
-            if (!$turnoAbierto->puede_hacer_arqueo) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Este turno ya fue cerrado.'
-                ], 400);
-            }
-
-            // Datos del arqueo
-            $datosArqueo = [
-                'total_sistema' => floatval($request->get('total_sistema', 0)),
-                'total_contado' => floatval($request->get('total_contado', 0)),
-                'diferencia' => floatval($request->get('diferencia', 0)),
-                'observaciones' => $request->get('observaciones', ''),
-                'detalle_efectivo' => $request->get('detalle_efectivo', '{}'),
-                'detalle_medios_pago' => $request->get('detalle_medios_pago', '{}'),
-                'numero_transacciones' => intval($request->get('numero_transacciones', 0))
-            ];
-
-            // Cerrar turno
-            $turnoAbierto->cerrarTurno($datosArqueo);
-
-            Log::info('Turno cerrado:', ['turno_id' => $turnoAbierto->id, 'diferencia' => $datosArqueo['diferencia']]);
-
-            return response()->json([
-                'success' => true,
-                'turno' => $turnoAbierto->fresh(),
-                'message' => 'Turno cerrado correctamente'
-            ]);
-
-        } catch (Exception $e) {
-            Log::error('Error cerrando turno:', ['error' => $e->getMessage()]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al cerrar turno: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
      * Guardar un nuevo turno de arqueo de caja
      */
     public function guardarTurno(Request $request)
     {
         try {
-            // Configurar la conexión a la base de datos correcta ANTES de usar el modelo
-            $app = CurrentApp::App();
-            if ($app && $app->database) {
-                ConectionDB::ChangeDBToApp($app, true);
-                Log::info('Conexión configurada para base de datos:', ['database' => $app->database->name]);
-            }
-            
             // Recopilar todos los datos de la request
             $data = $request->all();
             
             Log::info('Datos recibidos para arqueo:', $data);
             
-            // Obtener app_nombre usando CurrentApp después de configurar la conexión
-            $appId = $data['app_id'] ?? 58;
-            $appNombre = 'Aplicación Local';
-            
-            // Intentar obtener el nombre desde CurrentApp ahora que la conexión está configurada
+            // Obtener app_id de forma segura
+            $appId = 1; // Valor por defecto
             try {
-                if ($app) {
-                    $appId = $app->id ?? $appId;
-                    $appNombre = $app->name_public ?? $app->name ?? $app->nombre ?? 'Aplicación Local';
-                    Log::info('Nombre obtenido de CurrentApp:', ['app_id' => $appId, 'nombre' => $appNombre]);
+                $app = CurrentApp::App();
+                if ($app && isset($app->id)) {
+                    $appId = $app->id;
                 }
             } catch (Exception $e) {
-                Log::error('Error al obtener nombre de CurrentApp:', ['error' => $e->getMessage()]);
-                
-                // Fallback: buscar en la tabla applications de la BD maestra
-                try {
-                    $application = DB::connection('mysql')->table('applications')->where('id', $appId)->first();
-                    if ($application) {
-                        $appNombre = $application->name_public ?? $application->name ?? 'Aplicación Local';
-                        Log::info('Nombre encontrado en BD maestra:', ['app_id' => $appId, 'nombre' => $appNombre]);
-                    }
-                } catch (Exception $e2) {
-                    Log::error('Error al buscar en BD maestra:', ['error' => $e2->getMessage()]);
-                }
+                Log::warning('No se pudo obtener app_id:', ['error' => $e->getMessage()]);
             }
             
             // Obtener usuario_id de forma segura
             $usuarioId = 1; // Valor por defecto
-            $usuarioNombre = 'Usuario Sistema'; // Valor por defecto
             try {
                 if (auth()->check() && auth()->user()) {
-                    $user = auth()->user();
-                    $usuarioId = $user->id;
-                    $usuarioNombre = $user->name ?? $user->nombre ?? $user->username ?? 'Usuario Sistema';
+                    $usuarioId = auth()->user()->id;
                 }
             } catch (Exception $e) {
                 Log::warning('No se pudo obtener usuario autenticado:', ['error' => $e->getMessage()]);
             }
             
-            Log::info('Contexto obtenido:', [
-                'app_id' => $appId, 
-                'app_nombre' => $appNombre,
-                'usuario_id' => $usuarioId,
-                'usuario_nombre' => $usuarioNombre
-            ]);
-            
-            // Datos básicos del turno - normalizar fechas para evitar errores de Carbon
-            $fechaInicio = date('Y-m-d H:i:s');
-            if (isset($data['fecha_inicio']) && !empty($data['fecha_inicio'])) {
-                try {
-                    // Intentar parsear la fecha del frontend
-                    $fechaInicio = date('Y-m-d H:i:s', strtotime($data['fecha_inicio']));
-                } catch (Exception $e) {
-                    Log::warning('Error al parsear fecha_inicio, usando fecha actual:', ['fecha_recibida' => $data['fecha_inicio'], 'error' => $e->getMessage()]);
-                    $fechaInicio = date('Y-m-d H:i:s');
-                }
-            }
-            
-            $fechaTermino = null;
-            if (isset($data['fecha_termino']) && !empty($data['fecha_termino'])) {
-                try {
-                    $fechaTermino = date('Y-m-d H:i:s', strtotime($data['fecha_termino']));
-                } catch (Exception $e) {
-                    Log::warning('Error al parsear fecha_termino:', ['fecha_recibida' => $data['fecha_termino'], 'error' => $e->getMessage()]);
-                    $fechaTermino = null;
-                }
-            }
-            
+            // Datos básicos del turno - sin timestamps automáticos para evitar errores de Carbon
             $turnoData = [
                 'app_id' => $appId,
-                'app_nombre' => $appNombre,
                 'usuario_id' => $usuarioId,
-                'usuario_nombre' => $usuarioNombre,
-                'fecha_inicio' => $fechaInicio,
-                'fecha_termino' => $fechaTermino,
+                'fecha_inicio' => $data['fecha_inicio'] ?? date('Y-m-d H:i:s'),
+                'fecha_termino' => $data['fecha_termino'] ?? null,
                 'total_sistema' => floatval($data['total_sistema'] ?? 0),
                 'total_contado' => floatval($data['total_contado'] ?? 0),
                 'diferencia' => floatval($data['diferencia'] ?? 0),
                 'estado' => $data['estado'] ?? 'abierto',
-                'observaciones' => $data['observaciones'] ?? '',
-                'detalle_medios_pago' => $data['detalle_medios_pago'] ?? '{}',
-                'detalle_efectivo' => $data['detalle_efectivo'] ?? '{}',
-                'numero_transacciones' => intval($data['numero_transacciones'] ?? 0)
+                'observaciones' => $data['observaciones'] ?? ''
             ];
-            
-            Log::info('TurnoData construido:', $turnoData);
             
             // Métodos de pago - más flexible
             if (isset($data['metodos_pago'])) {

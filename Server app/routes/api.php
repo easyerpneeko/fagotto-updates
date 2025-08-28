@@ -5,7 +5,11 @@ use Illuminate\Support\Facades\Route;
 /*
 |--------------------------------------------------------------------------
 | API Routes
-|--------------------------------------------------------------------------
+|-----------------------------------------      // Turnos de trabajo
+      Route::post('/local/workshift', 'Controllers_local\WorkshiftController@newWorkshift');
+
+      // Obtenerme a mi mismo (yo)
+      Route::get('/local/me', 'Controllers_local\UserLocal@getUserByMe');----------------------------
 |
 | Here is where you can register API routes for your application. These
 | routes are loaded by the RouteServiceProvider within a group which
@@ -353,6 +357,13 @@ Route::group(['middleware' => ['AppSecurity']], function () {
             Route::get('/local/sells/deleted', 'Controllers_local\SellsController@getDeletedSells');
             Route::get('/local/sells/report', 'Controllers_local\SellsController@getReportSells');
 
+            // SISTEMA DE TURNOS Y ARQUEO DE CAJA
+            Route::get('/local/turno/estado', 'Controllers_local\ArqueoCajaController@estadoTurno');
+            Route::post('/local/turno/iniciar', 'Controllers_local\ArqueoCajaController@iniciarTurno');
+            Route::post('/local/turno/cerrar', 'Controllers_local\ArqueoCajaController@cerrarTurnoConArqueo');
+            Route::post('/local/arqueo', 'Controllers_local\ArqueoCajaController@guardarTurno');
+            Route::get('/local/arqueos', 'Controllers_local\ArqueoCajaController@obtenerArqueos');
+
             // DEVOLUCIONES DE PRODUCTOS EN VENTAS
             Route::put('/local/sell/devolution/product/{product_sell_id}', 'Controllers_local\DevolutionsController@devolutionProduct');
             Route::get('/local/sells/devolutions', 'Controllers_local\DevolutionsController@index');
@@ -409,8 +420,14 @@ Route::group(['middleware' => ['AppSecurity']], function () {
             // Nueva ruta para Excel personalizado
             Route::get('/local/report/excel', 'Controllers_local\ReportsController@exportCustomExcel');
             
-            // Rutas para Arqueo de Caja
+            // Rutas para Reportes de Arqueo de Caja (solo consultas)
             Route::get('/local/report/arqueo-resumen', 'Controllers_local\ArqueoCajaController@getResumenDia');
+            Route::get('/local/arqueo/actual', 'Controllers_local\ArqueoCajaController@obtenerArqueoActual');
+            
+            // Rutas para Sistema de Turnos (mismo middleware que reportes)
+            Route::get('/local/turno/estado', 'Controllers_local\ArqueoCajaController@estadoTurno');
+            Route::post('/local/turno/iniciar', 'Controllers_local\ArqueoCajaController@iniciarTurno');
+            Route::post('/local/turno/cerrar', 'Controllers_local\ArqueoCajaController@cerrarTurnoConArqueo');
             
             // Información del negocio para arqueo
             Route::get('/local/negocio/info', function() {
@@ -426,18 +443,6 @@ Route::group(['middleware' => ['AppSecurity']], function () {
                     ]
                 ]);
             });
-          });
-
-          // Rutas de Arqueo de Caja
-          Route::group(['middleware' => ['HavePermission:gestionar_arqueo']], function () {
-            Route::post('/local/arqueo/guardar', 'Controllers_local\ArqueoCajaController@guardarArqueo');
-            Route::put('/local/arqueo/{id}', 'Controllers_local\ArqueoCajaController@actualizarArqueo');
-            Route::delete('/local/arqueo/{id}', 'Controllers_local\ArqueoCajaController@eliminarArqueo');
-          });
-          Route::group(['middleware' => ['HavePermission:obtener_arqueo']], function () {
-            Route::get('/local/arqueo/historial', 'Controllers_local\ArqueoCajaController@getHistorial');
-            Route::get('/local/arqueo/fecha', 'Controllers_local\ArqueoCajaController@getArqueoPorFecha');
-            Route::get('/local/arqueo/reporte', 'Controllers_local\ArqueoCajaController@reporteArqueos');
           });
 
           // Submodulo de gastos del dia

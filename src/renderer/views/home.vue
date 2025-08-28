@@ -3,8 +3,60 @@
     <div class="bg-full-height-gradient">
       <div class="welcome-overlay d-flex flex-column justify-content-center align-items-center py-5">
         
-        <!-- Hero Welcome Card - Profesional y Atractivo -->
-        <div class="welcome-content-only text-center p-5 my-4">
+        <!-- Mensaje de Turno Requerido -->
+        <div v-if="!turnoActivo" class="turno-required-overlay">
+          <div class="turno-required-card text-center p-5">
+            <div class="turno-icon-container mb-4">
+              <i class="fas fa-clock-o turno-icon"></i>
+            </div>
+            
+            <h2 class="turno-title mb-3">
+              ¡Hola, {{ this.me.fullname }}! 👋
+            </h2>
+            
+            <div class="admin-message mb-4">
+              <i class="fas fa-user-shield me-2"></i>
+              <strong>Mensaje del Administrador del Sistema</strong>
+            </div>
+            
+            <p class="turno-description mb-4">
+              Para garantizar un control adecuado de la caja y mantener la integridad de nuestros procesos financieros, 
+              <strong>debes iniciar un turno de caja</strong> antes de comenzar a utilizar la aplicación.
+            </p>
+            
+            <div class="turno-benefits mb-4">
+              <div class="benefit-item">
+                <i class="fas fa-shield-alt text-success me-2"></i>
+                Control y seguridad financiera
+              </div>
+              <div class="benefit-item">
+                <i class="fas fa-chart-line text-info me-2"></i>
+                Seguimiento de transacciones
+              </div>
+              <div class="benefit-item">
+                <i class="fas fa-history text-warning me-2"></i>
+                Auditoría completa
+              </div>
+            </div>
+            
+            <button 
+              class="btn btn-primary btn-lg turno-btn"
+              @click="irAArqueo"
+              :disabled="cargandoNavegacion"
+            >
+              <i class="fas fa-play me-2"></i>
+              {{ cargandoNavegacion ? 'Redirigiendo...' : 'Iniciar Turno de Caja' }}
+            </button>
+            
+            <p class="turno-note mt-3">
+              <i class="fas fa-info-circle me-1"></i>
+              Este proceso es obligatorio y solo toma unos segundos
+            </p>
+          </div>
+        </div>
+
+        <!-- Contenido normal del home (solo se muestra con turno activo) -->
+        <div v-else class="welcome-content-only text-center p-5 my-4">
           <div class="welcome-logo-container mb-4">
             <img class="home_logo" src="../assets/logo.png" alt="fagotto-erp">
           </div>
@@ -21,6 +73,12 @@
               <i class="fas fa-rocket me-2"></i>
               Fagotto ERP 
             </div>
+            
+            <!-- Badge de turno activo -->
+            <div class="turno-activo-badge mt-4">
+              <i class="fas fa-check-circle me-2"></i>
+              Turno de caja activo
+            </div>
           </div>
         </div>
 
@@ -29,8 +87,6 @@
     
     <autoUpdate />
   </div>
-
-
 </template>
 
 <script>
@@ -46,10 +102,14 @@ export default {
     return {
       xml_string: null,
       app_id: 0,
+      turnoActivo: false,
+      cargandoNavegacion: false,
     }
   },
   async mounted() {
-    console.log('USUARIO LOGUEADO', this.me);
+    console.log('🏠 HOME: USUARIO LOGUEADO', this.me);
+    // Verificar estado del turno al cargar el home
+    this.verificarEstadoTurno();
   },
   computed: {
     offOn: {
@@ -77,6 +137,56 @@ export default {
       var request = await this.$store.dispatch('main/refreshData', '?slim');
       this.app_id = request.data.Id;
       return request;
+    },
+
+    // Verificar si hay un turno activo
+    verificarEstadoTurno() {
+      try {
+        const turnoLocal = localStorage.getItem('turnoActivo');
+        const fechaLocal = localStorage.getItem('fechaTurno');
+        const fechaHoy = new Date().toISOString().split('T')[0];
+        
+        // Limpiar turnos de días anteriores automáticamente
+        if (fechaLocal && fechaLocal !== fechaHoy) {
+          console.log('🏠 HOME: Limpiando turno de día anterior:', fechaLocal);
+          localStorage.removeItem('turnoActivo');
+          localStorage.removeItem('fechaTurno');
+          localStorage.removeItem('horaInicioTurno');
+          localStorage.removeItem('montoInicialTurno');
+          this.turnoActivo = false;
+          return;
+        }
+        
+        // Si hay un turno local del día de hoy, permitir acceso
+        if (turnoLocal === 'true' && fechaLocal === fechaHoy) {
+          this.turnoActivo = true;
+          console.log('🏠 HOME: ✅ Turno activo encontrado, acceso permitido');
+        } else {
+          this.turnoActivo = false;
+          console.log('🏠 HOME: ❌ No hay turno activo, mostrando mensaje obligatorio');
+        }
+        
+      } catch (error) {
+        console.error('🏠 HOME: Error verificando estado del turno:', error);
+        this.turnoActivo = false;
+      }
+    },
+
+    // Redirigir al arqueo de caja
+    async irAArqueo() {
+      try {
+        this.cargandoNavegacion = true;
+        
+        // Pequeño delay para mejor UX
+        setTimeout(() => {
+          // Navegar al arqueo de caja - RUTA CORREGIDA
+          this.$router.push('/inicio/arqueo-caja');
+        }, 500);
+        
+      } catch (error) {
+        console.error('🏠 HOME: Error navegando al arqueo:', error);
+        this.cargandoNavegacion = false;
+      }
     }
   }
 }
@@ -357,6 +467,213 @@ export default {
   
   .welcome-badge {
     padding: 12px 24px;
+    font-size: 0.9rem;
+  }
+}
+
+/* ===== ESTILOS PARA MENSAJE DE TURNO OBLIGATORIO ===== */
+.turno-required-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.turno-required-card {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  max-width: 600px;
+  width: 100%;
+  position: relative;
+  animation: turno-card-appear 0.8s ease-out;
+  border: 3px solid #e9ecef;
+}
+
+@keyframes turno-card-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(50px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.turno-icon-container {
+  position: relative;
+}
+
+.turno-icon {
+  font-size: 4rem;
+  color: #6c757d;
+  animation: turno-icon-pulse 2s ease-in-out infinite;
+}
+
+@keyframes turno-icon-pulse {
+  0%, 100% {
+    transform: scale(1);
+    color: #6c757d;
+  }
+  50% {
+    transform: scale(1.1);
+    color: #495057;
+  }
+}
+
+.turno-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #212529;
+  margin-bottom: 1rem;
+}
+
+.admin-message {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border: 2px solid #2196f3;
+  border-radius: 15px;
+  padding: 15px 20px;
+  color: #1565c0;
+  font-weight: 600;
+  display: inline-block;
+  animation: admin-glow 3s ease-in-out infinite alternate;
+}
+
+@keyframes admin-glow {
+  0% {
+    box-shadow: 0 5px 15px rgba(33, 150, 243, 0.2);
+  }
+  100% {
+    box-shadow: 0 8px 25px rgba(33, 150, 243, 0.4);
+  }
+}
+
+.turno-description {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #495057;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.turno-benefits {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  border: 2px solid #e9ecef;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.benefit-item:last-child {
+  margin-bottom: 0;
+}
+
+.turno-btn {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: none;
+  border-radius: 15px;
+  padding: 15px 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.turno-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.5s;
+}
+
+.turno-btn:hover::before {
+  left: 100%;
+}
+
+.turno-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(40, 167, 69, 0.4);
+}
+
+.turno-btn:disabled {
+  opacity: 0.7;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.turno-note {
+  font-size: 0.9rem;
+  color: #6c757d;
+  opacity: 0.8;
+}
+
+.turno-activo-badge {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 25px;
+  padding: 10px 20px;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+  animation: turno-activo-glow 4s ease-in-out infinite alternate;
+}
+
+@keyframes turno-activo-glow {
+  0% {
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+  }
+  100% {
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.5);
+  }
+}
+
+/* Responsive para mensaje de turno */
+@media (max-width: 768px) {
+  .turno-required-card {
+    margin: 10px;
+    padding: 2rem !important;
+  }
+  
+  .turno-title {
+    font-size: 1.8rem;
+  }
+  
+  .turno-description {
+    font-size: 1rem;
+  }
+  
+  .turno-icon {
+    font-size: 3rem;
+  }
+  
+  .admin-message {
+    padding: 12px 16px;
     font-size: 0.9rem;
   }
 }

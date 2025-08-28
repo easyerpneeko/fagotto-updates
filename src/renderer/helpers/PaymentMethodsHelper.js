@@ -4,7 +4,8 @@ export default class PaymentMethodsHelper {
   
   // Obtener todos los métodos de pago disponibles con sus configuraciones
   static getAvailablePaymentMethods() {
-    return [
+    console.log('📋 Cargando métodos de pago...');
+    const methods = [
       {
         key: 'efectivo',
         name: 'Efectivo',
@@ -150,28 +151,17 @@ export default class PaymentMethodsHelper {
         category: 'digital'
       }
     ];
+    console.log('✅ Métodos cargados:', methods.length);
+    return methods;
   }
 
   // Obtener métodos de pago activos basado en configuración
   static getActivePaymentMethods(config = null) {
     const allMethods = PaymentMethodsHelper.getAvailablePaymentMethods();
     
-    // Si no hay configuración, devolver los métodos básicos
-    if (!config) {
-      return allMethods.filter(method => 
-        ['efectivo', 'debito', 'credito', 'transferencia', 'cheque'].includes(method.key)
-      );
-    }
-
-    // Aquí puedes agregar lógica para filtrar basado en configuración
-    // Por ejemplo, verificar qué módulos están activos
-    const activeMethods = allMethods.filter(method => {
-      // Lógica para determinar si el método está activo
-      // basado en la configuración del sistema
-      return true; // Por ahora devolver todos
-    });
-
-    return activeMethods;
+    // MOSTRAR TODOS LOS MÉTODOS DE PAGO DISPONIBLES
+    // Ya no filtramos, devolvemos todos para que el negocio tenga control completo
+    return allMethods;
   }
 
   // Obtener configuración para el display de un método de pago

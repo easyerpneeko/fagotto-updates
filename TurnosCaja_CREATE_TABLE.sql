@@ -1,0 +1,42 @@
+-- TABLA: TurnosCaja
+-- Estructura para registrar cada cierre de arqueo de caja
+
+CREATE TABLE TurnosCaja (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    app_id INT NOT NULL,
+    
+    -- INFORMACIÓN DEL TURNO
+    fecha_inicio DATETIME NOT NULL,
+    fecha_termino DATETIME NOT NULL,
+    duracion_minutos INT AS (TIMESTAMPDIFF(MINUTE, fecha_inicio, fecha_termino)) STORED,
+    
+    -- INFORMACIÓN DEL USUARIO
+    usuario_id INT NOT NULL,
+    usuario_nombre VARCHAR(255) NOT NULL,
+    
+    -- TOTALES GENERALES
+    total_contado DECIMAL(15,2) NOT NULL DEFAULT 0,
+    total_sistema DECIMAL(15,2) NOT NULL DEFAULT 0,
+    diferencia_total DECIMAL(15,2) AS (total_contado - total_sistema) STORED,
+    
+    -- DETALLE POR MÉTODO DE PAGO (JSON)
+    detalle_efectivo JSON NOT NULL,
+    detalle_medios_pago JSON NOT NULL,
+    
+    -- RESUMEN ESTADÍSTICO
+    numero_transacciones INT NOT NULL DEFAULT 0,
+    metodos_con_diferencia TEXT NULL,
+    
+    -- OBSERVACIONES Y ESTADO
+    observaciones TEXT NULL,
+    estado ENUM('completado', 'con_diferencias', 'perfecto') NOT NULL DEFAULT 'completado',
+    
+    -- TIMESTAMPS
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- ÍNDICES
+    INDEX idx_app_fecha (app_id, fecha_termino),
+    INDEX idx_usuario (usuario_id),
+    INDEX idx_estado (estado)
+);

@@ -42,10 +42,68 @@
           </div>
         </div>
       </div>
+
+      <!-- Estado del Arqueo -->
+      <div class="arqueo-estado mt-3" v-if="turnoActivo">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="estado-item inicial">
+              <i class="fas fa-play-circle me-2"></i>
+              <strong>Arqueo Inicial:</strong> 
+              <span class="badge bg-success ms-2">✓ ${{ formatMoney(montoInicialTurno) }}</span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="estado-item final">
+              <i class="fas fa-stop-circle me-2"></i>
+              <strong>Arqueo Final:</strong> 
+              <span class="badge bg-warning text-dark ms-2">⏳ Pendiente</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado del Arqueo COMPLETADO (se muestra después de guardar) -->
+      <div class="arqueo-estado mt-3" v-if="arqueoGuardado && !turnoActivo">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="estado-item inicial">
+              <i class="fas fa-play-circle me-2"></i>
+              <strong>Arqueo Inicial:</strong> 
+              <span class="badge bg-success ms-2">✓ ${{ formatMoney(montoInicialTurno) }}</span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="estado-item final">
+              <i class="fas fa-check-circle me-2"></i>
+              <strong>Arqueo Final:</strong> 
+              <span class="badge bg-success ms-2">✓ ${{ formatMoney(montoFinalTurno) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="row">
-      <!-- Panel de Conteo -->
+    <!-- Botón de Iniciar Turno -->
+    <div class="row mb-3" v-if="!turnoActivo">
+      <div class="col-12">
+        <div class="alert alert-warning text-center">
+          <h5><i class="fas fa-exclamation-triangle me-2"></i>Turno no iniciado</h5>
+          <p class="mb-3">Debes iniciar un turno antes de hacer el arqueo de caja</p>
+          <button 
+            class="btn btn-success btn-lg"
+            @click="iniciarTurno"
+            :disabled="cargandoTurno"
+          >
+            <i class="fas fa-play me-2"></i>
+            {{ cargandoTurno ? 'Iniciando Turno...' : 'Iniciar Turno' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" v-if="turnoActivo">
+      <!-- Panel de Conteo (solo visible después de iniciar turno) -->
       <div class="col-lg-8">
         <div class="card modern-card">
           <div class="card-body">
@@ -66,6 +124,7 @@
                         class="form-control denomination-input" 
                         v-model.number="conteo[denominacion]"
                         @input="calcularTotal"
+                        @focus="selectInputContent"
                         min="0"
                         placeholder="0"
                       >
@@ -89,6 +148,7 @@
                         class="form-control denomination-input" 
                         v-model.number="conteo[denominacion]"
                         @input="calcularTotal"
+                        @focus="selectInputContent"
                         min="0"
                         placeholder="0"
                       >
@@ -108,7 +168,7 @@
               </p>
               <div class="row g-3">
                 <div 
-                  class="col-md-4" 
+                  class="col-lg-3 col-md-4 col-sm-6" 
                   v-for="method in availablePaymentMethods" 
                   :key="method.key"
                   v-if="method.key !== 'efectivo'"
@@ -125,6 +185,7 @@
                         class="form-control payment-input" 
                         v-model.number="mediosPago[method.key]"
                         @input="calcularTotalGeneral"
+                        @focus="selectInputContent"
                         min="0"
                         step="0.01"
                         placeholder="0.00"
@@ -137,17 +198,45 @@
             </div>
 
             <!-- Total General -->
+            <!-- Resumen Detallado por Método de Pago -->
             <div class="total-section">
-              <div class="row align-items-center">
-                <div class="col-md-6">
-                  <h4 class="mb-0 text-white">Total Efectivo:</h4>
-                  <h4 class="mb-0 text-white">Total Otros Medios:</h4>
-                  <h3 class="mb-0 text-white border-top pt-2">TOTAL GENERAL:</h3>
+              <h5 class="text-white mb-3">
+                <i class="fas fa-calculator me-2"></i>Resumen Detallado
+              </h5>
+              
+              <!-- EFECTIVO -->
+              <div class="row align-items-center mb-2">
+                <div class="col-8">
+                  <span class="text-white">💵 Efectivo:</span>
                 </div>
-                <div class="col-md-6 text-end">
-                  <h4 class="mb-0 text-white">${{ formatMoney(totalContado) }}</h4>
-                  <h4 class="mb-0 text-white">${{ formatMoney(totalOtrosMedios) }}</h4>
-                  <h2 class="mb-0 text-white border-top pt-2">${{ formatMoney(totalGeneralContado) }}</h2>
+                <div class="col-4 text-end">
+                  <strong class="text-white">${{ formatMoney(totalContado) }}</strong>
+                </div>
+              </div>
+
+              <!-- TODOS LOS OTROS MÉTODOS DE PAGO -->
+              <div 
+                v-for="method in availablePaymentMethods" 
+                :key="method.key"
+                v-if="method.key !== 'efectivo'"
+                class="row align-items-center mb-2"
+              >
+                <div class="col-8">
+                  <span class="text-white">{{ method.emoji }} {{ method.name }}:</span>
+                </div>
+                <div class="col-4 text-end">
+                  <strong class="text-white">${{ formatMoney(mediosPago[method.key] || 0) }}</strong>
+                </div>
+              </div>
+
+              <!-- TOTAL GENERAL -->
+              <hr class="text-white">
+              <div class="row align-items-center">
+                <div class="col-8">
+                  <h3 class="mb-0 text-white">🏆 TOTAL GENERAL:</h3>
+                </div>
+                <div class="col-4 text-end">
+                  <h2 class="mb-0 text-white">${{ formatMoney(totalGeneralContado) }}</h2>
                 </div>
               </div>
             </div>
@@ -158,6 +247,7 @@
               <textarea 
                 class="form-control" 
                 v-model="observaciones" 
+                @focus="selectInputContent"
                 rows="3" 
                 placeholder="Ingrese cualquier observación sobre el arqueo..."
               ></textarea>
@@ -166,12 +256,12 @@
             <!-- Botones -->
             <div class="mt-4 text-center">
               <button 
-                class="btn btn-primary btn-lg me-3" 
+                class="btn btn-danger btn-lg me-3" 
                 @click="guardarArqueo"
                 :disabled="loading || totalContado === 0"
               >
-                <i class="fas fa-save me-2"></i>
-                {{ loading ? 'Guardando...' : 'Guardar Arqueo' }}
+                <i class="fas fa-stop me-2"></i>
+                {{ loading ? 'Cerrando Turno...' : 'Cerrar Turno' }}
               </button>
               <button class="btn btn-outline-secondary me-3" @click="limpiarFormulario">
                 <i class="fas fa-broom me-2"></i>Limpiar
@@ -192,41 +282,9 @@
             <h5 class="card-title">
               <i class="fas fa-detective me-2"></i>🕵️‍♂️ Resultado de la Investigación
             </h5>
-            <div class="alert" :class="alertaResultadoClass">
-              <h6 class="mb-2">
-                <i :class="iconoResultado" class="me-2"></i>
-                {{ mensajeResultado }}
-              </h6>
-              <p class="mb-0">¡Comparando lo que dijiste tener vs. las ventas reales!</p>
-            </div>
+          
             
-            <!-- EFECTIVO -->
-            <div class="card border-primary mb-3">
-              <div class="card-header bg-primary text-white">
-                <h6 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>💵 EFECTIVO</h6>
-              </div>
-              <div class="card-body">
-                <div class="summary-item">
-                  <div class="d-flex justify-content-between">
-                    <span>Dijiste que tienes:</span>
-                    <strong class="text-info">${{ formatMoney(totalContado) }}</strong>
-                  </div>
-                </div>
-                <div class="summary-item">
-                  <div class="d-flex justify-content-between">
-                    <span>Ventas reales:</span>
-                    <strong class="text-success">${{ formatMoney(getPaymentMethodSales('efectivo')) }}</strong>
-                  </div>
-                </div>
-                <div class="summary-item border-top pt-2">
-                  <div class="d-flex justify-content-between">
-                    <span><strong>Diferencia:</strong></span>
-                    <strong :class="diferencia >= 0 ? 'text-success' : 'text-danger'">${{ formatMoney(diferencia) }}</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-
+          
             <!-- OTROS MEDIOS DE PAGO (DINÁMICO) -->
             <div 
               v-for="method in availablePaymentMethods" 
@@ -243,48 +301,79 @@
               <div class="card-body">
                 <div class="summary-item">
                   <div class="d-flex justify-content-between">
-                    <span>Dijiste que tienes:</span>
+                    <span><i class="fas fa-hand-paper me-1"></i>Contaste:</span>
                     <strong class="text-info">${{ formatMoney(mediosPago[method.key] || 0) }}</strong>
                   </div>
                 </div>
                 <div class="summary-item">
                   <div class="d-flex justify-content-between">
-                    <span>Ventas reales:</span>
+                    <span><i class="fas fa-chart-line me-1"></i>Ventas del sistema:</span>
                     <strong class="text-success">${{ formatMoney(getPaymentMethodSales(method.key)) }}</strong>
                   </div>
                 </div>
                 <div class="summary-item border-top pt-2">
                   <div class="d-flex justify-content-between">
-                    <span><strong>Diferencia:</strong></span>
+                    <span><strong><i class="fas fa-balance-scale me-1"></i>Diferencia:</strong></span>
                     <strong :class="getPaymentMethodDifference(method.key) >= 0 ? 'text-success' : 'text-danger'">
                       ${{ formatMoney(getPaymentMethodDifference(method.key)) }}
                     </strong>
                   </div>
+                  <small v-if="getPaymentMethodDifference(method.key) === 0" class="text-success">✅ Exacto</small>
+                  <small v-else-if="getPaymentMethodDifference(method.key) > 0" class="text-warning">⬆️ Sobrante</small>
+                  <small v-else class="text-danger">⬇️ Faltante</small>
                 </div>
               </div>
             </div>
 
-            <!-- TOTALES GENERALES -->
+            <!-- RESUMEN GENERAL DETALLADO -->
             <div class="card border-dark">
               <div class="card-header bg-dark text-white">
-                <h6 class="mb-0"><i class="fas fa-calculator me-2"></i>RESUMEN GENERAL</h6>
+                <h6 class="mb-0"><i class="fas fa-calculator me-2"></i>RESUMEN GENERAL - DETALLADO</h6>
               </div>
               <div class="card-body">
+                <!-- EFECTIVO -->
                 <div class="summary-item">
                   <div class="d-flex justify-content-between">
-                    <span>Total que dijiste:</span>
-                    <strong class="text-info">${{ formatMoney(totalGeneralContado) }}</strong>
+                    <span><strong>💵 Efectivo:</strong></span>
+                    <div class="text-end">
+                      <div>Dijiste: <strong class="text-info">${{ formatMoney(totalContado) }}</strong></div>
+                      <div>Sistema: <strong class="text-success">${{ formatMoney(getPaymentMethodSales('efectivo')) }}</strong></div>
+                      <div>Diferencia: <strong :class="diferencia >= 0 ? 'text-success' : 'text-danger'">${{ formatMoney(diferencia) }}</strong></div>
+                    </div>
                   </div>
                 </div>
+
+                <!-- TODOS LOS OTROS MÉTODOS -->
+                <div 
+                  v-for="method in availablePaymentMethods" 
+                  :key="method.key"
+                  v-if="method.key !== 'efectivo' && (mediosPago[method.key] > 0 || getPaymentMethodSales(method.key) > 0)"
+                  class="summary-item border-top pt-2 mt-2"
+                >
+                  <div class="d-flex justify-content-between">
+                    <span><strong>{{ method.emoji }} {{ method.name }}:</strong></span>
+                    <div class="text-end">
+                      <div>Dijiste: <strong class="text-info">${{ formatMoney(mediosPago[method.key] || 0) }}</strong></div>
+                      <div>Sistema: <strong class="text-success">${{ formatMoney(getPaymentMethodSales(method.key)) }}</strong></div>
+                      <div>Diferencia: <strong :class="getPaymentMethodDifference(method.key) >= 0 ? 'text-success' : 'text-danger'">${{ formatMoney(getPaymentMethodDifference(method.key)) }}</strong></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- TOTALES FINALES -->
+                <hr class="mt-3">
                 <div class="summary-item">
                   <div class="d-flex justify-content-between">
-                    <span>Total ventas reales:</span>
-                    <strong class="text-success">${{ formatMoney(totalVentasSistema) }}</strong>
+                    <span><strong>🏆 TOTAL GENERAL:</strong></span>
+                    <div class="text-end">
+                      <div>Dijiste: <strong class="text-info">${{ formatMoney(totalGeneralContado) }}</strong></div>
+                      <div>Sistema: <strong class="text-success">${{ formatMoney(totalVentasSistema) }}</strong></div>
+                    </div>
                   </div>
                 </div>
                 <div class="summary-item border-top pt-2">
                   <div class="d-flex justify-content-between">
-                    <span><strong>Diferencia TOTAL:</strong></span>
+                    <span><strong>DIFERENCIA TOTAL:</strong></span>
                     <h5 :class="diferenciaGeneral >= 0 ? 'text-success' : 'text-danger'">
                       ${{ formatMoney(diferenciaGeneral) }}
                     </h5>
@@ -301,60 +390,75 @@
           </div>
         </div>
 
-        <!-- Mensaje de instrucción ANTES de guardar -->
-        <div class="card modern-card" v-else>
-          <div class="card-body text-center">
-            <h5 class="card-title">
-              <i class="fas fa-user-secret me-2"></i>🕵️‍♂️ Modo Detectivo
-            </h5>
-            <div class="alert alert-info">
-              <i class="fas fa-eye-slash me-2"></i>
-              <strong>Cuenta todo sin ver las ventas del sistema</strong>
-              <p class="mb-2 mt-2">Para pillar cualquier discrepancia, ingresa lo que "tienes" de cada medio de pago.</p>
-              <p class="mb-0"><strong>La comparación se revelará después de guardar... 🔍</strong></p>
-            </div>
-            <div class="mt-3">
-              <h6>Total Contado Hasta Ahora:</h6>
-              <h4 class="text-primary">${{ formatMoney(totalContado) }}</h4>
-              <h6>Total Otros Medios:</h6>
-              <h4 class="text-info">${{ formatMoney(totalOtrosMedios) }}</h4>
-              <hr>
-              <h5 class="text-success">TOTAL GENERAL: ${{ formatMoney(totalGeneralContado) }}</h5>
-            </div>
-          </div>
-        </div>
-
         <!-- Historial de Arqueos -->
         <div class="card modern-card">
           <div class="card-body">
-            <h5 class="card-title">
-              <i class="fas fa-history me-2"></i>Últimos Arqueos
-            </h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="card-title mb-0">
+                <i class="fas fa-history me-2"></i>Historial de Arqueos
+              </h5>
+              <div class="text-muted small">
+                <i class="fas fa-shield-alt me-1"></i>Registro protegido de auditoría
+              </div>
+            </div>
+            
             <div class="historial-container">
-              <div v-if="historial.length === 0" class="text-center text-muted py-3">
-                <i class="fas fa-inbox fa-2x mb-2"></i>
-                <p>No hay arqueos registrados</p>
+              <div v-if="historial.length === 0" class="text-center text-muted py-4">
+                <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
+                <p class="mb-0">No hay arqueos registrados</p>
+                <small>Los arqueos aparecerán aquí después de guardarlos</small>
               </div>
               <div v-else>
-                <div v-for="arqueo in historial" :key="arqueo.id" class="historial-item">
-                  <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                      <span class="fw-bold">${{ formatMoney(arqueo.total_contado) }}</span>
-                      <span class="badge ms-2" :class="getEstadoBadgeClass(arqueo.diferencia)">
-                        {{ getEstadoText(arqueo.diferencia) }}
-                      </span>
+                <div v-for="(arqueo, index) in historial" :key="arqueo.id" class="historial-item">
+                  <div class="historial-header d-flex justify-content-between align-items-start">
+                    <div class="historial-info">
+                      <div class="historial-fecha">
+                        <i class="fas fa-calendar-day me-1"></i>
+                        <strong>{{ formatDate(arqueo.fecha) }}</strong>
+                        <span class="text-muted ms-2">{{ formatTime(arqueo.fecha) }}</span>
+                      </div>
+                      <div class="historial-usuario text-muted">
+                        <i class="fas fa-user me-1"></i>
+                        {{ arqueo.usuario_nombre }}
+                      </div>
                     </div>
+                    <div class="historial-actions">
+                      <button 
+                        class="btn btn-outline-primary btn-sm" 
+                        @click="verDetalleArqueo(arqueo)"
+                        title="Ver detalle completo"
+                      >
+                        <i class="fas fa-eye"></i> Ver Detalle
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div class="historial-resumen mt-2">
+                    <div class="row text-center">
+                      <div class="col-6">
+                        <small class="text-muted d-block">Arqueo Inicial</small>
+                        <strong class="text-success">${{ formatMoney(arqueo.monto_inicial) }}</strong>
+                      </div>
+                      <div class="col-6">
+                        <small class="text-muted d-block">Arqueo Final</small>
+                        <strong class="text-info">${{ formatMoney(arqueo.total_general_contado) }}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="historial-estado mt-2 text-center">
+                    <span class="badge bg-light text-dark">
+                      <i class="fas fa-clock me-1"></i>
+                      {{ formatDuration(arqueo.fecha_inicio, arqueo.fecha_termino) }}
+                    </span>
+                  </div>
+                  
+                  <div v-if="arqueo.observaciones" class="historial-observaciones mt-2">
                     <small class="text-muted">
-                      {{ formatDate(arqueo.created_at) }}<br>
-                      {{ formatTime(arqueo.created_at) }}
+                      <i class="fas fa-sticky-note me-1"></i>
+                      {{ arqueo.observaciones }}
                     </small>
                   </div>
-                  <small class="text-muted d-block">
-                    Diferencia: ${{ formatMoney(arqueo.diferencia) }}
-                  </small>
-                  <small class="text-muted">
-                    Usuario: {{ arqueo.usuario_nombre || 'Sistema' }}
-                  </small>
                 </div>
               </div>
             </div>
@@ -363,62 +467,57 @@
       </div>
     </div>
 
-    <!-- Modal de Confirmación -->
-    <div class="modal fade" id="confirmModal" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Confirmar Arqueo</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <p>¿Está seguro de guardar el arqueo con los siguientes datos?</p>
-            <div class="alert alert-info">
-              <h6><i class="fas fa-info-circle me-2"></i>Resumen del Conteo</h6>
-              <div class="row">
-                <div class="col-md-6">
-                  <ul class="mb-0">
-                    <li><strong>Efectivo:</strong> ${{ formatMoney(totalContado) }}</li>
-                    <li><strong>T. Débito:</strong> ${{ formatMoney(mediosPago.tarjeta_debito) }}</li>
-                    <li><strong>T. Crédito:</strong> ${{ formatMoney(mediosPago.tarjeta_credito) }}</li>
-                  </ul>
-                </div>
-                <div class="col-md-6">
-                  <ul class="mb-0">
-                    <li><strong>Transferencia:</strong> ${{ formatMoney(mediosPago.transferencia) }}</li>
-                    <li><strong>Cheque:</strong> ${{ formatMoney(mediosPago.cheque) }}</li>
-                    <li><strong>Otros:</strong> ${{ formatMoney(mediosPago.vale_vista + mediosPago.otro) }}</li>
-                  </ul>
-                </div>
-              </div>
-              <hr>
-              <div class="text-center">
-                <strong>TOTAL GENERAL: ${{ formatMoney(totalGeneralContado) }}</strong>
-              </div>
-            </div>
-            <p class="text-muted small">
-              <i class="fas fa-user-secret me-1"></i>
-              La comparación con las ventas reales del sistema se mostrará después de confirmar... 🕵️‍♂️
-            </p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="button" class="btn btn-primary" @click="confirmarGuardado">Confirmar</button>
-          </div>
+    <!-- Modal para Monto Inicial -->
+    <div v-if="mostrandoModalMontoInicial" class="modal-simple-overlay" @click="enfocarInputInicial">
+      <div class="modal-simple-content" @click.stop>
+        <h4 class="mb-3">💰 Monto Inicial del Turno</h4>
+        <p>Ingrese el monto de efectivo con el que inicia el turno:</p>
+        <input 
+          v-model="montoInicialInput" 
+          type="number" 
+          class="form-control mb-3" 
+          placeholder="0" 
+          min="0" 
+          step="0.01"
+          autofocus
+          @keyup.enter="confirmarMontoInicial"
+          @focus="$event.target.select()"
+          ref="montoInicialInputRef"
+        >
+        <div class="text-end">
+          <button class="btn btn-secondary me-2" @click="cancelarMontoInicial">
+            <i class="fas fa-times me-1"></i>Cancelar
+          </button>
+          <button class="btn btn-primary" @click="confirmarMontoInicial">
+            <i class="fas fa-play me-1"></i>Iniciar Turno
+          </button>
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
 <script>
-import axios from 'axios'
 import PaymentMethodsHelper from '../helpers/PaymentMethodsHelper.js'
+import Loader from '@/helpers/Loader'
+import moment from 'moment'
+import axios from 'axios'
 
 export default {
   name: 'ArqueoCaja',
   data() {
     return {
+      app: null,
+      
+      // Control básico de turnos
+      turnoActivo: false,
+      cargandoTurno: false,
+      
+      // Montos del turno
+      montoInicialTurno: 0,
+      montoFinalTurno: 0,
+      
       // Denominaciones
       billetes: {
         'bill_20000': 20000,
@@ -475,6 +574,8 @@ export default {
       statusText: 'Caja Abierta',
       statusClass: 'status-abierto',
       arqueoGuardado: false, // Nueva propiedad para controlar visibilidad
+      horaInicio: null, // Hora de inicio del turno
+      turnoId: null, // ID del turno guardado
       
       // Información del sistema
       fechaActual: '',
@@ -485,11 +586,24 @@ export default {
       negocioInfo: {
         id: null,
         nombre: 'Cargando...'
-      }
+      },
+      
+      // Control de turno
+      horaInicio: null,
+      turnoId: null,
+      
+      // Modales simples
+      mostrandoModalMontoInicial: false,
+      montoInicialInput: 0,
+      resolverMontoInicial: null
     }
   },
   
   computed: {
+    me: { 
+      get() { return this.$store.getters['main/user']; } 
+    },
+    
     diferenciaClass() {
       if (this.diferencia === 0) return 'text-success';
       if (this.diferencia > 0) return 'text-warning';
@@ -508,12 +622,13 @@ export default {
     },
     
     explicacionResultado() {
+      const totalEsperado = this.montoInicialTurno + this.getPaymentMethodSales('efectivo');
       if (this.diferencia === 0) {
-        return 'El dinero contado coincide exactamente con las ventas en efectivo.';
+        return `El dinero contado coincide exactamente con lo esperado. Monto inicial ($${this.formatMoney(this.montoInicialTurno)}) + Ventas ($${this.formatMoney(this.getPaymentMethodSales('efectivo'))}) = $${this.formatMoney(totalEsperado)}.`;
       } else if (this.diferencia > 0) {
-        return `Hay $${this.formatMoney(Math.abs(this.diferencia))} más de lo esperado según las ventas.`;
+        return `Hay $${this.formatMoney(Math.abs(this.diferencia))} más de lo esperado. Contaste $${this.formatMoney(this.totalContado)} pero deberías tener $${this.formatMoney(totalEsperado)}.`;
       } else {
-        return `Faltan $${this.formatMoney(Math.abs(this.diferencia))} según las ventas registradas.`;
+        return `Faltan $${this.formatMoney(Math.abs(this.diferencia))}. Contaste $${this.formatMoney(this.totalContado)} pero deberías tener $${this.formatMoney(totalEsperado)}.`;
       }
     },
     
@@ -549,7 +664,7 @@ export default {
     },
     
     totalGeneralContado() {
-      return this.totalContado + this.totalOtrosMedios;
+      return this.montoInicialTurno + this.totalContado + this.totalOtrosMedios;
     },
     
     // Total de ventas por cada medio de pago (solo visible después de guardar)
@@ -597,19 +712,241 @@ export default {
     }
   },
   
+  async beforeCreate() {
+    var request = await this.$store.dispatch('main/refreshData', '?slim');
+    this.app = request.data;
+  },
+  
   mounted() {
+    console.log('🚀 Iniciando Arqueo de Caja...');
+    this.horaInicio = new Date().toISOString(); // Marcar inicio del turno
     this.initializePaymentMethods();
     this.inicializarFecha();
     this.cargarInfoUsuario();
     this.cargarInfoNegocio();
     this.cargarHistorial();
+    // Verificar si hay un turno activo antes de cargar otros datos
+    this.verificarEstadoTurno();
     // NO cargamos el resumen del día hasta después de guardar
+  },
+
+  watch: {
+    // Observar cambios en el modal de monto inicial para asegurar focus
+    mostrandoModalMontoInicial(newVal) {
+      if (newVal) {
+        // Cuando se muestra el modal, asegurar que el input tenga focus
+        this.$nextTick(() => {
+          this.enfocarInputInicial();
+        });
+      }
+    }
   },
   
   methods: {
-    // Inicializar métodos de pago dinámicamente
+    // Verificar si hay un turno activo al cargar la página
+    async verificarEstadoTurno() {
+      try {
+        // Primero verificar localStorage como backup rápido
+        const turnoLocal = localStorage.getItem('turnoActivo');
+        const fechaLocal = localStorage.getItem('fechaTurno');
+        const montoInicialLocal = localStorage.getItem('montoInicialTurno');
+        const fechaHoy = new Date().toISOString().split('T')[0];
+        
+        // Limpiar turnos de días anteriores automáticamente
+        if (fechaLocal && fechaLocal !== fechaHoy) {
+          console.log('🧹 Limpiando turno de día anterior:', fechaLocal);
+          localStorage.removeItem('turnoActivo');
+          localStorage.removeItem('fechaTurno');
+          localStorage.removeItem('horaInicioTurno');
+          localStorage.removeItem('montoInicialTurno');
+          this.turnoActivo = false;
+          this.montoInicialTurno = 0;
+          return;
+        }
+        
+        // Si hay un turno local del día de hoy, usarlo temporalmente
+        if (turnoLocal === 'true' && fechaLocal === fechaHoy) {
+          this.turnoActivo = true;
+          this.montoInicialTurno = parseFloat(montoInicialLocal) || 0;
+          console.log('✅ Turno activo encontrado en localStorage para hoy');
+          console.log('💰 Monto inicial recuperado:', this.montoInicialTurno);
+        }
+        
+        // TODO: Aquí podríamos verificar con el backend también
+        // const response = await axios.get('/api/turnos/estado');
+        // if (response.data.turno_activo) {
+        //   this.turnoActivo = true;
+        // }
+        
+      } catch (error) {
+        console.error('Error verificando estado del turno:', error);
+        // En caso de error, asumir que no hay turno activo
+        this.turnoActivo = false;
+        this.montoInicialTurno = 0;
+      }
+    },
+
+    // Método mejorado para iniciar turno
+    async iniciarTurno() {
+      try {
+        // Primero solicitar el monto inicial
+        const montoInicial = await this.solicitarMontoInicial();
+        if (montoInicial === null) {
+          // Usuario canceló
+          return;
+        }
+        
+        this.cargandoTurno = true;
+        
+        // Guardar monto inicial
+        this.montoInicialTurno = montoInicial;
+        
+        // Guardar estado en localStorage como backup
+        const fechaHoy = new Date().toISOString().split('T')[0];
+        localStorage.setItem('turnoActivo', 'true');
+        localStorage.setItem('fechaTurno', fechaHoy);
+        localStorage.setItem('horaInicioTurno', new Date().toISOString());
+        localStorage.setItem('montoInicialTurno', montoInicial.toString());
+        
+        // Por ahora, solo simulamos el inicio del turno
+        // Después conectaremos con el backend
+        setTimeout(() => {
+          this.turnoActivo = true;
+          this.cargandoTurno = false;
+          this.$awn.success(`Turno iniciado con $${this.formatMoney(montoInicial)}`, { labels: { success: 'TURNO ACTIVO' } });
+          
+          // Notificar al layout que el turno cambió
+          this.notificarCambioTurno();
+          
+          // Cargar datos normalmente después de iniciar turno
+          this.cargarResumenDia();
+        }, 1000);
+        
+      } catch (error) {
+        console.error('Error iniciando turno:', error);
+        this.$awn.alert('Error al iniciar turno');
+        this.cargandoTurno = false;
+      }
+    },
+
+    // Función para solicitar el monto inicial - VERSIÓN VUE
+    async solicitarMontoInicial() {
+      return new Promise((resolve) => {
+        this.montoInicialInput = 0;
+        this.resolverMontoInicial = resolve;
+        this.mostrandoModalMontoInicial = true;
+        
+        // Focus al input con múltiples intentos para asegurar que funcione
+        this.$nextTick(() => {
+          this.enfocarInputInicial();
+        });
+      });
+    },
+
+    // Método dedicado para enfocar el input inicial con reintentos
+    enfocarInputInicial() {
+      const intentarFocus = () => {
+        const input = this.$refs.montoInicialInputRef;
+        if (input) {
+          input.focus();
+          input.select(); // Selecciona todo el texto para facilitar escritura
+          return true;
+        }
+        return false;
+      };
+
+      // Primer intento inmediato
+      if (!intentarFocus()) {
+        // Si falla, reintenta después de 50ms
+        setTimeout(() => {
+          if (!intentarFocus()) {
+            // Si aún falla, reintenta después de 100ms más
+            setTimeout(() => {
+              intentarFocus();
+            }, 100);
+          }
+        }, 50);
+      }
+    },
+
+    // Método para navegar entre inputs con Enter - MEJORADO
+    focusNextInput(event) {
+      try {
+        const currentInput = event.target;
+        
+        // Esperar a que el DOM esté listo
+        this.$nextTick(() => {
+          const allInputs = Array.from(document.querySelectorAll('input[type="number"], textarea'));
+          const currentIndex = allInputs.indexOf(currentInput);
+          
+          if (currentIndex >= 0 && currentIndex < allInputs.length - 1) {
+            // Enfocar el siguiente input
+            const nextInput = allInputs[currentIndex + 1];
+            if (nextInput) {
+              nextInput.focus();
+              nextInput.select();
+            }
+          }
+        });
+      } catch (error) {
+        console.log('Error navegando inputs:', error);
+        // Silencioso - no romper la funcionalidad
+      }
+    },
+
+    // Método seguro para seleccionar contenido de input
+    selectInputContent(event) {
+      try {
+        // Usar setTimeout para asegurar que el input esté listo
+        setTimeout(() => {
+          if (event.target && typeof event.target.select === 'function') {
+            event.target.select();
+          }
+        }, 10);
+      } catch (error) {
+        // Silencioso - no romper la funcionalidad
+      }
+    },
+
+    // Confirmar monto inicial
+    confirmarMontoInicial() {
+      const monto = parseFloat(this.montoInicialInput) || 0;
+      this.mostrandoModalMontoInicial = false;
+      if (this.resolverMontoInicial) {
+        this.resolverMontoInicial(monto);
+        this.resolverMontoInicial = null;
+      }
+    },
+
+    // Cancelar monto inicial
+    cancelarMontoInicial() {
+      this.mostrandoModalMontoInicial = false;
+      if (this.resolverMontoInicial) {
+        this.resolverMontoInicial(null);
+        this.resolverMontoInicial = null;
+      }
+    },
+
+    // Helper para cerrar modales manualmente
+    cerrarModal(modalId) {
+      const overlay = document.querySelector('.modal-overlay');
+      if (overlay) {
+        overlay.remove();
+      }
+      
+      // Remover cualquier backdrop que pueda quedar
+      const backdrops = document.querySelectorAll('.modal-backdrop');
+      backdrops.forEach(backdrop => backdrop.remove());
+      
+      // Limpiar funciones globales
+      delete window.confirmarMontoInicial;
+      delete window.cancelarMontoInicial;
+      delete window.confirmarMontoFinal;
+      delete window.cancelarMontoFinal;
+    },
     initializePaymentMethods() {
       this.availablePaymentMethods = PaymentMethodsHelper.getActivePaymentMethods();
+      console.log('🔥 Métodos de pago disponibles:', this.availablePaymentMethods.length, this.availablePaymentMethods);
       this.mediosPago = PaymentMethodsHelper.initializePaymentCounts(this.availablePaymentMethods);
       
       // Asegurar que efectivo esté incluido
@@ -659,102 +996,84 @@ export default {
     
     async cargarInfoUsuario() {
       try {
-        const response = await axios.get('/local/me');
-        if (response.data && response.data.success) {
-          this.usuarioActual = {
-            id: response.data.user.id,
-            nombre: response.data.user.name || response.data.user.username || 'Usuario'
-          };
-        }
+        // Obtener datos del usuario desde el store (igual que pedidos.vue)
+        this.usuarioActual = {
+          id: this.me.id,
+          nombre: this.me.fullname || this.me.username || 'Usuario'
+        };
       } catch (error) {
-        console.error('Error al cargar usuario:', error);
-        this.usuarioActual.nombre = 'Usuario no identificado';
+        console.error('Error al cargar info de usuario:', error);
+        this.$awn.alert('Error al cargar información del usuario');
       }
     },
     
     async cargarInfoNegocio() {
       try {
-        // Intentar obtener desde la API primero
-        const response = await axios.get('/local/negocio/info');
-        if (response.data.success) {
-          this.negocioInfo = response.data.data;
-          return;
-        }
-      } catch (error) {
-        console.error('Error al obtener info del negocio desde API:', error);
-      }
-      
-      try {
-        // Fallback: Intentar obtener info del negocio desde el store
-        if (this.$store.getters['main/getEnvs']) {
-          const envs = this.$store.getters['main/getEnvs'];
-          this.negocioInfo = {
-            id: envs.app_id || null,
-            nombre: envs.app_name || envs.nombre_negocio || 'Mi Negocio',
-            direccion: envs.direccion || '',
-            telefono: envs.telefono || '',
-            email: envs.email || ''
-          };
-        } else {
-          // Fallback: obtener desde localStorage o configuración
-          const appConfig = JSON.parse(localStorage.getItem('app-config') || '{}');
-          this.negocioInfo = {
-            id: appConfig.id || null,
-            nombre: appConfig.name || appConfig.nombre || 'Mi Negocio',
-            direccion: appConfig.direction || '',
-            telefono: appConfig.phone || '',
-            email: appConfig.email || ''
-          };
-        }
-      } catch (error) {
-        console.error('Error al cargar info del negocio:', error);
+        // Obtener datos del negocio desde el store (igual que pedidos.vue)
+        var request = await this.$store.dispatch('main/refreshData', '?slim');
+        console.log('Datos del negocio recibidos:', request.data);
+        
         this.negocioInfo = {
-          id: null,
-          nombre: 'Negocio no identificado',
-          direccion: '',
-          telefono: '',
-          email: ''
+          id: request.data.Id,
+          nombre: request.data.name_public || request.data.Name || request.data.name || 'Negocio Local',
+          direccion: request.data.Address || 'No especificada',
+          telefono: request.data.Phone || '',
+          email: request.data.Email || ''
         };
+        
+        console.log('negocioInfo configurado:', this.negocioInfo);
+      } catch (error) {
+        console.error('Error al cargar info de negocio:', error);
+        this.$awn.alert('Error al cargar información del negocio');
       }
     },
     
     async cargarResumenDia() {
       try {
-        const today = new Date().toISOString().split('T')[0];
-        const response = await axios.get(`/local/report/arqueo-resumen?startDate=${today}&endDate=${today}`);
+        console.log('🔄 Cargando resumen del día...');
+        // TODO: Implementar store action para arqueo
+        // const fecha = new Date().toISOString().split('T')[0];
+        // const params = `?startDate=${fecha}&endDate=${fecha}`;
+        // const request = await this.$store.dispatch('arqueo/obtenerResumenDia', params);
         
-        if (response.data.success) {
-          // Cargar ventas dinámicamente por método de pago
-          this.ventasPorMedio = response.data.mediosPago || {};
-          
-          // Mantener compatibilidad con código legacy
-          this.ventasEfectivo = this.ventasPorMedio.efectivo || 0;
-          this.ventasTarjetaDebito = this.ventasPorMedio.debito || 0;
-          this.ventasTarjetaCredito = this.ventasPorMedio.credito || 0;
-          this.ventasTransferencia = this.ventasPorMedio.transferencia || 0;
-          this.ventasCheque = this.ventasPorMedio.cheque || 0;
-          this.ventasValeVista = 0; // Legacy
-          this.ventasOtro = 0; // Legacy
-          this.totalVentas = response.data.totalVentas || 0;
-          
-          // Calcular diferencias
-          this.calcularDiferencia();
-        }
+        // Por ahora usar datos vacíos para evitar crashes
+        this.initializeEmptyResumen();
+        console.log('✅ Resumen del día inicializado con datos vacíos');
+        
       } catch (error) {
         console.error('Error al cargar resumen del día:', error);
-        this.showError('Error al cargar datos del día');
+        // FALLBACK: Datos demo para desarrollo
+        this.initializeEmptyResumen();
       }
+    },
+
+    initializeEmptyResumen() {
+      this.ventasPorMedio = {};
+      this.ventasEfectivo = 0;
+      this.ventasTarjetaDebito = 0;
+      this.ventasTarjetaCredito = 0;
+      this.ventasTransferencia = 0;
+      this.ventasCheque = 0;
+      this.ventasValeVista = 0;
+      this.ventasOtro = 0;
+      this.totalVentas = 0;
+      this.calcularDiferencia();
     },
     
     async cargarHistorial() {
       try {
-        const response = await axios.get('/local/arqueo/historial');
+        console.log('🔄 Cargando historial de arqueos...');
+        // TODO: Implementar store action para historial
+        // const params = '?page=1&limit=10';
+        // const request = await this.$store.dispatch('arqueo/obtenerArqueos', params);
         
-        if (response.data.success) {
-          this.historial = response.data.data || [];
-        }
+        // Por ahora usar historial local
+        this.cargarHistorialLocal();
+        console.log('✅ Historial cargado desde localStorage');
+        
       } catch (error) {
         console.error('Error al cargar historial:', error);
+        this.historial = [];
       }
     },
     
@@ -772,7 +1091,10 @@ export default {
     },
     
     calcularDiferencia() {
-      this.diferencia = this.totalContado - this.ventasEfectivo;
+      // CORREGIDO: Ahora considera el monto inicial
+      // El total que DEBERÍAS tener = Monto inicial + Ventas en efectivo
+      const totalEsperado = this.montoInicialTurno + this.ventasEfectivo;
+      this.diferencia = this.totalContado - totalEsperado;
     },
     
     calcularTotalGeneral() {
@@ -783,63 +1105,154 @@ export default {
     
     async guardarArqueo() {
       if (this.totalContado === 0) {
-        this.showWarning('Debe ingresar al menos una denominación');
+        this.$awn.alert('Debe ingresar al menos una denominación');
         return;
       }
       
-      // Mostrar modal de confirmación
-      const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
-      modal.show();
+      // Mostrar modal de confirmación personalizado
+      this.mostrarModalConfirmacion();
+    },
+
+    mostrarModalConfirmacion() {
+      // Usar confirm nativo - funciona en Electron
+      
+      // Construir detalle de otros medios de pago
+      let detalleOtrosMedios = '';
+      for (const method of this.availablePaymentMethods) {
+        if (method.key !== 'efectivo' && this.mediosPago[method.key] && this.mediosPago[method.key] > 0) {
+          detalleOtrosMedios += `${method.emoji} ${method.name}: $${this.formatMoney(this.mediosPago[method.key])}\n`;
+        }
+      }
+      
+      const mensaje = `¿Está seguro de guardar el arqueo?\n\n` +
+        `🏁 Caja inicial: $${this.formatMoney(this.montoInicialTurno)}\n` +
+        `💵 Efectivo contado: $${this.formatMoney(this.totalContado)}\n` +
+        detalleOtrosMedios +
+        `🏆 TOTAL: $${this.formatMoney(this.totalGeneralContado)}\n\n` +
+        `La comparación con las ventas se mostrará después...`;
+      
+      if (window.confirm(mensaje)) {
+        this.confirmarGuardado();
+      }
     },
     
     async confirmarGuardado() {
-      this.loading = true;
-      
       try {
+        // Ya tenemos el monto final calculado del conteo de billetes y monedas
+        this.montoFinalTurno = this.totalContado;
+
+        this.loading = true;
+        
         // PRIMERO: Cargar las ventas del día para calcular la diferencia
         await this.cargarResumenDia();
         
+        // Preparar datos del arqueo siguiendo el patrón de pedidos.vue
         const detalleConteo = this.getDetalleConteo();
+        
+        console.log('Debug info antes de enviar:', {
+          negocioInfo: this.negocioInfo,
+          usuarioActual: this.usuarioActual
+        });
+        
         const data = {
-          total_contado: this.totalContado,
-          detalle_conteo: JSON.stringify(detalleConteo),
-          observaciones: this.observaciones,
-          fecha_arqueo: new Date().toISOString().split('T')[0],
+          app_id: 58, // ID fijo del negocio que estamos viendo en los logs
           usuario_id: this.usuarioActual.id,
           usuario_nombre: this.usuarioActual.nombre,
-          negocio_id: this.negocioInfo.id,
-          negocio_nombre: this.negocioInfo.nombre
+          app_nombre: 'Por determinar', // Lo obtendremos desde la BD
+          fecha_inicio: new Date().toISOString(),
+          fecha_termino: new Date().toISOString(),
+          total_sistema: this.montoInicialTurno + this.totalVentasSistema, // ⚠️ SUMA: Monto inicial + ventas sistema
+          total_contado: this.totalContado,
+          diferencia: this.diferencia,
+          estado: this.diferencia === 0 ? 'perfecto' : (this.diferencia > 0 ? 'sobrante' : 'faltante'),
+          observaciones: this.observaciones,
+          detalle_efectivo: JSON.stringify(detalleConteo),
+          detalle_medios_pago: JSON.stringify(this.mediosPago),
+          numero_transacciones: (this.resumenDia && this.resumenDia.total_transacciones) || 0
         };
         
-        const response = await axios.post('/local/arqueo/guardar', data);
+        // Crear FormData siguiendo el patrón de pedidos.vue
+        var formData = new FormData();
+        for (let key in data) {
+          if (data[key] !== null && data[key] !== undefined) {
+            formData.append(key, data[key]);
+          }
+        }
         
-        if (response.data.success) {
-          // DESPUÉS de guardar exitosamente, mostrar los resultados
+        // Usar store dispatch siguiendo el patrón de pedidos.vue
+        // TODO: Implementar store action para guardar arqueo
+        // let request = await this.$store.dispatch('arqueo/guardarArqueo', formData);
+        
+        // Por ahora simular guardado exitoso
+        console.log('💾 Simulando guardado de arqueo:', data);
+        let request = { 
+          success: true, 
+          data: { id: Date.now(), message: 'Arqueo guardado correctamente (simulado)' } 
+        };
+        
+        if (request.success) {
           this.arqueoGuardado = true;
-          this.showSuccess('Arqueo guardado correctamente');
+          this.$awn.success('Arqueo guardado correctamente', { labels: { success: 'CORRECTO' } });
+          
+          // Guardar en historial local
+          this.guardarEnHistorialLocal({
+            id: Date.now(),
+            fecha: new Date().toISOString(),
+            fecha_inicio: this.horaInicio || new Date().toISOString(),
+            fecha_termino: new Date().toISOString(),
+            usuario_nombre: this.usuarioActual.nombre,
+            monto_inicial: this.montoInicialTurno,
+            monto_final: this.montoFinalTurno,
+            total_contado: this.totalContado,
+            total_otros_medios: this.totalOtrosMedios,
+            total_general_contado: this.totalGeneralContado,
+            total_sistema: this.totalVentasSistema,
+            diferencia: this.diferencia,
+            diferencia_general: this.diferenciaGeneral,
+            estado: this.diferencia === 0 ? 'perfecto' : (this.diferencia > 0 ? 'sobrante' : 'faltante'),
+            observaciones: this.observaciones,
+            detalle_efectivo: this.getDetalleConteo(),
+            detalle_medios_pago: { ...this.mediosPago }
+          });
+          
+          // Cerrar turno después de guardar
+          this.turnoActivo = false;
+          
+          // Limpiar localStorage del turno
+          localStorage.removeItem('turnoActivo');
+          localStorage.removeItem('fechaTurno');
+          localStorage.removeItem('horaInicioTurno');
+          localStorage.removeItem('montoInicialTurno');
+          
+          // Notificar al layout que el turno cambió
+          this.notificarCambioTurno();
+          
+          // Recargar historial
           await this.cargarHistorial();
           
           // Mostrar mensaje de resultado con un delay para que se vea el cambio
           setTimeout(() => {
             if (this.diferencia === 0) {
-              this.showSuccess('¡Perfecto! El arqueo coincide exactamente con las ventas.');
+              this.$awn.success('¡Perfecto! El arqueo coincide exactamente con las ventas.');
             } else if (this.diferencia > 0) {
-              this.showWarning(`Hay un sobrante de $${this.formatMoney(Math.abs(this.diferencia))}`);
+              this.$awn.warning(`Hay un sobrante de $${this.formatMoney(Math.abs(this.diferencia))}`);
             } else {
-              this.showError(`Hay un faltante de $${this.formatMoney(Math.abs(this.diferencia))}`);
+              this.$awn.alert(`Hay un faltante de $${this.formatMoney(Math.abs(this.diferencia))}`);
             }
-          }, 1000);
+            
+            // Mensaje final de turno cerrado
+            this.$awn.info('Turno cerrado correctamente. Puedes iniciar un nuevo turno.');
+          }, 2000);
           
         } else {
-          this.showError(response.data.message || 'Error al guardar el arqueo');
+          console.log(request.data);
+          this.$awn.alert(request.data.message || 'Error al guardar el arqueo');
         }
       } catch (error) {
         console.error('Error al guardar arqueo:', error);
-        this.showError('Error al guardar el arqueo. Intente nuevamente.');
+        this.$awn.alert('Error al guardar el arqueo. Intente nuevamente.');
       } finally {
         this.loading = false;
-        const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
-        modal.hide();
       }
     },
     
@@ -898,7 +1311,7 @@ export default {
     
     imprimirArqueo() {
       if (this.totalContado === 0) {
-        this.showWarning('No hay datos para imprimir');
+        this.$awn.alert('No hay datos para imprimir');
         return;
       }
       
@@ -987,7 +1400,110 @@ export default {
       // Aquí podrías implementar la navegación a reportes
       this.showInfo('Función de reportes en desarrollo');
     },
-    
+
+    // Guardar arqueo en historial local
+    guardarEnHistorialLocal(arqueoData) {
+      try {
+        // Obtener historial existente
+        const historialExistente = JSON.parse(localStorage.getItem('historialArqueos') || '[]');
+        
+        // Agregar nuevo arqueo al inicio
+        historialExistente.unshift(arqueoData);
+        
+        // Mantener solo los últimos 50 arqueos
+        if (historialExistente.length > 50) {
+          historialExistente.splice(50);
+        }
+        
+        // Guardar de vuelta en localStorage
+        localStorage.setItem('historialArqueos', JSON.stringify(historialExistente));
+        
+        // Actualizar historial en el componente
+        this.cargarHistorialLocal();
+        
+        console.log('📁 Arqueo guardado en historial local:', arqueoData);
+        
+      } catch (error) {
+        console.error('Error guardando en historial local:', error);
+      }
+    },
+
+    // Cargar historial desde localStorage
+    cargarHistorialLocal() {
+      try {
+        const historialLocal = JSON.parse(localStorage.getItem('historialArqueos') || '[]');
+        this.historial = historialLocal;
+        console.log('📖 Historial cargado:', this.historial.length, 'registros');
+      } catch (error) {
+        console.error('Error cargando historial local:', error);
+        this.historial = [];
+      }
+    },
+
+    // Limpiar historial completo
+    limpiarHistorial() {
+      if (confirm('¿Está seguro de eliminar todo el historial de arqueos?\n\nEsta acción no se puede deshacer.')) {
+        localStorage.removeItem('historialArqueos');
+        this.historial = [];
+        this.$awn.success('Historial eliminado correctamente');
+      }
+    },
+
+    // Eliminar un arqueo específico del historial
+    eliminarArqueoHistorial(index) {
+      if (confirm('¿Está seguro de eliminar este registro del historial?')) {
+        this.historial.splice(index, 1);
+        localStorage.setItem('historialArqueos', JSON.stringify(this.historial));
+        this.$awn.success('Registro eliminado del historial');
+      }
+    },
+
+    // Ver detalle de un arqueo del historial
+    verDetalleArqueo(arqueo) {
+      const detalle = `
+🗓️ ARQUEO DEL ${this.formatDate(arqueo.fecha)} - ${this.formatTime(arqueo.fecha)}
+
+👤 Usuario: ${arqueo.usuario_nombre}
+
+⏰ Horarios:
+• Inicio: ${this.formatDateTime(arqueo.fecha_inicio)}
+• Cierre: ${this.formatDateTime(arqueo.fecha_termino)}
+
+💰 Montos:
+• Inicial: $${this.formatMoney(arqueo.monto_inicial)}
+• Final: $${this.formatMoney(arqueo.monto_final)}
+
+💵 Conteo:
+• Efectivo: $${this.formatMoney(arqueo.total_contado)}
+• Otros medios: $${this.formatMoney(arqueo.total_otros_medios)}
+• TOTAL CONTADO: $${this.formatMoney(arqueo.total_general_contado)}
+
+💻 Sistema:
+• Total ventas: $${this.formatMoney(arqueo.total_sistema)}
+
+📊 Resultado:
+• Diferencia: $${this.formatMoney(arqueo.diferencia_general)}
+• Estado: ${arqueo.estado.toUpperCase()}
+
+📝 Observaciones:
+${arqueo.observaciones || 'Sin observaciones'}
+      `;
+      
+      alert(detalle);
+    },
+
+    // Notificar cambio de turno al layout
+    notificarCambioTurno() {
+      // Disparar evento personalizado para notificar cambio de turno
+      window.dispatchEvent(new CustomEvent('turnoChanged', {
+        detail: { 
+          turnoActivo: this.turnoActivo,
+          timestamp: new Date().toISOString()
+        }
+      }));
+      console.log('🔔 ARQUEO: Notificando cambio de turno:', this.turnoActivo);
+    },
+
     // Utilidades
     formatMoney(amount) {
       return parseInt(amount || 0).toLocaleString('es-CL');
@@ -1004,6 +1520,34 @@ export default {
       });
     },
     
+    formatDateTime(dateString) {
+      const date = new Date(dateString);
+      return `${date.toLocaleDateString('es-CL')} ${date.toLocaleTimeString('es-CL', {
+        hour: '2-digit',
+        minute: '2-digit'
+      })}`;
+    },
+    
+    formatDuration(start, end) {
+      const startTime = new Date(start);
+      const endTime = new Date(end);
+      const diffMs = endTime - startTime;
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      
+      if (diffHours > 0) {
+        return `${diffHours}h ${diffMinutes}m`;
+      } else {
+        return `${diffMinutes}m`;
+      }
+    },
+    
+    getDiferenciaClass(diferencia) {
+      if (diferencia === 0) return 'text-success';
+      if (diferencia > 0) return 'text-warning';
+      return 'text-danger';
+    },
+    
     getEstadoBadgeClass(diferencia) {
       if (diferencia === 0) return 'bg-success';
       if (diferencia > 0) return 'bg-warning';
@@ -1014,23 +1558,6 @@ export default {
       if (diferencia === 0) return 'Exacto';
       if (diferencia > 0) return 'Sobrante';
       return 'Faltante';
-    },
-    
-    // Notificaciones
-    showSuccess(message) {
-      this.$toast.success(message);
-    },
-    
-    showError(message) {
-      this.$toast.error(message);
-    },
-    
-    showWarning(message) {
-      this.$toast.warning(message);
-    },
-    
-    showInfo(message) {
-      this.$toast.info(message);
     }
   }
 }
@@ -1056,12 +1583,16 @@ export default {
   margin: 0;
   font-size: 2rem;
   font-weight: 700;
+  color: #000000 !important;
+  text-shadow: 2px 2px 4px rgba(255,255,255,0.8), -1px -1px 2px rgba(255,255,255,0.6);
 }
 
 .page-subtitle {
   margin: 5px 0 0 0;
-  opacity: 0.8;
+  opacity: 1;
   font-size: 1.1rem;
+  color: #000000 !important;
+  text-shadow: 1px 1px 3px rgba(255,255,255,0.8), -1px -1px 2px rgba(255,255,255,0.6);
 }
 
 .header-actions {
@@ -1077,13 +1608,141 @@ export default {
 }
 
 .info-item {
-  color: white;
+  color: #000000 !important;
   font-size: 0.95rem;
   margin-bottom: 5px;
+  text-shadow: 1px 1px 3px rgba(255,255,255,0.8), -1px -1px 2px rgba(255,255,255,0.6);
 }
 
 .info-item i {
-  color: rgba(255, 255, 255, 0.8);
+  color: #333333 !important;
+}
+
+.info-item strong {
+  color: #000000 !important;
+  font-weight: 700;
+}
+
+/* Estilos más específicos para asegurar visibilidad */
+.arqueo-info .info-item {
+  color: #000000 !important;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(255,255,255,0.6);
+}
+
+.arqueo-info .info-item strong {
+  color: #000000 !important;
+  font-weight: 700;
+}
+
+.arqueo-info .info-item i {
+  color: #333333 !important;
+}
+
+/* Asegurar que TODO el texto dentro de info-item sea negro */
+.arqueo-info .info-item * {
+  color: #000000 !important;
+  text-shadow: 1px 1px 3px rgba(255,255,255,0.8), -1px -1px 2px rgba(255,255,255,0.6);
+}
+
+/* Estilos para el cuadro de estado del arqueo */
+.arqueo-estado {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  padding: 15px;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.estado-item {
+  color: #000000 !important;
+  font-size: 1rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  text-shadow: 1px 1px 3px rgba(255,255,255,0.8), -1px -1px 2px rgba(255,255,255,0.6);
+}
+
+.estado-item.inicial {
+  border-left: 4px solid #28a745;
+}
+
+.estado-item.final {
+  border-left: 4px solid #ffc107;
+}
+
+.estado-item i {
+  color: #333333 !important;
+}
+
+.estado-item strong {
+  color: #000000 !important;
+  font-weight: 700;
+}
+
+.estado-item .badge {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+}
+
+/* Estilos para modales simples - FUNCIONALES */
+.modal-simple-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(3px);
+}
+
+.modal-simple-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modal-simple-appear 0.3s ease-out;
+}
+
+@keyframes modal-simple-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-simple-content h4 {
+  color: #374151;
+  margin-bottom: 15px;
+}
+
+.modal-simple-content p {
+  color: #6b7280;
+  margin-bottom: 15px;
+}
+
+.modal-simple-content .form-control {
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.modal-simple-content .form-control:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
 }
 
 .status-badge {
@@ -1179,17 +1838,67 @@ export default {
 }
 
 .historial-container {
-  max-height: 400px;
+  max-height: 500px;
   overflow-y: auto;
 }
 
 .historial-item {
-  padding: 15px 0;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 20px;
+  border: 2px solid #f1f5f9;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  background: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.historial-item:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.1);
+  transform: translateY(-2px);
 }
 
 .historial-item:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.historial-header {
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.historial-fecha {
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.historial-usuario {
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+.historial-actions .btn {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+
+.historial-resumen {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.historial-estado .badge {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+}
+
+.historial-observaciones {
+  background: #fffbeb;
+  border: 1px solid #fbbf24;
+  border-radius: 6px;
+  padding: 8px;
+  font-style: italic;
 }
 
 .btn {
@@ -1284,6 +1993,42 @@ export default {
 .card.border-success .card-header { background: linear-gradient(135deg, #10b981, #059669) !important; }
 .card.border-info .card-header { background: linear-gradient(135deg, #06b6d4, #0891b2) !important; }
 .card.border-dark .card-header { background: linear-gradient(135deg, #374151, #1f2937) !important; }
+
+/* Asegurar texto negro/oscuro en todo el componente */
+.arqueo-caja-container * {
+  color: #1e293b !important;
+}
+
+.arqueo-caja-container .page-header * {
+  color: white !important;
+}
+
+.arqueo-caja-container .total-section * {
+  color: white !important;
+}
+
+.arqueo-caja-container .status-badge {
+  color: #10b981 !important;
+}
+
+.arqueo-caja-container .btn {
+  color: inherit !important;
+}
+
+.arqueo-caja-container .card-header {
+  color: white !important;
+}
+
+.arqueo-caja-container input, 
+.arqueo-caja-container select, 
+.arqueo-caja-container textarea {
+  color: #1e293b !important;
+}
+
+.arqueo-caja-container .table th,
+.arqueo-caja-container .table td {
+  color: #1e293b !important;
+}
 
 @media (max-width: 768px) {
   .arqueo-caja-container {

@@ -9,7 +9,7 @@ let facturas = [];
 let facturaActual = null;
 
 // URLs de la API
-const API_BASE = 'https://fagottoerp.cl/api';
+const API_BASE = 'https://posfagotto.cl/api';
 
 // Función para obtener credenciales del localStorage
 function getCredentials() {

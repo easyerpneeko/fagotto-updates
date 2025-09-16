@@ -598,6 +598,12 @@ export default {
         if(key.value) params += '&'+key.key+'=' + key.value;
       });
 
+      // 🚨 DEBUG: Ver qué parámetros se están enviando
+      console.log('🔍 DEBUG REPORTES - Parámetros enviados:', params);
+      console.log('🔍 DEBUG REPORTES - Estado de checkboxes:', this.ckecks);
+      const uberCheck = this.ckecks.find(c => c.key === 'uber');
+      console.log('🔍 DEBUG REPORTES - Estado checkbox Uber:', uberCheck);
+
       // Iniciando peticion
       var request = await this.$store.dispatch("reports/getSells", {data:thing, params});
       // Verificando respuesta
@@ -872,7 +878,8 @@ export default {
             if(this.settingAmipass) this.listCounter.push(['Amipass', '$'+this.formatNumber(String(request.amipass))]);
             if(this.settingRappi) this.listCounter.push(['Rappi', '$'+this.formatNumber(String(request.rappi))]);
             if(this.settingJunaeb) this.listCounter.push(['Junaeb', '$'+this.formatNumber(String(request.junaeb))]);
-            if(this.settingUber) this.listCounter.push(['Uber', '$'+this.formatNumber(String(request.uber))]);
+            // TEMPORAL: Forzar mostrar Uber siempre para testing
+            this.listCounter.push(['Uber Eats - Boleta SII', '$'+this.formatNumber(String(request.uber))]);
             if(this.settingSodexo) this.listCounter.push(['Sodexo', '$'+this.formatNumber(String(request.sodexo))]);
             if(this.settingCredito) this.listCounter.push(['Credito', '$'+this.formatNumber(String(request.credito))]);
             // if(this.settingNotaCredito) this.listCounter.push(['Nota de Credito', '$'+this.formatNumber(String(request.credito))]);

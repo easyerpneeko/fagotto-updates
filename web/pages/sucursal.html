@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EASY REPORTES - Sucursal</title>
+    <title>FagottoERP - Sucursal</title>
+    <link rel="icon" type="image/x-icon" href="../assets/css/negro.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
         integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -413,6 +414,55 @@
             background: rgba(var(--primary-rgb), 0.02);
         }
 
+        /* ========== KPI CARDS ESPECÍFICOS ========== */
+        .kpi-card {
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .kpi-icon-wrapper {
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin: 0 auto;
+        }
+
+        .kpi-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+            margin: 0.5rem 0;
+        }
+
+        .kpi-label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .trend-positive {
+            color: #10b981 !important;
+        }
+
+        .trend-negative {
+            color: #ef4444 !important;
+        }
+
         /* ========== RESPONSIVE ========== */
         @media (max-width: 768px) {
             .modern-header {
@@ -483,12 +533,7 @@
                                 Sucursal
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="./garzones.html">
-                                <i class="fas fa-user"></i>
-                                Garzones
-                            </a>
-                        </li>
+                      
                         <li class="nav-item">
                             <a class="nav-link" href="./cocina/cocina.html">
                                 <i class="fas fa-utensils"></i>
@@ -501,18 +546,7 @@
                                 Ordenes
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="./cocinafagotto.html">
-                                <i class="fas fa-truck-loading"></i>
-                                Pedidos Fagotto
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="./pedidos.html">
-                                <i class="fas fa-box"></i>
-                                Pedidos
-                            </a>
-                        </li>
+                    
                     </ul>
                 </div>
             </div>
@@ -638,6 +672,35 @@
                     </div>
                 </div>
 
+                <!-- TARJETA KPI PRINCIPAL -->
+                <div class="row g-4 mb-4">
+                    <!-- RESUMEN TOTAL -->
+                    <div class="col-12">
+                        <div class="modern-card kpi-card">
+                            <div class="card-body text-center py-4">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <div class="kpi-icon-wrapper mb-3" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                                            <i class="fas fa-chart-pie fa-2x text-white"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="kpi-label">Resumen Total</div>
+                                        <div class="kpi-value trend-positive" id="resumen-total">$0</div>
+                                        <div class="kpi-subtitle" id="periodo-resumen">Período seleccionado</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-muted small">
+                                            <div><strong id="total-transacciones">0</strong> transacciones</div>
+                                            <div><strong id="metodos-activos">0</strong> métodos de pago</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- GRÁFICOS PRINCIPALES -->
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
@@ -702,6 +765,20 @@
                                 <div class="chart-container">
                                     <canvas id="ordersChart"></canvas>
                                 </div>
+                                <div class="table-responsive mt-3">
+                                    <table class="table table-modern table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Mesero</th>
+                                                <th scope="col">Órdenes</th>
+                                                <th scope="col">Total</th>
+                                                <th scope="col">Propina</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="waiters-table">
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -735,13 +812,16 @@
                     </div>
                 </div>
 
-                <!-- TURNOS DEL DÍA -->
+
+
+
+                <!-- CAJEROS ACTIVOS (DEL DIA) -->
                 <div class="row g-4 mb-4">
                     <div class="col-12">
                         <div class="modern-card">
                             <div class="card-header">
-                                <i class="fas fa-clock me-2"></i>
-                                Turnos del Día
+                                <i class="fas fa-cash-register me-2"></i>
+                                Cajeros Activos (Del Dia)
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
@@ -749,8 +829,8 @@
                                         <thead>
                                             <tr>
                                                 <th scope="col">Usuario</th>
-                                                <th scope="col">Monto Inicial</th>
-                                                <th scope="col">Total Ventas</th>
+                                                <th scope="col">Dinero Inicial</th>
+                                                <th scope="col">Dinero Final</th>
                                                 <th scope="col">Inicio Turno</th>
                                                 <th scope="col">Fin Turno</th>
                                             </tr>
@@ -764,56 +844,6 @@
                     </div>
                 </div>
 
-                <!-- GASTOS Y MESEROS -->
-                <div class="row g-4 mb-4">
-                    <div class="col-md-6">
-                        <div class="modern-card">
-                            <div class="card-header">
-                                <i class="fas fa-money-bill-wave me-2"></i>
-                                Gastos del Día
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-modern table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th scope="col">Concepto</th>
-                                                <th scope="col">Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="expenses-table">
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="modern-card">
-                            <div class="card-header">
-                                <i class="fas fa-user-tie me-2"></i>
-                                Rendimiento Meseros
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-modern table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th scope="col">Mesero</th>
-                                                <th scope="col">Mesas</th>
-                                                <th scope="col">Total</th>
-                                                <th scope="col">Propina</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="waiters-table">
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
         </div>
     </div>
     <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>

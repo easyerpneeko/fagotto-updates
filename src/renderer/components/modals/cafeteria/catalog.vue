@@ -490,12 +490,21 @@ export default {
       if (this.board && this.board.order) this.ticketData.order = this.board.order;
       else this.ticketData.order = false;
 
-      // Si es Uber, configurar para generar boleta SII
+      // Si es Uber, configurar para generar boleta SII pero con identificación especial
       if (val === 'uber') {
         this.typeCreateTicket = 'boleta';
-        // Agregar información de que es una venta de Uber
-        this.ticketData.paymentMethod = 'uber';
-        this.ticketData.paymentDescription = 'Ticket + Uber (Boleta SII)';
+        // ✅ IMPORTANTE: Agregar información específica de Uber para diferenciarlo en reportes
+        this.ticketData.paymentMethod = 'uber_eats';
+        this.ticketData.paymentDescription = 'Uber Eats - Boleta SII';
+        this.ticketData.uberEatsOrder = true;
+        this.ticketData.specialPaymentType = 'uber_eats';
+        
+        console.log('🚀 UBER EATS - Datos configurados:', {
+          typeCreateTicket: this.typeCreateTicket,
+          paymentMethod: this.ticketData.paymentMethod,
+          paymentDescription: this.ticketData.paymentDescription,
+          uberEatsOrder: this.ticketData.uberEatsOrder
+        });
       } else {
         if (val) this.typeCreateTicket = val;
       }

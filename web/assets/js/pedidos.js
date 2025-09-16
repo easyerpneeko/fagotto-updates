@@ -258,35 +258,6 @@ function verPedido(app_id, id) {
             
             let fila = "";
 
-            // Función para determinar la unidad correcta
-            function getUnidadProducto(product) {
-                // Casos específicos con sus unidades
-                if (product.name === 'Botella de Huevos 1L') {
-                    return product.quantity + ' botellas';
-                }
-                if (product.name === 'Aceite Vegetal 5L') {
-                    return product.quantity + ' unidades';
-                }
-                if (product.name === 'Pliego (124 stickers)') {
-                    return product.quantity + ' Pliego';
-                }
-                
-                // Productos que NO van en kg (van en unidades)
-                const productosUnidades = [
-                    'Vaso', 'Sandwich', 'Aceite de oliva 5kg', 'Harina', 'Bolsa',
-                    'Focaccia Salame', 'Focaccia Pesto', 'Focaccia alleato', 
-                    'Focaccia Pollo Pimenton', 'papel mantequilla (Focaccia)', 
-                    'Papel Mantequilla (Bandeja)'
-                ];
-                
-                if (productosUnidades.includes(product.name)) {
-                    return product.quantity + ' unidades';
-                }
-                
-                // Productos que van en kg
-                return product.quantity + ' kg';
-            }
-
             if(products[product].id == 2){
                  fila = `<tr>
                                 <td>${i}</td> 
@@ -297,7 +268,8 @@ function verPedido(app_id, id) {
                 fila = `<tr>
                     <td>${i}</td> 
                     <td>${products[product].name.toUpperCase()}</td> 
-                    <td>${getUnidadProducto(products[product])}</td>  
+                    <td>${products[product].category !== 1 && products[product].category !== 3  
+                        ? `${products[product].quantity} Kg` : products[product].quantity}</td>  
                 </tr>`;
             }
             
@@ -700,10 +672,9 @@ async function procesarNotaCredito() {
         const formData = new FormData();
         formData.append('cancelDate', fechaCancelacion);
         
-        // NOTA DE CRÉDITO - Actualizado 2025-08-21
         await __conection(
             {
-                url: generarURLApi(`/web/pedido/cancelar-factura/${pedidoIdCancelar}`),
+                url: generarURLApi(`/local/sell/nota_de_credito/factura/${pedidoIdCancelar}`),
                 header: credentials(),
                 dev: true,
                 method: 'POST',
@@ -715,8 +686,8 @@ async function procesarNotaCredito() {
                 
                 if (request.success) {
                     // Generar PDF si viene en la respuesta
-                    if (request.response_folio) {
-                        generatePDF(request.response_folio);
+                    if (request.data) {
+                        generatePDF(request.data);
                     }
                     
                     alert('✅ Nota de Crédito generada exitosamente.');
@@ -725,7 +696,7 @@ async function procesarNotaCredito() {
                     // Recargar la lista de pedidos
                     getPedidos();
                 } else {
-                    alert('❌ Error: ' + (request.message || 'No se pudo generar la nota de crédito.'));
+                    alert('❌ Error: ' + (request.data || 'No se pudo generar la nota de crédito.'));
                 }
             }
         );

@@ -25,6 +25,7 @@ class Sell extends Model
       'siiState',
       'other_type',
       'special_payment_info',
+      'uber_payment_info',
       'tip',
       'discount',
       'paymode',
@@ -62,6 +63,7 @@ class Sell extends Model
         $keysAllow[] = 'typeSell';
         if(isset($request['other_type'])) $keysAllow[] = 'other_type';
         if(isset($request['special_payment_info'])) $keysAllow[] = 'special_payment_info';
+        if(isset($request['uber_payment_info'])) $keysAllow[] = 'uber_payment_info';
       }
 
       foreach ($keysAllow as $key){

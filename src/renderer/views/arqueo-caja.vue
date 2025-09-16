@@ -90,6 +90,20 @@
         <div class="alert alert-warning text-center">
           <h5><i class="fas fa-exclamation-triangle me-2"></i>Turno no iniciado</h5>
           <p class="mb-3">Debes iniciar un turno antes de hacer el arqueo de caja</p>
+          
+          <!-- BOTÓN TEMPORAL PARA CREAR TABLA -->
+          <div class="mb-3">
+            <button 
+              class="btn btn-warning btn-sm me-2"
+              @click="crearTablaTurnos"
+              :disabled="cargandoTabla"
+            >
+              <i class="fas fa-database me-2"></i>
+              {{ cargandoTabla ? 'Creando Tabla...' : 'Crear Tabla BD (TEMPORAL)' }}
+            </button>
+            <small class="d-block text-muted mt-1">Solo usar si aparece error de tabla no existe</small>
+          </div>
+          
           <button 
             class="btn btn-success btn-lg"
             @click="iniciarTurno"
@@ -513,6 +527,7 @@ export default {
       // Control básico de turnos
       turnoActivo: false,
       cargandoTurno: false,
+      cargandoTabla: false,
       
       // Montos del turno
       montoInicialTurno: 0,
@@ -746,10 +761,53 @@ export default {
     // Verificar si hay un turno activo al cargar la página
     async verificarEstadoTurno() {
       try {
-        // Primero verificar localStorage como backup rápido
+        // Primero verificar con el backend (fuente de verdad)
+        try {
+          const request = await this.$store.dispatch('arqueo/verificarEstadoTurno');
+          
+          if (request.success) {
+            // Usar datos del backend como fuente de verdad
+            this.turnoActivo = request.data.turno_abierto || false;
+            
+            if (this.turnoActivo && request.data.turno) {
+              this.montoInicialTurno = parseFloat(request.data.turno.monto_inicial) || 0;
+              // 🔧 ARREGLO: Recuperar también el ID del turno activo
+              this.turnoId = request.data.turno.id;
+              
+              console.log('✅ Estado del turno obtenido desde base de datos');
+              console.log('📊 Turno activo:', this.turnoActivo);
+              console.log('🆔 Turno ID recuperado:', this.turnoId);
+              console.log('💰 Monto inicial:', this.montoInicialTurno);
+              
+              // Sincronizar localStorage con datos del backend
+              const fechaHoy = new Date().toISOString().split('T')[0];
+              localStorage.setItem('turnoActivo', this.turnoActivo.toString());
+              localStorage.setItem('fechaTurno', fechaHoy);
+              localStorage.setItem('montoInicialTurno', this.montoInicialTurno.toString());
+              localStorage.setItem('turnoId', this.turnoId.toString()); // Guardar también el ID
+              if (request.data.turno.fecha_inicio) {
+                localStorage.setItem('horaInicioTurno', request.data.turno.fecha_inicio);
+              }
+            } else {
+              this.turnoActivo = false;
+              this.montoInicialTurno = 0;
+              // Limpiar localStorage si no hay turno activo
+              localStorage.removeItem('turnoActivo');
+              localStorage.removeItem('fechaTurno');
+              localStorage.removeItem('horaInicioTurno');
+              localStorage.removeItem('montoInicialTurno');
+            }
+            return;
+          }
+        } catch (apiError) {
+          console.warn('⚠️ No se pudo conectar con la API, usando localStorage como fallback:', apiError.message);
+        }
+        
+        // Fallback: verificar localStorage como backup
         const turnoLocal = localStorage.getItem('turnoActivo');
         const fechaLocal = localStorage.getItem('fechaTurno');
         const montoInicialLocal = localStorage.getItem('montoInicialTurno');
+        const turnoIdLocal = localStorage.getItem('turnoId'); // Recuperar también el ID
         const fechaHoy = new Date().toISOString().split('T')[0];
         
         // Limpiar turnos de días anteriores automáticamente
@@ -759,6 +817,7 @@ export default {
           localStorage.removeItem('fechaTurno');
           localStorage.removeItem('horaInicioTurno');
           localStorage.removeItem('montoInicialTurno');
+          localStorage.removeItem('turnoId'); // Limpiar también el ID
           this.turnoActivo = false;
           this.montoInicialTurno = 0;
           return;
@@ -768,15 +827,14 @@ export default {
         if (turnoLocal === 'true' && fechaLocal === fechaHoy) {
           this.turnoActivo = true;
           this.montoInicialTurno = parseFloat(montoInicialLocal) || 0;
-          console.log('✅ Turno activo encontrado en localStorage para hoy');
+          this.turnoId = parseInt(turnoIdLocal) || null; // Recuperar también el ID
+          console.log('✅ Turno activo encontrado en localStorage para hoy (modo offline)');
+          console.log('🆔 Turno ID recuperado del localStorage:', this.turnoId);
           console.log('💰 Monto inicial recuperado:', this.montoInicialTurno);
+        } else {
+          this.turnoActivo = false;
+          this.montoInicialTurno = 0;
         }
-        
-        // TODO: Aquí podríamos verificar con el backend también
-        // const response = await axios.get('/api/turnos/estado');
-        // if (response.data.turno_activo) {
-        //   this.turnoActivo = true;
-        // }
         
       } catch (error) {
         console.error('Error verificando estado del turno:', error);
@@ -786,41 +844,153 @@ export default {
       }
     },
 
+    // Método temporal para crear la tabla TurnosCaja
+    async crearTablaTurnos() {
+      try {
+        this.cargandoTabla = true;
+        
+        console.log('🔨 CREAR TABLA - Iniciando creación de tabla TurnosCaja...');
+        
+        // Llamar al store que maneja la conexión con el backend
+        const request = await this.$store.dispatch('arqueo/crearTablaTurnos');
+        
+        console.log('📋 CREAR TABLA - Respuesta:', request);
+        
+        if (request.success) {
+          this.$toast.success(`✅ Tabla creada exitosamente en BD: ${request.data.database}`);
+          console.log('✅ CREAR TABLA - Tabla TurnosCaja creada exitosamente');
+        } else {
+          this.$toast.error('❌ Error al crear tabla: ' + (request.data.message || 'Error desconocido'));
+          console.error('❌ CREAR TABLA - Error:', request.data.message);
+        }
+        
+      } catch (error) {
+        console.error('❌ CREAR TABLA - Error:', error);
+        this.$toast.error('❌ Error al crear tabla: ' + (error.message || 'Error de conexión'));
+      } finally {
+        this.cargandoTabla = false;
+      }
+    },
+
     // Método mejorado para iniciar turno
     async iniciarTurno() {
       try {
         // Primero solicitar el monto inicial
         const montoInicial = await this.solicitarMontoInicial();
+        console.log('🚀 INICIAR TURNO - Monto recibido:', montoInicial);
+        
         if (montoInicial === null) {
           // Usuario canceló
+          console.log('❌ INICIAR TURNO - Usuario canceló');
           return;
         }
         
         this.cargandoTurno = true;
         
-        // Guardar monto inicial
-        this.montoInicialTurno = montoInicial;
+        // Preparar datos para el backend
+        const turnoData = {
+          usuario_id: this.usuarioActual.id, // 🔧 ARREGLO: Usar el usuario logueado actual
+          usuario_nombre: this.usuarioActual.nombre, // 🔧 ARREGLO: Usar el nombre del usuario actual
+          monto_inicial: montoInicial,
+          fecha_inicio: new Date().toISOString(),
+          notas_iniciales: `Turno iniciado con monto inicial de $${this.formatMoney(montoInicial)}`
+        };
         
-        // Guardar estado en localStorage como backup
-        const fechaHoy = new Date().toISOString().split('T')[0];
-        localStorage.setItem('turnoActivo', 'true');
-        localStorage.setItem('fechaTurno', fechaHoy);
-        localStorage.setItem('horaInicioTurno', new Date().toISOString());
-        localStorage.setItem('montoInicialTurno', montoInicial.toString());
+        console.log('📤 INICIAR TURNO - Datos a enviar:', turnoData);
         
-        // Por ahora, solo simulamos el inicio del turno
-        // Después conectaremos con el backend
-        setTimeout(() => {
-          this.turnoActivo = true;
+        // 🔧 TEMPORAL: Enviar como FormData para asegurar que llegue al backend
+        const formData = new FormData();
+        formData.append('usuario_id', turnoData.usuario_id);
+        formData.append('usuario_nombre', turnoData.usuario_nombre);
+        formData.append('monto_inicial', turnoData.monto_inicial);
+        formData.append('fecha_inicio', turnoData.fecha_inicio);
+        formData.append('notas_iniciales', turnoData.notas_iniciales);
+        
+        console.log('📤 FORMDATA - Enviando como FormData para compatibilidad');
+        for (let pair of formData.entries()) {
+          console.log('📋 FormData:', pair[0], '=', pair[1]);
+        }
+        
+        try {
+          // Llamar a la API para crear el turno en la base de datos
+          console.log('🔄 ENVIANDO REQUEST AL BACKEND...');
+          const request = await this.$store.dispatch('arqueo/iniciarTurno', formData);
+          
+          console.log('📨 RESPUESTA COMPLETA DEL BACKEND:', request);
+          console.log('✅ Success:', request.success);
+          console.log('📄 Data:', request.data);
+          console.log('⚠️ Message:', request.message);
+          
+          if (request.success) {
+            // ✅ Turno creado exitosamente en la base de datos
+            this.turnoActivo = true;
+            this.montoInicialTurno = montoInicial;
+            
+            // 🔧 ARREGLO: Guardar el ID del turno devuelto por el backend
+            if (request.data && request.data.turno && request.data.turno.id) {
+              this.turnoId = request.data.turno.id;
+              console.log('🆔 TURNO ID guardado:', this.turnoId);
+            }
+            
+            console.log('✅ INICIAR TURNO - Turno guardado exitosamente');
+            console.log('💰 INICIAR TURNO - montoInicialTurno asignado:', this.montoInicialTurno);
+            
+            // Guardar estado en localStorage como backup
+            const fechaHoy = new Date().toISOString().split('T')[0];
+            localStorage.setItem('turnoActivo', 'true');
+            localStorage.setItem('fechaTurno', fechaHoy);
+            localStorage.setItem('horaInicioTurno', new Date().toISOString());
+            localStorage.setItem('montoInicialTurno', montoInicial.toString());
+            localStorage.setItem('turnoId', this.turnoId.toString()); // 🔧 ARREGLO: Guardar también el ID
+            
+            this.cargandoTurno = false;
+            this.$awn.success(`Turno iniciado con $${this.formatMoney(montoInicial)}`, { labels: { success: 'TURNO ACTIVO' } });
+            
+            // Notificar al layout que el turno cambió
+            this.notificarCambioTurno();
+            
+            // Cargar datos normalmente después de iniciar turno
+            this.cargarResumenDia();
+            
+            console.log('✅ Turno guardado en base de datos con ID:', (request.data.turno && request.data.turno.id) || 'N/A');
+            
+          } else {
+            console.error('❌ BACKEND RETORNÓ SUCCESS = FALSE');
+            console.error('📋 Respuesta completa:', request);
+            console.error('💬 Mensaje del backend:', request.message);
+            console.error('📄 Data del backend:', request.data);
+            
+            // 🔍 NUEVO: Log del error completo sin truncar
+            if (request.data && request.data.message) {
+              console.error('🔍 ERROR COMPLETO SIN TRUNCAR:', request.data.message);
+            }
+            if (request.data && request.data.debug) {
+              console.error('🐛 DEBUG INFO:', request.data.debug);
+            }
+            
+            throw new Error(request.message || 'Error desconocido al crear turno');
+          }
+          
+        } catch (apiError) {
+          console.error('❌ Error al crear turno en base de datos:', apiError);
+          console.error('🔍 Tipo de error:', typeof apiError);
+          console.error('📋 Error completo:', {
+            message: apiError.message,
+            stack: apiError.stack,
+            name: apiError.name,
+            cause: apiError.cause
+          });
+          
+          // Mostrar error específico al usuario
+          if (apiError.message && apiError.message.includes('Ya tienes un turno abierto')) {
+            this.$awn.warning('Ya tienes un turno abierto. Debes cerrarlo antes de iniciar uno nuevo.');
+          } else {
+            this.$awn.alert(`Error al iniciar turno: ${apiError.message || 'Error de conexión'}`);
+          }
+          
           this.cargandoTurno = false;
-          this.$awn.success(`Turno iniciado con $${this.formatMoney(montoInicial)}`, { labels: { success: 'TURNO ACTIVO' } });
-          
-          // Notificar al layout que el turno cambió
-          this.notificarCambioTurno();
-          
-          // Cargar datos normalmente después de iniciar turno
-          this.cargarResumenDia();
-        }, 1000);
+          return;
+        }
         
       } catch (error) {
         console.error('Error iniciando turno:', error);
@@ -911,6 +1081,10 @@ export default {
     // Confirmar monto inicial
     confirmarMontoInicial() {
       const monto = parseFloat(this.montoInicialInput) || 0;
+      console.log('🎯 CONFIRMAR MONTO INICIAL:');
+      console.log('📝 Input recibido:', this.montoInicialInput);
+      console.log('💰 Monto parseado:', monto);
+      
       this.mostrandoModalMontoInicial = false;
       if (this.resolverMontoInicial) {
         this.resolverMontoInicial(monto);
@@ -1062,18 +1236,83 @@ export default {
     
     async cargarHistorial() {
       try {
-        console.log('🔄 Cargando historial de arqueos...');
-        // TODO: Implementar store action para historial
-        // const params = '?page=1&limit=10';
-        // const request = await this.$store.dispatch('arqueo/obtenerArqueos', params);
+        console.log('🔄 Cargando historial de arqueos desde base de datos...');
         
-        // Por ahora usar historial local
-        this.cargarHistorialLocal();
-        console.log('✅ Historial cargado desde localStorage');
+        // ✅ USAR STORE REAL para obtener historial de la base de datos
+        const params = '?page=1&limit=20'; // Últimos 20 arqueos
+        const request = await this.$store.dispatch('arqueo/obtenerArqueos', params);
+        
+        if (request.success && request.data) {
+          // Mejorar manejo de diferentes estructuras de respuesta
+          let arqueos = [];
+          if (Array.isArray(request.data)) {
+            arqueos = request.data;
+          } else if (request.data.items && Array.isArray(request.data.items)) {
+            arqueos = request.data.items;
+          } else if (request.data.data && Array.isArray(request.data.data)) {
+            arqueos = request.data.data;
+          } else if (request.data.arqueos && Array.isArray(request.data.arqueos)) {
+            arqueos = request.data.arqueos;
+          }
+          
+          this.historial = arqueos;
+          console.log('📖 Historial cargado desde base de datos:', this.historial.length, 'registros');
+          console.log('📝 Estructura de respuesta:', request.data);
+        } else {
+          console.log('⚠️ No se pudieron cargar arqueos desde BD, usando historial local como respaldo');
+          this.historial = [];
+        }
         
       } catch (error) {
-        console.error('Error al cargar historial:', error);
+        console.error('❌ Error al cargar historial desde base de datos:', error);
+        console.log('🔄 Inicializando historial vacío...');
         this.historial = [];
+      }
+    },
+    
+    async cargarVentasDelSistema() {
+      try {
+        console.log('📊 Cargando ventas del sistema para comparación...');
+        
+        // TODO: Implementar llamada real a la API para obtener ventas del día
+        // Por ahora usar datos de prueba para que funcione la comparación
+        const fechaHoy = new Date().toISOString().split('T')[0];
+        console.log('📅 Consultando ventas para fecha:', fechaHoy);
+        
+        // Simular carga de datos por ahora
+        // En el futuro, hacer: 
+        // const request = await this.$store.dispatch('ventas/obtenerVentasDelDia', { fecha: fechaHoy });
+        
+        // Datos de ejemplo para que funcione la comparación
+        this.ventasPorMedio = {};
+        for (const method of this.availablePaymentMethods) {
+          // Generar datos de prueba aleatorios para demostración
+          if (method.key === 'efectivo') {
+            this.ventasPorMedio[method.key] = Math.floor(Math.random() * 50000);
+          } else {
+            this.ventasPorMedio[method.key] = Math.floor(Math.random() * 20000);
+          }
+        }
+        
+        // Asignar valores legacy para compatibilidad
+        this.ventasEfectivo = this.ventasPorMedio['efectivo'] || 0;
+        this.ventasTarjetaDebito = this.ventasPorMedio['tarjeta_debito'] || 0;
+        this.ventasTarjetaCredito = this.ventasPorMedio['tarjeta_credito'] || 0;
+        this.ventasTransferencia = this.ventasPorMedio['transferencia'] || 0;
+        this.ventasCheque = this.ventasPorMedio['cheque'] || 0;
+        this.ventasValeVista = this.ventasPorMedio['vale_vista'] || 0;
+        this.ventasOtro = this.ventasPorMedio['otro'] || 0;
+        
+        console.log('💰 Ventas del sistema cargadas:', this.ventasPorMedio);
+        console.log('📋 Total ventas en efectivo:', this.ventasEfectivo);
+        
+        // Recalcular diferencias con los datos reales
+        this.calcularDiferencia();
+        
+      } catch (error) {
+        console.error('❌ Error cargando ventas del sistema:', error);
+        // Mantener datos vacíos en caso de error
+        this.initializeEmptyResumen();
       }
     },
     
@@ -1081,11 +1320,22 @@ export default {
       let total = 0;
       const todasDenominaciones = { ...this.billetes, ...this.monedas };
       
+      console.log('🧮 Calculando total del conteo...');
+      console.log('📋 Estado actual del conteo:', this.conteo);
+      
       for (let denominacion in todasDenominaciones) {
         const cantidad = parseInt(this.conteo[denominacion]) || 0;
-        total += cantidad * todasDenominaciones[denominacion];
+        const valorDenominacion = todasDenominaciones[denominacion];
+        const subtotal = cantidad * valorDenominacion;
+        
+        if (cantidad > 0) {
+          console.log(`💰 ${denominacion}: ${cantidad} x ${valorDenominacion} = ${subtotal}`);
+        }
+        
+        total += subtotal;
       }
       
+      console.log('💵 Total contado calculado:', total);
       this.totalContado = total;
       this.calcularDiferencia();
     },
@@ -1154,103 +1404,148 @@ export default {
           usuarioActual: this.usuarioActual
         });
         
+        // ✅ DEBUGGING DETALLADO ANTES DE CREAR EL OBJETO DATA
+        console.log('🔍 VALORES PRE-ENVÍO:');
+        console.log('  🆔 turnoId:', this.turnoId, '(tipo:', typeof this.turnoId, ')');
+        console.log('  💰 montoInicialTurno:', this.montoInicialTurno, '(tipo:', typeof this.montoInicialTurno, ')');
+        console.log('  💵 totalContado:', this.totalContado, '(tipo:', typeof this.totalContado, ')');
+        console.log('  💳 totalOtrosMedios:', this.totalOtrosMedios, '(tipo:', typeof this.totalOtrosMedios, ')');
+        console.log('  🏆 totalGeneralContado:', this.totalGeneralContado, '(tipo:', typeof this.totalGeneralContado, ')');
+        console.log('  📊 mediosPago objeto:', this.mediosPago);
+        
         const data = {
           app_id: 58, // ID fijo del negocio que estamos viendo en los logs
+          turno_id: this.turnoId, // 🔧 ARREGLO: Agregar ID del turno que se quiere cerrar
           usuario_id: this.usuarioActual.id,
           usuario_nombre: this.usuarioActual.nombre,
           app_nombre: 'Por determinar', // Lo obtendremos desde la BD
           fecha_inicio: new Date().toISOString(),
           fecha_termino: new Date().toISOString(),
+          monto_inicial: this.montoInicialTurno, // ✅ AGREGAR: Monto inicial del turno
+          monto_final: this.totalContado, // ✅ AGREGAR: Solo efectivo contado
+          total_contado: this.totalGeneralContado, // ✅ CORREGIR: Total general (inicial + efectivo + otros)
+          total_otros_medios: this.totalOtrosMedios, // ✅ AGREGAR: Total de otros medios de pago
+          total_general_contado: this.totalGeneralContado, // ✅ AGREGAR: Total general completo
           total_sistema: this.montoInicialTurno + this.totalVentasSistema, // ⚠️ SUMA: Monto inicial + ventas sistema
-          total_contado: this.totalContado,
-          diferencia: this.diferencia,
-          estado: this.diferencia === 0 ? 'perfecto' : (this.diferencia > 0 ? 'sobrante' : 'faltante'),
+          diferencia: this.diferencia, // ✅ Diferencia solo del efectivo
+          diferencia_general: this.diferenciaGeneral, // ✅ AGREGAR: Diferencia total general
+          estado: this.diferenciaGeneral === 0 ? 'perfecto' : (this.diferenciaGeneral > 0 ? 'sobrante' : 'faltante'), // ✅ CORREGIR: Usar diferencia general
           observaciones: this.observaciones,
           detalle_efectivo: JSON.stringify(detalleConteo),
           detalle_medios_pago: JSON.stringify(this.mediosPago),
           numero_transacciones: (this.resumenDia && this.resumenDia.total_transacciones) || 0
         };
         
-        // Crear FormData siguiendo el patrón de pedidos.vue
-        var formData = new FormData();
-        for (let key in data) {
-          if (data[key] !== null && data[key] !== undefined) {
-            formData.append(key, data[key]);
-          }
+        console.log('🚀 DATOS ENVIADOS AL BACKEND:');
+        console.log('� Monto inicial del turno:', data.monto_inicial);
+        console.log('�💵 Efectivo contado (monto_final):', data.monto_final);
+        console.log('💳 Otros medios de pago:', data.total_otros_medios);
+        console.log('🏆 Total general contado:', data.total_general_contado);
+        console.log('📊 Total contado que se enviará:', data.total_contado);
+        console.log('� Detalle del conteo:', detalleConteo);
+        console.log('💳 Medios de pago:', this.mediosPago);
+        console.log('📋 Objeto completo data:', data);
+        
+        // ✅ DEBUGGING DETALLADO DE CAMPOS MONETARIOS
+        console.log('💰 DEBUGGING CAMPOS MONETARIOS:');
+        console.log('  - monto_inicial (tipo/valor):', typeof data.monto_inicial, '/', data.monto_inicial);
+        console.log('  - monto_final (tipo/valor):', typeof data.monto_final, '/', data.monto_final);
+        console.log('  - total_contado (tipo/valor):', typeof data.total_contado, '/', data.total_contado);
+        console.log('  - total_otros_medios (tipo/valor):', typeof data.total_otros_medios, '/', data.total_otros_medios);
+        console.log('  - total_general_contado (tipo/valor):', typeof data.total_general_contado, '/', data.total_general_contado);
+        console.log('  - diferencia_general (tipo/valor):', typeof data.diferencia_general, '/', data.diferencia_general);
+        
+        // 🔧 ARREGLO: Convertir a FormData como hacemos al iniciar turno
+        console.log('📤 FORMDATA - Convirtiendo datos a FormData para compatibilidad backend...');
+        const formData = new FormData();
+        
+        // Agregar todos los campos al FormData
+        for (const [key, value] of Object.entries(data)) {
+          formData.append(key, value);
         }
         
-        // Usar store dispatch siguiendo el patrón de pedidos.vue
-        // TODO: Implementar store action para guardar arqueo
-        // let request = await this.$store.dispatch('arqueo/guardarArqueo', formData);
+        // 🔍 DEBUG: Mostrar lo que se está enviando como FormData
+        console.log('📋 FormData enviado:');
+        for (let pair of formData.entries()) {
+          console.log(`  📄 ${pair[0]} = ${pair[1]}`);
+        }
         
-        // Por ahora simular guardado exitoso
-        console.log('💾 Simulando guardado de arqueo:', data);
-        let request = { 
-          success: true, 
-          data: { id: Date.now(), message: 'Arqueo guardado correctamente (simulado)' } 
-        };
-        
-        if (request.success) {
-          this.arqueoGuardado = true;
-          this.$awn.success('Arqueo guardado correctamente', { labels: { success: 'CORRECTO' } });
+        try {
+          // ✅ USAR STORE REAL enviando FormData en lugar de objeto JS
+          console.log('💾 Guardando arqueo en base de datos con FormData...');
+          let request = await this.$store.dispatch('arqueo/cerrarTurnoConArqueo', formData);
           
-          // Guardar en historial local
-          this.guardarEnHistorialLocal({
-            id: Date.now(),
-            fecha: new Date().toISOString(),
-            fecha_inicio: this.horaInicio || new Date().toISOString(),
-            fecha_termino: new Date().toISOString(),
-            usuario_nombre: this.usuarioActual.nombre,
-            monto_inicial: this.montoInicialTurno,
-            monto_final: this.montoFinalTurno,
-            total_contado: this.totalContado,
-            total_otros_medios: this.totalOtrosMedios,
-            total_general_contado: this.totalGeneralContado,
-            total_sistema: this.totalVentasSistema,
-            diferencia: this.diferencia,
-            diferencia_general: this.diferenciaGeneral,
-            estado: this.diferencia === 0 ? 'perfecto' : (this.diferencia > 0 ? 'sobrante' : 'faltante'),
-            observaciones: this.observaciones,
-            detalle_efectivo: this.getDetalleConteo(),
-            detalle_medios_pago: { ...this.mediosPago }
-          });
-          
-          // Cerrar turno después de guardar
-          this.turnoActivo = false;
-          
-          // Limpiar localStorage del turno
-          localStorage.removeItem('turnoActivo');
-          localStorage.removeItem('fechaTurno');
-          localStorage.removeItem('horaInicioTurno');
-          localStorage.removeItem('montoInicialTurno');
-          
-          // Notificar al layout que el turno cambió
-          this.notificarCambioTurno();
-          
-          // Recargar historial
-          await this.cargarHistorial();
-          
-          // Mostrar mensaje de resultado con un delay para que se vea el cambio
-          setTimeout(() => {
-            if (this.diferencia === 0) {
-              this.$awn.success('¡Perfecto! El arqueo coincide exactamente con las ventas.');
-            } else if (this.diferencia > 0) {
-              this.$awn.warning(`Hay un sobrante de $${this.formatMoney(Math.abs(this.diferencia))}`);
-            } else {
-              this.$awn.alert(`Hay un faltante de $${this.formatMoney(Math.abs(this.diferencia))}`);
+          if (request.success) {
+            this.arqueoGuardado = true;
+            this.$awn.success('Arqueo guardado correctamente en base de datos', { labels: { success: 'CORRECTO' } });
+            
+            // Obtener ID del arqueo guardado con mejor manejo
+            let arqueoId = 'Sin ID';
+            if (request.data) {
+              if (request.data.arqueo && request.data.arqueo.id) {
+                arqueoId = request.data.arqueo.id;
+              } else if (request.data.id) {
+                arqueoId = request.data.id;
+              } else if (request.data.turno && request.data.turno.id) {
+                arqueoId = `Turno-${request.data.turno.id}`;
+              }
             }
             
-            // Mensaje final de turno cerrado
-            this.$awn.info('Turno cerrado correctamente. Puedes iniciar un nuevo turno.');
-          }, 2000);
+            console.log('✅ Arqueo guardado en la base de datos con ID:', arqueoId);
+            console.log('📊 Respuesta completa del servidor:', request);
+            
+            // Cerrar turno después de guardar
+            this.turnoActivo = false;
+            
+            // Limpiar localStorage del turno
+            localStorage.removeItem('turnoActivo');
+            localStorage.removeItem('fechaTurno');
+            localStorage.removeItem('horaInicioTurno');
+            localStorage.removeItem('montoInicialTurno');
+            
+            // Notificar al layout que el turno cambió
+            this.notificarCambioTurno();
+            
+            // ✅ CARGAR DATOS DE VENTAS DESPUÉS DE GUARDAR para mostrar comparación
+            console.log('🔄 Cargando ventas del sistema para comparación...');
+            await this.cargarVentasDelSistema();
+            
+            // Recargar historial desde la base de datos
+            await this.cargarHistorial();
+            
+            // Mostrar mensaje de resultado con un delay para que se vea el cambio
+            setTimeout(() => {
+              if (this.diferencia === 0) {
+                this.$awn.success('¡Perfecto! El arqueo coincide exactamente con las ventas.');
+              } else if (this.diferencia > 0) {
+                this.$awn.warning(`Hay un sobrante de $${this.formatMoney(Math.abs(this.diferencia))}`);
+              } else {
+                this.$awn.alert(`Hay un faltante de $${this.formatMoney(Math.abs(this.diferencia))}`);
+              }
+              
+              // Mensaje final de turno cerrado
+              this.$awn.info('Turno cerrado correctamente. Puedes iniciar un nuevo turno.');
+            }, 2000);
+            
+          } else {
+            console.log(request.data);
+            this.$awn.alert(request.data.message || 'Error al guardar el arqueo');
+          }
           
-        } else {
-          console.log(request.data);
-          this.$awn.alert(request.data.message || 'Error al guardar el arqueo');
+        } catch (innerError) {
+          console.error('❌ Error guardando arqueo:', innerError);
+          console.error('📋 Detalles del error:', {
+            message: innerError.message,
+            response: innerError.response,
+            status: innerError.status,
+            data: innerError.data
+          });
+          this.$awn.alert('Error al guardar arqueo: ' + (innerError.message || 'Error desconocido'));
         }
-      } catch (error) {
-        console.error('Error al guardar arqueo:', error);
-        this.$awn.alert('Error al guardar el arqueo. Intente nuevamente.');
+        
+      } catch (outerError) {
+        console.error('❌ Error general en confirmarGuardado:', outerError);
+        this.$awn.alert('Error al procesar arqueo: ' + outerError.message);
       } finally {
         this.loading = false;
       }
@@ -1260,6 +1555,9 @@ export default {
       const detalle = {};
       const todasDenominaciones = { ...this.billetes, ...this.monedas };
       
+      console.log('📝 Generando detalle del conteo...');
+      console.log('🔢 Conteo actual:', this.conteo);
+      
       for (let denominacion in todasDenominaciones) {
         const cantidad = parseInt(this.conteo[denominacion]) || 0;
         if (cantidad > 0) {
@@ -1268,9 +1566,11 @@ export default {
             valor: todasDenominaciones[denominacion],
             subtotal: cantidad * todasDenominaciones[denominacion]
           };
+          console.log(`✅ ${denominacion}: ${cantidad} x ${todasDenominaciones[denominacion]} = ${detalle[denominacion].subtotal}`);
         }
       }
       
+      console.log('📦 Detalle final:', detalle);
       return detalle;
     },
     

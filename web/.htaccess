@@ -1,3 +1,8 @@
-RewriteEngine On
-RewriteCond %{HTTPS} on
-RewriteRule ^(.*)$ http://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# Comentadas las reglas que causan bucle de redirección
+# RewriteEngine On
+# RewriteCond %{HTTPS} on
+# RewriteRule ^(.*)$ http://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Configuración básica para Apache
+Options -Indexes
+DirectoryIndex index.html index.htm

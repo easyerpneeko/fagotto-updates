@@ -358,6 +358,7 @@ Route::group(['middleware' => ['AppSecurity']], function () {
             Route::get('/local/sells/report', 'Controllers_local\SellsController@getReportSells');
 
             // SISTEMA DE TURNOS Y ARQUEO DE CAJA
+            Route::post('/local/turno/crear-tabla', 'Controllers_local\ArqueoCajaController@crearTablaTurnos'); // TEMPORAL
             Route::get('/local/turno/estado', 'Controllers_local\ArqueoCajaController@estadoTurno');
             Route::post('/local/turno/iniciar', 'Controllers_local\ArqueoCajaController@iniciarTurno');
             Route::post('/local/turno/cerrar', 'Controllers_local\ArqueoCajaController@cerrarTurnoConArqueo');

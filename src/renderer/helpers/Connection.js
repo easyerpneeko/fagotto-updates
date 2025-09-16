@@ -70,11 +70,15 @@ export default class Connection {
       method = 'post';
     }
 
-    if (!headers)
-      headers = {
-        //'Content-Type': (isFormData) ? 'multipart/form-data' : 'application/json',
-        ...headerAuth
-      };
+    if (!headers) {
+      headers = {};
+      // 🔧 IMPORTANTE: Para FormData, NO establecer Content-Type manualmente
+      // El navegador lo establece automáticamente con el boundary correcto
+      if (!isFormData) {
+        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      }
+      headers = { ...headers, ...headerAuth };
+    }
 
 
 

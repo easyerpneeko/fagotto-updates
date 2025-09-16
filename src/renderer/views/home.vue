@@ -102,14 +102,13 @@ export default {
     return {
       xml_string: null,
       app_id: 0,
-      turnoActivo: false,
       cargandoNavegacion: false,
     }
   },
   async mounted() {
     console.log('🏠 HOME: USUARIO LOGUEADO', this.me);
-    // Verificar estado del turno al cargar el home
-    this.verificarEstadoTurno();
+    // Verificar estado del turno desde la base de datos (no localStorage)
+    await this.verificarEstadoTurno();
   },
   computed: {
     offOn: {
@@ -126,6 +125,11 @@ export default {
       if (hora < 12) return 'Buenos días';
       if (hora < 18) return 'Buenas tardes';
       return 'Buenas noches';
+    },
+
+    // ✅ NUEVO: Obtener estado del turno desde el store (base de datos)
+    turnoActivo() {
+      return this.$store.getters['arqueo/turnoActivo'];
     }
 
   },
@@ -139,36 +143,31 @@ export default {
       return request;
     },
 
-    // Verificar si hay un turno activo
-    verificarEstadoTurno() {
+    // ✅ NUEVO: Verificar estado del turno desde la BASE DE DATOS
+    async verificarEstadoTurno() {
       try {
-        const turnoLocal = localStorage.getItem('turnoActivo');
-        const fechaLocal = localStorage.getItem('fechaTurno');
-        const fechaHoy = new Date().toISOString().split('T')[0];
+        console.log('🏠 HOME: Verificando estado del turno en la base de datos...');
         
-        // Limpiar turnos de días anteriores automáticamente
-        if (fechaLocal && fechaLocal !== fechaHoy) {
-          console.log('🏠 HOME: Limpiando turno de día anterior:', fechaLocal);
-          localStorage.removeItem('turnoActivo');
-          localStorage.removeItem('fechaTurno');
-          localStorage.removeItem('horaInicioTurno');
-          localStorage.removeItem('montoInicialTurno');
-          this.turnoActivo = false;
-          return;
-        }
+        // Llamar al action del store que consulta la API
+        const resultado = await this.$store.dispatch('arqueo/verificarEstadoTurno');
         
-        // Si hay un turno local del día de hoy, permitir acceso
-        if (turnoLocal === 'true' && fechaLocal === fechaHoy) {
-          this.turnoActivo = true;
-          console.log('🏠 HOME: ✅ Turno activo encontrado, acceso permitido');
+        if (resultado.success) {
+          console.log('🏠 HOME: ✅ Estado del turno obtenido:', resultado.data);
+          // El store ya actualiza automáticamente el estado
+          
+          if (this.turnoActivo) {
+            console.log('🏠 HOME: ✅ Turno activo, acceso permitido');
+          } else {
+            console.log('🏠 HOME: ❌ No hay turno activo, mostrando mensaje obligatorio');
+          }
         } else {
-          this.turnoActivo = false;
-          console.log('🏠 HOME: ❌ No hay turno activo, mostrando mensaje obligatorio');
+          console.log('🏠 HOME: ⚠️ Error consultando estado del turno:', resultado.message);
+          // En caso de error, asumir que no hay turno activo
         }
         
       } catch (error) {
         console.error('🏠 HOME: Error verificando estado del turno:', error);
-        this.turnoActivo = false;
+        // En caso de error, asumir que no hay turno activo
       }
     },
 

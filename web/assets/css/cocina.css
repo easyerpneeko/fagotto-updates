@@ -1,131 +1,460 @@
+/* Monitor de Cocina - FagottO */
 :root {
-  --bg: #000000;
-  --card-bg: #ffffff;
-  --card-ligth: rgb(37, 37, 37);
-  --card-text: #fff;
-  --text: #707070;
-
-  --primary: #0B4F6C;
-  --secondary: #6CCFF6;
-  --secondary-light: rgba(108, 207, 246, 0.6);
-  --tertiary: lightslategray;
-  --background-1: rgba(230, 230, 230, 1);
-  --primary-dark: #292F36;
-  --secondary-dark: #f5f9fc;
+  /* Colores principales */
+  --bg-primary: #f5f5f5;
+  --bg-white: #ffffff;
+  --bg-orange: #ff6b35;
+  --bg-orange-hover: #e55a2b;
+  
+  /* Colores de estado */
+  --status-yellow: #fbbf24;
+  --status-red: #b91c1c;
+  --status-gray: #6b7280;
+  
+  /* Textos */
+  --text-dark: #1f2937;
+  --text-gray: #6b7280;
+  --text-light: #9ca3af;
+  --text-white: #ffffff;
+  
+  /* Sombras */
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  
+  /* Bordes */
+  --border-radius: 16px;
+  --border-radius-lg: 20px;
 }
 
-body {
-  background-color: var(--bg);
-}
-
-.bodys-header {
-  background: #000000;
-  /* background: linear-gradient(135deg, rgba(20,20,20,1) 76%, rgba(100,106,111,1) 76%);  */
-}
-
-.bodys-header span {
-  position: absolute;
-  right: 10px;
-  top: 32px !important;
-}
-
-.card {
-  padding: 10px;
-  font-size: 12px;
-  font-family: 'Verdana';
-}
-
-.card-header {
-  padding: 24px;
-  padding-bottom: 15px;
-  border-radius: calc(.25rem - 1px) calc(.25rem - 1px) 0 0;
-  background: linear-gradient(to top, #001b8d, #120089, #012379);
-  color: white;
-}
-
-.card-header-emergency {
-  padding: 24px;
-  padding-bottom: 15px;
-  border-radius: calc(.25rem - 1px) calc(.25rem - 1px) 0 0;
-  background: linear-gradient(to top, #00c5e6, #00c2e4, #0085ce);
-  color: white;
-}
-
-.slick-carousel .card {
-  height: 400px; /* Altura por defecto */
+* {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
-.slick-carousel .slick-slide {
-  padding: 10px; /* Espaciado por defecto */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-dark);
+  line-height: 1.5;
+  padding: 0;
 }
 
-@media (max-width: 768px) {
-  .slick-carousel .card {
-      height: 300px; /* Ajusta la altura para resoluciones pequeñas */
-  }
-  .slick-carousel .slick-slide {
-      padding: 5px; /* Ajusta el espaciado para resoluciones pequeñas */
-  }
+/* Header estilo Fagotto */
+.bodys-header {
+  background: var(--bg-white);
+  padding: 1.5rem 2rem;
+  box-shadow: var(--shadow);
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-@media (max-width: 480px) {
-  .slick-carousel .card {
-      height: 250px; /* Ajusta la altura para resoluciones muy pequeñas */
-  }
-  .slick-carousel .slick-slide {
-      padding: 2px; /* Ajusta el espaciado para resoluciones muy pequeñas */
-  }
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  justify-content: center;
 }
 
-.card-header span {
-  margin-left: 5px;
+.header-titles {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
 }
 
+.header-logo {
+  height: 70px;
+  width: auto;
+}
+
+.monitor-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.local-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--bg-orange);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, var(--bg-orange), #e55a2b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.local-name i {
+  color: var(--bg-orange);
+  font-size: 1.4rem;
+  -webkit-text-fill-color: var(--bg-orange);
+}
+
+.server-date {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-gray);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+.server-date i {
+  color: var(--text-gray);
+  font-size: 1rem;
+}
+
+.status-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.status-btn.active {
+  color: var(--text-white);
+}
+
+.status-btn.kitchen {
+  background: var(--bg-orange);
+  color: var(--text-white);
+}
+
+.status-btn.secondary {
+  background: var(--text-gray);
+  color: var(--text-white);
+}
+
+.status-btn.secondary:hover {
+  background: var(--text-dark);
+}
+
+.status-btn.danger {
+  background: #ef4444;
+  color: var(--text-white);
+}
+
+.status-btn.danger:hover {
+  background: #dc2626;
+}
+
+.toggle-switches {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  margin-left: auto;
+}
+
+.switch-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-gray);
+}
+
+/* Container principal */
+.container-fluid {
+  padding: 1.5rem;
+}
+
+/* Grid de tarjetas horizontal con scroll */
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  scroll-behavior: smooth;
+}
+
+.row::-webkit-scrollbar {
+  height: 6px;
+}
+
+.row::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.row::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.row::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Tarjetas estilo FagottO */
+.order-card {
+  background: var(--bg-white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow);
+  padding: 0;
+  min-width: 280px;
+  max-width: 320px;
+  flex-shrink: 0;
+  margin: 0 0.5rem;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.order-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Header de la tarjeta */
+.card-header {
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.card-logo-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+}
+
+.card-fagotto-logo {
+  height: 40px;
+  width: auto;
+  opacity: 0.6;
+  filter: grayscale(0.2);
+  transition: all 0.3s ease;
+}
+
+.card-fagotto-logo:hover {
+  opacity: 0.8;
+  filter: grayscale(0);
+}
+
+.location-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.location-name {
+  font-size: 0.875rem;
+  color: var(--text-gray);
+}
+
+.table-info {
+  font-size: 0.875rem;
+  color: var(--text-gray);
+}
+
+.people-count {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-gray);
+}
+
+.order-number {
+  font-size: 0.875rem;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+}
+
+/* Cuerpo de la tarjeta */
 .card-body {
-  font-size: 14px;
+  padding: 1rem;
 }
 
-.card-body ul {
+.order-items {
+  list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.card-body ul li {
-  padding-top: 7px;
-  padding-bottom: 7px;
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
 }
 
-.card-body ul li b {
-  /* font-size: 18px; */
+.order-item:last-child {
+  border-bottom: none;
 }
 
+.item-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.item-quantity {
+  background: #f3f4f6;
+  color: var(--text-dark);
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+.item-name {
+  font-size: 0.875rem;
+  color: var(--text-dark);
+  font-weight: 500;
+}
+
+.item-status {
+  font-size: 0.75rem;
+  color: var(--text-gray);
+  background: #f9fafb;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* Footer de la tarjeta - Botón naranja */
 .card-footer {
-  background-color: #e5e5e5;
+  padding: 0;
+  background: transparent;
+  border: none;
 }
 
-.col-md-3 {
-  margin-top: 15px;
+.complete-btn {
+  width: 100%;
+  background: var(--bg-orange);
+  color: var(--text-white);
+  border: none;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
 }
 
-.bg-primary {
-  background-color: var(--primary);
-  color: white !important;
+.complete-btn:hover {
+  background: var(--bg-orange-hover);
 }
 
-/* 
-.item-a {
-  grid-row: 1 / 3;
+.complete-btn:active {
+  transform: scale(0.98);
 }
- 
-.item-b {
-  grid-column: 3 / 5;
+
+/* Estados especiales */
+.order-card.urgent {
+  border-left: 4px solid var(--status-red);
 }
- 
-.item-c {
-  grid-row: 2 / 4;
+
+.order-card.delayed {
+  border-left: 4px solid var(--status-yellow);
 }
- 
-.item-d {
-  grid-column: 3 / 5;
-} */
+
+/* Switch toggle */
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: #d1d5db;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.toggle-switch.active {
+  background: var(--bg-orange);
+}
+
+.toggle-switch::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+
+.toggle-switch.active::before {
+  transform: translateX(20px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .bodys-header {
+    padding: 1rem;
+  }
+  
+  .toggle-switches {
+    margin-left: 0;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .container-fluid {
+    padding: 1rem;
+  }
+  
+  .order-card {
+    min-width: 260px;
+  }
+}
+
+@media (max-width: 480px) {
+  .row {
+    gap: 0.5rem;
+  }
+  
+  .order-card {
+    min-width: 240px;
+  }
+  
+  .status-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Animaciones */
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading state */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}

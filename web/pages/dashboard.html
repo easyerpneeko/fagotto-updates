@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EASY REPORTES - Dashboard Moderno</title>
+    <title>FagottoERP - Dashboard Moderno</title>
+    <link rel="icon" type="image/x-icon" href="../assets/css/negro.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
         integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -390,6 +391,14 @@
 
         .kpi-card.facturas-totales .kpi-icon {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .kpi-card.total-facturado {
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.03) 0%, rgba(101, 50, 14, 0.03) 100%);
+        }
+
+        .kpi-card.total-facturado .kpi-icon {
+            background: linear-gradient(135deg, #8b4513 0%, #65320e 100%);
         }
 
         /* Responsive para KPIs */
@@ -1217,10 +1226,6 @@
                                             <i class="fa-solid fa-file-invoice-dollar"></i>
                                             Ventas
                                         </a>
-                                        <a class="nav-link-sub" href="./arqueo_caja.html">
-                                            <i class="fas fa-cash-register"></i>
-                                            Arqueo de Caja
-                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -1293,70 +1298,19 @@
                                         Tablero
                                     </a>
                                 </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="./garzones.html">
-                                        <i class="fas fa-user"></i>
-                                        Garzones
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="./cocinafagotto.html">
-                                        <i class="fas fa-utensils"></i>
-                                        Cocina
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="./cocina/cocina2.html">
-                                        <i class="fa-solid fa-ticket"></i>
-                                        Ordenes
-                                    </a>
-                                </li>
+                               
+                            
                                 <li class="nav-item">
                                     <a class="nav-link" href="./pedidos.html">
                                         <i class="fas fa-box"></i>
                                         Pedidos
                                     </a>
                                 </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="./pedidos_reposteria.html">
-                                        <i class="fas fa-birthday-cake"></i>
-                                        Pedidos Repostería
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="./cobros.html">
-                                        <i class="fa-solid fa-file-invoice-dollar"></i>
-                                        Cobros
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="./arqueo_caja.html">
-                                        <i class="fas fa-cash-register"></i>
-                                        Arqueo de Caja
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="./danielys/index.php">
-                                        <i class="fa-solid fa-registered"></i>
-                                        Registro Empresas
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="./stock.html">
-                                        <i class="fa-solid fa-bottle-droplet"></i>
-                                        Stock Salsas
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="./stock_products.html">
-                                        <i class="fa-solid fa-boxes-stacked"></i>
-                                        Stock Productos
-                                    </a>
-                                </li>
+                               
                                 <li class="nav-item">
                                     <a class="nav-link" href="./sells.html">
                                         <i class="fa-solid fa-file-invoice-dollar"></i>
-                                        Ventas
+                                        Ventas Globales
                                     </a>
                                 </li>
                             </ul>
@@ -1404,13 +1358,6 @@
                         <div>
                             <h1 class="h2 mb-1 text-gradient">Dashboard Ejecutivo</h1>
                             <p class="text-muted mb-0">Análisis de rendimiento en tiempo real</p>
-                            <!-- Indicador de filtro activo -->
-                            <div id="filtro-activo" class="mt-2" style="display: none;">
-                                <span class="badge bg-primary">
-                                    <i class="fas fa-calendar-alt"></i>
-                                    <span id="texto-filtro">Filtrando datos...</span>
-                                </span>
-                            </div>
                         </div>
                     </div>
                     
@@ -1505,6 +1452,21 @@
                             <div class="kpi-label">Monto Total General</div>
                         </div>
                     </div>
+                    
+                    <div class="kpi-card total-facturado">
+                        <div class="kpi-trend">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <div class="kpi-header">
+                            <div class="kpi-icon">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="kpi-total-facturado">$0</div>
+                            <div class="kpi-label">Total Facturado</div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- FRANQUICIAS -->
@@ -1596,11 +1558,6 @@
                     <div class="card-header-modern">
                         <i class="fas fa-file-invoice"></i>
                         <h5>Fagotto Facturación</h5>
-                        <div class="card-header-actions">
-                            <a href="facturas_sucursal.html" class="btn btn-primary btn-sm">
-                                <i class="fas fa-search me-1"></i>Ver Facturas por Sucursal
-                            </a>
-                        </div>
                     </div>
                     <div class="card-body-modern">
                         <div class="table-responsive">
@@ -1616,20 +1573,20 @@
                                             RUT
                                         </th>
                                         <th scope="col">
+                                            <i class="fas fa-dollar-sign"></i>
+                                            Monto
+                                        </th>
+                                        <th scope="col">
                                             <i class="fas fa-file-pdf"></i>
-                                            Documento
+                                            PDF
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody id="tabla-counters-facturacion-tbody">
                                     <tr>
-                                        <td>Razón Social S.P.A</td>
-                                        <td>77777777-7</td>
-                                        <td>
-                                            <span class="badge bg-primary">
-                                                <i class="fas fa-file-pdf"></i>
-                                                Documento PDF
-                                            </span>
+                                        <td colspan="4" class="text-center">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            CARGANDO...
                                         </td>
                                     </tr>
                                 </tbody>
@@ -1649,21 +1606,7 @@
                     </div>
                 </div>
 
-                <!-- STOCK DE SALSAS -->
-                <div class="content-card fade-in">
-                    <div class="card-header-modern">
-                        <i class="fas fa-bottle-droplet"></i>
-                        <h5>Control de Stock - Salsas</h5>
-                    </div>
-                    <div class="card-body-modern">
-                        <div id="tablas-container-salsas">
-                            <div class="text-center">
-                                <i class="fas fa-spinner fa-spin"></i>
-                                Cargando información de stock...
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            
 
                 <!-- PEDIDOS -->
                 <div class="content-card fade-in">
@@ -1691,17 +1634,6 @@
     <script src="../assets/js/dashboard-kpis.js"></script>
     <script src="../assets/js/dashboard.js"></script>
     <script src="../assets/js/cocinafagotto.js"></script>
-    <!-- 
-    ========================================
-    DEBUG: Si los filtros de fecha no funcionan
-    ========================================
-    1. Abre la consola del navegador (F12)
-    2. Selecciona una fecha en el filtro
-    3. Haz clic en "Buscar"
-    4. Revisa los logs en la consola para ver dónde falla
-    5. También puedes ejecutar: checkDashboardKPIs() en la consola
-    ========================================
-    -->
     <script>
         (!_store().serial.isset()) ? window.location.href = "../index.html" : "";
 

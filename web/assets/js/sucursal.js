@@ -336,44 +336,18 @@ async function getCounters(startDate, endDate) {
                     `;
                 }
 
-                if (counters[0].quantityTotal !== undefined) {
-                    tablaCounters.innerHTML += `
-                    <tr>
-                        <td>Unidades Totales</td>
-                        <td>${counters[0].quantityTotal}</td>
-                    </tr>
-                    `;
-                }
-
                 // ... Se repite el código para cada variable ...
-
-                if (counters[0].typeProducts !== undefined) {
-                    tablaCounters.innerHTML += `
-                    <tr>
-                        <td>Tipos De Productos</td>
-                        <td>${counters[0].typeProducts}</td>
-                    </tr>
-                    `;
-                }
 
                 if (counters[0].boleta !== undefined && counters[0].boleta !== null) {
                     tablaCounters.innerHTML += `
                     <tr>
-                        <td>Boleta</td>
+                        <td>Efectivo</td>
                         <td>$${counters[0].boleta}</td>
                     </tr>
                     `;
                 }
 
-                if (counters[0].efectivo !== undefined && counters[0].efectivo !== null) {
-                    tablaCounters.innerHTML += `
-                    <tr>
-                        <td>Efectivo</td>
-                        <td>$${counters[0].efectivo}</td>
-                    </tr>
-                    `;
-                }
-
+            
                 if (counters[0].debito !== undefined && counters[0].debito !== null) {
                     tablaCounters.innerHTML += `
                     <tr>
@@ -383,15 +357,7 @@ async function getCounters(startDate, endDate) {
                     `;
                 }
 
-                if (counters[0].cheque !== undefined && counters[0].cheque !== null) {
-                    tablaCounters.innerHTML += `
-                    <tr>
-                        <td>Cheque</td>
-                        <td>$${counters[0].cheque}</td>
-                    </tr>
-                    `;
-                }
-
+            
                 if (counters[0].banco !== undefined && counters[0].banco !== null) {
                     tablaCounters.innerHTML += `
                     <tr>
@@ -410,14 +376,7 @@ async function getCounters(startDate, endDate) {
                     `;
                 }
 
-                if (counters[0].multicaja !== undefined && counters[0].multicaja !== null) {
-                    tablaCounters.innerHTML += `
-                    <tr>
-                        <td>Multicaja</td>
-                        <td>$${counters[0].multicaja}</td>
-                    </tr>
-                    `;
-                }
+              
 
                 if (counters[0].sodexo !== undefined && counters[0].sodexo !== null) {
                     tablaCounters.innerHTML += `
@@ -433,15 +392,6 @@ async function getCounters(startDate, endDate) {
                     <tr>
                         <td>Amipass</td>
                         <td>$${counters[0].amipass}</td>
-                    </tr>
-                    `;
-                }
-
-                if (counters[0].convenio_empresa !== undefined && counters[0].convenio_empresa !== null) {
-                    tablaCounters.innerHTML += `
-                    <tr>
-                        <td>Convenio Empresa</td>
-                        <td>$${counters[0].convenio_empresa}</td>
                     </tr>
                     `;
                 }
@@ -482,16 +432,6 @@ async function getCounters(startDate, endDate) {
                     `;
                 }
 
-                // Agregar métodos de pago que faltaban
-                if (counters[0].nota_de_credito !== undefined && counters[0].nota_de_credito !== null) {
-                    tablaCounters.innerHTML += `
-                    <tr>
-                        <td>Nota de Crédito</td>
-                        <td>$${counters[0].nota_de_credito}</td>
-                    </tr>
-                    `;
-                }
-
                 if (counters[0].junaeb !== undefined && counters[0].junaeb !== null) {
                     tablaCounters.innerHTML += `
                     <tr>
@@ -528,51 +468,6 @@ async function getCounters(startDate, endDate) {
                     `;
                 }
 
-                if (counters[0].guia_despacho !== undefined && counters[0].guia_despacho !== null) {
-                    tablaCounters.innerHTML += `
-                    <tr>
-                        <td>Guía de Despacho</td>
-                        <td>$${counters[0].guia_despacho}</td>
-                    </tr>
-                    `;
-                }
-
-                if (counters[0].fastSells !== undefined && counters[0].fastSells !== null) {
-                    tablaCounters.innerHTML += `
-                    <tr>
-                        <td>Ventas Rápidas</td>
-                        <td>$${counters[0].fastSells}</td>
-                    </tr>
-                    `;
-                }
-
-                if (counters[0].noSii !== undefined && counters[0].noSii !== null) {
-                    tablaCounters.innerHTML += `
-                    <tr>
-                        <td>Sin SII</td>
-                        <td>$${counters[0].noSii}</td>
-                    </tr>
-                    `;
-                }
-
-                if (counters[0].factura !== undefined && counters[0].factura !== null) {
-                    tablaCounters.innerHTML += `
-                    <tr>
-                        <td>Factura</td>
-                        <td>$${counters[0].factura}</td>
-                    </tr>
-                    `;
-                }
-
-                if (counters[0].gananciaTotal !== undefined) {
-                    tablaCounters.innerHTML += `
-                    <tr>
-                        <td>Ganancia Total</td>
-                        <td>$${counters[0].gananciaTotal}</td>
-                    </tr>
-                    `;
-                }
-
                 if (counters[0].balanceTotal !== undefined) {
                     tablaCounters.innerHTML += `
                     <tr>
@@ -591,7 +486,10 @@ async function getCounters(startDate, endDate) {
                     `;
                 }
         }
-        getCounters()
+        getCounters();
+        
+        // ACTUALIZAR RESUMEN TOTAL
+        updateResumenTotal(startDate, endDate, counters);
 
         function getSellByHour(startDate, endDate) {
 
@@ -769,26 +667,15 @@ function downloadCustomExcel() {
 
     const selectedMethods = getSelectedPaymentMethods();
     
-    // Usar las fechas actuales del sistema - igual que en getCounters
-    let startDate, endDate;
+    // Obtener fechas del filtro actual del sistema
+    const startDateElement = document.getElementById('startDate');
+    const endDateElement = document.getElementById('endDate');
     
-    // Intentar obtener fechas de los inputs si existen
-    const startDateElement = document.getElementById('start_date') || document.getElementById('startDate');
-    const endDateElement = document.getElementById('end_date') || document.getElementById('endDate');
+    // USAR SIEMPRE las fechas del filtro, no defaults hardcodeados
+    const startDate = startDateElement?.value || getNowDate();
+    const endDate = (endDateElement?.value || getNowDate()) + ' 23:59:59';
     
-    if (startDateElement && startDateElement.value) {
-        startDate = startDateElement.value;
-    } else {
-        // CAMBIO: Buscar en el 7 de agosto donde SÍ están las ventas
-        startDate = '2025-08-07';
-    }
-    
-    if (endDateElement && endDateElement.value) {
-        endDate = endDateElement.value;
-    } else {
-        // CAMBIO: Buscar en el 7 de agosto donde SÍ están las ventas
-        endDate = '2025-08-07 23:59:59';
-    }
+    console.log('📅 FECHAS DEL FILTRO:', { startDate, endDate });
     
     // Usar el mismo endpoint que funciona para obtener datos - el de web
     const paymentParams = [
@@ -817,11 +704,11 @@ function downloadCustomExcel() {
         'efectivo=true'
     ].join('&');
     
-    // Usar el endpoint de ventas web que SÍ funciona
-    const url = generarURLApi(`/web/getAppSells?id=${id}&startDate=${startDate}&endDate=${endDate}&${paymentParams}`);
+    // Usar el endpoint de ventas web con parámetros de paginación para obtener todos los datos
+    const url = generarURLApi(`/web/getAppSells?id=${id}&startDate=${startDate}&endDate=${endDate}&${paymentParams}&per_page=10000&orderBy=created_at&orderBy_date=asc`);
     
-    console.log('🚀 INTENTANDO DESCARGAR EXCEL...');
-    console.log('📅 Fechas:', { startDate, endDate });
+    console.log('🚀 DESCARGANDO EXCEL CON FILTROS...');
+    console.log('📅 Fechas del filtro:', { startDate, endDate });
     console.log('🌐 URL:', url);
 
     __conection({
@@ -856,42 +743,12 @@ function downloadCustomExcel() {
             console.log('📋 TOTAL DE VENTAS PROCESADAS:', sells.length);
             
             if (sells.length === 0) {
-                console.log('❌ SIN VENTAS - Intentando con rango más amplio...');
-                
-                // ÚLTIMO RECURSO: buscar en TODO agosto
-                const urlBackup = generarURLApi(`/web/getAppSells?id=${id}&startDate=2025-08-01&endDate=2025-08-31 23:59:59&${paymentParams}`);
-                console.log('🔄 URL BACKUP (todo agosto):', urlBackup);
-                
-                __conection({
-                    url: urlBackup,
-                    header: credentials(),
-                    dev: true,
-                    method: 'GET'
-                }, {}, function (backupRequest) {
-                    console.log('🔄 RESPUESTA BACKUP:', backupRequest);
-                    
-                    const backupSells = [];
-                    if (Array.isArray(backupRequest)) {
-                        backupSells.push(...backupRequest);
-                    } else {
-                        for (const app in backupRequest) {
-                            if (backupRequest[app] && backupRequest[app].original && Array.isArray(backupRequest[app].original)) {
-                                backupSells.push(...backupRequest[app].original);
-                            }
-                        }
-                    }
-                    
-                    if (backupSells.length > 0) {
-                        console.log('🎉 ¡ENCONTRADAS VENTAS EN BACKUP!', backupSells.length);
-                        createExcelFromSells(backupSells, '2025-08-01', '2025-08-31');
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: '😭 Sin ventas en todo agosto',
-                            text: 'No se encontraron ventas en ningún período',
-                            confirmButtonText: 'OK'
-                        });
-                    }
+                console.log('❌ SIN VENTAS encontradas para el período seleccionado');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sin ventas en el período',
+                    text: `No se encontraron ventas entre ${startDate} y ${endDate.split(' ')[0]}`,
+                    confirmButtonText: 'OK'
                 });
                 return;
             }
@@ -924,20 +781,133 @@ function downloadCustomExcel() {
 function createExcelFromSells(sells, startDate, endDate) {
     console.log('📊 Creando Excel con datos:', { sells: sells.length, startDate, endDate });
     
-    // Verificar si es un rango de fechas o un solo día
+    // Siempre crear Excel con 2 hojas: Ventas + Ventas por Hora
+    createSimpleExcel(sells, startDate, endDate);
+}
+
+// Función para crear Excel simple con 2 hojas: Ventas + Ventas por Hora
+function createSimpleExcel(sells, startDate, endDate) {
+    console.log('📊 Creando Excel simplificado con 2 hojas...');
+    
+    // Calcular totales generales
+    const totalOrders = sells.length;
+    const totalAmount = sells.reduce((sum, sell) => sum + (parseFloat(sell.total) || 0), 0);
+    
+    // Determinar nombre del período
     const start = new Date(startDate);
-    const end = new Date(endDate.split(' ')[0]); // Quitar la hora para comparar solo fechas
+    const end = new Date(endDate.split(' ')[0]);
     const isDateRange = start.getTime() !== end.getTime();
+    const periodoNombre = isDateRange ? `${startDate}_${endDate.split(' ')[0]}` : startDate;
     
-    console.log('📅 Es rango de fechas:', isDateRange);
+    // Crear contenido Excel
+    let excelContent = `<?xml version="1.0"?>
+    <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+     xmlns:o="urn:schemas-microsoft-com:office:office"
+     xmlns:x="urn:schemas-microsoft-com:office:excel"
+     xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+     xmlns:html="http://www.w3.org/TR/REC-html40">
+     <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+      <Title>Reporte de Ventas ${periodoNombre}</Title>
+      <Author>Sistema Fagotto ERP</Author>
+      <Created>${new Date().toISOString()}</Created>
+     </DocumentProperties>
+     <ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
+      <WindowHeight>8000</WindowHeight>
+      <WindowWidth>15000</WindowWidth>
+      <WindowTopX>0</WindowTopX>
+      <WindowTopY>0</WindowTopY>
+      <ProtectStructure>False</ProtectStructure>
+      <ProtectWindows>False</ProtectWindows>
+     </ExcelWorkbook>
+     <Styles>
+      <Style ss:ID="Default" ss:Name="Normal">
+       <Alignment ss:Vertical="Bottom"/>
+       <Borders/>
+       <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000"/>
+       <Interior/>
+       <NumberFormat/>
+       <Protection/>
+      </Style>
+      <Style ss:ID="HeaderStyle">
+       <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+       <Borders>
+        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+       </Borders>
+       <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#FFFFFF" ss:Bold="1"/>
+       <Interior ss:Color="#366092" ss:Pattern="Solid"/>
+      </Style>
+      <Style ss:ID="DataStyle">
+       <Alignment ss:Vertical="Center"/>
+       <Borders>
+        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+       </Borders>
+       <Font ss:FontName="Calibri" ss:Size="10"/>
+      </Style>
+      <Style ss:ID="TotalStyle">
+       <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+       <Borders>
+        <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2"/>
+        <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+        <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+        <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="2"/>
+       </Borders>
+       <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#FFFFFF" ss:Bold="1"/>
+       <Interior ss:Color="#4CAF50" ss:Pattern="Solid"/>
+      </Style>
+     </Styles>
+     
+     <!-- HOJA 1: TODAS LAS VENTAS -->
+     <Worksheet ss:Name="Ventas">
+      <Table>
+       <Row>
+        <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">ID Venta</Data></Cell>
+        <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">Total</Data></Cell>
+        <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">Método de Pago</Data></Cell>
+        <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">Fecha y Hora</Data></Cell>
+       </Row>`;
+
+    // Agregar TODAS las ventas del período
+    sells.forEach(sell => {
+        excelContent += `
+       <Row>
+        <Cell ss:StyleID="DataStyle"><Data ss:Type="Number">${sell.id || 0}</Data></Cell>
+        <Cell ss:StyleID="DataStyle"><Data ss:Type="Number">${sell.total || 0}</Data></Cell>
+        <Cell ss:StyleID="DataStyle"><Data ss:Type="String">${sell.payment_method || 'N/A'}</Data></Cell>
+        <Cell ss:StyleID="DataStyle"><Data ss:Type="String">${sell.created_at || 'N/A'}</Data></Cell>
+       </Row>`;
+    });
+
+    // Fila de totales
+    excelContent += `
+       <Row>
+        <Cell ss:StyleID="TotalStyle"><Data ss:Type="String">TOTALES</Data></Cell>
+        <Cell ss:StyleID="TotalStyle"><Data ss:Type="Number">${totalAmount}</Data></Cell>
+        <Cell ss:StyleID="TotalStyle"><Data ss:Type="String">Órdenes: ${totalOrders}</Data></Cell>
+        <Cell ss:StyleID="TotalStyle"><Data ss:Type="String">${periodoNombre}</Data></Cell>
+       </Row>`;
+
+    excelContent += `
+      </Table>
+     </Worksheet>`;
     
-    if (isDateRange) {
-        // Crear Excel con múltiples hojas por día
-        createMultiDayExcel(sells, startDate, endDate);
-    } else {
-        // Crear Excel con una sola hoja
-        createSingleDayExcel(sells, startDate, endDate);
-    }
+    // HOJA 2: VENTAS POR HORA
+    excelContent += createVentasPorHoraSheet(sells, periodoNombre);
+    
+    excelContent += `
+    </Workbook>`;
+    
+    // Determinar nombre del archivo
+    const fileName = isDateRange ? 
+        `ventas_${startDate}_${endDate.split(' ')[0]}.xls` : 
+        `ventas_${startDate}.xls`;
+    
+    downloadExcelFile(excelContent, fileName, sells.length);
 }
 
 // Función para crear Excel de un solo día
@@ -1039,7 +1009,12 @@ function createSingleDayExcel(sells, startDate, endDate) {
 
     excelContent += `
       </Table>
-     </Worksheet>
+     </Worksheet>`;
+    
+    // NUEVA HOJA: VENTAS POR HORA
+    excelContent += createVentasPorHoraSheet(sells, startDate);
+    
+    excelContent += `
     </Workbook>`;
     
     downloadExcelFile(excelContent, `reporte_ventas_${startDate}_${endDate}.xls`, sells.length);
@@ -1167,6 +1142,11 @@ function createMultiDayExcel(sells, startDate, endDate) {
      </Worksheet>`;
     });
 
+    // AGREGAR HOJA DE RESUMEN DE VENTAS POR HORA (para múltiples días)
+    if (Object.keys(sellsByDay).length > 1) {
+        excelContent += createResumenVentasPorHora(sells, startDate, endDate);
+    }
+
     excelContent += `
     </Workbook>`;
     
@@ -1211,5 +1191,266 @@ function base64ToBlob(base64, mimeType) {
     } catch (error) {
         console.error('Error convirtiendo base64 a blob:', error);
         throw new Error('Error al convertir el archivo: ' + error.message);
+    }
+}
+
+// Función para crear hoja de Ventas por Hora
+function createVentasPorHoraSheet(sells, date) {
+    console.log('🕒 Creando análisis de ventas por hora...');
+    
+    // Agrupar ventas por hora
+    const ventasPorHora = {};
+    
+    // Inicializar todas las horas del día (6 AM a 11 PM)
+    for (let hora = 6; hora <= 23; hora++) {
+        const horaKey = `${hora.toString().padStart(2, '0')}:00-${(hora + 1).toString().padStart(2, '0')}:00`;
+        ventasPorHora[horaKey] = {
+            hora: horaKey,
+            cantidad: 0,
+            total: 0,
+            ventas: []
+        };
+    }
+    
+    // Procesar cada venta
+    sells.forEach(sell => {
+        if (sell.created_at) {
+            // Extraer hora de la fecha: "2025-09-10 14:30:25" -> hora = 14
+            const fechaHora = new Date(sell.created_at);
+            const hora = fechaHora.getHours();
+            
+            // Solo procesar horas de operación (6 AM a 11 PM)
+            if (hora >= 6 && hora <= 23) {
+                const horaKey = `${hora.toString().padStart(2, '0')}:00-${(hora + 1).toString().padStart(2, '0')}:00`;
+                
+                if (ventasPorHora[horaKey]) {
+                    ventasPorHora[horaKey].cantidad++;
+                    ventasPorHora[horaKey].total += parseFloat(sell.total) || 0;
+                    ventasPorHora[horaKey].ventas.push({
+                        id: sell.id,
+                        total: sell.total,
+                        hora: sell.created_at
+                    });
+                }
+            }
+        }
+    });
+    
+    console.log('📊 Ventas agrupadas por hora:', ventasPorHora);
+    
+    // Crear contenido de la hoja
+    let hojaContent = `
+     <Worksheet ss:Name="Ventas por Hora">
+      <Table>
+       <Row>
+        <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">Franja Horaria</Data></Cell>
+        <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">Cantidad Ventas</Data></Cell>
+        <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">Total Vendido</Data></Cell>
+        <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">Promedio por Venta</Data></Cell>
+       </Row>`;
+    
+    // Variables para totales generales
+    let totalVentasDelDia = 0;
+    let totalMontoDelDia = 0;
+    
+    // Agregar datos por hora - SOLO mostrar horas que tuvieron ventas
+    Object.keys(ventasPorHora).sort().forEach(horaKey => {
+        const datos = ventasPorHora[horaKey];
+        const promedio = datos.cantidad > 0 ? (datos.total / datos.cantidad).toFixed(0) : 0;
+        
+        totalVentasDelDia += datos.cantidad;
+        totalMontoDelDia += datos.total;
+        
+        // Mostrar SOLO horas que tuvieron ventas (simplificar el reporte)
+        if (datos.cantidad > 0) {
+            hojaContent += `
+       <Row>
+        <Cell ss:StyleID="DataStyle"><Data ss:Type="String">${datos.hora}</Data></Cell>
+        <Cell ss:StyleID="DataStyle"><Data ss:Type="Number">${datos.cantidad}</Data></Cell>
+        <Cell ss:StyleID="DataStyle"><Data ss:Type="Number">${Math.round(datos.total)}</Data></Cell>
+        <Cell ss:StyleID="DataStyle"><Data ss:Type="Number">${promedio}</Data></Cell>
+       </Row>`;
+        }
+    });
+    
+    // Fila de totales
+    const promedioGeneral = totalVentasDelDia > 0 ? (totalMontoDelDia / totalVentasDelDia).toFixed(0) : 0;
+    hojaContent += `
+       <Row>
+        <Cell ss:StyleID="TotalStyle"><Data ss:Type="String">TOTAL PERÍODO</Data></Cell>
+        <Cell ss:StyleID="TotalStyle"><Data ss:Type="Number">${totalVentasDelDia}</Data></Cell>
+        <Cell ss:StyleID="TotalStyle"><Data ss:Type="Number">${Math.round(totalMontoDelDia)}</Data></Cell>
+        <Cell ss:StyleID="TotalStyle"><Data ss:Type="Number">${promedioGeneral}</Data></Cell>
+       </Row>`;
+    
+    hojaContent += `
+      </Table>
+     </Worksheet>`;
+    
+    return hojaContent;
+}
+
+// Función para crear resumen de ventas por hora para múltiples días
+function createResumenVentasPorHora(sells, startDate, endDate) {
+    console.log('🕒 Creando resumen de ventas por hora para múltiples días...');
+    
+    // Agrupar ventas por hora (acumulado de todos los días)
+    const ventasPorHoraTotal = {};
+    
+    // Inicializar todas las horas del día (6 AM a 11 PM)
+    for (let hora = 6; hora <= 23; hora++) {
+        const horaKey = `${hora.toString().padStart(2, '0')}:00-${(hora + 1).toString().padStart(2, '0')}:00`;
+        ventasPorHoraTotal[horaKey] = {
+            hora: horaKey,
+            cantidad: 0,
+            total: 0,
+            dias: new Set()
+        };
+    }
+    
+    // Procesar cada venta
+    sells.forEach(sell => {
+        if (sell.created_at) {
+            const fechaHora = new Date(sell.created_at);
+            const hora = fechaHora.getHours();
+            const dia = sell.created_at.split(' ')[0];
+            
+            if (hora >= 6 && hora <= 23) {
+                const horaKey = `${hora.toString().padStart(2, '0')}:00-${(hora + 1).toString().padStart(2, '0')}:00`;
+                
+                if (ventasPorHoraTotal[horaKey]) {
+                    ventasPorHoraTotal[horaKey].cantidad++;
+                    ventasPorHoraTotal[horaKey].total += parseFloat(sell.total) || 0;
+                    ventasPorHoraTotal[horaKey].dias.add(dia);
+                }
+            }
+        }
+    });
+    
+    // Crear contenido de la hoja
+    let hojaContent = `
+     <Worksheet ss:Name="Resumen por Horas">
+      <Table>
+       <Row>
+        <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">Franja Horaria</Data></Cell>
+        <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">Total Ventas</Data></Cell>
+        <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">Total Vendido</Data></Cell>
+        <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">Promedio por Venta</Data></Cell>
+        <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">Días con Ventas</Data></Cell>
+       </Row>`;
+    
+    let totalVentas = 0;
+    let totalMonto = 0;
+    
+    // Agregar datos por hora
+    Object.keys(ventasPorHoraTotal).sort().forEach(horaKey => {
+        const datos = ventasPorHoraTotal[horaKey];
+        const promedio = datos.cantidad > 0 ? (datos.total / datos.cantidad).toFixed(0) : 0;
+        
+        totalVentas += datos.cantidad;
+        totalMonto += datos.total;
+        
+        if (datos.cantidad > 0) {
+            hojaContent += `
+       <Row>
+        <Cell ss:StyleID="DataStyle"><Data ss:Type="String">${datos.hora}</Data></Cell>
+        <Cell ss:StyleID="DataStyle"><Data ss:Type="Number">${datos.cantidad}</Data></Cell>
+        <Cell ss:StyleID="DataStyle"><Data ss:Type="Number">${Math.round(datos.total)}</Data></Cell>
+        <Cell ss:StyleID="DataStyle"><Data ss:Type="Number">${promedio}</Data></Cell>
+        <Cell ss:StyleID="DataStyle"><Data ss:Type="Number">${datos.dias.size}</Data></Cell>
+       </Row>`;
+        }
+    });
+    
+    // Fila de totales
+    const promedioGeneral = totalVentas > 0 ? (totalMonto / totalVentas).toFixed(0) : 0;
+    hojaContent += `
+       <Row>
+        <Cell ss:StyleID="TotalStyle"><Data ss:Type="String">TOTAL PERÍODO</Data></Cell>
+        <Cell ss:StyleID="TotalStyle"><Data ss:Type="Number">${totalVentas}</Data></Cell>
+        <Cell ss:StyleID="TotalStyle"><Data ss:Type="Number">${Math.round(totalMonto)}</Data></Cell>
+        <Cell ss:StyleID="TotalStyle"><Data ss:Type="Number">${promedioGeneral}</Data></Cell>
+        <Cell ss:StyleID="TotalStyle"><Data ss:Type="String">${startDate} - ${endDate.split(' ')[0]}</Data></Cell>
+       </Row>`;
+    
+    hojaContent += `
+      </Table>
+     </Worksheet>`;
+    
+    return hojaContent;
+}
+// Función para actualizar resumen total
+function updateResumenTotal(startDate, endDate, counters) {
+    console.log("📊 Actualizando Resumen Total...", { startDate, endDate, counters });
+    
+    try {
+        let totalGeneral = 0;
+        let totalTransacciones = 0;
+        let metodosActivos = 0;
+        
+        if (counters && counters[0]) {
+            const datos = counters[0];
+            
+            // Usar directamente el valor totalToExpenses que se muestra en la tabla
+            totalGeneral = parseFloat(datos.totalToExpenses) || 0;
+            
+            // Número de transacciones (órdenes)
+            totalTransacciones = parseInt(datos.orders) || 0;
+            
+            // Contar métodos de pago activos
+            const metodosPago = [
+                'efectivo', 'debito', 'credito', 'transferencia', 'cheque',
+                'banco', 'edenred', 'multicaja', 'sodexo', 'amipass',
+                'convenio_empresa', 'rappi', 'uber', 'nota_de_credito',
+                'junaeb', 'pedidos_ya', 'pluxee', 'banco_chile_20',
+                'guia_despacho', 'fastSells', 'noSii', 'boleta', 'factura'
+            ];
+
+            metodosPago.forEach(metodo => {
+                if (datos[metodo] && !isNaN(parseFloat(datos[metodo])) && parseFloat(datos[metodo]) > 0) {
+                    metodosActivos++;
+                }
+            });
+        }
+        
+        // Formatear período
+        const fechaInicio = new Date(startDate);
+        const fechaFin = new Date(endDate.split(" ")[0]);
+        const esUnDia = fechaInicio.getTime() === fechaFin.getTime();
+        
+        let periodoTexto;
+        if (esUnDia) {
+            periodoTexto = fechaInicio.toLocaleDateString("es-CL", {
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+            });
+        } else {
+            periodoTexto = `${fechaInicio.toLocaleDateString("es-CL")} - ${fechaFin.toLocaleDateString("es-CL")}`;
+        }
+        
+        // Actualizar UI
+        document.getElementById("resumen-total").textContent = new Intl.NumberFormat("es-CL", {
+            style: "currency",
+            currency: "CLP",
+            minimumFractionDigits: 0
+        }).format(totalGeneral);
+        
+        document.getElementById("periodo-resumen").textContent = periodoTexto;
+        document.getElementById("total-transacciones").textContent = totalTransacciones;
+        document.getElementById("metodos-activos").textContent = metodosActivos;
+        
+        console.log("✅ Resumen actualizado:", {
+            total: totalGeneral,
+            transacciones: totalTransacciones,
+            metodos: metodosActivos
+        });
+        
+    } catch (error) {
+        console.error("❌ Error actualizando resumen:", error);
+        document.getElementById("resumen-total").textContent = "$0";
+        document.getElementById("periodo-resumen").textContent = "Error al cargar";
+        document.getElementById("total-transacciones").textContent = "0";
+        document.getElementById("metodos-activos").textContent = "0";
     }
 }

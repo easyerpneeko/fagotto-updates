@@ -346,26 +346,9 @@ async function getCounters(startDate, endDate) {
                     `;
                 }
 
-                if (counters[0].quantityTotal !== undefined) {
-                    tablaCounters.innerHTML += `
-                    <tr>
-                        <td>Unidades Totales</td>
-                        <td>${counters[0].quantityTotal}</td>
-                    </tr>
-                    `;
-                }
-
                 // ... Se repite el código para cada variable ...
 
-                if (counters[0].typeProducts !== undefined) {
-                    tablaCounters.innerHTML += `
-                    <tr>
-                        <td>Tipos De Productos</td>
-                        <td>${counters[0].typeProducts}</td>
-                    </tr>
-                    `;
-                }
-
+     
                 if (counters[0].boleta !== undefined && counters[0].boleta !== null) {
                     tablaCounters.innerHTML += `
                     <tr>

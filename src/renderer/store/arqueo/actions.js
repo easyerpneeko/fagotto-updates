@@ -3,12 +3,26 @@ import BaseUrl from '../../helpers/baseUrl.js';
 
 // ==================== GESTIÓN DE TURNOS ====================
 
+// MÉTODO TEMPORAL: Crear tabla TurnosCaja
+export async function crearTablaTurnos(context) {
+  let url = BaseUrl.getUrl('api/local/turno/crear-tabla');
+  const request = await Connection.request('post', url);
+  return request;
+}
+
 export async function verificarEstadoTurno(context) {
   let url = BaseUrl.getUrl('api/local/turno/estado');
   const request = await Connection.request('get', url);
   if (request.success) {
-    context.commit('setProperty', { key: 'turnoActivo', data: request.data.turno_activo || false });
+    // ✅ CORREGIDO: Usar la clave correcta del backend
+    context.commit('setProperty', { key: 'turnoActivo', data: request.data.turno_abierto || false });
     context.commit('setProperty', { key: 'montoInicial', data: request.data.monto_inicial || 0 });
+    
+    // Guardar también la información completa del turno si existe
+    if (request.data.turno) {
+      context.commit('setProperty', { key: 'turnoId', data: request.data.turno.id });
+      context.commit('setProperty', { key: 'horaInicioTurno', data: request.data.turno.fecha_inicio });
+    }
   }
   return request;
 }
@@ -17,8 +31,11 @@ export async function iniciarTurno(context, data) {
   let url = BaseUrl.getUrl('api/local/turno/iniciar');
   const request = await Connection.request('post', url, data);
   if (request.success) {
+    // ✅ ACTUALIZAR: Estado completo del turno
     context.commit('setProperty', { key: 'turnoActivo', data: true });
-    context.commit('setProperty', { key: 'montoInicial', data: data.monto_inicial });
+    context.commit('setProperty', { key: 'turnoId', data: request.data.turno.id });
+    context.commit('setProperty', { key: 'horaInicioTurno', data: request.data.turno.fecha_inicio });
+    context.commit('setProperty', { key: 'montoInicial', data: data.monto_inicial || 0 });
   }
   return request;
 }

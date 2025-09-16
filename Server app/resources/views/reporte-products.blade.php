@@ -104,16 +104,8 @@
         </tr>
       <?php } ?>
       <tr>
-        <td>Facturas</td>
-        <td>${{ formatoChilenoReporte($data['counters']['factura']) }}</td>
-      </tr>
-      <tr>
-        <td>Boletas</td>
+        <td>Boletas (Efectivo)</td>
         <td>${{ formatoChilenoReporte($data['counters']['boleta']) }}</td>
-      </tr>
-      <tr>
-        <td>Ventas rapidas</td>
-        <td>${{ formatoChilenoReporte($data['counters']['fastSells']) }}</td>
       </tr>
       <tr>
         <td>No Sii</td>
@@ -122,7 +114,97 @@
       <?php if(isset($data['counters']['debito'])) { ?>
         <tr>
           <td>Debito</td>
-          <td>${{ $data['counters']['debito'] }}</td>
+          <td>${{ formatoChilenoReporte($data['counters']['debito']) }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['credito'])) { ?>
+        <tr>
+          <td>Credito</td>
+          <td>${{ formatoChilenoReporte($data['counters']['credito']) }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['transferencia'])) { ?>
+        <tr>
+          <td>Transferencia</td>
+          <td>${{ formatoChilenoReporte($data['counters']['transferencia']) }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['banco'])) { ?>
+        <tr>
+          <td>Trasnbank</td>
+          <td>${{ formatoChilenoReporte($data['counters']['banco']) }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['amipass'])) { ?>
+        <tr>
+          <td>Amipass</td>
+          <td>${{ formatoChilenoReporte($data['counters']['amipass']) }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['junaeb'])) { ?>
+        <tr>
+          <td>Junaeb</td>
+          <td>${{ formatoChilenoReporte($data['counters']['junaeb']) }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['uber'])) { ?>
+        <tr>
+          <td>Uber Eats - Boleta SII</td>
+          <td>${{ formatoChilenoReporte($data['counters']['uber']) }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['rappi'])) { ?>
+        <tr>
+          <td>Rappi</td>
+          <td>${{ formatoChilenoReporte($data['counters']['rappi']) }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['edenred'])) { ?>
+        <tr>
+          <td>Edenred</td>
+          <td>${{ formatoChilenoReporte($data['counters']['edenred']) }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['convenio_empresa'])) { ?>
+        <tr>
+          <td>Convenio Empresa</td>
+          <td>${{ formatoChilenoReporte($data['counters']['convenio_empresa']) }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['sodexo'])) { ?>
+        <tr>
+          <td>Sodexo</td>
+          <td>${{ formatoChilenoReporte($data['counters']['sodexo']) }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['pedidos_ya'])) { ?>
+        <tr>
+          <td>Pedidos Ya</td>
+          <td>${{ formatoChilenoReporte($data['counters']['pedidos_ya']) }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['pluxee'])) { ?>
+        <tr>
+          <td>Pluxee</td>
+          <td>${{ formatoChilenoReporte($data['counters']['pluxee']) }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['banco_chile_20'])) { ?>
+        <tr>
+          <td>Banco De Chile 20%</td>
+          <td>${{ formatoChilenoReporte($data['counters']['banco_chile_20']) }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['nota_de_credito'])) { ?>
+        <tr>
+          <td>Nota de Crédito</td>
+          <td>${{ formatoChilenoReporte($data['counters']['nota_de_credito']) }}</td>
+        </tr>
+      <?php } ?>
+      <?php if(isset($data['counters']['guia_despacho'])) { ?>
+        <tr>
+          <td>Guía Despacho</td>
+          <td>${{ formatoChilenoReporte($data['counters']['guia_despacho']) }}</td>
         </tr>
       <?php } ?>
       <?php if(isset($data['counters']['transferencia'])) { ?>

@@ -165,7 +165,14 @@ class ReportsController extends Controller
 
   public function getCounters(Request $request, $self = false)
   {
+    // 🚨 PRIMER DEBUG - Ver si llega la petición
+    \Log::info('🚨🚨🚨 BACKEND COUNTERS - PETICIÓN RECIBIDA 🚨🚨🚨');
+    
     $_request = $request->all();
+    
+    // 🚨 DEBUG: Ver qué parámetros llegan al backend
+    \Log::info('🔍 DEBUG BACKEND REPORTES - Parámetros recibidos:', $_request);
+    
     // $app = CurrentApp::App();
     // $database2 = Config::get('database.connections.mysql_local.database');
 
@@ -241,7 +248,7 @@ class ReportsController extends Controller
       'sodexo' => ['modulos.ventas.submodulos.sii.ajustes.sodexo', ['sodexo']],
       'rappi' => ['modulos.ventas.submodulos.sii.ajustes.rappi', ['rappi']],
       'junaeb' => ['modulos.ventas.submodulos.sii.ajustes.junaeb', ['junaeb']],
-      'uber' => ['modulos.ventas.submodulos.sii.ajustes.uber', ['uber']],
+      'uber' => ['modulos.ventas.submodulos.sii.ajustes.uber', ['uber', 'uber_eats']],
       'pedidos_ya' => ['modulos.ventas.submodulos.sii.ajustes.pedidos_ya', ['pedidos_ya']],
       'pluxee' => ['modulos.ventas.submodulos.sii.ajustes.pluxee', ['pluxee']],
       'guia_despacho' => ['modulos.ventas.submodulos.sii.ajustes.guia_despacho', ['guia_despacho']],
@@ -314,6 +321,18 @@ class ReportsController extends Controller
               if (in_array($venta->other_type, $config[1]) || in_array($venta->paymode, $config[1]) || in_array($venta->type_sell, $config[1])) {
                   $counters[$key] += $venta->total;
                   $counted = true;
+                  
+                  // 🚨 DEBUG: Log específico para Uber
+                  if ($key === 'uber') {
+                      \Log::info('🔍 DEBUG BACKEND UBER ENCONTRADO:', [
+                          'venta_id' => $venta->id,
+                          'other_type' => $venta->other_type,
+                          'paymode' => $venta->paymode,
+                          'total' => $venta->total,
+                          'config_uber' => $config[1]
+                      ]);
+                  }
+                  
                   break; // Evitar duplicidad
               }
           }
@@ -556,6 +575,20 @@ class ReportsController extends Controller
       $workshifts = Workshift::with('user')
         ->whereDate('created_at', $currentDate)
         ->get();
+
+    // 🚨 FIX TEMPORAL: Contar manualmente las ventas de Uber Eats
+    \Log::info('🚨 FIX TEMPORAL - Contando ventas de Uber manualmente...');
+    $uberSalesTotal = Sell::whereBetween('created_at', [$_request['startDate'], $_request['endDate']])
+        ->where('trash', 0)
+        ->where('other_type', 'uber_eats')
+        ->sum('total');
+    
+    \Log::info('🚨 FIX TEMPORAL - Ventas Uber encontradas: $' . $uberSalesTotal);
+    
+    // Forzar el valor de uber en los contadores
+    $counters['uber'] = (float) $uberSalesTotal;
+    
+    \Log::info('🚨 FIX TEMPORAL - Counter uber establecido en: ' . $counters['uber']);
         
     if ($self) {
       return ['counters' => $counters, 'products' => $products, 'waiters' => $waiters, 'expenses' => $expenses, 'workshifts' => $workshifts];
@@ -704,10 +737,6 @@ class ReportsController extends Controller
           if ($venta->other_type == 'guia_despacho' || $venta->paymode == 'guia_despacho') {
             $counters['guia_despacho'] = isset($counters['guia_despacho']) ? $counters['guia_despacho'] + $venta->total : $venta->total;
           }
-        }
-      } else if ($venta->fast_sell) {
-        if (CurrentApp::ConfStr('modulos.ventas.submodulos.sell_fast')) {
-          $counters['fastSells'] = isset($counters['fastSells']) ? $counters['fastSells'] + $venta->total : $venta->total;
         }
       } else {
         // $folio = Folio::where('sell_id', $venta->id)->first();

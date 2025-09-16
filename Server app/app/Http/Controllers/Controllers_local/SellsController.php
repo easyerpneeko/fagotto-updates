@@ -387,7 +387,7 @@ class SellsController extends Controller
 
       // Condiciones de impresión específicas para métodos other_type que requieren doble impresión
       if (isset($_request['other_type']) && !$requiresSpecialPrint) {
-        $methodsRequiringDoubleprint = ['amipass', 'banco_chile_20', 'pluxee', 'pedidos_ya'];
+        $methodsRequiringDoubleprint = ['amipass', 'banco_chile_20', 'pluxee', 'pedidos_ya', 'uber_eats'];
         
         if (in_array($_request['other_type'], $methodsRequiringDoubleprint)) {
           // Imprimir boleta local para métodos que la requieren
@@ -408,6 +408,21 @@ class SellsController extends Controller
     {
         $_request = $request->all();
         $_request['fast_sell'] = 0;
+
+        // DEBUG: Log completo de la request para ver datos de Uber
+        \Log::info("=== NEWSELL2 DEBUG START ===");
+        \Log::info("Request completa:", $_request);
+        \Log::info("other_type recibido: " . ($_request['other_type'] ?? 'NULL'));
+        \Log::info("type_sell recibido: " . ($_request['type_sell'] ?? 'NULL'));
+        \Log::info("uber_payment_info recibido: " . ($_request['uber_payment_info'] ?? 'NULL'));
+        file_put_contents('/tmp/newsell_debug.log', 
+            "=== NEWSELL2 DEBUG START ===\n" .
+            "Request completa: " . json_encode($_request) . "\n" .
+            "other_type: " . ($_request['other_type'] ?? 'NULL') . "\n" .
+            "type_sell: " . ($_request['type_sell'] ?? 'NULL') . "\n" .
+            "uber_payment_info: " . ($_request['uber_payment_info'] ?? 'NULL') . "\n",
+            FILE_APPEND
+        );
 
         $validaciones = [
             'total' => 'required',
@@ -727,7 +742,7 @@ class SellsController extends Controller
 
             // Condiciones de impresión específicas para métodos other_type que requieren doble impresión
             if (isset($_request['other_type']) && !$requiresSpecialPrint) {
-                $methodsRequiringDoubleprint = ['amipass', 'banco_chile_20', 'pluxee', 'pedidos_ya'];
+                $methodsRequiringDoubleprint = ['amipass', 'banco_chile_20', 'pluxee', 'pedidos_ya', 'uber_eats'];
                 
                 if (in_array($_request['other_type'], $methodsRequiringDoubleprint)) {
                     // Imprimir boleta local para métodos que la requieren
@@ -1318,6 +1333,7 @@ class SellsController extends Controller
       'rappi' => 'Rappi',
       'junaeb' => 'Junaeb',
       'uber' => 'Uber',
+      'uber_eats' => 'Uber Eats - Boleta SII',
       'pedidos_ya' => 'Pedidos Ya',
       'pluxee' => 'Pluxee',
       'banco_chile_20' => 'Banco De Chile 20%',

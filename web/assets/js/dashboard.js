@@ -1,55 +1,3 @@
-// ========== FUNCIONES DE INDICADOR DE FILTRO ==========
-function mostrarFiltroActivo(fecha, tipo = 'fecha') {
-    const indicador = document.getElementById('filtro-activo');
-    const textoFiltro = document.getElementById('texto-filtro');
-    
-    if (!indicador || !textoFiltro) return;
-    
-    let mensaje = '';
-    
-    if (tipo === 'fecha') {
-        // Convertir fecha YYYY-MM-DD a formato legible
-        const fechaObj = new Date(fecha + 'T00:00:00');
-        const opciones = { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric',
-            weekday: 'long'
-        };
-        const fechaFormateada = fechaObj.toLocaleDateString('es-CL', opciones);
-        mensaje = `Filtrando datos del ${fechaFormateada}`;
-    } else if (tipo === 'hoy') {
-        mensaje = 'Mostrando datos de hoy';
-    } else if (tipo === 'semana') {
-        mensaje = 'Mostrando datos de esta semana';
-    } else if (tipo === 'mes') {
-        mensaje = 'Mostrando datos de este mes';
-    }
-    
-    textoFiltro.textContent = mensaje;
-    indicador.style.display = 'block';
-    
-    // Agregar animación de entrada
-    indicador.style.opacity = '0';
-    indicador.style.transform = 'translateY(-10px)';
-    
-    setTimeout(() => {
-        indicador.style.transition = 'all 0.3s ease';
-        indicador.style.opacity = '1';
-        indicador.style.transform = 'translateY(0)';
-    }, 100);
-    
-    console.log('Mostrando filtro activo:', mensaje);
-}
-
-function ocultarFiltroActivo() {
-    const indicador = document.getElementById('filtro-activo');
-    if (indicador) {
-        indicador.style.display = 'none';
-    }
-}
-
-// ========== FUNCIONES ORIGINALES ==========
 $(document).ready(function () {
     // _name.text(_store().session.user().get("username")) //obtenemos el nombre del usuario
     getThisDay();
@@ -93,71 +41,20 @@ intervalo = setInterval(actualizarConteo, TIEMPO_ACTUALIZACION);
 
 
 async function getData(startDate,endDate){
-    console.log('=== INICIANDO getData ===');
-    console.log('startDate:', startDate);
-    console.log('endDate:', endDate);
-    
-    try {
-        activateLoader();
-        console.log('Loader activado');
-        
-        console.log('Llamando a requestLoadCounters...');
-        await requestLoadCounters(startDate, endDate);
-        console.log('requestLoadCounters completado');
-        
-        console.log('Llamando a loadSucursalesList...');
-        await loadSucursalesList();
-        console.log('loadSucursalesList completado');
-        
-        console.log('Llamando a getFacturacionData...');
-        await getFacturacionData(startDate, endDate);
-        console.log('getFacturacionData completado');
-        
-        console.log('Llamando a getProducts...');
-        getProducts();
-        console.log('getProducts iniciado');
-        
-        desactivateLoader();
-        console.log('Loader desactivado - getData completado exitosamente');
-    } catch (error) {
-        console.error('Error en getData:', error);
-        desactivateLoader();
-        alert('Error al cargar los datos: ' + error.message);
-    }
+    activateLoader();
+    await requestLoadCounters(startDate, endDate);
+    await loadSucursalesList();
+    await getFacturacionData(startDate, endDate);
+    getProducts();
+    desactivateLoader();
 }
 function getByDate(){
-    console.log('=== INICIANDO getByDate ===');
-    
     const DateInput = document.getElementById('date');
     const DateValue = DateInput.value;
-    
-    console.log('Input de fecha encontrado:', DateInput);
-    console.log('Valor de fecha:', DateValue);
-    
-    if (!DateValue) {
-        console.error('No se ha seleccionado una fecha');
-        alert('Por favor selecciona una fecha antes de buscar');
-        return;
-    }
-    
-    // Mostrar indicador de filtro personalizado
-    mostrarFiltroActivo(DateValue, 'fecha');
-    
     const startDate = DateValue;
-    const endDate = DateValue + ' 23:59:59';
-    
-    console.log('Fecha inicio:', startDate);
-    console.log('Fecha fin:', endDate);
-    console.log('Llamando a getData...');
-    
-    try {
-        getData(startDate, endDate);
-        console.log('getData ejecutado correctamente');
-    } catch (error) {
-        console.error('Error en getData:', error);
-        alert('Error al cargar los datos: ' + error.message);
-        ocultarFiltroActivo(); // Ocultar indicador si hay error
-    }
+    const endDate = DateValue+' 23:59:59';
+
+    getData(startDate,endDate);
 }
 async function loadSucursalesList() {
     let apps;
@@ -222,20 +119,13 @@ async function loadSucursalesList() {
 }
 
 function getThisDay() {
-    mostrarFiltroActivo('', 'hoy');
-    
-    // TEMPORAL: Usar ayer en lugar de hoy para evitar error 500
-    var yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    var startDate = yesterday.toISOString().split('T')[0];
-    var endDate = startDate + ' 23:59:59';
+    var startDate = getNowDate();
+    var endDate = getNowDate()+' 23:59:59';;
 
     getData(startDate,endDate);
 }
 
 function getThisWeek() {
-    mostrarFiltroActivo('', 'semana');
-    
     const currentDate = new Date();
     const year = currentDate.getFullYear();
     const month = String(currentDate.getMonth() + 1).padStart(2, '0');
@@ -266,9 +156,6 @@ function getThisWeek() {
 }
 
 function getThisMonth() {
-  // Mostrar indicador de filtro activo para el mes
-  mostrarFiltroActivo('', 'mes');
-  
   // Mostrar el mensaje solo para getThisMonth
   const loaderMessage = document.getElementById('loaderMessage');
   loaderMessage.classList.remove('d-none'); // Muestra el mensaje
@@ -419,22 +306,87 @@ if (tooltipModel.body) {
     tooltipEl.style.pointerEvents = 'none';
 }
 
-function requestLoadCounters(startDate, endDate) {
-    $('.loading-chart').show();
-    $.post("getAppCounters", {
-        startDate: startDate,
-        endDate: endDate
-    }, function(data) {
-        console.log(data);
-        fillChartCounters(data);
-        $('.loading-chart').hide();
-    }, 'json').fail(function(xhr, status, error) {
-        console.error('Error en getAppCounters:', error);
-        console.error('Respuesta:', xhr.responseText);
-        $('.loading-chart').hide();
-        // Mostrar mensaje amigable al usuario
-        alert('Error temporal en el servidor. Contacta al administrador.');
+async function requestLoadCounters(startDate, endDate) {
+    await __conection({
+        url: generarURLApi(`/getAppCounters?startDate=${startDate}&endDate=${endDate}`),
+        header: credentials(),
+        dev: true,
+        method: 'GET'
+    }, {}, function (request) {
+        // console.log(startDate);
+        // console.log(endDate);
+        console.log("counters", request);
+
+        const gananciasTotales = [];
+        labels = [];
+        ids = []
+        counterData = [];
+
+        for (const app in request) {
+            labels.push(app); //Nombre de la app
+            gananciasTotales.push(request[app].original.counters.balanceTotal);
+            counterData.push(request[app].original.counters);
+        }
+
+        // console.log(gananciasTotales);
+        // console.log(labels);
+        // console.log(counterData);
+
+        var sucursalesCanvas = document.getElementById('sucursalesChart');
+
+        var sucursalesChart = new Chart(sucursalesCanvas, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: gananciasTotales,
+                    lineTension: 0,
+                    backgroundColor: '#0d6efd',
+                    borderColor: '#007bff',
+                    borderWidth: 4,
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                },
+                legend: {
+                    display: false
+                },
+                tooltips: {
+                    enabled: false,
+                    mode: 'index',
+                    position: 'nearest',
+                    custom: customTooltips
+                }
+            }
+
+        })
+        cargarCounterEnTabla(request);
+        loadSucursalesList(labels);
+        
+        // Actualizar KPIs usando los datos originales
+        console.log('=== LLAMANDO ACTUALIZACION KPIs ===');
+        console.log('Window dashboardKPIs:', window.dashboardKPIs);
+        if (window.dashboardKPIs) {
+            console.log('Ejecutando updateFromCounterData...');
+            window.dashboardKPIs.updateFromCounterData(request);
+        } else {
+            console.error('dashboardKPIs no está disponible');
+            // Intentar de nuevo después de un pequeño delay
+            setTimeout(() => {
+                if (window.dashboardKPIs) {
+                    console.log('Reintentando actualización KPIs...');
+                    window.dashboardKPIs.updateFromCounterData(request);
+                }
+            }, 500);
+        }
     });
+}
 
 function cargarCounterEnTabla(request) {
     const tbody = document.getElementById('tabla-counters-tbody');
@@ -603,18 +555,6 @@ function getFacturacionData(startDate, endDate) {
       // Limpiar la tabla existente
       tablaFacturacion.innerHTML = '';
 
-      // Añadir los encabezados
-      tablaFacturacion.innerHTML += `
-          <thead>
-              <tr>
-                  <th scope="col">Razon Social</th>
-                  <th scope="col">RUT</th>
-                  <th scope="col">Monto</th>
-                  <th scope="col">PDF</th>
-              </tr>
-          </thead>
-      `;
-
       // Función para formatear el monto
       function formatearMontoChile(monto) {
           return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(monto);
@@ -623,25 +563,43 @@ function getFacturacionData(startDate, endDate) {
       // Variable para almacenar la sumatoria de todos los montos totales
       let montoTotalFacturado = 0;
 
-      // Iterar sobre los datos de facturas y añadir filas a la tabla
-      facturas.forEach((factura) => {
-          montoTotalFacturado += parseFloat(factura.MntTotal); // Sumar el monto total al acumulador
+      // Verificar si hay facturas
+      if (facturas && facturas.length > 0) {
+          // Iterar sobre los datos de facturas y añadir filas a la tabla
+          facturas.forEach((factura) => {
+              montoTotalFacturado += parseFloat(factura.MntTotal); // Sumar el monto total al acumulador
 
-          const fila = `<tr>
-                          <td>${factura.RznSocRecep}</td>
-                          <td>${factura.RUTRecep}</td>
-                          <td>${formatearMontoChile(factura.MntTotal)}</td>
-                          <td><a href="${factura.pdf}" target='_blank'>Descargar</a></td>
-                        </tr>`;
-          tablaFacturacion.innerHTML += fila;
-      });
+              const fila = `<tr>
+                              <td>${factura.RznSocRecep}</td>
+                              <td>${factura.RUTRecep}</td>
+                              <td>${formatearMontoChile(factura.MntTotal)}</td>
+                              <td><a href="${factura.pdf}" target='_blank'>Descargar</a></td>
+                            </tr>`;
+              tablaFacturacion.innerHTML += fila;
+          });
 
-      // Añadir la fila de total facturado al final de la tabla
-      const filaTotal = `<tr>
-                            <td colspan="2"><strong>Total Facturado</strong></td>
-                            <td colspan="2"><strong>${formatearMontoChile(montoTotalFacturado)}</strong></td>
-                         </tr>`;
-      tablaFacturacion.innerHTML += filaTotal;
+          // Añadir la fila de total facturado al final de la tabla
+          const filaTotal = `<tr>
+                                <td colspan="2"><strong>Total Facturado </strong></td>
+                                <td colspan="2"><strong>${formatearMontoChile(montoTotalFacturado)}</strong></td>
+                             </tr>`;
+          tablaFacturacion.innerHTML += filaTotal;
+      } else {
+          // Si no hay facturas, mostrar mensaje
+          const filaSinDatos = `<tr>
+                                   <td colspan="4" class="text-center">
+                                       <i class="fas fa-info-circle"></i>
+                                       No hay facturas para el período seleccionado
+                                   </td>
+                               </tr>`;
+          tablaFacturacion.innerHTML = filaSinDatos;
+      }
+
+      // Actualizar la tarjeta KPI de Total Facturado
+      const kpiTotalFacturado = document.getElementById('kpi-total-facturado');
+      if (kpiTotalFacturado) {
+          kpiTotalFacturado.textContent = formatearMontoChile(montoTotalFacturado);
+      }
   }
 }
 

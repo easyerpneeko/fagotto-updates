@@ -82,6 +82,13 @@ export default {
     async createTicket(client = false, onlyTicket){
       $('#clientCreate1').modal('hide');
 
+      // 🚨 DEBUG BÁSICO - Ver qué datos tenemos al inicio
+      console.log('=== INICIO createTicket ===');
+      console.log('this.value:', this.value);
+      console.log('this.type_sell:', this.type_sell);
+      console.log('this.typeCreateTicket:', this.typeCreateTicket);
+      console.log('=== FIN DEBUG BÁSICO ===');
+
       // Datos basicos
       console.log('createTicket ======1', this.value);
       console.log('createTicket ======2', this.type_sell);
@@ -119,6 +126,12 @@ export default {
 
       var thing = new FormData();
       
+      // 🚀 DEBUG: Log completo para ver qué type_sell estamos recibiendo
+      console.log('🚀 UBER DEBUG - type_sell actual:', this.type_sell);
+      console.log('🚀 UBER DEBUG - other_type actual:', this.other_type);
+      console.log('🚀 UBER DEBUG - value completo:', this.value);
+      console.log('🚀 UBER DEBUG - paymentMethod desde value:', this.value.paymentMethod);
+      console.log('🚀 UBER DEBUG - typeCreateTicket:', this.typeCreateTicket);
     
       if(
         this.type_sell != 'boleta_local' 
@@ -140,6 +153,7 @@ export default {
           && this.type_sell != null
         
         ){
+            console.log('🚨 UBER DEBUG - Entrando al bloque de asignación other_type');
             this.other_type=this.type_sell
             data.type_sell='other'
             this.type_sell='other';
@@ -192,8 +206,60 @@ export default {
         }
       }
 
-      if (this.type_sell == 'uber') {
-        thing.set('other_type', 'uber');
+      // 🚀 DETECTAR UBER: Si typeCreateTicket es 'boleta' pero viene desde Uber
+      if (this.typeCreateTicket === 'boleta' && this.value.paymentMethod === 'uber_eats') {
+        console.log('🚀 UBER DETECTADO - Configurando other_type');
+        thing.set('other_type', 'uber_eats');
+        
+        // Información adicional de Uber para reportes
+        if (this.value.paymentDescription) {
+          thing.append('payment_description', this.value.paymentDescription);
+        }
+        const uberInfo = {
+          paymentMethod: this.value.paymentMethod || 'uber_eats',
+          paymentDescription: this.value.paymentDescription || 'Uber Eats - Boleta SII',
+          uberEatsOrder: this.value.uberEatsOrder || true,
+          specialPaymentType: this.value.specialPaymentType || 'uber_eats',
+          source: 'uber_eats',
+          reportCategory: 'delivery_platforms'
+        };
+        thing.append('uber_payment_info', JSON.stringify(uberInfo));
+        console.log('🚀 UBER - Datos enviados:', uberInfo);
+      }
+
+      // 🚀 DETECTAR UBER POR paymentMethod en lugar de type_sell
+      if (this.value.paymentMethod === 'uber_eats' || this.type_sell == 'uber') {
+        console.log('✅ UBER DEBUG - Entrando al bloque de Uber!');
+        thing.set('other_type', 'uber_eats');
+        console.log('✅ UBER DEBUG - Establecido other_type como uber_eats');
+        
+        // ✅ AGREGAR INFORMACIÓN ESPECIAL DE UBER EATS PARA REPORTES
+        if (this.value.paymentMethod) {
+          thing.append('payment_method', this.value.paymentMethod);
+        }
+        if (this.value.paymentDescription) {
+          thing.append('payment_description', this.value.paymentDescription);
+        }
+        if (this.value.uberEatsOrder) {
+          thing.append('uber_eats_order', this.value.uberEatsOrder ? 'true' : 'false');
+        }
+        if (this.value.specialPaymentType) {
+          thing.append('special_payment_type', this.value.specialPaymentType);
+        }
+        
+        // Agregar información completa como JSON para el backend
+        const uberInfo = {
+          paymentMethod: this.value.paymentMethod || 'uber_eats',
+          paymentDescription: this.value.paymentDescription || 'Uber Eats - Boleta SII',
+          uberEatsOrder: this.value.uberEatsOrder || true,
+          specialPaymentType: this.value.specialPaymentType || 'uber_eats',
+          source: 'uber_eats',
+          reportCategory: 'delivery_platforms'
+        };
+        thing.append('uber_payment_info', JSON.stringify(uberInfo));
+        
+        console.log('🚀 UBER EATS - Datos enviados al backend:', uberInfo);
+        console.log('🚀 UBER DEBUG - FormData other_type:', thing.get('other_type'));
       }
 
       if (this.type_sell == 'credito') {

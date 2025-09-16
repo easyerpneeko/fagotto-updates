@@ -18,6 +18,58 @@ use Exception;
 class ArqueoCajaController extends Controller
 {
     /**
+     * MÉTODO TEMPORAL: Crear tabla TurnosCaja si no existe
+     */
+    public function crearTablaTurnos(Request $request)
+    {
+        try {
+            $database = Config::get('database.connections.mysql_local.database');
+            
+            $sql = "CREATE TABLE IF NOT EXISTS `TurnosCaja` (
+                `id` int(11) NOT NULL AUTO_INCREMENT,
+                `turno_abierto` tinyint(1) NOT NULL DEFAULT '1',
+                `turno_abierto_en` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `turno_cerrado_en` timestamp NULL DEFAULT NULL,
+                `usuario_id` int(11) NOT NULL,
+                `monto_inicial` decimal(10,2) NOT NULL DEFAULT '0.00',
+                `monto_final` decimal(10,2) NOT NULL DEFAULT '0.00',
+                `total_ventas` decimal(10,2) NOT NULL DEFAULT '0.00',
+                `total_contado` decimal(10,2) NOT NULL DEFAULT '0.00',
+                `total_tarjeta` decimal(10,2) NOT NULL DEFAULT '0.00',
+                `total_transferencia` decimal(10,2) NOT NULL DEFAULT '0.00',
+                `total_cheque` decimal(10,2) NOT NULL DEFAULT '0.00',
+                `total_credito` decimal(10,2) NOT NULL DEFAULT '0.00',
+                `total_uber_eats` decimal(10,2) NOT NULL DEFAULT '0.00',
+                `total_otros_medios` decimal(10,2) NOT NULL DEFAULT '0.00',
+                `total_general` decimal(10,2) NOT NULL DEFAULT '0.00',
+                `diferencia_general` decimal(10,2) NOT NULL DEFAULT '0.00',
+                `observaciones` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+                `created_at` timestamp NULL DEFAULT NULL,
+                `updated_at` timestamp NULL DEFAULT NULL,
+                PRIMARY KEY (`id`),
+                KEY `idx_turno_estado` (`turno_abierto`),
+                KEY `idx_usuario` (`usuario_id`),
+                KEY `idx_fecha_apertura` (`turno_abierto_en`),
+                KEY `idx_fecha_cierre` (`turno_cerrado_en`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+            
+            DB::connection('mysql_local')->unprepared($sql);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Tabla TurnosCaja creada exitosamente',
+                'database' => $database
+            ]);
+            
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear tabla: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Obtener resumen de ventas del día para comparar con arqueo
      */
     public function getResumenDia(Request $request)
@@ -187,8 +239,19 @@ class ArqueoCajaController extends Controller
 
             $usuarioId = $request->get('usuario_id', 1);
             $usuarioNombre = $request->get('usuario_nombre', 'Usuario Sistema');
+            $montoInicial = floatval($request->get('monto_inicial', 0)); // ✅ OBTENER: Monto inicial
             $appId = $app->id ?? 58;
             $appNombre = $app->name_public ?? $app->name ?? 'Aplicación Local';
+
+            // 🔍 DEBUG: Logging para ver qué valores estamos recibiendo
+            Log::info('Datos recibidos para iniciar turno:', [
+                'usuario_id' => $usuarioId,
+                'usuario_nombre' => $usuarioNombre,
+                'monto_inicial_original' => $request->get('monto_inicial'),
+                'monto_inicial_convertido' => $montoInicial,
+                'app_id' => $appId,
+                'request_all' => $request->all()
+            ]);
 
             // Verificar que no haya turno abierto
             $turnoExistente = TurnoCaja::turnoAbiertoParaUsuario($usuarioId, $appId);
@@ -199,10 +262,14 @@ class ArqueoCajaController extends Controller
                 ], 400);
             }
 
-            // Crear nuevo turno
-            $nuevoTurno = TurnoCaja::iniciarTurno($usuarioId, $usuarioNombre, $appId, $appNombre);
+            // Crear nuevo turno con monto inicial
+            $nuevoTurno = TurnoCaja::iniciarTurno($usuarioId, $usuarioNombre, $appId, $appNombre, $montoInicial);
 
-            Log::info('Turno iniciado:', ['turno_id' => $nuevoTurno->id, 'usuario' => $usuarioNombre]);
+            Log::info('Turno iniciado:', [
+                'turno_id' => $nuevoTurno->id, 
+                'usuario' => $usuarioNombre,
+                'monto_inicial' => $montoInicial  // ✅ LOG: Registrar monto inicial
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -211,10 +278,20 @@ class ArqueoCajaController extends Controller
             ]);
 
         } catch (Exception $e) {
-            Log::error('Error iniciando turno:', ['error' => $e->getMessage()]);
+            Log::error('Error iniciando turno:', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error al iniciar turno: ' . $e->getMessage()
+                'message' => 'Error al iniciar turno: ' . $e->getMessage(),
+                'debug' => [
+                    'error' => $e->getMessage(),
+                    'file' => basename($e->getFile()),
+                    'line' => $e->getLine()
+                ]
             ], 500);
         }
     }
@@ -235,7 +312,22 @@ class ArqueoCajaController extends Controller
             $appId = $app->id ?? 58;
 
             // Buscar turno abierto
+            Log::info('🔍 BUSCANDO TURNO ABIERTO:', [
+                'usuario_id' => $usuarioId,
+                'app_id' => $appId,
+                'turno_id_frontend' => $request->input('turno_id')
+            ]);
+            
             $turnoAbierto = TurnoCaja::turnoAbiertoParaUsuario($usuarioId, $appId);
+            
+            Log::info('🔍 RESULTADO BÚSQUEDA TURNO:', [
+                'turno_encontrado' => $turnoAbierto ? true : false,
+                'turno_id' => $turnoAbierto ? $turnoAbierto->id : null,
+                'estado' => $turnoAbierto ? $turnoAbierto->estado : null,
+                'fecha_termino' => $turnoAbierto ? $turnoAbierto->fecha_termino : null,
+                'puede_hacer_arqueo' => $turnoAbierto ? $turnoAbierto->puede_hacer_arqueo : null
+            ]);
+            
             if (!$turnoAbierto) {
                 return response()->json([
                     'success' => false,
@@ -251,15 +343,41 @@ class ArqueoCajaController extends Controller
             }
 
             // Datos del arqueo
+            // 🔍 DEBUG: Verificar qué está recibiendo el backend
+            Log::info('🔍 DATOS RECIBIDOS EN EL BACKEND:', [
+                'request_all' => $request->all(),
+                'request_json' => $request->json()->all(),
+                'total_contado_get' => $request->get('total_contado'),
+                'total_contado_input' => $request->input('total_contado'),
+                'content_type' => $request->header('Content-Type')
+            ]);
+            
+            // ✅ MAPEO CORRECTO DE CAMPOS FRONTEND → DATABASE
             $datosArqueo = [
-                'total_sistema' => floatval($request->get('total_sistema', 0)),
-                'total_contado' => floatval($request->get('total_contado', 0)),
-                'diferencia' => floatval($request->get('diferencia', 0)),
-                'observaciones' => $request->get('observaciones', ''),
-                'detalle_efectivo' => $request->get('detalle_efectivo', '{}'),
-                'detalle_medios_pago' => $request->get('detalle_medios_pago', '{}'),
-                'numero_transacciones' => intval($request->get('numero_transacciones', 0))
+                // ✅ CAMPOS MONETARIOS PRINCIPALES
+                'monto_inicial' => floatval($request->input('monto_inicial', 0)),
+                'monto_final' => floatval($request->input('monto_final', 0)),
+                'total_otros_medios' => floatval($request->input('total_otros_medios', 0)),
+                
+                // Mapear total_general_contado → total_contado (campo DB)
+                'total_contado' => floatval($request->input('total_general_contado', 
+                                   $request->input('total_contado', 0))),
+                
+                // Mapear total_sistema correctamente
+                'total_sistema' => floatval($request->input('total_sistema', 0)),
+                
+                // Diferencias
+                'diferencia' => floatval($request->input('diferencia', 0)),               // Diferencia solo efectivo
+                'diferencia_general' => floatval($request->input('diferencia_general', 0)), // Diferencia total
+                
+                // Campos adicionales
+                'observaciones' => $request->input('observaciones', ''),
+                'detalle_efectivo' => $request->input('detalle_efectivo', '{}'),
+                'detalle_medios_pago' => $request->input('detalle_medios_pago', '{}'),
+                'numero_transacciones' => intval($request->input('numero_transacciones', 0))
             ];
+            
+            Log::info('🎯 DATOS PROCESADOS CON MAPEO CORRECTO:', $datosArqueo);
 
             // Cerrar turno
             $turnoAbierto->cerrarTurno($datosArqueo);

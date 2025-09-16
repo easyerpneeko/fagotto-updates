@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FagottoERP - COCINA</title>
+    <link rel="icon" type="image/x-icon" href="../../assets/css/negro.png">
+    <link rel="stylesheet" href="../../assets/plugins/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../assets/css/global.css">
+    <link rel="stylesheet" href="../../assets/css/cocina.css">
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+    <script src="../../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="../../assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+    <!--helpers-->
+    <script src="../../assets/helpers/helperURL.js"></script>
+    <script src="../../assets/helpers/helperAlert.js"></script>
+    <script src="../../assets/helpers/helperSpecial.js"></script>
+    <script src="../../assets/helpers/helperRoutes.js"></script>
+    <script src="../../assets/helpers/helperStore.js"></script>
+    <script src="../../assets/helpers/helperRequest.js"></script>
+    <style>
+        body {
+            background: linear-gradient(to right, #003366, #336699);
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .bodys-header {
+            background-color: transparent;
+        }
+
+        .container-fluid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 50px;
+        }
+
+        .table-wrapper {
+            flex: 1 0 45%;
+        }
+
+        .order-table {
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .order-table th,
+        .order-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        .order-table th {
+            background-color: transparent;
+            color: yellow;
+        }
+
+        .order-table td {
+            font-size: 1.2em;
+            background-color: transparent;
+            color: white;
+        }
+
+        .order-id {
+            color: white;
+            padding: 10px 20px;
+            display: inline-block;
+            font-weight: bold;
+            font-size: 1.8em;
+        }
+
+        .status-preparing {
+            background: linear-gradient(to right, #ff4500, #ffcc00);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            display: inline-block;
+            font-weight: bold;
+            font-size: 1.2em;
+            animation: bounce 0.5s infinite alternate;
+            transition: background 0.3s;
+            cursor: pointer;
+        }
+
+        .status-preparing:hover {
+            background: linear-gradient(to right, #ffcc00, #ff4500);
+        }
+
+        .status-ready {
+            background: green;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            display: inline-block;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        @keyframes bounce {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .img-header {
+            width: 250px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="">
+        <div class="text-center row d-flex flex-column justify-content-center">
+            <div class="col logo">
+                <img class='img-header' src="logo.png">
+            </div>
+            <div class="col title p-2 mt-3">
+                <h4 class="fw-bold">ORDENES</h4>
+            </div>
+        </div>
+    </header>
+    <div class="container-fluid d-flex flex-wrap">
+        <div class="table-wrapper">
+            <table class="order-table">
+                <thead>
+                    <tr>
+                        <th>ÓRDEN</th>
+                        <th>ESTADO</th>
+                    </tr>
+                </thead>
+                <tbody id="order-list">
+                    <!-- Las órdenes se cargarán aquí dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="order-table">
+                <thead>
+                    <tr>
+                        <th>ÓRDEN</th>
+                        <th>ESTADO</th>
+                    </tr>
+                </thead>
+                <tbody id="order-closed-list">
+                    <!-- Las órdenes se cargarán aquí dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <audio class="notification" src="notification.mp3"></audio>
+    <script>
+        const update = $("#updateTime");
+
+        let _ORDERS = []; // ARRAY DE ORDENES EN ESPERA
+        const _timeUpdate = 2;
+
+        $(document).ready(function () {
+            requestLoadCocinaActive(); // Recargamos cocina al cargar la página
+
+            setInterval(() => {
+                requestLoadCocinaActive() //recargamos cocina
+            }, (1000 * _timeUpdate));
+
+            requestLoadCocinaClosed(); // Recargamos cocina al cargar la página
+
+            setInterval(() => {
+                requestLoadCocinaClosed() //recargamos cocina
+            }, (1000 * _timeUpdate));
+
+        });
+
+        function requestLoadCocinaActive() {
+            __conection({
+                url: URL("/app/local/cafeteria/modo_cocina/orders_kitchens"),
+                header: credentials(),
+            }, {}, function (request) {
+                _ORDERS = [];
+                console.log(request);
+
+                if (is_array(request)) {
+                    const orderList = $("#order-list");
+                    orderList.empty();
+
+                    request.reverse().forEach(item => {
+                        const orderId = item.order.id;
+                        const orderRow = `
+                            <tr>
+                                <td><span class="order-id">${orderId}</span></td>
+                                <td><span class="status-preparing" onclick="changeStatus(this,${orderId})">PREPARÁNDOSE</span></td>
+                            </tr>
+                        `;
+                        orderList.append(orderRow);
+                    });
+                }
+            });
+        }
+
+        function changeStatus(element, order_id) {
+            element.classList.remove('status-preparing');
+            element.classList.add('status-ready');
+            element.textContent = 'LISTO';
+            element.onclick = null;
+
+            setTimeout(() => {
+                const row = element.closest('tr');
+                if (row) {
+                    row.remove();
+                }
+            }, 2000);
+
+            __conection({
+                url: URL("/local/ticket/orderkitchen/" + order_id),
+                header: credentials(),
+                method: 'PUT'
+            }, {}, function (request) {
+
+            });
+
+            sound();
+        }
+
+        function requestLoadCocinaClosed() {
+            __conection({
+                url: URL("/app/local/cafeteria/modo_cocina/orders_kitchens/closed"),
+                header: credentials(),
+            }, {}, function (request) {
+                _ORDERS = [];
+                console.log(request);
+
+                if (is_array(request)) {
+                    const orderList = $("#order-closed-list");
+                    orderList.empty();
+
+                    request.reverse().forEach(item => {
+                        const orderId = item.order.id;
+                        const orderRow = `
+                            <tr>
+                                <td><span class="order-id">${orderId}</span></td>
+                                <td><span class="status-ready">LISTO</span></td>
+                            </tr>
+                        `;
+                        orderList.append(orderRow);
+                    });
+                }
+            });
+        }
+
+        function sound() {
+            let audioEtiqueta = document.querySelector("audio.notification");
+
+            audioEtiqueta.setAttribute("src", "notification.mp3");
+            audioEtiqueta.load(); // Cargar el archivo de audio
+            audioEtiqueta.play().then(() => {
+                console.log(`Reproduciendo: ${audioEtiqueta.src}`);
+            }).catch(error => {
+                console.error(`Error al reproducir el sonido: ${error}`);
+            });
+        }
+    </script>
+</body>
+
+</html>

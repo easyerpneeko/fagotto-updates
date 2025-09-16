@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class TurnoCaja extends Model
 {
     protected $connection = 'mysql_local';
-    protected $table = 'turnos_caja';
+    protected $table = 'TurnosCaja';  // ✅ CORREGIR: Usar el nombre correcto de la tabla
     
     protected $fillable = [
         'app_id',
@@ -16,9 +16,13 @@ class TurnoCaja extends Model
         'app_nombre',
         'fecha_inicio',
         'fecha_termino',
+        'monto_inicial',          // ✅ AGREGAR: Monto inicial del turno
+        'monto_final',            // ✅ AGREGAR: Monto final contado
         'total_sistema',
-        'total_contado',
+        'total_contado',          // ✅ CORREGIR: Este es el total general
+        'total_otros_medios',     // ✅ AGREGAR: Total otros medios de pago
         'diferencia',
+        'diferencia_general',     // ✅ AGREGAR: Diferencia total general
         'estado',
         'observaciones',
         'detalle_efectivo',
@@ -33,9 +37,13 @@ class TurnoCaja extends Model
         'fecha_inicio' => 'datetime',
         'fecha_termino' => 'datetime',
         'turno_cerrado_en' => 'datetime',
+        'monto_inicial' => 'decimal:2',       // ✅ AGREGAR: Cast para monto inicial
+        'monto_final' => 'decimal:2',         // ✅ AGREGAR: Cast para monto final  
         'total_contado' => 'decimal:2',
         'total_sistema' => 'decimal:2',
+        'total_otros_medios' => 'decimal:2',  // ✅ AGREGAR: Cast para otros medios
         'diferencia' => 'decimal:2',
+        'diferencia_general' => 'decimal:2',  // ✅ AGREGAR: Cast para diferencia general
         'turno_abierto' => 'boolean',
         'puede_hacer_arqueo' => 'boolean'
     ];
@@ -44,13 +52,13 @@ class TurnoCaja extends Model
     public static function turnoAbiertoParaUsuario($usuarioId, $appId) {
         return self::where('usuario_id', $usuarioId)
                    ->where('app_id', $appId)
-                   ->where('turno_abierto', true)
-                   ->whereNull('turno_cerrado_en')
+                   ->where('estado', 'abierto') // 🔧 ARREGLO: Usar 'estado' en lugar de 'turno_abierto'
+                   ->whereNull('fecha_termino') // 🔧 ARREGLO: Usar 'fecha_termino' en lugar de 'turno_cerrado_en'
                    ->first();
     }
 
     // Método para iniciar nuevo turno
-    public static function iniciarTurno($usuarioId, $usuarioNombre, $appId, $appNombre) {
+    public static function iniciarTurno($usuarioId, $usuarioNombre, $appId, $appNombre, $montoInicial = 0) {
         return self::create([
             'app_id' => $appId,
             'usuario_id' => $usuarioId,
@@ -60,6 +68,7 @@ class TurnoCaja extends Model
             'estado' => 'abierto',
             'turno_abierto' => true,
             'puede_hacer_arqueo' => true,
+            'monto_inicial' => $montoInicial,  // ✅ AGREGAR: Guardar monto inicial
             'total_sistema' => 0,
             'total_contado' => 0,
             'diferencia' => 0
@@ -74,9 +83,17 @@ class TurnoCaja extends Model
             'turno_abierto' => false,
             'puede_hacer_arqueo' => false,
             'estado' => 'cerrado',
-            'total_sistema' => $datosArqueo['total_sistema'],
-            'total_contado' => $datosArqueo['total_contado'],
-            'diferencia' => $datosArqueo['diferencia'],
+            
+            // ✅ CAMPOS MONETARIOS CORREGIDOS
+            'monto_inicial' => $datosArqueo['monto_inicial'] ?? $this->monto_inicial ?? 0,
+            'monto_final' => $datosArqueo['monto_final'] ?? 0,
+            'total_sistema' => $datosArqueo['total_sistema'] ?? 0,
+            'total_contado' => $datosArqueo['total_contado'] ?? 0,          // Total general
+            'total_otros_medios' => $datosArqueo['total_otros_medios'] ?? 0,
+            'diferencia' => $datosArqueo['diferencia'] ?? 0,               // Diferencia efectivo
+            'diferencia_general' => $datosArqueo['diferencia_general'] ?? 0, // Diferencia total
+            
+            // ✅ CAMPOS ADICIONALES
             'observaciones' => $datosArqueo['observaciones'] ?? '',
             'detalle_efectivo' => $datosArqueo['detalle_efectivo'] ?? '{}',
             'detalle_medios_pago' => $datosArqueo['detalle_medios_pago'] ?? '{}',

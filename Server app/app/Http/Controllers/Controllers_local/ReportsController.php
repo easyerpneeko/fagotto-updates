@@ -247,7 +247,7 @@ class ReportsController extends Controller
       'convenio_empresa' => ['modulos.ventas.submodulos.sii.ajustes.convenio_empresa', ['convenio_empresa']],
       'sodexo' => ['modulos.ventas.submodulos.sii.ajustes.sodexo', ['sodexo']],
       'rappi' => ['modulos.ventas.submodulos.sii.ajustes.rappi', ['rappi']],
-      'junaeb' => ['modulos.ventas.submodulos.sii.ajustes.junaeb', ['junaeb']],
+      'junaeb' => ['modulos.ventas.submodulos.sii.ajustes.junaeb', ['junaeb', 'Junaeb']],
       'uber' => ['modulos.ventas.submodulos.sii.ajustes.uber', ['uber', 'uber_eats']],
       'pedidos_ya' => ['modulos.ventas.submodulos.sii.ajustes.pedidos_ya', ['pedidos_ya']],
       'pluxee' => ['modulos.ventas.submodulos.sii.ajustes.pluxee', ['pluxee']],
@@ -724,7 +724,7 @@ class ReportsController extends Controller
           }
         }
         if (CurrentApp::ConfStr('modulos.ventas.submodulos.sii.ajustes.junaeb')) {
-          if ($venta->other_type == 'junaeb' || $venta->paymode == 'junaeb') {
+          if ($venta->other_type == 'junaeb' || $venta->paymode == 'junaeb' || $venta->other_type == 'Junaeb' || $venta->paymode == 'Junaeb') {
             $counters['junaeb'] = isset($counters['junaeb']) ? $counters['junaeb'] + $venta->total : $venta->total;
           }
         }

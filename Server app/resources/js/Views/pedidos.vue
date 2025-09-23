@@ -29,11 +29,12 @@
           <table class="table table-striped projects">
             <thead>
               <tr>
-                <th class="">Nombre</th>
+                <th class="">Nombredasdasdsad</th>
                 <th class="">Unidad(Precio)</th>
                 <th class="">Precio Individual</th>
                 <th class="">Cantidad Minina</th>
                 <th class="">Stock</th>
+                <th class="">Estado</th>
                 <th class="actions">Acciones</th>
               </tr>
             </thead>
@@ -54,14 +55,24 @@
                 <td class="display-none">
                   {{ (product.stock != null) ? product.stock : '0' }}
                 </td>
+                <td class="text-center">
+                  <span v-if="product.active == 1" class="badge badge-success">Activo</span>
+                  <span v-else class="badge badge-danger">Inactivo</span>
+                </td>
                 <!-- <td class="display-none text-center">
                   {{product.created_at}}
                 </td> -->
                 <td class="text-right">
-                  <a @click="openProduct(product)" class="btn bg-two btn-sm" href="#">
+                  <a @click="openProduct(product)" class="btn bg-two btn-sm mr-1" href="#" title="Editar">
                     <i class="fas fa-edit"></i>
                   </a>
-                  <a @click="removeProduct(product)" class="btn bg-one btn-sm" href="#">
+                  <a @click="toggleProductStatus(product)" 
+                     :class="['btn', 'btn-sm', 'mr-1', product.active == 1 ? 'btn-warning' : 'btn-success']" 
+                     href="#" 
+                     :title="product.active == 1 ? 'Desactivar' : 'Activar'">
+                    <i :class="['fas', product.active == 1 ? 'fa-eye-slash' : 'fa-eye']"></i>
+                  </a>
+                  <a @click="removeProduct(product)" class="btn bg-one btn-sm" href="#" title="Eliminar">
                     <i class="fas fa-trash"></i>
                   </a>
                 </td>
@@ -147,6 +158,34 @@
   
         if(request.success){
           this.$toastr.success(request.data, 'Exitoso');
+          this.getProducts();
+        }else{
+          this.$toastr.error(request.data, 'Error');
+        }
+      },
+      async toggleProductStatus(product){
+        let loader = this.$loading.show({
+          container: this.$refs.formContainer,
+          color: '#007bff',
+          width: 80,
+          height: 80,
+          backgroundColor: '#000000',
+          opacity: 0.8,
+          zIndex: 999,
+        });
+
+        const newStatus = product.active == 1 ? 0 : 1;
+        const actionText = newStatus == 1 ? 'activado' : 'desactivado';
+        
+        let request = await this.$store.dispatch('products/toggleStatus', {
+          id: product.id,
+          active: newStatus
+        });
+        
+        loader.hide();
+
+        if(request.success){
+          this.$toastr.success(`Producto ${actionText} exitosamente`, 'Exitoso');
           this.getProducts();
         }else{
           this.$toastr.error(request.data, 'Error');

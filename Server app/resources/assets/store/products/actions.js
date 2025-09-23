@@ -16,6 +16,11 @@ export async function remove(context, id) {
   const request = await Connection.request('delete',url);
   return request;
 }
+export async function toggleStatus(context, data) {
+  const url = BaseUrl.getUrl('api/product/' + data.id + '/toggle-active');
+  const request = await Connection.request('put', url, { active: data.active });
+  return request;
+}
 export async function index(context, params) {
   const url = BaseUrl.getUrl('api/products/' + params);
   const request = await Connection.request('get',url);

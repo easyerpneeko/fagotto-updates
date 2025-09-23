@@ -212,4 +212,102 @@ class ReportAplicationController extends Controller {
   
       return response()->json($appSells);
     }
+
+    /**
+     * Obtener salsas desde la base de datos EasyERP
+     */
+    public function getSalsasEasyERP(Request $request)
+    {
+        try {
+            // Lista de salsas específicas que queremos consultar
+            $salsasObjetivo = [
+                'ALFREDO',
+                'BOLOÑESA', 
+                'CAMARON',
+                'CHAMPIÑON',
+                'PESTO',
+                'CREMA POLLO MOSTAZA'
+            ];
+
+            // Conectar a la base de datos easyerp
+            $productos = DB::connection('easyerp')
+                ->table('products')
+                ->select('id', 'name', 'active', 'trash')
+                ->where(function($query) use ($salsasObjetivo) {
+                    foreach ($salsasObjetivo as $salsa) {
+                        $query->orWhere('name', 'LIKE', '%' . $salsa . '%');
+                    }
+                })
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $productos,
+                'message' => 'Salsas obtenidas correctamente',
+                'total' => $productos->count()
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al consultar salsas: ' . $e->getMessage(),
+                'data' => []
+            ], 500);
+        }
+    }
+
+    /**
+     * Actualizar estado de un producto en EasyERP (active o trash)
+     */
+    public function actualizarProductoEasyERP(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'id' => 'required|integer',
+                'campo' => 'required|string|in:active,trash',
+                'valor' => 'required|boolean'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Datos inválidos',
+                    'errors' => $validator->errors()
+                ], 400);
+            }
+
+            $id = $request->input('id');
+            $campo = $request->input('campo');
+            $valor = $request->input('valor') ? 1 : 0;
+
+            // Actualizar en la base de datos easyerp
+            $updated = DB::connection('easyerp')
+                ->table('products')
+                ->where('id', $id)
+                ->update([$campo => $valor]);
+
+            if ($updated) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Campo {$campo} actualizado correctamente",
+                    'data' => [
+                        'id' => $id,
+                        'campo' => $campo,
+                        'valor' => $valor
+                    ]
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se pudo actualizar el producto'
+                ], 400);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar producto: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

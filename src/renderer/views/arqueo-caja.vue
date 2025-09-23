@@ -1,514 +1,446 @@
 <template>
-  <div class="arqueo-caja-container">
-    <!-- Header -->
-    <div class="page-header">
-      <div class="d-flex justify-content-between align-items-center">
-        <div>
-          <h2 class="page-title">
-            <i class="fas fa-cash-register me-3"></i>Arqueo de Caja
-          </h2>
-          <p class="page-subtitle">Control y registro de efectivo en caja</p>
+  <div class="arqueo-container">
+    <!-- Elementos decorativos de fondo -->
+    <div class="bg-decoration">
+      <div class="floating-circle circle-1"></div>
+      <div class="floating-circle circle-2"></div>
+      <div class="floating-circle circle-3"></div>
+      <div class="floating-shape shape-1"></div>
+      <div class="floating-shape shape-2"></div>
+    </div>
+    
+    <!-- Header Moderno -->
+    <div class="modern-header">
+      <div class="header-content">
+        <div class="header-title-section">
+          <div class="title-icon">
+            <i class="fas fa-cash-register"></i>
+          </div>
+          <div class="title-text">
+            <h1>Arqueo de Caja</h1>
+            <p>Control inteligente de efectivo</p>
+          </div>
         </div>
-        <div class="header-actions">
-          <span class="status-badge" :class="statusClass">
-            <i class="fas fa-circle me-1"></i>{{ statusText }}
-          </span>
-          <button class="btn btn-outline-primary ms-2" @click="verReportes">
-            <i class="fas fa-chart-bar me-1"></i>Reportes
-          </button>
+        <div class="header-status">
+          <div class="status-indicator" :class="turnoActivo ? 'active' : 'inactive'">
+            <i class="fas fa-circle"></i>
+            <span>{{ turnoActivo ? 'Turno Activo' : 'Sin Turno' }}</span>
+          </div>
         </div>
       </div>
       
-      <!-- Info del Arqueo -->
-      <div class="arqueo-info mt-3">
-        <div class="row">
-          <div class="col-md-4">
-            <div class="info-item">
-              <i class="fas fa-store me-2"></i>
-              <strong>Negocio:</strong> {{ negocioInfo.nombre }}
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="info-item">
-              <i class="fas fa-calendar me-2"></i>
-              <strong>Fecha:</strong> {{ fechaActual }}
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="info-item">
-              <i class="fas fa-user me-2"></i>
-              <strong>Usuario:</strong> {{ usuarioActual.nombre }}
-            </div>
+      <!-- Info Cards -->
+      <div class="info-cards">
+        <div class="info-card">
+          <i class="fas fa-store"></i>
+          <div class="card-content">
+            <span class="card-label">Negocio</span>
+            <span class="card-value">{{ negocioInfo.nombre }}</span>
           </div>
         </div>
-      </div>
-
-      <!-- Estado del Arqueo -->
-      <div class="arqueo-estado mt-3" v-if="turnoActivo">
-        <div class="row">
-          <div class="col-md-6">
-            <div class="estado-item inicial">
-              <i class="fas fa-play-circle me-2"></i>
-              <strong>Arqueo Inicial:</strong> 
-              <span class="badge bg-success ms-2">✓ ${{ formatMoney(montoInicialTurno) }}</span>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="estado-item final">
-              <i class="fas fa-stop-circle me-2"></i>
-              <strong>Arqueo Final:</strong> 
-              <span class="badge bg-warning text-dark ms-2">⏳ Pendiente</span>
-            </div>
+        <div class="info-card">
+          <i class="fas fa-calendar-day"></i>
+          <div class="card-content">
+            <span class="card-label">Fecha</span>
+            <span class="card-value">{{ fechaActual }}</span>
           </div>
         </div>
-      </div>
-
-      <!-- Estado del Arqueo COMPLETADO (se muestra después de guardar) -->
-      <div class="arqueo-estado mt-3" v-if="arqueoGuardado && !turnoActivo">
-        <div class="row">
-          <div class="col-md-6">
-            <div class="estado-item inicial">
-              <i class="fas fa-play-circle me-2"></i>
-              <strong>Arqueo Inicial:</strong> 
-              <span class="badge bg-success ms-2">✓ ${{ formatMoney(montoInicialTurno) }}</span>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="estado-item final">
-              <i class="fas fa-check-circle me-2"></i>
-              <strong>Arqueo Final:</strong> 
-              <span class="badge bg-success ms-2">✓ ${{ formatMoney(montoFinalTurno) }}</span>
-            </div>
+        <div class="info-card">
+          <i class="fas fa-user"></i>
+          <div class="card-content">
+            <span class="card-label">Usuario</span>
+            <span class="card-value">{{ usuarioActual.nombre }}</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Botón de Iniciar Turno -->
-    <div class="row mb-3" v-if="!turnoActivo">
-      <div class="col-12">
-        <div class="alert alert-warning text-center">
-          <h5><i class="fas fa-exclamation-triangle me-2"></i>Turno no iniciado</h5>
-          <p class="mb-3">Debes iniciar un turno antes de hacer el arqueo de caja</p>
-          
-          <!-- BOTÓN TEMPORAL PARA CREAR TABLA -->
-          <div class="mb-3">
-            <button 
-              class="btn btn-warning btn-sm me-2"
-              @click="crearTablaTurnos"
-              :disabled="cargandoTabla"
-            >
-              <i class="fas fa-database me-2"></i>
-              {{ cargandoTabla ? 'Creando Tabla...' : 'Crear Tabla BD (TEMPORAL)' }}
-            </button>
-            <small class="d-block text-muted mt-1">Solo usar si aparece error de tabla no existe</small>
-          </div>
-          
-          <button 
-            class="btn btn-success btn-lg"
-            @click="iniciarTurno"
-            :disabled="cargandoTurno"
-          >
-            <i class="fas fa-play me-2"></i>
-            {{ cargandoTurno ? 'Iniciando Turno...' : 'Iniciar Turno' }}
-          </button>
+    <!-- Sin Turno - Inicio -->
+    <div v-if="!turnoActivo" class="no-turno-section">
+      <div class="empty-state">
+        <div class="empty-icon">
+          <i class="fas fa-play-circle"></i>
         </div>
+        <h3>¿Listo para iniciar el día?</h3>
+        <p>Inicia un turno para comenzar el control de caja</p>
+        <button 
+          class="btn-primary-large"
+          @click="iniciarTurno"
+          :disabled="cargandoTurno"
+        >
+          <i class="fas fa-rocket me-2"></i>
+          {{ cargandoTurno ? 'Iniciando...' : 'Iniciar Turno' }}
+        </button>
       </div>
     </div>
 
-    <div class="row" v-if="turnoActivo">
-      <!-- Panel de Conteo (solo visible después de iniciar turno) -->
-      <div class="col-lg-8">
-        <div class="card modern-card">
-          <div class="card-body">
-            <h4 class="card-title">
-              <i class="fas fa-calculator me-2"></i>Conteo de Efectivo
-            </h4>
-            
-            <!-- Billetes -->
-            <div class="denomination-section">
-              <h5 class="section-title">💵 Billetes</h5>
-              <div class="row g-3">
-                <div class="col-md-4" v-for="(valor, denominacion) in billetes" :key="denominacion">
-                  <div class="denomination-card">
-                    <div class="text-center">
-                      <h6 class="denomination-value">${{ formatMoney(valor) }}</h6>
-                      <input 
-                        type="number" 
-                        class="form-control denomination-input" 
-                        v-model.number="conteo[denominacion]"
-                        @input="calcularTotal"
-                        @focus="selectInputContent"
-                        min="0"
-                        placeholder="0"
-                      >
-                      <small class="text-muted">Cantidad</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+    <!-- Con Turno Activo -->
+    <div v-if="turnoActivo" class="turno-activo">
+      
+      <!-- Resumen del Turno -->
+      <div class="turno-summary">
+        <div class="summary-card initial">
+          <div class="card-icon">
+            <i class="fas fa-piggy-bank"></i>
+          </div>
+          <div class="card-info">
+            <span class="card-title">Monto Inicial</span>
+            <span class="card-amount">${{ formatMoney(montoInicialTurno) }}</span>
+          </div>
+        </div>
+        
+        <div class="summary-card current">
+          <div class="card-icon">
+            <i class="fas fa-calculator"></i>
+          </div>
+          <div class="card-info">
+            <span class="card-title">Efectivo Contado</span>
+            <span class="card-amount">${{ formatMoney(totalContado) }}</span>
+            <small style="color: #64748b; font-size: 10px; display: block; margin-top: 4px;">
+              Solo billetes + monedas (sin monto inicial)
+            </small>
+          </div>
+        </div>
+        
+        <div class="summary-card total">
+          <div class="card-icon">
+            <i class="fas fa-trophy"></i>
+          </div>
+          <div class="card-info">
+            <span class="card-title">Total General</span>
+            <span class="card-amount total-highlight">${{ formatMoney(totalGeneralContado) }}</span>
+            <small style="color: #64748b; font-size: 10px; display: block; margin-top: 4px;">
+              Efectivo + todos los medios de pago
+            </small>
+          </div>
+        </div>
+      </div>
 
-            <!-- Monedas -->
-            <div class="denomination-section">
-              <h5 class="section-title">🪙 Monedas</h5>
-              <div class="row g-3">
-                <div class="col-md-3" v-for="(valor, denominacion) in monedas" :key="denominacion">
-                  <div class="denomination-card">
-                    <div class="text-center">
-                      <h6 class="denomination-value">${{ formatMoney(valor) }}</h6>
-                      <input 
-                        type="number" 
-                        class="form-control denomination-input" 
-                        v-model.number="conteo[denominacion]"
-                        @input="calcularTotal"
-                        @focus="selectInputContent"
-                        min="0"
-                        placeholder="0"
-                      >
-                      <small class="text-muted">Cantidad</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Otros Medios de Pago -->
-            <div class="denomination-section">
-              <h5 class="section-title">💳 Otros Medios de Pago</h5>
-              <p class="text-muted small mb-3">
-                <i class="fas fa-user-secret me-1"></i>
-                Ingresa lo que "tienes" de cada medio de pago (sin ver las ventas del sistema)
-              </p>
-              <div class="row g-3">
-                <div 
-                  class="col-lg-3 col-md-4 col-sm-6" 
-                  v-for="method in availablePaymentMethods" 
-                  :key="method.key"
-                  v-if="method.key !== 'efectivo'"
+      <!-- Contenido Principal -->
+      <div class="main-content">
+        
+        <!-- Panel de Conteo -->
+        <div class="conteo-panel">
+          <div class="panel-header">
+            <h3><i class="fas fa-money-bill-wave me-2"></i>Conteo de Efectivo</h3>
+          </div>
+          
+          <!-- Billetes -->
+          <div class="denomination-group">
+            <h4 class="group-title">💵 Billetes</h4>
+            <div class="denomination-grid">
+              <div 
+                v-for="(valor, denominacion) in billetes" 
+                :key="denominacion"
+                class="denomination-item"
+              >
+                <div class="denom-value">${{ formatMoney(valor) }}</div>
+                <input 
+                  type="number" 
+                  class="denom-input" 
+                  v-model.number="conteo[denominacion]"
+                  @input="calcularTotal"
+                  @focus="selectInputContent"
+                  min="0"
+                  placeholder="0"
                 >
-                  <div class="payment-method-card">
-                    <div class="text-center">
-                      <i 
-                        :class="`${method.icon} text-${method.color} mb-2`" 
-                        style="font-size: 1.5rem;"
-                      ></i>
-                      <h6 class="payment-method-name">{{ method.emoji }} {{ method.name }}</h6>
-                      <input 
-                        type="number" 
-                        class="form-control payment-input" 
-                        v-model.number="mediosPago[method.key]"
-                        @input="calcularTotalGeneral"
-                        @focus="selectInputContent"
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                      >
-                      <small class="text-muted">Monto Total</small>
-                    </div>
-                  </div>
-                </div>
+                <div class="denom-label">cantidad</div>
               </div>
             </div>
+          </div>
 
-            <!-- Total General -->
-            <!-- Resumen Detallado por Método de Pago -->
-            <div class="total-section">
-              <h5 class="text-white mb-3">
-                <i class="fas fa-calculator me-2"></i>Resumen Detallado
-              </h5>
-              
-              <!-- EFECTIVO -->
-              <div class="row align-items-center mb-2">
-                <div class="col-8">
-                  <span class="text-white">💵 Efectivo:</span>
-                </div>
-                <div class="col-4 text-end">
-                  <strong class="text-white">${{ formatMoney(totalContado) }}</strong>
-                </div>
+          <!-- Monedas -->
+          <div class="denomination-group">
+            <h4 class="group-title">🪙 Monedas</h4>
+            <div class="denomination-grid small">
+              <div 
+                v-for="(valor, denominacion) in monedas" 
+                :key="denominacion"
+                class="denomination-item"
+              >
+                <div class="denom-value">${{ formatMoney(valor) }}</div>
+                <input 
+                  type="number" 
+                  class="denom-input" 
+                  v-model.number="conteo[denominacion]"
+                  @input="calcularTotal"
+                  @focus="selectInputContent"
+                  min="0"
+                  placeholder="0"
+                >
+                <div class="denom-label">cantidad</div>
               </div>
+            </div>
+          </div>
 
-              <!-- TODOS LOS OTROS MÉTODOS DE PAGO -->
+          <!-- Suma Total Métodos de Pago Diversos -->
+          <div class="medios-group">
+            <h4 class="group-title">💳 Suma Total Métodos de Pago Diversos</h4>
+            <p class="group-subtitle">Registra lo que tienes de cada medio (sin ver las ventas)</p>
+            <div class="medios-grid">
               <div 
                 v-for="method in availablePaymentMethods" 
                 :key="method.key"
                 v-if="method.key !== 'efectivo'"
-                class="row align-items-center mb-2"
+                class="medio-item"
               >
-                <div class="col-8">
-                  <span class="text-white">{{ method.emoji }} {{ method.name }}:</span>
+                <div class="medio-icon" :class="`icon-${method.color}`">
+                  <i :class="method.icon"></i>
                 </div>
-                <div class="col-4 text-end">
-                  <strong class="text-white">${{ formatMoney(mediosPago[method.key] || 0) }}</strong>
+                <div class="medio-info">
+                  <span class="medio-name">{{ method.emoji }} {{ method.name }}</span>
+                  <input 
+                    type="number" 
+                    class="medio-input" 
+                    v-model.number="mediosPago[method.key]"
+                    @input="calcularTotalGeneral"
+                    @focus="selectInputContent"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                  >
                 </div>
               </div>
-
-              <!-- TOTAL GENERAL -->
-              <hr class="text-white">
-              <div class="row align-items-center">
-                <div class="col-8">
-                  <h3 class="mb-0 text-white">🏆 TOTAL GENERAL:</h3>
-                </div>
-                <div class="col-4 text-end">
-                  <h2 class="mb-0 text-white">${{ formatMoney(totalGeneralContado) }}</h2>
-                </div>
-              </div>
-            </div>
-
-            <!-- Observaciones -->
-            <div class="mt-4">
-              <label for="observaciones" class="form-label">Observaciones</label>
-              <textarea 
-                class="form-control" 
-                v-model="observaciones" 
-                @focus="selectInputContent"
-                rows="3" 
-                placeholder="Ingrese cualquier observación sobre el arqueo..."
-              ></textarea>
-            </div>
-
-            <!-- Botones -->
-            <div class="mt-4 text-center">
-              <button 
-                class="btn btn-danger btn-lg me-3" 
-                @click="guardarArqueo"
-                :disabled="loading || totalContado === 0"
-              >
-                <i class="fas fa-stop me-2"></i>
-                {{ loading ? 'Cerrando Turno...' : 'Cerrar Turno' }}
-              </button>
-              <button class="btn btn-outline-secondary me-3" @click="limpiarFormulario">
-                <i class="fas fa-broom me-2"></i>Limpiar
-              </button>
-              <button class="btn btn-outline-primary" @click="imprimirArqueo">
-                <i class="fas fa-print me-2"></i>Imprimir
-              </button>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Panel de Información -->
-      <div class="col-lg-4">
-        <!-- Resumen del Día - Solo se muestra DESPUÉS de guardar -->
-        <div class="card modern-card" v-if="arqueoGuardado">
-          <div class="card-body">
-            <h5 class="card-title">
-              <i class="fas fa-detective me-2"></i>🕵️‍♂️ Resultado de la Investigación
-            </h5>
-          
-            
-          
-            <!-- OTROS MEDIOS DE PAGO (DINÁMICO) -->
-            <div 
-              v-for="method in availablePaymentMethods" 
-              :key="method.key"
-              v-if="method.key !== 'efectivo'"
-              :class="`card border-${method.color} mb-3`"
+          <!-- Observaciones -->
+          <div class="observaciones-section">
+            <label class="obs-label">
+              <i class="fas fa-sticky-note me-2"></i>Observaciones
+            </label>
+            <textarea 
+              class="obs-textarea" 
+              v-model="observaciones" 
+              @focus="selectInputContent"
+              rows="3" 
+              placeholder="Agrega cualquier observación sobre el arqueo..."
+            ></textarea>
+          </div>
+
+          <!-- Botones de Acción -->
+          <div class="action-buttons">
+            <button 
+              class="btn-danger-large" 
+              @click="mostrarModalConfirmacion"
+              :disabled="loading || totalContado === 0"
             >
-              <div :class="`card-header bg-${method.color} text-white`">
-                <h6 class="mb-0">
-                  <i :class="`${method.icon} me-2`"></i>
-                  {{ method.emoji }} {{ method.name.toUpperCase() }}
-                </h6>
-              </div>
-              <div class="card-body">
-                <div class="summary-item">
-                  <div class="d-flex justify-content-between">
-                    <span><i class="fas fa-hand-paper me-1"></i>Contaste:</span>
-                    <strong class="text-info">${{ formatMoney(mediosPago[method.key] || 0) }}</strong>
-                  </div>
-                </div>
-                <div class="summary-item">
-                  <div class="d-flex justify-content-between">
-                    <span><i class="fas fa-chart-line me-1"></i>Ventas del sistema:</span>
-                    <strong class="text-success">${{ formatMoney(getPaymentMethodSales(method.key)) }}</strong>
-                  </div>
-                </div>
-                <div class="summary-item border-top pt-2">
-                  <div class="d-flex justify-content-between">
-                    <span><strong><i class="fas fa-balance-scale me-1"></i>Diferencia:</strong></span>
-                    <strong :class="getPaymentMethodDifference(method.key) >= 0 ? 'text-success' : 'text-danger'">
-                      ${{ formatMoney(getPaymentMethodDifference(method.key)) }}
-                    </strong>
-                  </div>
-                  <small v-if="getPaymentMethodDifference(method.key) === 0" class="text-success">✅ Exacto</small>
-                  <small v-else-if="getPaymentMethodDifference(method.key) > 0" class="text-warning">⬆️ Sobrante</small>
-                  <small v-else class="text-danger">⬇️ Faltante</small>
-                </div>
-              </div>
-            </div>
-
-            <!-- RESUMEN GENERAL DETALLADO -->
-            <div class="card border-dark">
-              <div class="card-header bg-dark text-white">
-                <h6 class="mb-0"><i class="fas fa-calculator me-2"></i>RESUMEN GENERAL - DETALLADO</h6>
-              </div>
-              <div class="card-body">
-                <!-- EFECTIVO -->
-                <div class="summary-item">
-                  <div class="d-flex justify-content-between">
-                    <span><strong>💵 Efectivo:</strong></span>
-                    <div class="text-end">
-                      <div>Dijiste: <strong class="text-info">${{ formatMoney(totalContado) }}</strong></div>
-                      <div>Sistema: <strong class="text-success">${{ formatMoney(getPaymentMethodSales('efectivo')) }}</strong></div>
-                      <div>Diferencia: <strong :class="diferencia >= 0 ? 'text-success' : 'text-danger'">${{ formatMoney(diferencia) }}</strong></div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- TODOS LOS OTROS MÉTODOS -->
-                <div 
-                  v-for="method in availablePaymentMethods" 
-                  :key="method.key"
-                  v-if="method.key !== 'efectivo' && (mediosPago[method.key] > 0 || getPaymentMethodSales(method.key) > 0)"
-                  class="summary-item border-top pt-2 mt-2"
-                >
-                  <div class="d-flex justify-content-between">
-                    <span><strong>{{ method.emoji }} {{ method.name }}:</strong></span>
-                    <div class="text-end">
-                      <div>Dijiste: <strong class="text-info">${{ formatMoney(mediosPago[method.key] || 0) }}</strong></div>
-                      <div>Sistema: <strong class="text-success">${{ formatMoney(getPaymentMethodSales(method.key)) }}</strong></div>
-                      <div>Diferencia: <strong :class="getPaymentMethodDifference(method.key) >= 0 ? 'text-success' : 'text-danger'">${{ formatMoney(getPaymentMethodDifference(method.key)) }}</strong></div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- TOTALES FINALES -->
-                <hr class="mt-3">
-                <div class="summary-item">
-                  <div class="d-flex justify-content-between">
-                    <span><strong>🏆 TOTAL GENERAL:</strong></span>
-                    <div class="text-end">
-                      <div>Dijiste: <strong class="text-info">${{ formatMoney(totalGeneralContado) }}</strong></div>
-                      <div>Sistema: <strong class="text-success">${{ formatMoney(totalVentasSistema) }}</strong></div>
-                    </div>
-                  </div>
-                </div>
-                <div class="summary-item border-top pt-2">
-                  <div class="d-flex justify-content-between">
-                    <span><strong>DIFERENCIA TOTAL:</strong></span>
-                    <h5 :class="diferenciaGeneral >= 0 ? 'text-success' : 'text-danger'">
-                      ${{ formatMoney(diferenciaGeneral) }}
-                    </h5>
-                  </div>
-                </div>
-                <div class="text-center mt-3">
-                  <span class="badge badge-lg" 
-                        :class="diferenciaGeneral === 0 ? 'bg-success' : (diferenciaGeneral > 0 ? 'bg-warning' : 'bg-danger')">
-                    {{ diferenciaGeneral === 0 ? '🎉 ¡PERFECTO!' : (diferenciaGeneral > 0 ? '🤔 SOBRANTE' : '😱 FALTANTE') }}
-                  </span>
-                </div>
-              </div>
-            </div>
+              <i class="fas fa-stop me-2"></i>
+              {{ loading ? 'Cerrando Turno...' : 'Cerrar Turno' }}
+            </button>
+            <button class="btn-outline" @click="limpiarFormulario">
+              <i class="fas fa-broom me-2"></i>Limpiar
+            </button>
           </div>
         </div>
 
-        <!-- Historial de Arqueos -->
-        <div class="card modern-card">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="card-title mb-0">
-                <i class="fas fa-history me-2"></i>Historial de Arqueos
-              </h5>
-              <div class="text-muted small">
-                <i class="fas fa-shield-alt me-1"></i>Registro protegido de auditoría
+        <!-- Panel de Resultados (Solo después de guardar) -->
+        <div v-if="arqueoGuardado" class="resultados-panel">
+          <div class="panel-header">
+            <h3><i class="fas fa-chart-line me-2"></i>Resultado del Arqueo</h3>
+          </div>
+          
+          <!-- Comparación Efectivo -->
+          <div class="comparison-card efectivo">
+            <div class="comparison-header">
+              <i class="fas fa-money-bill-wave"></i>
+              <span>Efectivo</span>
+            </div>
+            <div class="comparison-data">
+              <div class="data-row">
+                <span>Contaste (billetes + monedas):</span>
+                <span class="amount">${{ formatMoney(totalContado) }}</span>
+              </div>
+              <div class="data-row">
+                <span>Ventas en efectivo del sistema:</span>
+                <span class="amount">${{ formatMoney(getPaymentMethodSales('efectivo')) }}</span>
+              </div>
+              <div class="data-row difference">
+                <span>Diferencia (contado - ventas):</span>
+                <span class="amount" :class="diferencia >= 0 ? 'positive' : 'negative'">
+                  ${{ formatMoney(diferencia) }}
+                </span>
+              </div>
+              <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+                <small style="color: #64748b; font-size: 11px; font-style: italic;">
+                  💡 El monto inicial (${{ formatMoney(montoInicialTurno) }}) NO se cuenta aquí porque ya estaba en caja
+                </small>
               </div>
             </div>
-            
-            <div class="historial-container">
-              <div v-if="historial.length === 0" class="text-center text-muted py-4">
-                <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
-                <p class="mb-0">No hay arqueos registrados</p>
-                <small>Los arqueos aparecerán aquí después de guardarlos</small>
+          </div>
+
+          <!-- Otros Medios -->
+          <div 
+            v-for="method in availablePaymentMethods" 
+            :key="method.key"
+            v-if="method.key !== 'efectivo' && (mediosPago[method.key] > 0 || getPaymentMethodSales(method.key) > 0)"
+            class="comparison-card medio"
+          >
+            <div class="comparison-header">
+              <i :class="method.icon"></i>
+              <span>{{ method.name }}</span>
+            </div>
+            <div class="comparison-data">
+              <div class="data-row">
+                <span>Contaste:</span>
+                <span class="amount">${{ formatMoney(mediosPago[method.key] || 0) }}</span>
               </div>
-              <div v-else>
-                <div v-for="(arqueo, index) in historial" :key="arqueo.id" class="historial-item">
-                  <div class="historial-header d-flex justify-content-between align-items-start">
-                    <div class="historial-info">
-                      <div class="historial-fecha">
-                        <i class="fas fa-calendar-day me-1"></i>
-                        <strong>{{ formatDate(arqueo.fecha) }}</strong>
-                        <span class="text-muted ms-2">{{ formatTime(arqueo.fecha) }}</span>
-                      </div>
-                      <div class="historial-usuario text-muted">
-                        <i class="fas fa-user me-1"></i>
-                        {{ arqueo.usuario_nombre }}
-                      </div>
-                    </div>
-                    <div class="historial-actions">
-                      <button 
-                        class="btn btn-outline-primary btn-sm" 
-                        @click="verDetalleArqueo(arqueo)"
-                        title="Ver detalle completo"
-                      >
-                        <i class="fas fa-eye"></i> Ver Detalle
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div class="historial-resumen mt-2">
-                    <div class="row text-center">
-                      <div class="col-6">
-                        <small class="text-muted d-block">Arqueo Inicial</small>
-                        <strong class="text-success">${{ formatMoney(arqueo.monto_inicial) }}</strong>
-                      </div>
-                      <div class="col-6">
-                        <small class="text-muted d-block">Arqueo Final</small>
-                        <strong class="text-info">${{ formatMoney(arqueo.total_general_contado) }}</strong>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="historial-estado mt-2 text-center">
-                    <span class="badge bg-light text-dark">
-                      <i class="fas fa-clock me-1"></i>
-                      {{ formatDuration(arqueo.fecha_inicio, arqueo.fecha_termino) }}
-                    </span>
-                  </div>
-                  
-                  <div v-if="arqueo.observaciones" class="historial-observaciones mt-2">
-                    <small class="text-muted">
-                      <i class="fas fa-sticky-note me-1"></i>
-                      {{ arqueo.observaciones }}
-                    </small>
-                  </div>
-                </div>
+              <div class="data-row">
+                <span>Sistema:</span>
+                <span class="amount">${{ formatMoney(getPaymentMethodSales(method.key)) }}</span>
               </div>
+              <div class="data-row difference">
+                <span>Diferencia:</span>
+                <span class="amount" :class="getPaymentMethodDifference(method.key) >= 0 ? 'positive' : 'negative'">
+                  ${{ formatMoney(getPaymentMethodDifference(method.key)) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resultado Final -->
+          <div class="resultado-final" :class="getEstadoClass()">
+            <div class="resultado-icon">
+              <i :class="getResultadoIcon()"></i>
+            </div>
+            <div class="resultado-info">
+              <h4>{{ getMensajeResultado() }}</h4>
+              <p>Diferencia total: ${{ formatMoney(diferenciaGeneral) }}</p>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal para Monto Inicial -->
-    <div v-if="mostrandoModalMontoInicial" class="modal-simple-overlay" @click="enfocarInputInicial">
-      <div class="modal-simple-content" @click.stop>
-        <h4 class="mb-3">💰 Monto Inicial del Turno</h4>
-        <p>Ingrese el monto de efectivo con el que inicia el turno:</p>
-        <input 
-          v-model="montoInicialInput" 
-          type="number" 
-          class="form-control mb-3" 
-          placeholder="0" 
-          min="0" 
-          step="0.01"
-          autofocus
-          @keyup.enter="confirmarMontoInicial"
-          @focus="$event.target.select()"
-          ref="montoInicialInputRef"
-        >
-        <div class="text-end">
-          <button class="btn btn-secondary me-2" @click="cancelarMontoInicial">
+    <!-- Modal Monto Inicial -->
+    <div v-if="mostrandoModalMontoInicial" class="modal-overlay" @click="enfocarInputInicial">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3><i class="fas fa-piggy-bank me-2"></i>Monto Inicial</h3>
+        </div>
+        <div class="modal-body">
+          <p>¿Con cuánto dinero inicias el turno?</p>
+          <input 
+            v-model="montoInicialInput" 
+            type="number" 
+            class="modal-input" 
+            placeholder="0" 
+            min="0" 
+            step="0.01"
+            autofocus
+            @keyup.enter="confirmarMontoInicial"
+            @focus="$event.target.select()"
+            ref="montoInicialInputRef"
+          >
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" @click="cancelarMontoInicial">
             <i class="fas fa-times me-1"></i>Cancelar
           </button>
-          <button class="btn btn-primary" @click="confirmarMontoInicial">
-            <i class="fas fa-play me-1"></i>Iniciar Turno
+          <button class="btn-primary" @click="confirmarMontoInicial">
+            <i class="fas fa-play me-1"></i>Iniciar
           </button>
         </div>
       </div>
     </div>
 
+    <!-- Modal de Confirmación Elegante para Cierre de Turno -->
+    <div v-if="showConfirmModal" class="modal-overlay audit-modal" @click="cerrarModalConfirmacion">
+      <div class="modal-container elegant-modal" @click.stop>
+        <div class="modal-header elegant-header">
+          <div class="modal-icon audit-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h2 class="modal-title">Confirmación de Cierre de Turno</h2>
+          <div class="security-badge">
+            <i class="fas fa-lock"></i>
+            <span>Sistema Seguro</span>
+          </div>
+        </div>
+        
+        <div class="modal-body elegant-body">
+          <div class="confirmation-message">
+            <div class="greeting-section">
+              <p class="main-message">
+                Estimado/a <strong>{{ getNombreCajero() }}</strong>, está a punto de finalizar su turno de trabajo.
+              </p>
+            </div>
+            
+            <div class="summary-box">
+              <div class="summary-header">
+                <i class="fas fa-clipboard-check"></i>
+                <span>Resumen del Turno</span>
+              </div>
+              <div class="summary-content">
+                <div class="info-item">
+                  <i class="fas fa-clock"></i>
+                  <span>Iniciado:</span>
+                  <span class="value">{{ getFechaInicioTurno() }}</span>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-calculator"></i>
+                  <span>Total Contado:</span>
+                  <span class="value highlight">{{ formatMoney(totalGeneralContado) }}</span>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-coins"></i>
+                  <span>Monto Inicial:</span>
+                  <span class="value">{{ formatMoney(montoInicialTurno) }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="audit-notice">
+              <div class="audit-header">
+                <div class="audit-icon-circle">
+                  <i class="fas fa-eye"></i>
+                </div>
+                <h4>Sistema de Auditoría Interna</h4>
+              </div>
+              <div class="audit-content">
+                <p class="audit-main">
+                  Al confirmar, toda la información registrada será almacenada de forma segura 
+                  en nuestro sistema de control interno.
+                </p>
+                <div class="audit-details">
+                  <div class="audit-point">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Los registros de arqueo son monitoreados periódicamente</span>
+                  </div>
+                  <div class="audit-point">
+                    <i class="fas fa-shield-check"></i>
+                    <span>Garantizamos transparencia en el manejo de efectivo</span>
+                  </div>
+                  <div class="audit-point">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Análisis estadístico para mejora continua</span>
+                  </div>
+                </div>
+                <p class="audit-footnote">
+                  <small>
+                    <i class="fas fa-info-circle"></i>
+                    Este procedimiento forma parte de nuestras políticas de control interno 
+                    y cumplimiento normativo para proteger tanto al empleado como a la empresa.
+                  </small>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer elegant-footer">
+          <button @click="cerrarModalConfirmacion" class="btn-cancel elegant-cancel">
+            <i class="fas fa-arrow-left"></i>
+            Revisar Nuevamente
+          </button>
+          <button @click="confirmarCierreConAuditoria" class="btn-confirm elegant-confirm">
+            <i class="fas fa-check-double"></i>
+            <span>Confirmar y Cerrar Turno</span>
+            <small>Con registro de auditoría</small>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -527,7 +459,6 @@ export default {
       // Control básico de turnos
       turnoActivo: false,
       cargandoTurno: false,
-      cargandoTabla: false,
       
       // Montos del turno
       montoInicialTurno: 0,
@@ -564,7 +495,7 @@ export default {
       // Métodos de pago disponibles (se carga dinámicamente)
       availablePaymentMethods: [],
       
-      // Conteo de OTROS MEDIOS DE PAGO (inicializado dinámicamente)
+      // Conteo de MÉTODOS DE PAGO DIVERSOS (inicializado dinámicamente)
       mediosPago: {},
       
       // Ventas del sistema por método de pago (dinámico)
@@ -610,7 +541,10 @@ export default {
       // Modales simples
       mostrandoModalMontoInicial: false,
       montoInicialInput: 0,
-      resolverMontoInicial: null
+      resolverMontoInicial: null,
+      
+      // Modal de confirmación de cierre con auditoría
+      showConfirmModal: false
     }
   },
   
@@ -630,9 +564,9 @@ export default {
       if (this.diferencia === 0) {
         return 'Arqueo Exacto ✅';
       } else if (this.diferencia > 0) {
-        return 'Hay Sobrante ⚠️';
+        return 'Arqueo Registrado ⚠️';
       } else {
-        return 'Hay Faltante ❌';
+        return 'Arqueo Registrado ❌';
       }
     },
     
@@ -678,11 +612,12 @@ export default {
       return total;
     },
     
+    // ✅ CORREGIDO: Total general SIN incluir monto inicial (eso ya está en caja)
     totalGeneralContado() {
-      return this.montoInicialTurno + this.totalContado + this.totalOtrosMedios;
+      return this.totalContado + this.totalOtrosMedios; // Solo lo que contaste, sin monto inicial
     },
     
-    // Total de ventas por cada medio de pago (solo visible después de guardar)
+    // ✅ CORREGIDO: Total de ventas del sistema (solo ventas, sin monto inicial)
     totalVentasSistema() {
       let total = 0;
       // Incluir efectivo
@@ -722,6 +657,7 @@ export default {
       return (this.mediosPago.otro || 0) - this.ventasOtro;
     },
     
+    // ✅ CORREGIDO: Diferencia general - total arqueo vs total ventas (sin monto inicial)
     diferenciaGeneral() {
       return this.totalGeneralContado - this.totalVentasSistema;
     }
@@ -739,7 +675,7 @@ export default {
     this.inicializarFecha();
     this.cargarInfoUsuario();
     this.cargarInfoNegocio();
-    this.cargarHistorial();
+    this.cargarHistorial(); // ✅ Solo de BD, no localStorage
     // Verificar si hay un turno activo antes de cargar otros datos
     this.verificarEstadoTurno();
     // NO cargamos el resumen del día hasta después de guardar
@@ -761,11 +697,14 @@ export default {
     // Verificar si hay un turno activo al cargar la página
     async verificarEstadoTurno() {
       try {
+        console.log('🔍 VERIFICAR TURNO: Iniciando verificación...');
+        
         // Primero verificar con el backend (fuente de verdad)
         try {
           const request = await this.$store.dispatch('arqueo/verificarEstadoTurno');
+          console.log('📡 VERIFICAR TURNO: Respuesta del backend:', request);
           
-          if (request.success) {
+          if (request.success && request.data) {
             // Usar datos del backend como fuente de verdad
             this.turnoActivo = request.data.turno_abierto || false;
             
@@ -774,9 +713,9 @@ export default {
               // 🔧 ARREGLO: Recuperar también el ID del turno activo
               this.turnoId = request.data.turno.id;
               
-              console.log('✅ Estado del turno obtenido desde base de datos');
+              console.log('✅ VERIFICAR TURNO: Turno activo encontrado en backend');
               console.log('📊 Turno activo:', this.turnoActivo);
-              console.log('🆔 Turno ID recuperado:', this.turnoId);
+              console.log('🆔 Turno ID:', this.turnoId);
               console.log('💰 Monto inicial:', this.montoInicialTurno);
               
               // Sincronizar localStorage con datos del backend
@@ -784,40 +723,61 @@ export default {
               localStorage.setItem('turnoActivo', this.turnoActivo.toString());
               localStorage.setItem('fechaTurno', fechaHoy);
               localStorage.setItem('montoInicialTurno', this.montoInicialTurno.toString());
-              localStorage.setItem('turnoId', this.turnoId.toString()); // Guardar también el ID
+              localStorage.setItem('turnoId', this.turnoId.toString());
               if (request.data.turno.fecha_inicio) {
                 localStorage.setItem('horaInicioTurno', request.data.turno.fecha_inicio);
               }
+              
+              // Emitir evento para notificar a otros componentes
+              window.dispatchEvent(new CustomEvent('turnoChanged', { 
+                detail: { activo: true, turnoId: this.turnoId } 
+              }));
+              
             } else {
+              console.log('⚠️ VERIFICAR TURNO: Backend confirma que no hay turno activo');
               this.turnoActivo = false;
               this.montoInicialTurno = 0;
-              // Limpiar localStorage si no hay turno activo
+              
+              // ✅ MEJORADO: Solo limpiar localStorage si el backend explícitamente dice que no hay turno
+              // Y solo si el request fue exitoso (no por error de conexión)
               localStorage.removeItem('turnoActivo');
               localStorage.removeItem('fechaTurno');
               localStorage.removeItem('horaInicioTurno');
               localStorage.removeItem('montoInicialTurno');
+              localStorage.removeItem('turnoId');
+              
+              // Emitir evento para notificar a otros componentes
+              window.dispatchEvent(new CustomEvent('turnoChanged', { 
+                detail: { activo: false } 
+              }));
             }
             return;
+          } else {
+            console.warn('⚠️ VERIFICAR TURNO: Respuesta del backend no exitosa:', request);
           }
         } catch (apiError) {
-          console.warn('⚠️ No se pudo conectar con la API, usando localStorage como fallback:', apiError.message);
+          console.warn('⚠️ VERIFICAR TURNO: Error de comunicación con API, manteniendo estado local:', apiError);
+          // NO limpiar localStorage en caso de error de comunicación
         }
         
-        // Fallback: verificar localStorage como backup
+        // Fallback: verificar localStorage como backup (solo si backend no respondió correctamente)
         const turnoLocal = localStorage.getItem('turnoActivo');
         const fechaLocal = localStorage.getItem('fechaTurno');
         const montoInicialLocal = localStorage.getItem('montoInicialTurno');
-        const turnoIdLocal = localStorage.getItem('turnoId'); // Recuperar también el ID
+        const turnoIdLocal = localStorage.getItem('turnoId');
         const fechaHoy = new Date().toISOString().split('T')[0];
+        
+        console.log('📱 VERIFICAR TURNO: Usando localStorage como fallback');
+        console.log('📱 TurnoLocal:', turnoLocal, 'FechaLocal:', fechaLocal, 'FechaHoy:', fechaHoy);
         
         // Limpiar turnos de días anteriores automáticamente
         if (fechaLocal && fechaLocal !== fechaHoy) {
-          console.log('🧹 Limpiando turno de día anterior:', fechaLocal);
+          console.log('🧹 VERIFICAR TURNO: Limpiando turno de día anterior:', fechaLocal);
           localStorage.removeItem('turnoActivo');
           localStorage.removeItem('fechaTurno');
           localStorage.removeItem('horaInicioTurno');
           localStorage.removeItem('montoInicialTurno');
-          localStorage.removeItem('turnoId'); // Limpiar también el ID
+          localStorage.removeItem('turnoId');
           this.turnoActivo = false;
           this.montoInicialTurno = 0;
           return;
@@ -827,48 +787,18 @@ export default {
         if (turnoLocal === 'true' && fechaLocal === fechaHoy) {
           this.turnoActivo = true;
           this.montoInicialTurno = parseFloat(montoInicialLocal) || 0;
-          this.turnoId = parseInt(turnoIdLocal) || null; // Recuperar también el ID
-          console.log('✅ Turno activo encontrado en localStorage para hoy (modo offline)');
-          console.log('🆔 Turno ID recuperado del localStorage:', this.turnoId);
-          console.log('💰 Monto inicial recuperado:', this.montoInicialTurno);
+          this.turnoId = parseInt(turnoIdLocal) || null;
+          console.log('✅ VERIFICAR TURNO: Usando datos del localStorage (modo offline)');
+          console.log('🆔 Turno ID desde localStorage:', this.turnoId);
+          console.log('💰 Monto inicial desde localStorage:', this.montoInicialTurno);
         } else {
           this.turnoActivo = false;
           this.montoInicialTurno = 0;
         }
         
       } catch (error) {
-        console.error('Error verificando estado del turno:', error);
-        // En caso de error, asumir que no hay turno activo
-        this.turnoActivo = false;
-        this.montoInicialTurno = 0;
-      }
-    },
-
-    // Método temporal para crear la tabla TurnosCaja
-    async crearTablaTurnos() {
-      try {
-        this.cargandoTabla = true;
-        
-        console.log('🔨 CREAR TABLA - Iniciando creación de tabla TurnosCaja...');
-        
-        // Llamar al store que maneja la conexión con el backend
-        const request = await this.$store.dispatch('arqueo/crearTablaTurnos');
-        
-        console.log('📋 CREAR TABLA - Respuesta:', request);
-        
-        if (request.success) {
-          this.$toast.success(`✅ Tabla creada exitosamente en BD: ${request.data.database}`);
-          console.log('✅ CREAR TABLA - Tabla TurnosCaja creada exitosamente');
-        } else {
-          this.$toast.error('❌ Error al crear tabla: ' + (request.data.message || 'Error desconocido'));
-          console.error('❌ CREAR TABLA - Error:', request.data.message);
-        }
-        
-      } catch (error) {
-        console.error('❌ CREAR TABLA - Error:', error);
-        this.$toast.error('❌ Error al crear tabla: ' + (error.message || 'Error de conexión'));
-      } finally {
-        this.cargandoTabla = false;
+        console.error('❌ VERIFICAR TURNO: Error inesperado:', error);
+        // En caso de error grave, mantener estado actual (no limpiar localStorage)
       }
     },
 
@@ -1151,6 +1081,19 @@ export default {
       return this.ventasPorMedio[methodKey] || 0;
     },
 
+    // ✅ NUEVO: Método para determinar estado del arqueo correctamente
+    getEstadoArqueo() {
+      const diferenciaTotal = (this.totalContado + this.totalOtrosMedios) - this.totalVentasSistema;
+      
+      if (Math.abs(diferenciaTotal) <= 1) { // Tolerancia de $1 para redondeos
+        return 'perfecto';
+      } else if (diferenciaTotal > 0) {
+        return 'sobrante';
+      } else {
+        return 'faltante';
+      }
+    },
+
     // Ya no carga automáticamente el resumen del día
     async cargarDatosIniciales() {
       // Solo carga historial en el mounted, resumen después de guardar
@@ -1239,7 +1182,7 @@ export default {
         console.log('🔄 Cargando historial de arqueos desde base de datos...');
         
         // ✅ USAR STORE REAL para obtener historial de la base de datos
-        const params = '?page=1&limit=20'; // Últimos 20 arqueos
+        const params = '?page=1&limit=10'; // Últimos 10 arqueos solamente
         const request = await this.$store.dispatch('arqueo/obtenerArqueos', params);
         
         if (request.success && request.data) {
@@ -1251,21 +1194,17 @@ export default {
             arqueos = request.data.items;
           } else if (request.data.data && Array.isArray(request.data.data)) {
             arqueos = request.data.data;
-          } else if (request.data.arqueos && Array.isArray(request.data.arqueos)) {
-            arqueos = request.data.arqueos;
           }
           
           this.historial = arqueos;
-          console.log('📖 Historial cargado desde base de datos:', this.historial.length, 'registros');
-          console.log('📝 Estructura de respuesta:', request.data);
+          console.log('📖 Historial cargado desde BD:', this.historial.length, 'registros');
         } else {
-          console.log('⚠️ No se pudieron cargar arqueos desde BD, usando historial local como respaldo');
+          console.log('⚠️ No se pudieron cargar arqueos desde BD');
           this.historial = [];
         }
         
       } catch (error) {
-        console.error('❌ Error al cargar historial desde base de datos:', error);
-        console.log('🔄 Inicializando historial vacío...');
+        console.error('❌ Error al cargar historial desde BD:', error);
         this.historial = [];
       }
     },
@@ -1274,25 +1213,32 @@ export default {
       try {
         console.log('📊 Cargando ventas del sistema para comparación...');
         
-        // TODO: Implementar llamada real a la API para obtener ventas del día
-        // Por ahora usar datos de prueba para que funcione la comparación
+        // ✅ DATOS DE PRUEBA REALISTAS para testing local
+        // En el futuro, hacer llamada real a la API
         const fechaHoy = new Date().toISOString().split('T')[0];
         console.log('📅 Consultando ventas para fecha:', fechaHoy);
         
-        // Simular carga de datos por ahora
-        // En el futuro, hacer: 
-        // const request = await this.$store.dispatch('ventas/obtenerVentasDelDia', { fecha: fechaHoy });
-        
-        // Datos de ejemplo para que funcione la comparación
-        this.ventasPorMedio = {};
-        for (const method of this.availablePaymentMethods) {
-          // Generar datos de prueba aleatorios para demostración
-          if (method.key === 'efectivo') {
-            this.ventasPorMedio[method.key] = Math.floor(Math.random() * 50000);
-          } else {
-            this.ventasPorMedio[method.key] = Math.floor(Math.random() * 20000);
-          }
-        }
+        // ✅ DATOS REALISTAS basados en el monto que registraste ($38,000 efectivo)
+        this.ventasPorMedio = {
+          'efectivo': 35000, // Cerca de lo que contaste pero no exacto para mostrar diferencia
+          'tarjeta_debito': 5000,
+          'tarjeta_credito': 3000,
+          'transferencia': 2000,
+          'uber_eats': 1500,
+          'junaeb': 500,
+          // Otros métodos en 0 para simplicidad
+          'cheque': 0,
+          'banco': 0,
+          'amipass': 0,
+          'multicaja': 0,
+          'edenred': 0,
+          'sodexo': 0,
+          'rappi': 0,
+          'pedidos_ya': 0,
+          'pluxee': 0,
+          'banco_chile_20': 0,
+          'fluxi': 0
+        };
         
         // Asignar valores legacy para compatibilidad
         this.ventasEfectivo = this.ventasPorMedio['efectivo'] || 0;
@@ -1303,8 +1249,9 @@ export default {
         this.ventasValeVista = this.ventasPorMedio['vale_vista'] || 0;
         this.ventasOtro = this.ventasPorMedio['otro'] || 0;
         
-        console.log('💰 Ventas del sistema cargadas:', this.ventasPorMedio);
+        console.log('💰 Ventas del sistema cargadas (DATOS DE PRUEBA):', this.ventasPorMedio);
         console.log('📋 Total ventas en efectivo:', this.ventasEfectivo);
+        console.log('🏆 Total ventas sistema:', this.totalVentasSistema);
         
         // Recalcular diferencias con los datos reales
         this.calcularDiferencia();
@@ -1341,16 +1288,20 @@ export default {
     },
     
     calcularDiferencia() {
-      // CORREGIDO: Ahora considera el monto inicial
-      // El total que DEBERÍAS tener = Monto inicial + Ventas en efectivo
-      const totalEsperado = this.montoInicialTurno + this.ventasEfectivo;
-      this.diferencia = this.totalContado - totalEsperado;
+      // ✅ CORREGIDO: La diferencia de efectivo es simple
+      // Lo que contaste en efectivo VS lo que vendiste en efectivo
+      this.diferencia = this.totalContado - this.getPaymentMethodSales('efectivo');
+      
+      console.log('🧮 CÁLCULO DE DIFERENCIA:');
+      console.log('💵 Efectivo contado:', this.totalContado);
+      console.log('💰 Ventas en efectivo:', this.getPaymentMethodSales('efectivo'));
+      console.log('📊 Diferencia:', this.diferencia);
     },
     
     calcularTotalGeneral() {
       // Primero calcular el total de efectivo
       this.calcularTotal();
-      // Los totales de otros medios se calculan automáticamente con computed properties
+      // Los totales de métodos de pago diversos se calculan automáticamente con computed properties
     },
     
     async guardarArqueo() {
@@ -1359,31 +1310,37 @@ export default {
         return;
       }
       
-      // Mostrar modal de confirmación personalizado
+      // Mostrar modal de confirmación elegante
       this.mostrarModalConfirmacion();
     },
 
     mostrarModalConfirmacion() {
-      // Usar confirm nativo - funciona en Electron
+      // Mostrar modal elegante en lugar del confirm nativo
+      this.showConfirmModal = true;
+    },
+    
+    cerrarModalConfirmacion() {
+      this.showConfirmModal = false;
+    },
+    
+    async confirmarCierreConAuditoria() {
+      // Cerrar modal primero
+      this.showConfirmModal = false;
       
-      // Construir detalle de otros medios de pago
-      let detalleOtrosMedios = '';
-      for (const method of this.availablePaymentMethods) {
-        if (method.key !== 'efectivo' && this.mediosPago[method.key] && this.mediosPago[method.key] > 0) {
-          detalleOtrosMedios += `${method.emoji} ${method.name}: $${this.formatMoney(this.mediosPago[method.key])}\n`;
-        }
-      }
-      
-      const mensaje = `¿Está seguro de guardar el arqueo?\n\n` +
-        `🏁 Caja inicial: $${this.formatMoney(this.montoInicialTurno)}\n` +
-        `💵 Efectivo contado: $${this.formatMoney(this.totalContado)}\n` +
-        detalleOtrosMedios +
-        `🏆 TOTAL: $${this.formatMoney(this.totalGeneralContado)}\n\n` +
-        `La comparación con las ventas se mostrará después...`;
-      
-      if (window.confirm(mensaje)) {
-        this.confirmarGuardado();
-      }
+      // Proceder con el guardado original
+      this.confirmarGuardado();
+    },
+    
+    getNombreCajero() {
+      return (this.me && this.me.fullname) || 
+             (this.usuarioActual && this.usuarioActual.nombre) || 
+             'Cajero';
+    },
+    
+    getFechaInicioTurno() {
+      return this.horaInicio ? 
+        moment(this.horaInicio).format('DD/MM/YYYY HH:mm') : 
+        moment().format('DD/MM/YYYY HH:mm');
     },
     
     async confirmarGuardado() {
@@ -1413,37 +1370,52 @@ export default {
         console.log('  🏆 totalGeneralContado:', this.totalGeneralContado, '(tipo:', typeof this.totalGeneralContado, ')');
         console.log('  📊 mediosPago objeto:', this.mediosPago);
         
+        // 🔍 DEBUG: Verificar el app.id que se está usando
+        console.log('🏢 DEBUG this.app:', this.app);
+        console.log('🏢 DEBUG this.app.id:', this.app ? this.app.id : 'NO EXISTE');
+        console.log('🏢 DEBUG app_id final:', (this.app && this.app.id) ? this.app.id : 58);
+        
         const data = {
-          app_id: 58, // ID fijo del negocio que estamos viendo en los logs
+          app_id: (this.app && this.app.id) ? this.app.id : 58, // Usar el ID del negocio actual desde this.app
           turno_id: this.turnoId, // 🔧 ARREGLO: Agregar ID del turno que se quiere cerrar
           usuario_id: this.usuarioActual.id,
           usuario_nombre: this.usuarioActual.nombre,
-          app_nombre: 'Por determinar', // Lo obtendremos desde la BD
+          app_nombre: this.negocioInfo.nombre || 'Por determinar',
           fecha_inicio: new Date().toISOString(),
           fecha_termino: new Date().toISOString(),
-          monto_inicial: this.montoInicialTurno, // ✅ AGREGAR: Monto inicial del turno
-          monto_final: this.totalContado, // ✅ AGREGAR: Solo efectivo contado
-          total_contado: this.totalGeneralContado, // ✅ CORREGIR: Total general (inicial + efectivo + otros)
-          total_otros_medios: this.totalOtrosMedios, // ✅ AGREGAR: Total de otros medios de pago
-          total_general_contado: this.totalGeneralContado, // ✅ AGREGAR: Total general completo
-          total_sistema: this.montoInicialTurno + this.totalVentasSistema, // ⚠️ SUMA: Monto inicial + ventas sistema
-          diferencia: this.diferencia, // ✅ Diferencia solo del efectivo
-          diferencia_general: this.diferenciaGeneral, // ✅ AGREGAR: Diferencia total general
-          estado: this.diferenciaGeneral === 0 ? 'perfecto' : (this.diferenciaGeneral > 0 ? 'sobrante' : 'faltante'), // ✅ CORREGIR: Usar diferencia general
+          
+          // ✅ CORRECCIÓN PRINCIPAL: Separar correctamente los campos
+          monto_inicial: this.montoInicialTurno, // Lo que tenías al inicio
+          monto_final: this.totalContado, // Solo efectivo contado (billetes + monedas)
+          total_contado: this.totalContado, // ✅ CORREGIDO: Solo efectivo, NO total general
+          total_otros_medios: this.totalOtrosMedios, // Suma total de métodos de pago diversos
+          total_general: this.totalContado + this.totalOtrosMedios, // ✅ NUEVO: Total SIN monto inicial
+          
+          // ✅ SISTEMA: Para comparar
+          total_sistema: this.totalVentasSistema, // Solo ventas del sistema (sin monto inicial)
+          
+          // ✅ DIFERENCIAS CORRECTAS:
+          diferencia: this.totalContado - this.getPaymentMethodSales('efectivo'), // Solo efectivo vs ventas efectivo
+          diferencia_general: (this.totalContado + this.totalOtrosMedios) - this.totalVentasSistema, // Total arqueo vs total ventas
+          
+          // ✅ ESTADO BASADO EN DIFERENCIA GENERAL
+          estado: this.getEstadoArqueo(),
           observaciones: this.observaciones,
-          detalle_efectivo: JSON.stringify(detalleConteo),
+          detalle_efectivo: JSON.stringify(this.getDetalleConteo()),
           detalle_medios_pago: JSON.stringify(this.mediosPago),
           numero_transacciones: (this.resumenDia && this.resumenDia.total_transacciones) || 0
         };
         
-        console.log('🚀 DATOS ENVIADOS AL BACKEND:');
-        console.log('� Monto inicial del turno:', data.monto_inicial);
-        console.log('�💵 Efectivo contado (monto_final):', data.monto_final);
-        console.log('💳 Otros medios de pago:', data.total_otros_medios);
-        console.log('🏆 Total general contado:', data.total_general_contado);
-        console.log('📊 Total contado que se enviará:', data.total_contado);
-        console.log('� Detalle del conteo:', detalleConteo);
-        console.log('💳 Medios de pago:', this.mediosPago);
+        console.log('🚀 DATOS ENVIADOS AL BACKEND (CORREGIDOS):');
+        console.log('💰 Monto inicial del turno:', data.monto_inicial);
+        console.log('💵 Efectivo contado (monto_final):', data.monto_final);
+        console.log('💳 Métodos de pago diversos:', data.total_otros_medios);
+        console.log('📊 Total contado (SOLO EFECTIVO):', data.total_contado);
+        console.log('🏆 Total general (efectivo + otros):', data.total_general);
+        console.log('💻 Ventas del sistema:', data.total_sistema);
+        console.log('📊 Diferencia efectivo:', data.diferencia);
+        console.log('📊 Diferencia general:', data.diferencia_general);
+        console.log('✅ Estado calculado:', data.estado);
         console.log('📋 Objeto completo data:', data);
         
         // ✅ DEBUGGING DETALLADO DE CAMPOS MONETARIOS
@@ -1513,19 +1485,11 @@ export default {
             // Recargar historial desde la base de datos
             await this.cargarHistorial();
             
-            // Mostrar mensaje de resultado con un delay para que se vea el cambio
+            // ⚡ MODO SILENCIOSO - Sin mensajes molestos de diferencias
+            // Solo mensaje de confirmación exitosa
             setTimeout(() => {
-              if (this.diferencia === 0) {
-                this.$awn.success('¡Perfecto! El arqueo coincide exactamente con las ventas.');
-              } else if (this.diferencia > 0) {
-                this.$awn.warning(`Hay un sobrante de $${this.formatMoney(Math.abs(this.diferencia))}`);
-              } else {
-                this.$awn.alert(`Hay un faltante de $${this.formatMoney(Math.abs(this.diferencia))}`);
-              }
-              
-              // Mensaje final de turno cerrado
-              this.$awn.info('Turno cerrado correctamente. Puedes iniciar un nuevo turno.');
-            }, 2000);
+              this.$awn.success('Turno cerrado correctamente.');
+            }, 1500);
             
           } else {
             console.log(request.data);
@@ -1580,7 +1544,7 @@ export default {
         this.conteo[denominacion] = 0;
       }
       
-      // Limpiar otros medios de pago
+      // Limpiar métodos de pago diversos
       this.mediosPago.tarjeta_debito = 0;
       this.mediosPago.tarjeta_credito = 0;
       this.mediosPago.transferencia = 0;
@@ -1701,62 +1665,14 @@ export default {
       this.showInfo('Función de reportes en desarrollo');
     },
 
-    // Guardar arqueo en historial local
-    guardarEnHistorialLocal(arqueoData) {
-      try {
-        // Obtener historial existente
-        const historialExistente = JSON.parse(localStorage.getItem('historialArqueos') || '[]');
-        
-        // Agregar nuevo arqueo al inicio
-        historialExistente.unshift(arqueoData);
-        
-        // Mantener solo los últimos 50 arqueos
-        if (historialExistente.length > 50) {
-          historialExistente.splice(50);
-        }
-        
-        // Guardar de vuelta en localStorage
-        localStorage.setItem('historialArqueos', JSON.stringify(historialExistente));
-        
-        // Actualizar historial en el componente
-        this.cargarHistorialLocal();
-        
-        console.log('📁 Arqueo guardado en historial local:', arqueoData);
-        
-      } catch (error) {
-        console.error('Error guardando en historial local:', error);
-      }
-    },
+    // ✅ ELIMINADO: Ya no guardamos en localStorage, solo BD
+    // guardarEnHistorialLocal - MÉTODO ELIMINADO
 
-    // Cargar historial desde localStorage
-    cargarHistorialLocal() {
-      try {
-        const historialLocal = JSON.parse(localStorage.getItem('historialArqueos') || '[]');
-        this.historial = historialLocal;
-        console.log('📖 Historial cargado:', this.historial.length, 'registros');
-      } catch (error) {
-        console.error('Error cargando historial local:', error);
-        this.historial = [];
-      }
-    },
+    // ✅ ELIMINADO: Ya no usamos localStorage para historial
+    // cargarHistorialLocal - MÉTODO ELIMINADO
 
-    // Limpiar historial completo
-    limpiarHistorial() {
-      if (confirm('¿Está seguro de eliminar todo el historial de arqueos?\n\nEsta acción no se puede deshacer.')) {
-        localStorage.removeItem('historialArqueos');
-        this.historial = [];
-        this.$awn.success('Historial eliminado correctamente');
-      }
-    },
-
-    // Eliminar un arqueo específico del historial
-    eliminarArqueoHistorial(index) {
-      if (confirm('¿Está seguro de eliminar este registro del historial?')) {
-        this.historial.splice(index, 1);
-        localStorage.setItem('historialArqueos', JSON.stringify(this.historial));
-        this.$awn.success('Registro eliminado del historial');
-      }
-    },
+    // ✅ ELIMINADO: Ya no manejamos localStorage para historial
+    // limpiarHistorial y eliminarArqueoHistorial - MÉTODOS ELIMINADOS
 
     // Ver detalle de un arqueo del historial
     verDetalleArqueo(arqueo) {
@@ -1775,7 +1691,7 @@ export default {
 
 💵 Conteo:
 • Efectivo: $${this.formatMoney(arqueo.total_contado)}
-• Otros medios: $${this.formatMoney(arqueo.total_otros_medios)}
+• Métodos diversos: $${this.formatMoney(arqueo.total_otros_medios)}
 • TOTAL CONTADO: $${this.formatMoney(arqueo.total_general_contado)}
 
 💻 Sistema:
@@ -1856,12 +1772,1315 @@ ${arqueo.observaciones || 'Sin observaciones'}
     
     getEstadoText(diferencia) {
       if (diferencia === 0) return 'Exacto';
-      if (diferencia > 0) return 'Sobrante';
-      return 'Faltante';
+      if (diferencia > 0) return 'Registrado';
+      return 'Registrado';
     }
   }
 }
 </script>
+
+<style scoped>
+/* Variables CSS */
+:root {
+  --primary-color: #3b82f6;
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --secondary-color: #64748b;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --dark-color: #1e293b;
+  --light-color: #f8fafc;
+  --border-color: #e2e8f0;
+  --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-large: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Contenedor Principal */
+.arqueo-container {
+  min-height: 100vh;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%),
+    linear-gradient(135deg, #667eea 0%, #764ba2 20%, #6366f1 40%, #8b5cf6 60%, #a855f7 80%, #c084fc 100%);
+  padding: 20px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Elementos decorativos de fondo */
+.arqueo-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 2px, transparent 2px),
+    radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 80px 80px, 40px 40px;
+  animation: float 20s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.arqueo-container::after {
+  content: '';
+  position: absolute;
+  top: 20%;
+  right: 10%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulse 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Círculos decorativos flotantes */
+.arqueo-container > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Elementos decorativos de fondo */
+.bg-decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.floating-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  animation: float 15s ease-in-out infinite;
+}
+
+.circle-1 {
+  width: 200px;
+  height: 200px;
+  top: 10%;
+  left: 10%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation-delay: 0s;
+}
+
+.circle-2 {
+  width: 150px;
+  height: 150px;
+  top: 60%;
+  right: 15%;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.1) 0%, transparent 70%);
+  animation-delay: 2s;
+}
+
+.circle-3 {
+  width: 100px;
+  height: 100px;
+  top: 80%;
+  left: 70%;
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, transparent 70%);
+  animation-delay: 4s;
+}
+
+.floating-shape {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.03);
+  animation: float 20s linear infinite;
+}
+
+.shape-1 {
+  width: 60px;
+  height: 60px;
+  top: 30%;
+  left: 80%;
+  border-radius: 20px;
+  background: linear-gradient(45deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+  animation-delay: 1s;
+}
+
+.shape-2 {
+  width: 80px;
+  height: 80px;
+  top: 20%;
+  left: 30%;
+  border-radius: 15px;
+  background: linear-gradient(-45deg, rgba(34, 197, 94, 0.1), rgba(59, 130, 246, 0.1));
+  animation-delay: 3s;
+}
+
+/* Header Moderno */
+.modern-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: var(--shadow-large);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.modern-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--primary-gradient);
+  z-index: 0;
+}
+
+.modern-header::after {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header-title-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.title-icon {
+  width: 60px;
+  height: 60px;
+  background: var(--primary-gradient);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  box-shadow: var(--shadow-medium);
+}
+
+.title-text h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--dark-color) !important;
+  /* Removemos el gradiente que causa problemas */
+  /* background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text; */
+}
+
+.title-text p {
+  margin: 0;
+  color: var(--secondary-color) !important;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.header-status .status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.status-indicator.active {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success-color);
+  border: 2px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-indicator.inactive {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger-color);
+  border: 2px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Info Cards */
+.info-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.info-card {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.info-card:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateY(-2px);
+}
+
+.info-card i {
+  width: 48px;
+  height: 48px;
+  background: var(--primary-gradient);
+  color: white !important;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-label {
+  display: block;
+  font-size: 12px;
+  color: #64748b !important;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.card-value {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b !important;
+}
+
+/* Sin Turno State */
+.no-turno-section {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 60px 40px;
+  text-align: center;
+  box-shadow: var(--shadow-large);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.no-turno-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20px 20px, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: 0;
+}
+
+.no-turno-section > * {
+  position: relative;
+  z-index: 1;
+}
+
+.empty-state {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.empty-icon {
+  width: 100px;
+  height: 100px;
+  background: var(--primary-gradient);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  color: white;
+  font-size: 40px;
+  box-shadow: var(--shadow-large);
+}
+
+.empty-state h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--dark-color) !important;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: var(--secondary-color) !important;
+  font-size: 16px;
+  margin-bottom: 32px;
+}
+
+/* Botones */
+.btn-primary-large {
+  background: var(--primary-gradient);
+  border: none;
+  color: white;
+  padding: 16px 32px;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-medium);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary-large:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-large);
+}
+
+.btn-primary-large:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary-small {
+  background: rgba(100, 116, 139, 0.1);
+  border: 1px solid rgba(100, 116, 139, 0.2);
+  color: var(--secondary-color);
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-secondary-small:hover:not(:disabled) {
+  background: rgba(100, 116, 139, 0.2);
+}
+
+.btn-danger-large {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border: none;
+  color: white;
+  padding: 16px 32px;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-medium);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-danger-large:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-large);
+}
+
+.btn-danger-large:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-outline {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: var(--dark-color);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Turno Activo */
+.turno-activo {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Resumen del Turno */
+.turno-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.summary-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow-medium);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-large);
+}
+
+.summary-card.initial .card-icon {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.summary-card.current .card-icon {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.summary-card.total .card-icon {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.card-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+}
+
+.card-info {
+  flex: 1;
+}
+
+.card-title {
+  display: block;
+  font-size: 12px;
+  color: var(--secondary-color) !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.card-amount {
+  display: block;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--dark-color) !important;
+}
+
+.total-highlight {
+  color: var(--primary-color) !important;
+  font-size: 24px !important;
+  /* Removemos el gradiente que causa problemas */
+  /* background: var(--primary-gradient) !important;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text; */
+}
+
+/* Contenido Principal */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+@media (max-width: 1200px) {
+  .main-content {
+    max-width: 100%;
+  }
+}
+
+/* Panel de Conteo */
+.conteo-panel {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 30px;
+  box-shadow: var(--shadow-large);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.conteo-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(45deg, rgba(59, 130, 246, 0.02) 25%, transparent 25%), 
+    linear-gradient(-45deg, rgba(59, 130, 246, 0.02) 25%, transparent 25%), 
+    linear-gradient(45deg, transparent 75%, rgba(59, 130, 246, 0.02) 75%), 
+    linear-gradient(-45deg, transparent 75%, rgba(59, 130, 246, 0.02) 75%);
+  background-size: 60px 60px;
+  background-position: 0 0, 0 30px, 30px -30px, -30px 0px;
+  z-index: 0;
+}
+
+.conteo-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.panel-header {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid rgba(59, 130, 246, 0.1);
+  text-align: center;
+}
+
+.panel-header h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--dark-color) !important;
+  margin: 0;
+}
+
+/* Grupos de Denominación */
+.denomination-group {
+  margin-bottom: 40px;
+}
+
+.group-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--dark-color) !important;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.denomination-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  justify-items: center;
+}
+
+.denomination-grid.small {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.denomination-item {
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  border: 2px solid rgba(59, 130, 246, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.2s ease;
+  width: 140px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.denomination-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-1px);
+}
+
+.denomination-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-2px);
+}
+
+.denom-value {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--primary-color) !important;
+  margin-bottom: 8px;
+}
+
+.denom-input {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid rgba(226, 232, 240, 0.5);
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  background: white;
+  transition: all 0.3s ease;
+  margin-bottom: 8px;
+}
+
+.denom-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.denom-label {
+  font-size: 12px;
+  color: var(--secondary-color) !important;
+  font-weight: 500;
+}
+
+/* Medios de Pago */
+.medios-group {
+  margin-bottom: 40px;
+}
+
+.group-subtitle {
+  color: var(--secondary-color) !important;
+  font-size: 14px;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+.medios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.medio-item {
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  border: 2px solid rgba(226, 232, 240, 0.5);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.3s ease;
+}
+
+.medio-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-2px);
+}
+
+.medio-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: white;
+}
+
+.icon-primary { background: var(--primary-gradient); }
+.icon-success { background: linear-gradient(135deg, #10b981, #059669); }
+.icon-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.icon-info { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.icon-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+
+.medio-info {
+  flex: 1;
+}
+
+.medio-name {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dark-color) !important;
+  margin-bottom: 8px;
+}
+
+.medio-input {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid rgba(226, 232, 240, 0.5);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.medio-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Observaciones */
+.observaciones-section {
+  margin-bottom: 40px;
+}
+
+.obs-label {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--dark-color) !important;
+  margin-bottom: 12px;
+}
+
+.obs-textarea {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid rgba(226, 232, 240, 0.5);
+  border-radius: 16px;
+  font-size: 14px;
+  background: white;
+  resize: vertical;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.obs-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Botones de Acción */
+.action-buttons {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Panel de Resultados */
+.resultados-panel {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 30px;
+  box-shadow: var(--shadow-large);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Comparación Cards */
+.comparison-card {
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  border: 2px solid rgba(226, 232, 240, 0.5);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+}
+
+.comparison-card:hover {
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-2px);
+}
+
+.comparison-card.efectivo {
+  border-color: var(--success-color);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.02));
+}
+
+.comparison-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dark-color) !important;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.comparison-data {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--dark-color) !important;
+}
+
+.data-row.difference {
+  padding-top: 8px;
+  border-top: 1px solid rgba(226, 232, 240, 0.5);
+  font-weight: 600;
+}
+
+.amount {
+  font-weight: 600;
+}
+
+.amount.positive {
+  color: var(--success-color) !important;
+}
+
+.amount.negative {
+  color: var(--danger-color) !important;
+}
+
+/* Resultado Final */
+.resultado-final {
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+  margin-top: 24px;
+  border: 2px solid rgba(226, 232, 240, 0.5);
+}
+
+.resultado-final.perfecto {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+  border-color: var(--success-color);
+}
+
+.resultado-final.sobrante {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+  border-color: var(--warning-color);
+}
+
+.resultado-final.faltante {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+  border-color: var(--danger-color);
+}
+
+.resultado-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 24px;
+  color: white;
+}
+
+.resultado-final.perfecto .resultado-icon {
+  background: var(--success-color);
+}
+
+.resultado-final.sobrante .resultado-icon {
+  background: var(--warning-color);
+}
+
+.resultado-final.faltante .resultado-icon {
+  background: var(--danger-color);
+}
+
+.resultado-info h4 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--dark-color) !important;
+}
+
+.resultado-info p {
+  font-size: 16px;
+  margin: 0;
+  opacity: 0.8;
+  color: var(--secondary-color) !important;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 24px;
+  padding: 32px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: var(--shadow-large);
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--dark-color) !important;
+  margin: 0 0 20px 0;
+}
+
+.modal-body p {
+  color: var(--secondary-color) !important;
+  margin-bottom: 20px;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid rgba(226, 232, 240, 0.5);
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  background: var(--light-color);
+  transition: all 0.3s ease;
+  margin-bottom: 24px;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn-secondary, .btn-primary {
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-secondary {
+  background: rgba(100, 116, 139, 0.1);
+  color: var(--secondary-color) !important;
+  border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.btn-secondary:hover {
+  background: rgba(100, 116, 139, 0.2);
+}
+
+.btn-primary {
+  background: var(--primary-gradient);
+  color: white;
+  box-shadow: var(--shadow-medium);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-large);
+}
+
+/* Utilidades */
+.me-1 { margin-right: 4px; }
+.me-2 { margin-right: 8px; }
+.mt-4 { margin-top: 24px; }
+
+/* Forzar visibilidad de todos los textos */
+.arqueo-container * {
+  color: inherit !important;
+}
+
+.arqueo-container .card-label,
+.arqueo-container .card-value,
+.arqueo-container .card-title,
+.arqueo-container .card-amount,
+.arqueo-container h1,
+.arqueo-container h2,
+.arqueo-container h3,
+.arqueo-container h4,
+.arqueo-container h5,
+.arqueo-container h6,
+.arqueo-container p,
+.arqueo-container span,
+.arqueo-container div {
+  color: var(--dark-color) !important;
+}
+
+.arqueo-container .card-label {
+  color: var(--secondary-color) !important;
+}
+
+.arqueo-container .title-text h1 {
+  color: var(--dark-color) !important;
+}
+
+.arqueo-container .title-text p {
+  color: var(--secondary-color) !important;
+}
+
+.arqueo-container .status-indicator span {
+  color: inherit !important;
+}
+
+/* Reglas súper específicas para info-cards */
+.modern-header .info-cards .info-card .card-content .card-label {
+  color: #64748b !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+}
+
+.modern-header .info-cards .info-card .card-content .card-value {
+  color: #1e293b !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+}
+
+/* Reglas para summary cards también */
+.turno-summary .summary-card .card-info .card-title {
+  color: #64748b !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+}
+
+.turno-summary .summary-card .card-info .card-amount {
+  color: #1e293b !important;
+  font-size: 20px !important;
+  font-weight: 800 !important;
+}
+
+/* SOLUCIÓN DEFINITIVA - Forzar todos los colores */
+.info-cards .info-card .card-label,
+.info-cards .info-card span.card-label {
+  color: #64748b !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.info-cards .info-card .card-value,
+.info-cards .info-card span.card-value {
+  color: #1e293b !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* También para las summary cards */
+.turno-summary .summary-card .card-title,
+.turno-summary .summary-card span.card-title {
+  color: #64748b !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.turno-summary .summary-card .card-amount,
+.turno-summary .summary-card span.card-amount {
+  color: #1e293b !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .arqueo-container {
+    padding: 16px;
+  }
+  
+  .modern-header {
+    padding: 20px;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .info-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .turno-summary {
+    grid-template-columns: 1fr;
+  }
+  
+  .denomination-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .denomination-grid.small {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .denomination-item {
+    width: 100%;
+    min-height: 100px;
+  }
+  
+  .medios-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .btn-primary-large,
+  .btn-danger-large {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .conteo-panel,
+  .resultados-panel {
+    max-width: 100%;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .denomination-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .denomination-grid.small {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0px, 0px) rotate(0deg);
+  }
+  33% {
+    transform: translate(30px, -30px) rotate(120deg);
+  }
+  66% {
+    transform: translate(-20px, 20px) rotate(240deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.1;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes shimmer {
+  /* Animación deshabilitada para evitar movimientos locos */
+}
+
+@keyframes bounce {
+  /* Animación deshabilitada para evitar movimientos locos */
+}
+
+.turno-activo {
+  animation: fadeIn 0.5s ease;
+}
+
+.summary-card {
+  animation: slideUp 0.5s ease;
+}
+
+.summary-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.summary-card:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+/* Efectos de hover mejorados */
+.info-card:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateY(-2px);
+  /* Removemos la animación bounce que también causaba movimiento */
+}
+</style>
 
 <style scoped>
 .arqueo-caja-container {
@@ -2351,6 +3570,482 @@ ${arqueo.observaciones || 'Sin observaciones'}
   
   .denomination-card {
     padding: 15px;
+  }
+}
+
+/* ======================================
+   MODAL DE AUDITORÍA ELEGANTE - STYLES
+   ====================================== */
+
+/* Overlay del Modal */
+.audit-modal {
+  backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 10000;
+}
+
+/* Container del Modal Elegante */
+.elegant-modal {
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
+  border-radius: 24px;
+  box-shadow: 
+    0 25px 80px rgba(0, 0, 0, 0.3),
+    0 0 60px rgba(102, 126, 234, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  max-width: 580px;
+  width: 90%;
+  max-height: 90vh; /* Aumenté a 90vh */
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  animation: modalAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  flex-direction: column; /* Flexbox para mejor control */
+}
+
+@keyframes modalAppear {
+  0% {
+    transform: scale(0.8) translateY(-50px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Header del Modal Elegante */
+.elegant-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1.5rem 2rem 1.25rem; /* Reduje padding */
+  color: white;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0; /* No se encoge */
+}
+
+.elegant-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: headerGlow 3s ease-in-out infinite;
+}
+
+@keyframes headerGlow {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.3; }
+  50% { transform: scale(1.1) rotate(180deg); opacity: 0.1; }
+}
+
+.audit-icon {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  width: 60px; /* Reduje de 70px */
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.75rem; /* Reduje margin */
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 2;
+}
+
+.audit-icon i {
+  font-size: 1.75rem; /* Reduje de 2rem */
+  color: #ffd700;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  animation: iconPulse 2s infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.35rem; /* Reduje de 1.5rem */
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  position: relative;
+  z-index: 2;
+}
+
+.security-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem; /* Reduje margin */
+  padding: 0.4rem 0.75rem; /* Reduje padding */
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  font-size: 0.8rem; /* Reduje font */
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 2;
+}
+
+.security-badge i {
+  color: #ffd700;
+}
+
+/* Body del Modal */
+.elegant-body {
+  padding: 1.5rem 2rem; /* Reduje padding */
+  background: white;
+  position: relative;
+  flex: 1; /* Toma el espacio disponible */
+  overflow-y: auto; /* SCROLL AQUÍ */
+  overflow-x: hidden;
+  /* Estilizar scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #667eea #f1f5f9;
+}
+
+/* Webkit scrollbar para Chrome/Safari */
+.elegant-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.elegant-body::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.elegant-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 3px;
+}
+
+.elegant-body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a67d8, #553c9a);
+}
+
+.confirmation-message {
+  text-align: center;
+}
+
+.greeting-section {
+  margin-bottom: 1.25rem; /* Reduje margin */
+}
+
+.main-message {
+  font-size: 1.1rem;
+  color: #2d3748;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.main-message strong {
+  color: #667eea;
+  font-weight: 700;
+}
+
+/* Summary Box */
+.summary-box {
+  background: linear-gradient(135deg, #f7fafc, #edf2f7);
+  border-radius: 16px;
+  padding: 1.25rem; /* Reduje padding */
+  margin: 1.25rem 0; /* Reduje margin */
+  border: 1px solid #e2e8f0;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem; /* Reduje margin */
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.95rem; /* Reduje font */
+}
+
+.summary-header i {
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+.summary-content {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-item i {
+  color: #667eea;
+  width: 20px;
+  margin-right: 0.5rem;
+}
+
+.info-item .value {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.info-item .value.highlight {
+  color: #667eea;
+  font-size: 1.1rem;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Audit Notice */
+.audit-notice {
+  background: linear-gradient(135deg, #f0f4ff, #e6f3ff);
+  border-radius: 16px;
+  padding: 1.25rem; /* Reduje padding */
+  margin-top: 1.25rem; /* Reduje margin */
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.audit-notice::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.audit-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem; /* Reduje margin */
+}
+
+.audit-icon-circle {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 50%;
+  width: 36px; /* Reduje de 40px */
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.audit-icon-circle i {
+  color: white;
+  font-size: 1.1rem; /* Reduje font */
+}
+
+.audit-header h4 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 1.05rem; /* Reduje font */
+  font-weight: 700;
+}
+
+.audit-content {
+  text-align: left;
+}
+
+.audit-main {
+  color: #4a5568;
+  line-height: 1.6;
+  margin: 0 0 0.75rem 0; /* Reduje margin */
+  font-size: 0.9rem; /* Reduje font */
+}
+
+.audit-details {
+  display: grid;
+  gap: 0.5rem; /* Reduje gap */
+  margin: 0.75rem 0; /* Reduje margin */
+}
+
+.audit-point {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0; /* Reduje padding */
+  font-size: 0.85rem; /* Reduje font */
+  color: #4a5568;
+}
+
+.audit-point i {
+  color: #48bb78;
+  font-size: 1rem;
+  min-width: 16px;
+}
+
+.audit-footnote {
+  background: rgba(102, 126, 234, 0.05);
+  border-left: 3px solid #667eea;
+  padding: 0.75rem; /* Reduje padding */
+  border-radius: 0 8px 8px 0;
+  margin-top: 0.75rem; /* Reduje margin */
+}
+
+.audit-footnote small {
+  color: #718096;
+  line-height: 1.5;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.audit-footnote i {
+  color: #667eea;
+  margin-top: 2px;
+  min-width: 14px;
+}
+
+/* Footer del Modal */
+.elegant-footer {
+  padding: 1.25rem 2rem; /* Reduje padding */
+  background: linear-gradient(135deg, #f8fafc, #ffffff);
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0; /* No se encoge */
+}
+
+.elegant-cancel {
+  background: #718096;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.elegant-cancel:hover {
+  background: #4a5568;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(113, 128, 150, 0.3);
+}
+
+.elegant-confirm {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 200px;
+  position: relative;
+  overflow: hidden;
+}
+
+.elegant-confirm::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.elegant-confirm:hover::before {
+  left: 100%;
+}
+
+.elegant-confirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.elegant-confirm span {
+  font-size: 0.95rem;
+  position: relative;
+  z-index: 2;
+}
+
+.elegant-confirm small {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  font-weight: 500;
+  position: relative;
+  z-index: 2;
+}
+
+/* Responsive para el modal */
+@media (max-width: 640px) {
+  .elegant-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .elegant-header {
+    padding: 1.5rem 1.5rem 1rem;
+  }
+  
+  .elegant-body {
+    padding: 1.5rem;
+  }
+  
+  .elegant-footer {
+    padding: 1rem 1.5rem;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .elegant-confirm {
+    width: 100%;
+  }
+  
+  .elegant-cancel {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .modal-title {
+    font-size: 1.25rem;
+  }
+  
+  .audit-icon {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .audit-icon i {
+    font-size: 1.5rem;
   }
 }
 </style>

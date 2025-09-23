@@ -1,3 +1,4 @@
+
 const RenderCard = $("#card-render") //contenedor de cocinas
 const update = $("#updateTime")
 const reload = $("#reload")
@@ -166,6 +167,8 @@ function ocultarPedido(app_id, pedido_id) {
 }
 
 function requestLoadCocinaActive() {
+    console.log("🔄 Iniciando petición a /getApproved...");
+    
     __conection({
         url: generarURLApi("/getApproved"),
         header: credentials(),
@@ -175,7 +178,10 @@ function requestLoadCocinaActive() {
         _ORDERS = [];
         _ORDENMemory = [];
 
-        console.log(request);
+        console.log("📋 RESPUESTA COMPLETA del servidor:", request);
+        console.log("📊 Tipo de respuesta:", typeof request);
+        console.log("📊 Es array?:", Array.isArray(request));
+        console.log("📊 Cantidad de propiedades:", Object.keys(request || {}).length);
 
         if (request) {
             RenderCard.find("div").remove();
@@ -184,45 +190,71 @@ function requestLoadCocinaActive() {
             let carousel = $('<div class="slick-carousel"></div>');
             RenderCard.append(carousel);
 
+            let totalPedidos = 0;
+            
+            // 🔍 CONTAR TOTAL DE PEDIDOS ANTES DE RENDERIZAR
+            for (const app in request) {
+                let pedidos = request[app].original || [];
+                totalPedidos += pedidos.length;
+            }
+            
+            console.log(`📊 TOTAL PEDIDOS ENCONTRADOS EN TODAS LAS APPS: ${totalPedidos}`);
+
             for (const app in request) {
                 let pedidos = request[app].original;
+                console.log(`🏪 App: ${app} - Total pedidos encontrados: ${pedidos.length}`);
+                
                 if (pedidos.length > 0) {
-                    let firstPedido = pedidos[0];
-                    let cardHeaderClass = "card-header";
+                    // 🔄 RENDERIZAR CADA PEDIDO INDIVIDUALMENTE (NO SOLO EL PRIMERO)
+                    pedidos.forEach((pedido, index) => {
+                        console.log(`📦 Procesando pedido ${index + 1}/${pedidos.length} - ID: ${pedido.id} - Emergency: ${pedido.emergency || 'No'}`);
+                        
+                        // Verificar si este pedido específico está oculto
+                        if (is_undefined(_ORDERHidenMemory[pedido.id])) {
+                            let cardHeaderClass = "card-header";
 
-                    if (firstPedido.emergency && parseFloat(firstPedido.emergency) > 0) {
-                        cardHeaderClass = "card-header card-header-emergency";
-                    }
+                            // ⚡ VERIFICAR SI ES EMERGENCIA
+                            if (pedido.emergency && parseFloat(pedido.emergency) > 0) {
+                                cardHeaderClass = "card-header card-header-emergency";
+                                console.log(`🚨 EMERGENCIA detectada en pedido ${pedido.id}`);
+                            } else {
+                                console.log(`📝 Pedido NORMAL: ${pedido.id}`);
+                            }
 
-                    let appCard = `
-                <div class="col-auto">
-                    <div class="card h-100" onClick="handlehiddenOrden(this,${firstPedido.id})">
-                        <div class="${cardHeaderClass}">
-                            <h5 class="card-title fw-bold text-center">${app}</h5>
-                            <div class="text-center" style="margin-bottom: 10px;">
-                                <b class="col-auto rounded-pill text-bg-light text-center p-1">${firstPedido.created_at}</b>
+                            let appCard = `
+                        <div class="col-auto">
+                            <div class="card h-100" onClick="handlehiddenOrden(this,'${app}',${pedido.id})">
+                                <div class="${cardHeaderClass}">
+                                    <h5 class="card-title fw-bold text-center">${app}</h5>
+                                    <div class="text-center" style="margin-bottom: 10px;">
+                                        <b class="col-auto rounded-pill text-bg-light text-center p-1">${pedido.created_at}</b>
+                                    </div>
+                                    <div class="row d-flex justify-content-start">
+                                        <span class="col-auto p-0 fw-bold"><i class="fa-solid fa-user-tie"></i>
+                                            <div class="ml-3 d-inline">${pedido.contact_name}</div>
+                                        </span>
+                                    </div>
+                                    <div class="row d-flex justify-content-between" style="margin-block: 5px;">
+                                        <span class="col-auto p-0"># ${pedido.id}</span>
+                                        <span class="col-auto">ABCD1234</span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <ul>
+                                        ${JSON.parse(pedido.products).map((prp) => {
+                                return prp.quantity > 0 ? cardListOrden(prp) : "";
+                            }).join("")}
+                                    </ul>
+                                </div>
                             </div>
-                            <div class="row d-flex justify-content-start">
-                                <span class="col-auto p-0 fw-bold"><i class="fa-solid fa-user-tie"></i>
-                                    <div class="ml-3 d-inline">${firstPedido.contact_name}</div>
-                                </span>
-                            </div>
-                            <div class="row d-flex justify-content-between" style="margin-block: 5px;">
-                                <span class="col-auto p-0"># ${firstPedido.id}</span>
-                                <span class="col-auto">ABCD1234</span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <ul>
-                                ${JSON.parse(firstPedido.products).map((prp) => {
-                        return prp.quantity > 0 ? cardListOrden(prp) : "";
-                    }).join("")}
-                            </ul>
-                        </div>
-                    </div>
-                </div>`;
+                        </div>`;
 
-                    carousel.append(appCard);
+                            carousel.append(appCard);
+                            console.log(`✅ Tarjeta renderizada para pedido ${pedido.id}`);
+                        } else {
+                            console.log(`❌ Pedido ${pedido.id} está oculto, no se renderiza`);
+                        }
+                    });
                 }
             }
 

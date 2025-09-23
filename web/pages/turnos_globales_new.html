@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FagottoERP - Contadores Financieros</title>
+    <link rel="icon" type="image/x-icon" href="../assets/css/negro.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+    
+    <!-- Styles -->
+    <link href="../assets/css/dashboard.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/global.css">
+    
+    <!-- Helpers -->
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+    <script src="../assets/helpers/helperFunctions.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --background-gradient: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+            --card-background: rgba(255, 255, 255, 0.9);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --border-radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--background-gradient);
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .modern-card {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            overflow: hidden;
+        }
+
+        .modern-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modern-card .card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);
+            color: white;
+            border: none;
+            padding: 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .btn-modern {
+            border-radius: 12px;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            transition: var(--transition);
+            border: none;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);
+            color: white;
+        }
+
+        .loading-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            color: var(--text-secondary);
+            padding: 2rem;
+        }
+
+        .loading-state i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="text-dark mb-2">
+                            <i class="fas fa-calculator me-3"></i>Contadores Financieros
+                        </h1>
+                        <p class="text-muted mb-0">Consulta detallada de contadores por negocio y fecha</p>
+                    </div>
+                    <a href="dashboard.html" class="btn btn-back">
+                        <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTROS DE SELECCIÓN -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card modern-card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-filter me-2"></i>
+                            Filtros de Consulta
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label for="select-negocio" class="form-label">
+                                    <i class="fas fa-store me-1"></i>
+                                    Seleccionar Negocio
+                                </label>
+                                <select id="select-negocio" class="form-select">
+                                    <option value="">-- Seleccione un negocio --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="select-fecha" class="form-label">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    Seleccionar Fecha
+                                </label>
+                                <input type="date" id="select-fecha" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="button" class="btn btn-primary btn-modern w-100" onclick="consultarTodo()">
+                                    <i class="fas fa-search me-2"></i>
+                                    Consultar Todo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPARACIÓN SISTEMA VS ARQUEO -->
+        <div class="row mb-4" id="seccion-comparacion" style="display: none;">
+            <div class="col-12">
+                <div class="card modern-card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-balance-scale me-2"></i>
+                                    Sistema VS Arqueo de Caja
+                                </h5>
+                                <div class="text-light opacity-75 mt-1">
+                                    Comparación para detectar discrepancias
+                                </div>
+                            </div>
+                            <div class="badge bg-light text-dark px-3 py-2" id="estado-comparacion">
+                                <i class="fas fa-search me-1"></i>
+                                Analizando...
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="text-center mb-3">
+                                    <div class="badge bg-primary px-3 py-2 mb-2">
+                                        <i class="fas fa-server me-1"></i>
+                                        DATOS DEL SISTEMA
+                                    </div>
+                                    <p class="small text-muted">Ventas reales registradas</p>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <tbody id="sistema-datos">
+                                            <tr><td colspan="2" class="text-center text-muted">Sin datos</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="mt-3 p-2 bg-primary bg-opacity-10 rounded">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Total Sistema:</strong>
+                                        <strong class="text-primary" id="total-sistema">$0</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-center mb-3">
+                                    <div class="badge bg-warning px-3 py-2 mb-2">
+                                        <i class="fas fa-cash-register me-1"></i>
+                                        ARQUEO DE CAJA
+                                    </div>
+                                    <p class="small text-muted">Lo registrado por el cajero</p>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <tbody id="arqueo-datos">
+                                            <tr><td colspan="2" class="text-center text-muted">Sin arqueo</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="mt-3 p-2 bg-warning bg-opacity-10 rounded">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Total Arqueo:</strong>
+                                        <strong class="text-warning" id="total-arqueo">$0</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- RESULTADO DE LA COMPARACIÓN -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="alert alert-info" id="resultado-comparacion">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-info-circle me-3 fa-2x"></i>
+                                        <div>
+                                            <h6 class="mb-1">Resultado del Análisis</h6>
+                                            <div id="texto-diferencia">Esperando datos para comparar...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+                <!-- CONTADORES FINANCIEROS DEL SISTEMA -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card modern-card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-server me-2"></i>
+                                    Contadores Financieros del Sistema
+                                </h5>
+                                <div id="negocio-seleccionado" class="text-light opacity-75 mt-1">
+                                    Seleccione un negocio y fecha para consultar
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-light" onclick="consultarTodo()" style="display: none;" id="btn-actualizar">
+                                <i class="fas fa-sync-alt"></i>
+                                Actualizar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="loading-contadores" class="loading-state" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Cargando contadores financieros...
+                        </div>
+                        
+                        <div id="contadores-tabla" style="display: none;">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col">
+                                                <i class="fas fa-tag me-1"></i>
+                                                Concepto
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <i class="fas fa-dollar-sign me-1"></i>
+                                                Monto
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="contadores-tbody">
+                                        <!-- Los contadores se cargarán aquí -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Resumen total -->
+                            <div class="mt-3 p-3 bg-light rounded">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h6 class="mb-0">Total Balance:</h6>
+                                        <small class="text-muted">Balance final después de gastos</small>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <h5 class="mb-0 text-primary" id="total-balance">$0</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="no-contadores" class="empty-state">
+                            <i class="fas fa-calculator"></i>
+                            <h6>Sin datos</h6>
+                            <p>Seleccione un negocio y fecha para ver los contadores financieros</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTADORES DEL ARQUEO DE CAJA -->
+        <div class="row" id="seccion-arqueo" style="display: none;">
+            <div class="col-12">
+                <div class="card modern-card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-cash-register me-2"></i>
+                                    Lo que Registró la Cajera
+                                </h5>
+                                <div class="text-light opacity-75 mt-1">
+                                    Datos ingresados al cerrar el turno
+                                </div>
+                            </div>
+                            <div class="badge bg-light text-dark px-3 py-2" id="estado-arqueo">
+                                <i class="fas fa-user me-1"></i>
+                                Cajera
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="loading-arqueo" class="loading-state" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Cargando datos del arqueo...
+                        </div>
+                        
+                        <div id="arqueo-tabla" style="display: none;">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col">
+                                                <i class="fas fa-tag me-1"></i>
+                                                Concepto
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <i class="fas fa-dollar-sign me-1"></i>
+                                                Monto
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="arqueo-tbody">
+                                        <!-- Los datos del arqueo se cargarán aquí -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Resumen total arqueo -->
+                            <div class="mt-3 p-3 bg-light rounded">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h6 class="mb-0">Total Registrado por Cajera:</h6>
+                                        <small class="text-muted">Lo que dijo que tenía</small>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <h5 class="mb-0 text-warning" id="total-arqueo-registrado">$0</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="no-arqueo" class="empty-state">
+                            <i class="fas fa-cash-register"></i>
+                            <h6>Sin arqueo</h6>
+                            <p>No hay arqueo de caja registrado para esta fecha</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let negocios = [];
+        
+        // Función para obtener parámetros de la URL
+        function obtenerParametroURL(nombre) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(nombre);
+        }
+
+        // Función para actualizar la URL cuando cambia el negocio
+        function actualizarURL(negocioId) {
+            const nuevaURL = `${window.location.pathname}?id=${negocioId}`;
+            window.history.replaceState({}, '', nuevaURL);
+            console.log('🌐 URL actualizada:', nuevaURL);
+        }
+        
+        // Inicializar página
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Inicializando Contadores Financieros...');
+            verificarAutenticacion();
+            cargarNegocios();
+            establecerFechaActual();
+            
+            // Verificar si hay un negocio en la URL
+            const negocioEnURL = obtenerParametroURL('id');
+            if (negocioEnURL) {
+                console.log('🔗 Negocio detectado en URL:', negocioEnURL);
+                // Seleccionar automáticamente cuando carguen los negocios
+                setTimeout(() => {
+                    const select = document.getElementById('select-negocio');
+                    if (select) {
+                        select.value = negocioEnURL;
+                        console.log('✅ Negocio seleccionado automáticamente:', negocioEnURL);
+                    }
+                }, 1000);
+            }
+        });
+
+        // Verificar autenticación
+        function verificarAutenticacion() {
+            if (!_store().serial.isset()) {
+                window.location.href = "../index.html";
+                return;
+            }
+        }
+
+        // Establecer fecha actual por defecto
+        function establecerFechaActual() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('select-fecha').value = today;
+        }
+
+        // Cargar lista de negocios
+        async function cargarNegocios() {
+            console.log('📡 Cargando lista de negocios...');
+            
+            try {
+                await __conection({
+                    url: generarURLApi('/getApps'),
+                    header: credentials(),
+                    dev: true,
+                    method: 'POST'
+                }, {}, function(response) {
+                    console.log('✅ Negocios obtenidos:', response);
+                    console.log('🔍 ANALIZANDO NEGOCIOS:');
+                    response.forEach(negocio => {
+                        console.log(`   🏢 "${negocio.name}" → ID: ${negocio.id}`);
+                    });
+                    negocios = response;
+                    llenarSelectNegocios();
+                }, function(error) {
+                    console.error('❌ Error cargando negocios:', error);
+                    mostrarError('Error al cargar la lista de negocios. Revise su conexión.');
+                });
+            } catch (error) {
+                console.error('❌ Error crítico cargando negocios:', error);
+                mostrarError('Error crítico al cargar la lista de negocios');
+            }
+        }
+
+        // Llenar el select de negocios
+        function llenarSelectNegocios() {
+            const select = document.getElementById('select-negocio');
+            select.innerHTML = '<option value="">-- Seleccione un negocio --</option>';
+            
+            negocios.forEach(negocio => {
+                const option = document.createElement('option');
+                option.value = negocio.id;
+                option.textContent = negocio.name;
+                select.appendChild(option);
+                
+                // 🔍 DEBUG: Mostrar el ID de cada negocio
+                console.log(`🏢 Negocio: "${negocio.name}" → ID: ${negocio.id}`);
+            });
+            
+            console.log(`✅ ${negocios.length} negocios cargados en el select`);
+            
+            // Agregar evento para actualizar URL cuando cambia el negocio
+            const selectNegocio = document.getElementById('select-negocio');
+            selectNegocio.addEventListener('change', function() {
+                if (this.value) {
+                    actualizarURL(this.value);
+                    console.log('🔄 Negocio cambiado a:', this.value);
+                }
+            });
+        }
+
+        // Consultar tanto contadores como arqueo
+        function consultarTodo() {
+            const negocioId = document.getElementById('select-negocio').value;
+            const fecha = document.getElementById('select-fecha').value;
+            
+            console.log('🔍 DEBUG FECHA:');
+            console.log('   📅 Fecha del input:', fecha);
+            console.log('   🏢 Negocio ID:', negocioId);
+            
+            consultarContadores();
+            consultarArqueo();
+        }
+
+        // Consultar contadores financieros
+        async function consultarContadores() {
+            const negocioId = document.getElementById('select-negocio').value;
+            const fecha = document.getElementById('select-fecha').value;
+            
+            // Validaciones
+            if (!negocioId) {
+                alert('Por favor seleccione un negocio');
+                return;
+            }
+            
+            if (!fecha) {
+                alert('Por favor seleccione una fecha');
+                return;
+            }
+
+            const negocioSeleccionado = negocios.find(n => n.id == negocioId);
+            console.log(`🔍 Consultando contadores para: ${negocioSeleccionado.name} - ${fecha}`);
+            
+            mostrarLoading();
+            actualizarHeader(negocioSeleccionado.name, fecha);
+
+            try {
+                const startDate = fecha;
+                const endDate = fecha + ' 23:59:59';
+                
+                // Construir parámetros de métodos de pago (IGUAL QUE EN SUCURSAL.JS)
+                const paymentParams = [
+                    'fastSell=true',
+                    'boleta=true', 
+                    'factura=true',
+                    'noSii=true',
+                    'amipass=true',
+                    'rappi=true',
+                    'uber=true',
+                    'junaeb=true',
+                    'multicaja=true',
+                    'edenred=true',
+                    'sodexo=true',
+                    'convenio_empresa=true',
+                    'debito=true',
+                    'credito=true',
+                    'transferencia=true',
+                    'cheque=true',
+                    'banco=true',
+                    'pluxee=true',
+                    'pedidos_ya=true',
+                    'guia_despacho=true',
+                    'banco_chile_20=true',
+                    'nota_de_credito=true',
+                    'efectivo=true'
+                ].join('&');
+
+                const url = generarURLApi(`/web/getAppCounters?id=${negocioId}&startDate=${startDate}&endDate=${endDate}&${paymentParams}`);
+                
+                console.log('🌐 URL de consulta:', url);
+
+                await __conection({
+                    url: url,
+                    header: credentials(),
+                    dev: true,
+                    method: 'GET'
+                }, {}, function(response) {
+                    console.log('✅ Respuesta del servidor:', response);
+                    procesarContadores(response);
+                    
+                    // Ya no necesitamos la función de comparación antigua
+                    // El arqueo se consulta independientemente con consultarArqueo()
+                });
+                
+            } catch (error) {
+                console.error('❌ Error consultando contadores:', error);
+                ocultarLoading();
+                mostrarError('Error al consultar los contadores financieros');
+            }
+        }
+
+        // Procesar y mostrar contadores
+        function procesarContadores(data) {
+            console.log('📊 Procesando respuesta completa:', data);
+            
+            try {
+                // Extraer contadores usando la misma lógica que sucursal.js
+                const counters = [];
+                
+                // Procesar la respuesta como lo hace sucursal.js
+                for (const app in data) {
+                    console.log(`🔍 Procesando app: ${app}`, data[app]);
+                    if (data[app] && data[app].original && data[app].original.counters) {
+                        counters.push(data[app].original.counters);
+                        console.log('✅ Contadores encontrados:', data[app].original.counters);
+                    }
+                }
+                
+                if (counters.length === 0 || !counters[0]) {
+                    console.log('❌ No se encontraron contadores válidos');
+                    ocultarLoading();
+                    mostrarSinDatos();
+                    return;
+                }
+
+                console.log('📊 Contadores extraídos:', counters[0]);
+                mostrarContadores(counters[0]);
+                ocultarLoading();
+                
+            } catch (error) {
+                console.error('❌ Error procesando contadores:', error);
+                ocultarLoading();
+                mostrarSinDatos();
+            }
+        }
+
+        // Mostrar contadores en la tabla
+        function mostrarContadores(counters) {
+            console.log('📊 Mostrando contadores en tabla:', counters);
+            
+            const tbody = document.getElementById('contadores-tbody');
+            tbody.innerHTML = '';
+            
+            let totalBalance = 0;
+            
+            try {
+                // Mostrar órdenes totales
+                if (counters.orders !== undefined) {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <i class="fas fa-shopping-cart me-2 text-primary"></i>
+                            Órdenes Totales
+                        </td>
+                        <td class="text-end">
+                            <strong>${counters.orders}</strong>
+                        </td>
+                    </tr>`;
+                }
+
+                // Efectivo (boleta en la respuesta)
+                if (counters.boleta !== undefined && counters.boleta !== null && counters.boleta > 0) {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <i class="fas fa-money-bill-wave me-2 text-primary"></i>
+                            Efectivo
+                        </td>
+                        <td class="text-end">
+                            <strong>${formatearMontoChile(counters.boleta)}</strong>
+                        </td>
+                    </tr>`;
+                }
+
+                // Débito
+                if (counters.debito !== undefined && counters.debito !== null && counters.debito > 0) {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <i class="fas fa-credit-card me-2 text-primary"></i>
+                            Débito
+                        </td>
+                        <td class="text-end">
+                            <strong>${formatearMontoChile(counters.debito)}</strong>
+                        </td>
+                    </tr>`;
+                }
+
+                // Crédito
+                if (counters.credito !== undefined && counters.credito !== null && counters.credito > 0) {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <i class="fas fa-credit-card me-2 text-primary"></i>
+                            Crédito
+                        </td>
+                        <td class="text-end">
+                            <strong>${formatearMontoChile(counters.credito)}</strong>
+                        </td>
+                    </tr>`;
+                }
+
+                // Transbank (banco)
+                if (counters.banco !== undefined && counters.banco !== null && counters.banco > 0) {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <i class="fas fa-university me-2 text-primary"></i>
+                            Transbank
+                        </td>
+                        <td class="text-end">
+                            <strong>${formatearMontoChile(counters.banco)}</strong>
+                        </td>
+                    </tr>`;
+                }
+
+                // Transferencia
+                if (counters.transferencia !== undefined && counters.transferencia !== null && counters.transferencia > 0) {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <i class="fas fa-exchange-alt me-2 text-primary"></i>
+                            Transferencia
+                        </td>
+                        <td class="text-end">
+                            <strong>${formatearMontoChile(counters.transferencia)}</strong>
+                        </td>
+                    </tr>`;
+                }
+
+                // Edenred
+                if (counters.edenred !== undefined && counters.edenred !== null && counters.edenred > 0) {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <i class="fas fa-utensils me-2 text-primary"></i>
+                            Edenred
+                        </td>
+                        <td class="text-end">
+                            <strong>${formatearMontoChile(counters.edenred)}</strong>
+                        </td>
+                    </tr>`;
+                }
+
+                // Sodexo
+                if (counters.sodexo !== undefined && counters.sodexo !== null && counters.sodexo > 0) {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <i class="fas fa-utensils me-2 text-primary"></i>
+                            Sodexo
+                        </td>
+                        <td class="text-end">
+                            <strong>${formatearMontoChile(counters.sodexo)}</strong>
+                        </td>
+                    </tr>`;
+                }
+
+                // Amipass
+                if (counters.amipass !== undefined && counters.amipass !== null && counters.amipass > 0) {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <i class="fas fa-id-card me-2 text-primary"></i>
+                            Amipass
+                        </td>
+                        <td class="text-end">
+                            <strong>${formatearMontoChile(counters.amipass)}</strong>
+                        </td>
+                    </tr>`;
+                }
+
+                // Rappi
+                if (counters.rappi !== undefined && counters.rappi !== null && counters.rappi > 0) {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <i class="fas fa-motorcycle me-2 text-primary"></i>
+                            Rappi
+                        </td>
+                        <td class="text-end">
+                            <strong>${formatearMontoChile(counters.rappi)}</strong>
+                        </td>
+                    </tr>`;
+                }
+
+                // Uber
+                if (counters.uber !== undefined && counters.uber !== null && counters.uber > 0) {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <i class="fas fa-car me-2 text-primary"></i>
+                            Uber
+                        </td>
+                        <td class="text-end">
+                            <strong>${formatearMontoChile(counters.uber)}</strong>
+                        </td>
+                    </tr>`;
+                }
+
+                // Junaeb
+                if (counters.junaeb !== undefined && counters.junaeb !== null && counters.junaeb > 0) {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <i class="fas fa-graduation-cap me-2 text-primary"></i>
+                            Junaeb
+                        </td>
+                        <td class="text-end">
+                            <strong>${formatearMontoChile(counters.junaeb)}</strong>
+                        </td>
+                    </tr>`;
+                }
+
+                // PedidosYa
+                if (counters.pedidos_ya !== undefined && counters.pedidos_ya !== null && counters.pedidos_ya > 0) {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <i class="fas fa-shipping-fast me-2 text-primary"></i>
+                            Pedidos Ya
+                        </td>
+                        <td class="text-end">
+                            <strong>${formatearMontoChile(counters.pedidos_ya)}</strong>
+                        </td>
+                    </tr>`;
+                }
+
+                // Pluxee
+                if (counters.pluxee !== undefined && counters.pluxee !== null && counters.pluxee > 0) {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <i class="fas fa-credit-card me-2 text-primary"></i>
+                            Pluxee
+                        </td>
+                        <td class="text-end">
+                            <strong>${formatearMontoChile(counters.pluxee)}</strong>
+                        </td>
+                    </tr>`;
+                }
+
+                // Banco Chile 20%
+                if (counters.banco_chile_20 !== undefined && counters.banco_chile_20 !== null && counters.banco_chile_20 > 0) {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <i class="fas fa-percent me-2 text-primary"></i>
+                            Banco Chile 20%
+                        </td>
+                        <td class="text-end">
+                            <strong>${formatearMontoChile(counters.banco_chile_20)}</strong>
+                        </td>
+                    </tr>`;
+                }
+
+                // Balance Total
+                if (counters.balanceTotal !== undefined) {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <i class="fas fa-balance-scale me-2 text-success"></i>
+                            Saldo Total
+                        </td>
+                        <td class="text-end">
+                            <strong class="text-success">${formatearMontoChile(counters.balanceTotal)}</strong>
+                        </td>
+                    </tr>`;
+                    totalBalance = counters.balanceTotal;
+                }
+
+                // Resumen Total (totalToExpenses)
+                if (counters.totalToExpenses !== undefined) {
+                    tbody.innerHTML += `
+                    <tr class="table-success">
+                        <td>
+                            <i class="fas fa-chart-line me-2 text-success"></i>
+                            <strong>Resumen Total</strong>
+                        </td>
+                        <td class="text-end">
+                            <strong class="text-success">${formatearMontoChile(counters.totalToExpenses)}</strong>
+                        </td>
+                    </tr>`;
+                    totalBalance = counters.totalToExpenses; // Usar este para el resumen final
+                }
+
+                // Actualizar total balance
+                document.getElementById('total-balance').textContent = formatearMontoChile(totalBalance);
+                
+                // Mostrar tabla y botón actualizar
+                document.getElementById('contadores-tabla').style.display = 'block';
+                document.getElementById('no-contadores').style.display = 'none';
+                document.getElementById('btn-actualizar').style.display = 'block';
+                
+                console.log('✅ Contadores mostrados correctamente');
+                
+            } catch (error) {
+                console.error('❌ Error mostrando contadores:', error);
+                mostrarSinDatos();
+            }
+        }
+
+        // Obtener icono para cada concepto
+        function getIconoConcepto(concepto) {
+            const iconos = {
+                'efectivo': 'money-bill-wave',
+                'debito': 'credit-card',
+                'credito': 'credit-card',
+                'transferencia': 'exchange-alt',
+                'cheque': 'money-check',
+                'banco': 'university',
+                'amipass': 'id-card',
+                'rappi': 'motorcycle',
+                'uber': 'car',
+                'multicaja': 'wallet',
+                'edenred': 'utensils',
+                'sodexo': 'utensils',
+                'convenio_empresa': 'handshake',
+                'junaeb': 'graduation-cap',
+                'pedidos_ya': 'shipping-fast',
+                'pluxee': 'credit-card',
+                'banco_chile_20': 'percent',
+                'facturas': 'file-invoice-dollar',
+                'boleta': 'receipt',
+                'fastSells': 'bolt',
+                'expenses_day': 'minus-circle',
+                'gananciaTotal': 'chart-line',
+                'balanceTotal': 'balance-scale'
+            };
+            return iconos[concepto] || 'dollar-sign';
+        }
+
+        // Actualizar header con información seleccionada
+        function actualizarHeader(nombreNegocio, fecha) {
+            const fechaFormateada = new Date(fecha).toLocaleDateString('es-CL');
+            document.getElementById('negocio-seleccionado').textContent = 
+                `${nombreNegocio} - ${fechaFormateada}`;
+        }
+
+        // Funciones de estado
+        function mostrarLoading() {
+            document.getElementById('loading-contadores').style.display = 'flex';
+            document.getElementById('contadores-tabla').style.display = 'none';
+            document.getElementById('no-contadores').style.display = 'none';
+        }
+
+        function ocultarLoading() {
+            document.getElementById('loading-contadores').style.display = 'none';
+        }
+
+        function mostrarSinDatos() {
+            document.getElementById('no-contadores').style.display = 'block';
+            document.getElementById('contadores-tabla').style.display = 'none';
+            document.getElementById('btn-actualizar').style.display = 'none';
+        }
+
+        function mostrarError(mensaje) {
+            alert(mensaje); // TODO: Mejorar con modal o toast
+        }
+
+        // Función helper para formatear montos
+        function formatearMontoChile(monto) {
+            return new Intl.NumberFormat('es-CL', { 
+                style: 'currency', 
+                currency: 'CLP',
+                minimumFractionDigits: 0
+            }).format(monto);
+        }
+
+        // ==================== FUNCIONES DEL ARQUEO DE CAJA ====================
+        
+        // Consultar datos del arqueo de caja
+        async function consultarArqueo() {
+            const selectNegocio = document.getElementById('select-negocio');
+            const selectFecha = document.getElementById('select-fecha');
+            
+            if (!selectNegocio.value || !selectFecha.value) {
+                console.log('⚠️ No hay negocio o fecha seleccionada para consultar arqueo');
+                return;
+            }
+            
+            console.log('🔍 Consultando arqueo de caja...', {
+                negocio: selectNegocio.options[selectNegocio.selectedIndex].text,
+                negocio_id: selectNegocio.value,
+                fecha: selectFecha.value
+            });
+            
+            document.getElementById('seccion-arqueo').style.display = 'block';
+            document.getElementById('loading-arqueo').style.display = 'block';
+            document.getElementById('arqueo-tabla').style.display = 'none';
+            document.getElementById('no-arqueo').style.display = 'none';
+            
+            try {
+                // 🎯 USAR LOCAL ARQUEOS PERO CON id= (igual que contadores)
+                const url = generarURLApi(`/local/arqueos?id=${selectNegocio.value}&fecha_inicio=${selectFecha.value}&fecha_fin=${selectFecha.value}`);
+                console.log('🔗 URL arqueo (CON id= para cambiar conexión):', url);
+                console.log('📋 Parámetros enviados:', {
+                    app_id: selectNegocio.value,
+                    fecha_inicio: selectFecha.value,
+                    fecha_fin: selectFecha.value
+                });
+                
+                await __conection({
+                    url: url,
+                    header: credentials(),
+                    dev: true,
+                    method: 'GET'
+                }, {}, function(response) {
+                    console.log('✅ RESPUESTA /local/arqueos con id=:', response);
+                    procesarDatosArqueo(response, selectFecha.value);
+                }, function(error) {
+                    console.error('❌ Error consultando arqueo dashboard:', error);
+                    console.log('🔄 Intentando endpoint fallback...');
+                    consultarArqueoOriginal();
+                });
+            } catch (error) {
+                console.error('❌ Error crítico consultando arqueo:', error);
+                mostrarErrorArqueo();
+            }
+        }
+
+        // Endpoint alternativo para arqueo
+        async function consultarArqueoOriginal() {
+            try {
+                const selectNegocio = document.getElementById('select-negocio');
+                const selectFecha = document.getElementById('select-fecha');
+                
+                const response = await fetch(generarURLApi(`/local/arqueos?app_id=${selectNegocio.value}&fecha_inicio=${selectFecha.value}&fecha_fin=${selectFecha.value}`), {
+                    method: 'GET',
+                    headers: credentials()
+                });
+                
+                if (!response.ok) throw new Error(`Error ${response.status}`);
+                
+                const result = await response.json();
+                console.log('📊 Respuesta del endpoint original /local/arqueos:', result);
+                
+                // Procesar datos con formato original
+                procesarDatosArqueo(result, selectFecha.value);
+            } catch (error) {
+                console.error('❌ Error en endpoint original:', error);
+                mostrarErrorArqueo();
+            }
+        }
+
+        // Procesar datos del endpoint alternativo
+        function procesarDatosArqueoAlternativo(response, fechaSeleccionada) {
+            console.log('🔍 Procesando datos del endpoint alternativo:', response);
+            
+            // El endpoint /web/getAppCounters devuelve formato: {"Fagotto Mall Imperio": {headers: {}, original: {}, exception: null}}
+            let datosArqueo = null;
+            
+            // Buscar datos en la respuesta
+            if (response && typeof response === 'object') {
+                // Buscar por nombre de la app o tomar el primer elemento
+                const keys = Object.keys(response);
+                if (keys.length > 0) {
+                    const appData = response[keys[0]]; // Tomar el primer (y único) negocio
+                    console.log('📊 Datos del negocio encontrados:', appData);
+                    
+                    // Mostrar toda la estructura para debugging
+                    console.log('🔍 Estructura completa de appData.original:', appData.original);
+                    
+                    // Verificar si hay datos de turnos/arqueos en original
+                    if (appData.original && appData.original.turnosCaja) {
+                        console.log('💰 Datos de turnos encontrados:', appData.original.turnosCaja);
+                        const turnosCaja = appData.original.turnosCaja;
+                        
+                        // Buscar turnos del día seleccionado
+                        const arqueosDia = turnosCaja.filter(turno => {
+                            if (!turno.fecha_apertura && !turno.created_at) return false;
+                            const fechaTurno = (turno.fecha_apertura || turno.created_at).split(' ')[0];
+                            return fechaTurno === fechaSeleccionada;
+                        });
+
+                        if (arqueosDia.length > 0) {
+                            // Tomar el turno más reciente
+                            datosArqueo = arqueosDia[arqueosDia.length - 1];
+                            console.log('✅ Arqueo encontrado para la fecha:', datosArqueo);
+                        }
+                    }
+                }
+            }
+
+            if (!datosArqueo) {
+                console.log('📝 No hay arqueos registrados para la fecha seleccionada en endpoint alternativo');
+                console.log('� Intentando endpoint original...');
+                consultarArqueoOriginal();
+                return;
+            }
+
+            // Mostrar datos usando la función común
+            mostrarDatosArqueo(datosArqueo, fechaSeleccionada);
+        }
+
+        // Procesar datos del arqueo
+        function procesarDatosArqueo(response, fechaSeleccionada) {
+            console.log('🔍 Procesando respuesta del arqueo:', response);
+            console.log('📅 Fecha seleccionada para buscar:', fechaSeleccionada);
+            
+            const selectNegocio = document.getElementById('select-negocio');
+            const appIdSeleccionado = parseInt(selectNegocio.value);
+            console.log('🏢 App ID seleccionado:', appIdSeleccionado);
+            
+            document.getElementById('loading-arqueo').style.display = 'none';
+            
+            if (!response || !response.success) {
+                console.warn('⚠️ Respuesta inválida del arqueo');
+                document.getElementById('no-arqueo').style.display = 'block';
+                return;
+            }
+            
+            // La respuesta viene como { success: true, data: { items: [...] } }
+            const todosLosArqueos = response.data && response.data.items ? response.data.items : [];
+            
+            // DEBUG: Ver qué app_id tienen los arqueos que llegan
+            console.log('🔍 App IDs de todos los arqueos:', todosLosArqueos.map(a => ({ 
+                id: a.id, 
+                app_id: a.app_id, 
+                fecha: a.fecha_inicio,
+                estado: a.estado 
+            })));
+            
+            // FILTRAR por app_id específico
+            const arqueos = todosLosArqueos.filter(arqueo => 
+                arqueo.app_id === appIdSeleccionado
+            );
+            
+            console.log('📋 Total arqueos recibidos:', todosLosArqueos.length);
+            console.log('📋 Arqueos filtrados para app_id', appIdSeleccionado, ':', arqueos.length);
+            
+            // ESTRICTO: Solo arqueos del app_id seleccionado
+            if (arqueos.length === 0) {
+                console.warn('❌ No hay arqueos registrados para app_id', appIdSeleccionado);
+                console.log('🏢 Arqueos disponibles para otros negocios:');
+                todosLosArqueos.forEach((arqueo, i) => {
+                    const fechaArqueo = arqueo.fecha_inicio ? arqueo.fecha_inicio.split(' ')[0] : '';
+                    console.log(`   ${i+1}. ID ${arqueo.id}: app_id=${arqueo.app_id}, fecha="${fechaArqueo}"`);
+                });
+                mostrarErrorArqueo();
+                return;
+            }
+            
+            console.log('📋 Arqueos finales a procesar:', arqueos.length);
+            console.log('📋 Primer arqueo como ejemplo:', arqueos[0]);
+            
+            // Buscar el arqueo del día seleccionado
+            const fechaBuscada = fechaSeleccionada; // formato: 2025-09-21
+            let arqueoDelDia = null;
+            
+            // Mostrar todas las fechas disponibles para debug
+            console.log('📅 Fechas de arqueos disponibles:');
+            arqueos.forEach((arqueo, index) => {
+                const fechaArqueo = arqueo.fecha_inicio ? arqueo.fecha_inicio.split(' ')[0] : 'sin fecha';
+                console.log(`   ${index + 1}. Fecha: ${fechaArqueo}, Estado: ${arqueo.estado}, ID: ${arqueo.id}, App: ${arqueo.app_id}`);
+            });
+            
+            for (let arqueo of arqueos) {
+                // Comparar solo la fecha (ignorar hora)
+                const fechaArqueo = arqueo.fecha_inicio ? arqueo.fecha_inicio.split(' ')[0] : '';
+                console.log(`🔍 Comparando: "${fechaArqueo}" === "${fechaBuscada}" && estado: "${arqueo.estado}"`);
+                
+                if (fechaArqueo === fechaBuscada) {
+                    console.log('✅ Fecha coincide! Verificando estado...');
+                    // CAMBIO: Aceptar arqueos abiertos Y cerrados (no solo cerrados)
+                    if (arqueo.estado === 'cerrado' || arqueo.estado === 'abierto') {
+                        console.log(`✅ ¡Arqueo encontrado con estado: ${arqueo.estado}!`);
+                        arqueoDelDia = arqueo;
+                        break;
+                    } else {
+                        console.log(`⚠️ Arqueo de la fecha encontrado pero estado es: "${arqueo.estado}" (se acepta "abierto" o "cerrado")`);
+                    }
+                }
+            }
+            
+            if (!arqueoDelDia) {
+                console.warn('⚠️ No se encontró arqueo cerrado para la fecha:', fechaBuscada);
+                console.log('💡 Tip: Revisa que exista un arqueo con estado "cerrado" para esta fecha');
+                
+                // Mostrar mensaje más específico si hay arqueo pero no está cerrado
+                const arqueoAbierto = arqueos.find(a => {
+                    const fechaArqueo = a.fecha_inicio ? a.fecha_inicio.split(' ')[0] : '';
+                    return fechaArqueo === fechaBuscada;
+                });
+                
+                if (arqueoAbierto) {
+                    console.log('🔍 Se encontró arqueo para la fecha pero estado es:', arqueoAbierto.estado);
+                    // Mostrar este arqueo aunque no esté cerrado para debug
+                    mostrarDatosArqueo(arqueoAbierto);
+                    return;
+                }
+                
+                document.getElementById('no-arqueo').style.display = 'block';
+                return;
+            }
+            
+            console.log('🎯 Arqueo del día encontrado:', arqueoDelDia);
+            mostrarDatosArqueo(arqueoDelDia);
+        }
+
+        // Mostrar datos del arqueo en la tabla
+        function mostrarDatosArqueo(arqueo) {
+            console.log('📊 Mostrando datos del arqueo:', arqueo);
+            const tbody = document.getElementById('arqueo-tbody');
+            tbody.innerHTML = '';
+            
+            // Construir filas de la tabla con lo que registró la cajera
+            const filasArqueo = [];
+            let totalRegistrado = 0;
+            
+            console.log('🔍 Campos disponibles en arqueo:', Object.keys(arqueo));
+            
+            console.log('🔍 Valores específicos:', {
+                total_contado: arqueo.total_contado,
+                total_tarjeta: arqueo.total_tarjeta, 
+                total_credito: arqueo.total_credito,
+                total_transferencia: arqueo.total_transferencia,
+                total_uber_eats: arqueo.total_uber_eats,
+                total_otros_medios: arqueo.total_otros_medios,
+                total_general: arqueo.total_general,
+                detalle_medios_pago: arqueo.detalle_medios_pago
+            });
+            
+            // Efectivo - usar total_contado (no efectivo_final)
+            if (arqueo.total_contado) {
+                const efectivoStr = typeof arqueo.total_contado === 'string' ? arqueo.total_contado : arqueo.total_contado.toString();
+                const efectivo = parseFloat(efectivoStr.replace(',', '.'));
+                if (efectivo > 0) {
+                    console.log(`💵 Efectivo encontrado: ${efectivo}`);
+                    filasArqueo.push({
+                        concepto: '💵 Efectivo',
+                        valor: efectivo
+                    });
+                    totalRegistrado += efectivo;
+                }
+            }
+            
+            // Tarjetas - usar total_tarjeta (incluye débito/crédito)
+            if (arqueo.total_tarjeta) {
+                const tarjetaStr = typeof arqueo.total_tarjeta === 'string' ? arqueo.total_tarjeta : arqueo.total_tarjeta.toString();
+                const tarjeta = parseFloat(tarjetaStr.replace(',', '.'));
+                if (tarjeta > 0) {
+                    console.log(`💳 Tarjetas encontrado: ${tarjeta}`);
+                    filasArqueo.push({
+                        concepto: '💳 Tarjetas',
+                        valor: tarjeta
+                    });
+                    totalRegistrado += tarjeta;
+                }
+            }
+            
+            // Crédito específico - usar total_credito
+            if (arqueo.total_credito) {
+                const creditoStr = typeof arqueo.total_credito === 'string' ? arqueo.total_credito : arqueo.total_credito.toString();
+                const credito = parseFloat(creditoStr.replace(',', '.'));
+                if (credito > 0) {
+                    console.log(`💳 Crédito encontrado: ${credito}`);
+                    filasArqueo.push({
+                        concepto: '💳 Crédito',
+                        valor: credito
+                    });
+                    totalRegistrado += credito;
+                }
+            }
+            
+            // Transferencia - usar total_transferencia
+            if (arqueo.total_transferencia) {
+                const transferenciaStr = typeof arqueo.total_transferencia === 'string' ? arqueo.total_transferencia : arqueo.total_transferencia.toString();
+                const transferencia = parseFloat(transferenciaStr.replace(',', '.'));
+                if (transferencia > 0) {
+                    console.log(`🏦 Transferencia encontrado: ${transferencia}`);
+                    filasArqueo.push({
+                        concepto: '🏦 Transferencia',
+                        valor: transferencia
+                    });
+                    totalRegistrado += transferencia;
+                }
+            }
+            
+            // Uber Eats - usar total_uber_eats
+            if (arqueo.total_uber_eats) {
+                const uberStr = typeof arqueo.total_uber_eats === 'string' ? arqueo.total_uber_eats : arqueo.total_uber_eats.toString();
+                const uber = parseFloat(uberStr.replace(',', '.'));
+                if (uber > 0) {
+                    console.log(`🚗 Uber Eats encontrado: ${uber}`);
+                    filasArqueo.push({
+                        concepto: '🚗 Uber Eats',
+                        valor: uber
+                    });
+                    totalRegistrado += uber;
+                }
+            }
+            
+            // Otros medios - usar total_otros_medios
+            if (arqueo.total_otros_medios) {
+                const otrosStr = typeof arqueo.total_otros_medios === 'string' ? arqueo.total_otros_medios : arqueo.total_otros_medios.toString();
+                const otros = parseFloat(otrosStr.replace(',', '.'));
+                if (otros > 0) {
+                    console.log(`� Otros Medios encontrado: ${otros}`);
+                    filasArqueo.push({
+                        concepto: '� Otros Medios',
+                        valor: otros
+                    });
+                    totalRegistrado += otros;
+                }
+            }
+            
+            // Si no hay datos específicos, mostrar total_general si existe
+            if (totalRegistrado === 0 && arqueo.total_general) {
+                const generalStr = typeof arqueo.total_general === 'string' ? arqueo.total_general : arqueo.total_general.toString();
+                const general = parseFloat(generalStr.replace(',', '.'));
+                if (general > 0) {
+                    console.log(`💰 Total General encontrado: ${general}`);
+                    filasArqueo.push({
+                        concepto: '💰 Total General',
+                        valor: general
+                    });
+                    totalRegistrado += general;
+                }
+            }
+            
+            // Procesar detalle_medios_pago JSON (secundario)
+            let detalleMediosPago = {};
+            if (arqueo.detalle_medios_pago) {
+                try {
+                    detalleMediosPago = typeof arqueo.detalle_medios_pago === 'string' 
+                        ? JSON.parse(arqueo.detalle_medios_pago) 
+                        : arqueo.detalle_medios_pago;
+                    
+                    console.log('💳 Medios de pago JSON (adicionales):', detalleMediosPago);
+                } catch (e) {
+                    console.warn('⚠️ Error parseando detalle_medios_pago:', e);
+                }
+            }
+            
+            // Mapear cada medio de pago con iconos
+            const mediosPago = [
+                { key: 'debito', icono: '💳', nombre: 'Débito' },
+                { key: 'credito', icono: '💳', nombre: 'Crédito' },
+                { key: 'junaeb', icono: '🏛️', nombre: 'Junaeb' },
+                { key: 'pedidos_ya', icono: '🍕', nombre: 'Pedidos Ya' },
+                { key: 'transferencia', icono: '🏦', nombre: 'Transferencia' },
+                { key: 'banco', icono: '🏦', nombre: 'Banco' },
+                { key: 'rappi', icono: '🛵', nombre: 'Rappi' },
+                { key: 'uber', icono: '🚗', nombre: 'Uber' },
+                { key: 'amipass', icono: '🎫', nombre: 'Amipass' },
+                { key: 'multicaja', icono: '💰', nombre: 'Multicaja' },
+                { key: 'edenred', icono: '🎫', nombre: 'Edenred' },
+                { key: 'sodexo', icono: '🎫', nombre: 'Sodexo' },
+                { key: 'pluxee', icono: '�', nombre: 'Pluxee' },
+                { key: 'banco_chile_20', icono: '🏛️', nombre: 'Banco Chile 20' },
+                { key: 'fluxi', icono: '💳', nombre: 'Fluxi' }
+            ];
+            
+            // Agregar cada medio de pago que tenga valor
+            mediosPago.forEach(medio => {
+                if (detalleMediosPago[medio.key] && detalleMediosPago[medio.key] > 0) {
+                    filasArqueo.push({
+                        concepto: `${medio.icono} ${medio.nombre}`,
+                        valor: detalleMediosPago[medio.key]
+                    });
+                    totalRegistrado += detalleMediosPago[medio.key];
+                }
+            });
+            
+            // Agregar filas a la tabla
+            if (filasArqueo.length > 0) {
+                filasArqueo.forEach(fila => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>
+                            <span class="fw-medium">${fila.concepto}</span>
+                        </td>
+                        <td class="text-end">
+                            <span class="badge bg-warning text-dark px-3 py-1">
+                                ${formatearMontoChile(fila.valor)}
+                            </span>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                // Mensaje específico para turnos abiertos vs realmente vacíos
+                if (arqueo.estado === 'abierto') {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="2" class="text-center text-warning py-4">
+                                <i class="fas fa-clock"></i><br>
+                                <strong>Turno Abierto</strong><br>
+                                <small>El arqueo aún no ha sido completado por la cajera</small><br>
+                                <small class="text-muted">Estado: ${arqueo.estado} | ID: ${arqueo.id}</small>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="2" class="text-center text-muted py-4">
+                                <i class="fas fa-cash-register opacity-50"></i><br>
+                                No hay medios de pago registrados en el arqueo
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+            
+            // Actualizar total
+            document.getElementById('total-arqueo-registrado').textContent = formatearMontoChile(totalRegistrado);
+            
+            // Mostrar tabla
+            document.getElementById('arqueo-tabla').style.display = 'block';
+            
+            console.log('✅ Datos del arqueo mostrados. Total registrado:', formatearMontoChile(totalRegistrado));
+        }
+
+        // Mostrar error en arqueo
+        function mostrarErrorArqueo() {
+            document.getElementById('loading-arqueo').style.display = 'none';
+            document.getElementById('no-arqueo').style.display = 'block';
+        }
+
+        // ==================== FUNCIONES DE COMPARACIÓN SISTEMA VS ARQUEO ====================
+        
+        // Consultar datos del arqueo de caja
+        async function consultarArqueoComparacion(negocioId, fecha, datosSistema) {
+            console.log('🔍 Consultando arqueo de caja para comparación...');
+            
+            // FUNCIÓN DESHABILITADA - usar consultarArqueo() independiente
+            console.log('⚠️ Función de comparación deshabilitada, usando cuadros independientes');
+            return;
+        }
+
+        // Procesar comparación entre sistema y arqueo
+        function procesarComparacion(datosSistema, datosArqueo, fecha) {
+            console.log('📊 Procesando comparación:', { datosSistema, datosArqueo });
+            
+            // Extraer contadores del sistema
+            const contadoreSistema = [];
+            for (const app in datosSistema) {
+                if (datosSistema[app] && datosSistema[app].original && datosSistema[app].original.counters) {
+                    contadoreSistema.push(datosSistema[app].original.counters);
+                }
+            }
+            
+            if (contadoreSistema.length === 0) {
+                console.log('❌ No se pudieron extraer contadores del sistema');
+                return;
+            }
+            
+            const sistemaData = contadoreSistema[0];
+            
+            // Procesar datos del arqueo - Usar la estructura real que me enviaste
+            let arqueoData = null;
+            if (datosArqueo && Array.isArray(datosArqueo) && datosArqueo.length > 0) {
+                // Usar el último turno del día
+                arqueoData = datosArqueo[datosArqueo.length - 1];
+                console.log('📋 Arqueo encontrado:', arqueoData);
+            } else if (datosArqueo && !Array.isArray(datosArqueo)) {
+                // Si la respuesta no es array, podría ser un objeto directo
+                arqueoData = datosArqueo;
+            }
+            
+            // Mostrar comparación
+            mostrarComparacion(sistemaData, arqueoData, fecha);
+        }
+
+        // Mostrar comparación en las tablas
+        function mostrarComparacion(sistemaData, arqueoData, fecha) {
+            console.log('📋 Mostrando comparación:', { sistemaData, arqueoData });
+            
+            // Mostrar sección de comparación
+            document.getElementById('seccion-comparacion').style.display = 'block';
+            
+            // LADO IZQUIERDO: DATOS DEL SISTEMA
+            const sistemaTbody = document.getElementById('sistema-datos');
+            sistemaTbody.innerHTML = '';
+            
+            let totalSistema = 0;
+            
+            // Conceptos principales del sistema
+            const conceptosSistema = [
+                { key: 'efectivo', label: 'Efectivo', value: sistemaData.boleta || 0 },
+                { key: 'debito', label: 'Débito', value: sistemaData.debito || 0 },
+                { key: 'credito', label: 'Crédito', value: sistemaData.credito || 0 },
+                { key: 'transferencia', label: 'Transferencia', value: sistemaData.transferencia || 0 },
+                { key: 'banco', label: 'Transbank', value: sistemaData.banco || 0 }
+            ];
+            
+            conceptosSistema.forEach(concepto => {
+                if (concepto.value > 0) {
+                    sistemaTbody.innerHTML += `
+                        <tr>
+                            <td>${concepto.label}</td>
+                            <td class="text-end">${formatearMontoChile(concepto.value)}</td>
+                        </tr>
+                    `;
+                    totalSistema += concepto.value;
+                }
+            });
+            
+            document.getElementById('total-sistema').textContent = formatearMontoChile(sistemaData.totalToExpenses || totalSistema);
+            
+            // LADO DERECHO: DATOS DEL ARQUEO REAL
+            const arqueoTbody = document.getElementById('arqueo-datos');
+            arqueoTbody.innerHTML = '';
+            
+            let totalArqueo = 0;
+            
+            if (arqueoData) {
+                console.log('📊 Procesando arqueo con estructura real...');
+                
+                // BASADO EN TU EJEMPLO: efectivo_final, debito_final, etc.
+                // También hay un JSON con detalles: {"efectivo":0,"debito":161910,"credito":27650,...}
+                
+                let mediosPagoArqueo = {};
+                
+                // Tratar de extraer del JSON de medios de pago si existe
+                if (arqueoData.detalle_medios_pago) {
+                    try {
+                        mediosPagoArqueo = JSON.parse(arqueoData.detalle_medios_pago);
+                        console.log('📋 JSON medios pago parseado:', mediosPagoArqueo);
+                    } catch (e) {
+                        console.log('⚠️ Error parseando JSON medios pago:', e);
+                    }
+                }
+                
+                // Mapear campos del arqueo real
+                const conceptosArqueo = [
+                    { 
+                        key: 'efectivo', 
+                        label: 'Efectivo', 
+                        value: parseFloat(arqueoData.efectivo_final) || mediosPagoArqueo.efectivo || 0 
+                    },
+                    { 
+                        key: 'debito', 
+                        label: 'Débito', 
+                        value: parseFloat(arqueoData.debito_final) || mediosPagoArqueo.debito || 0 
+                    },
+                    { 
+                        key: 'credito', 
+                        label: 'Crédito', 
+                        value: parseFloat(arqueoData.credito_final) || mediosPagoArqueo.credito || 0 
+                    },
+                    { 
+                        key: 'transferencia', 
+                        label: 'Transferencia', 
+                        value: parseFloat(arqueoData.transferencia_final) || mediosPagoArqueo.transferencia || 0 
+                    },
+                    { 
+                        key: 'banco', 
+                        label: 'Transbank', 
+                        value: parseFloat(arqueoData.transbank_final) || mediosPagoArqueo.banco || 0 
+                    }
+                ];
+                
+                conceptosArqueo.forEach(concepto => {
+                    if (concepto.value > 0) {
+                        arqueoTbody.innerHTML += `
+                            <tr>
+                                <td>${concepto.label}</td>
+                                <td class="text-end">${formatearMontoChile(concepto.value)}</td>
+                            </tr>
+                        `;
+                        totalArqueo += concepto.value;
+                    }
+                });
+                
+                // Si no hay datos individuales, usar totales generales
+                if (totalArqueo === 0 && arqueoData.total_contado) {
+                    totalArqueo = parseFloat(arqueoData.total_contado) || 0;
+                    arqueoTbody.innerHTML += `
+                        <tr>
+                            <td>Total Arqueo</td>
+                            <td class="text-end">${formatearMontoChile(totalArqueo)}</td>
+                        </tr>
+                    `;
+                }
+                
+                if (totalArqueo === 0) {
+                    arqueoTbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">Arqueo sin montos registrados</td></tr>';
+                }
+                
+            } else {
+                arqueoTbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">Sin arqueo de caja registrado</td></tr>';
+            }
+            
+            document.getElementById('total-arqueo').textContent = formatearMontoChile(totalArqueo);
+            
+            // CALCULAR Y MOSTRAR DIFERENCIA
+            mostrarResultadoComparacion(sistemaData.totalToExpenses || totalSistema, totalArqueo, !!arqueoData);
+        }
+
+        // Mostrar resultado de la comparación
+        function mostrarResultadoComparacion(totalSistema, totalArqueo, tieneArqueo) {
+            const diferencia = totalSistema - totalArqueo;
+            const porcentajeDiferencia = totalSistema > 0 ? Math.abs((diferencia / totalSistema) * 100) : 0;
+            
+            const resultadoDiv = document.getElementById('resultado-comparacion');
+            const estadoBadge = document.getElementById('estado-comparacion');
+            const textoDiferencia = document.getElementById('texto-diferencia');
+            
+            if (!tieneArqueo) {
+                // Sin arqueo registrado
+                resultadoDiv.className = 'alert alert-warning';
+                estadoBadge.className = 'badge bg-warning text-dark px-3 py-2';
+                estadoBadge.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> Sin Arqueo';
+                textoDiferencia.innerHTML = `
+                    <strong>⚠️ No hay arqueo de caja registrado para esta fecha</strong><br>
+                    <small>El cajero no cerró el turno o no se registraron los datos del arqueo.</small>
+                `;
+            } else if (Math.abs(diferencia) <= 1000) {
+                // Diferencia aceptable (menos de $1.000)
+                resultadoDiv.className = 'alert alert-success';
+                estadoBadge.className = 'badge bg-success px-3 py-2';
+                estadoBadge.innerHTML = '<i class="fas fa-check me-1"></i> ✅ Correcto';
+                textoDiferencia.innerHTML = `
+                    <strong>✅ Los datos coinciden</strong><br>
+                    <small>Diferencia: ${formatearMontoChile(diferencia)} (${porcentajeDiferencia.toFixed(1)}% - Aceptable)</small>
+                `;
+            } else if (diferencia > 1000) {
+                // Sistema tiene más dinero que el arqueo (posible faltante)
+                resultadoDiv.className = 'alert alert-danger';
+                estadoBadge.className = 'badge bg-danger px-3 py-2';
+                estadoBadge.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> ⚠️ Faltante';
+                textoDiferencia.innerHTML = `
+                    <strong>🚨 POSIBLE FALTANTE DETECTADO</strong><br>
+                    <small>El sistema registra ${formatearMontoChile(diferencia)} más que el arqueo (${porcentajeDiferencia.toFixed(1)}%)</small><br>
+                    <small class="text-danger"><strong>Revisar: Dinero no registrado en arqueo o faltante en caja</strong></small>
+                `;
+            } else {
+                // Arqueo tiene más dinero que el sistema (posible sobrante)
+                resultadoDiv.className = 'alert alert-warning';
+                estadoBadge.className = 'badge bg-warning text-dark px-3 py-2';
+                estadoBadge.innerHTML = '<i class="fas fa-plus-circle me-1"></i> Sobrante';
+                textoDiferencia.innerHTML = `
+                    <strong>💰 SOBRANTE DETECTADO</strong><br>
+                    <small>El arqueo registra ${formatearMontoChile(Math.abs(diferencia))} más que el sistema (${porcentajeDiferencia.toFixed(1)}%)</small><br>
+                    <small class="text-warning"><strong>Revisar: Dinero extra en caja o error en registro</strong></small>
+                `;
+            }
+            
+            console.log(`📊 Resultado comparación: Sistema=${formatearMontoChile(totalSistema)}, Arqueo=${formatearMontoChile(totalArqueo)}, Diferencia=${formatearMontoChile(diferencia)}`);
+        }
+
+        // Mostrar comparación cuando no hay arqueo
+        function mostrarComparacionSinArqueo(datosSistema) {
+            console.log('⚠️ Mostrando comparación sin datos de arqueo');
+            
+            // Extraer contadores del sistema
+            const contadoreSistema = [];
+            for (const app in datosSistema) {
+                if (datosSistema[app] && datosSistema[app].original && datosSistema[app].original.counters) {
+                    contadoreSistema.push(datosSistema[app].original.counters);
+                }
+            }
+            
+            if (contadoreSistema.length > 0) {
+                mostrarComparacion(contadoreSistema[0], null, '');
+            }
+        }
+    </script>
+</body>
+</html>

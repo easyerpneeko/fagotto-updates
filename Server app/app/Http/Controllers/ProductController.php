@@ -74,6 +74,72 @@ class ProductController extends Controller
     return response()->json('Producto eliminadp exitosamente',200);
   }
 
+  /**
+   * Activar/Desactivar un producto (toggle active status)
+   */
+  public function toggleActive($id, Request $request){
+    $product = Product::find($id);
+    if(!$product) return response()->json([
+        'success' => false,
+        'message' => 'Este producto no existe'
+    ], 404);
+
+    // Obtener el nuevo estado desde la request o invertir el actual
+    $newStatus = $request->has('active') ? (int)$request->input('active') : ($product->active ? 0 : 1);
+    
+    $product->active = $newStatus;
+    
+    if(!$product->save()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error del servidor al actualizar el producto'
+        ], 500);
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => $newStatus ? 'Producto activado exitosamente' : 'Producto desactivado exitosamente',
+        'data' => [
+            'id' => $product->id,
+            'name' => $product->name,
+            'active' => $product->active
+        ]
+    ], 200);
+  }
+
+  /**
+   * Mover/Quitar producto de papelera (toggle trash status)  
+   */
+  public function toggleTrash($id, Request $request){
+    $product = Product::find($id);
+    if(!$product) return response()->json([
+        'success' => false,
+        'message' => 'Este producto no existe'
+    ], 404);
+
+    // Obtener el nuevo estado desde la request o invertir el actual
+    $newStatus = $request->has('trash') ? (int)$request->input('trash') : ($product->trash ? 0 : 1);
+    
+    $product->trash = $newStatus;
+    
+    if(!$product->save()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error del servidor al actualizar el producto'
+        ], 500);
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => $newStatus ? 'Producto movido a papelera exitosamente' : 'Producto restaurado de papelera exitosamente',
+        'data' => [
+            'id' => $product->id,
+            'name' => $product->name,
+            'trash' => $product->trash
+        ]
+    ], 200);
+  }
+
   public function getMyFeeds(Request $request){
     $myApp = CurrentApp::App();
     $pquery = DB::table('admin_feeds')->where('app_id', $myApp->id)->orWhereNull('app_id')->orderBy('id', 'DESC')->get();

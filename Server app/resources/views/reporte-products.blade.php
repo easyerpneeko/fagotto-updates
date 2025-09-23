@@ -27,8 +27,8 @@
     <title></title>
   </head>
   <body>
-    <p class="text-spacing-3 header-title text-center text-uppercase">{{$data['envs']->stgg_header->value}}</p>
-    <p class="text-spacing-3 header-title text-center text-uppercase">Reporte</p>
+    <p class="text-spacing-3 header-title text-center text-uppercase business-name">{{$data['envs']->stgg_header->value}}</p>
+    <p class="text-spacing-3 header-subtitle text-center text-uppercase">Reporte de Ventas con Estadísticas</p>
     <hr class="hr-style-mb mt-2-5">
     <div>
       <p class="text-uppercase">Fecha Inicial: {{DateTime::createFromFormat("Y-m-d H:i:s",$data['dates']['startDate'])->format("d/m/Y H:i:s")}}</p>
@@ -103,126 +103,93 @@
           <td>{{$data['counters']['typeProducts']}}</td>
         </tr>
       <?php } ?>
+      <!-- 1. Efectivo -->
       <tr>
-        <td>Boletas (Efectivo)</td>
+        <td>Efectivo</td>
         <td>${{ formatoChilenoReporte($data['counters']['boleta']) }}</td>
       </tr>
-      <tr>
-        <td>No Sii</td>
-        <td>${{ formatoChilenoReporte($data['counters']['noSii']) }}</td>
-      </tr>
+      <!-- 2. Débito -->
       <?php if(isset($data['counters']['debito'])) { ?>
         <tr>
-          <td>Debito</td>
+          <td>Débito</td>
           <td>${{ formatoChilenoReporte($data['counters']['debito']) }}</td>
         </tr>
       <?php } ?>
+      <!-- 3. Crédito -->
       <?php if(isset($data['counters']['credito'])) { ?>
         <tr>
-          <td>Credito</td>
+          <td>Crédito</td>
           <td>${{ formatoChilenoReporte($data['counters']['credito']) }}</td>
         </tr>
       <?php } ?>
+      <!-- 4. Transferencias -->
       <?php if(isset($data['counters']['transferencia'])) { ?>
         <tr>
-          <td>Transferencia</td>
+          <td>Transferencias</td>
           <td>${{ formatoChilenoReporte($data['counters']['transferencia']) }}</td>
         </tr>
       <?php } ?>
-      <?php if(isset($data['counters']['banco'])) { ?>
-        <tr>
-          <td>Trasnbank</td>
-          <td>${{ formatoChilenoReporte($data['counters']['banco']) }}</td>
-        </tr>
-      <?php } ?>
-      <?php if(isset($data['counters']['amipass'])) { ?>
-        <tr>
-          <td>Amipass</td>
-          <td>${{ formatoChilenoReporte($data['counters']['amipass']) }}</td>
-        </tr>
-      <?php } ?>
-      <?php if(isset($data['counters']['junaeb'])) { ?>
-        <tr>
-          <td>Junaeb</td>
-          <td>${{ formatoChilenoReporte($data['counters']['junaeb']) }}</td>
-        </tr>
-      <?php } ?>
-      <?php if(isset($data['counters']['uber'])) { ?>
-        <tr>
-          <td>Uber Eats - Boleta SII</td>
-          <td>${{ formatoChilenoReporte($data['counters']['uber']) }}</td>
-        </tr>
-      <?php } ?>
-      <?php if(isset($data['counters']['rappi'])) { ?>
-        <tr>
-          <td>Rappi</td>
-          <td>${{ formatoChilenoReporte($data['counters']['rappi']) }}</td>
-        </tr>
-      <?php } ?>
-      <?php if(isset($data['counters']['edenred'])) { ?>
-        <tr>
-          <td>Edenred</td>
-          <td>${{ formatoChilenoReporte($data['counters']['edenred']) }}</td>
-        </tr>
-      <?php } ?>
-      <?php if(isset($data['counters']['convenio_empresa'])) { ?>
-        <tr>
-          <td>Convenio Empresa</td>
-          <td>${{ formatoChilenoReporte($data['counters']['convenio_empresa']) }}</td>
-        </tr>
-      <?php } ?>
-      <?php if(isset($data['counters']['sodexo'])) { ?>
-        <tr>
-          <td>Sodexo</td>
-          <td>${{ formatoChilenoReporte($data['counters']['sodexo']) }}</td>
-        </tr>
-      <?php } ?>
-      <?php if(isset($data['counters']['pedidos_ya'])) { ?>
-        <tr>
-          <td>Pedidos Ya</td>
-          <td>${{ formatoChilenoReporte($data['counters']['pedidos_ya']) }}</td>
-        </tr>
-      <?php } ?>
+      <!-- 5. Pluxee -->
       <?php if(isset($data['counters']['pluxee'])) { ?>
         <tr>
           <td>Pluxee</td>
           <td>${{ formatoChilenoReporte($data['counters']['pluxee']) }}</td>
         </tr>
       <?php } ?>
+      <!-- 6. Junaeb -->
+      <?php if(isset($data['counters']['junaeb'])) { ?>
+        <tr>
+          <td>Junaeb</td>
+          <td>${{ formatoChilenoReporte($data['counters']['junaeb']) }}</td>
+        </tr>
+      <?php } ?>
+      <!-- 7. Edenred -->
+      <?php if(isset($data['counters']['edenred'])) { ?>
+        <tr>
+          <td>Edenred</td>
+          <td>${{ formatoChilenoReporte($data['counters']['edenred']) }}</td>
+        </tr>
+      <?php } ?>
+      <!-- 8. Amipass -->
+      <?php if(isset($data['counters']['amipass'])) { ?>
+        <tr>
+          <td>Amipass</td>
+          <td>${{ formatoChilenoReporte($data['counters']['amipass']) }}</td>
+        </tr>
+      <?php } ?>
+      <!-- 9. Banco Chile 20% -->
       <?php if(isset($data['counters']['banco_chile_20'])) { ?>
         <tr>
-          <td>Banco De Chile 20%</td>
+          <td>Banco Chile 20%</td>
           <td>${{ formatoChilenoReporte($data['counters']['banco_chile_20']) }}</td>
         </tr>
       <?php } ?>
-      <?php if(isset($data['counters']['nota_de_credito'])) { ?>
+      <!-- 10. Uber Eats -->
+      <?php if(isset($data['counters']['uber'])) { ?>
         <tr>
-          <td>Nota de Crédito</td>
-          <td>${{ formatoChilenoReporte($data['counters']['nota_de_credito']) }}</td>
+          <td>Uber Eats</td>
+          <td>${{ formatoChilenoReporte($data['counters']['uber']) }}</td>
         </tr>
       <?php } ?>
-      <?php if(isset($data['counters']['guia_despacho'])) { ?>
+      <!-- 11. Pedidos Ya -->
+      <?php if(isset($data['counters']['pedidos_ya'])) { ?>
         <tr>
-          <td>Guía Despacho</td>
-          <td>${{ formatoChilenoReporte($data['counters']['guia_despacho']) }}</td>
+          <td>Pedidos Ya</td>
+          <td>${{ formatoChilenoReporte($data['counters']['pedidos_ya']) }}</td>
         </tr>
       <?php } ?>
-      <?php if(isset($data['counters']['transferencia'])) { ?>
+      <!-- 12. Rappi -->
+      <?php if(isset($data['counters']['rappi'])) { ?>
         <tr>
-          <td>Transferencia</td>
-          <td>${{ $data['counters']['transferencia'] }}</td>
+          <td>Rappi</td>
+          <td>${{ formatoChilenoReporte($data['counters']['rappi']) }}</td>
         </tr>
       <?php } ?>
-      <?php if(isset($data['counters']['cheque'])) { ?>
+      <!-- Convenio Empresa (único método adicional) -->
+      <?php if(isset($data['counters']['convenio_empresa'])) { ?>
         <tr>
-          <td>Cheque</td>
-          <td>${{ $data['counters']['cheque'] }}</td>
-        </tr>
-      <?php } ?>
-      <?php if(isset($data['counters']['banco'])) { ?>
-        <tr>
-          <td>Trasnbank</td>
-          <td>${{ $data['counters']['banco'] }}</td>
+          <td>Convenio Empresa</td>
+          <td>${{ formatoChilenoReporte($data['counters']['convenio_empresa']) }}</td>
         </tr>
       <?php } ?>
     </table>
@@ -294,39 +261,14 @@
       } ?>
     </table>
     <!-- estadisticas de valor de producto  -->
-
-    <!-- estadisticas de ganancia de prodcutos  -->
-    <div class="text-center">
-      <p>Estadisticas de ganancia de productos</p>
-    </div>
-    <table>
-      <!-- titulo de tabla -->
-      <tr>
-        <th>Producto</th>
-        <th>Ganan.</th>
-      </tr>
-      <!-- titulo de tabla -->
-      <?php foreach ($data['products'] as $product) {
-        echo
-        "<tr>
-          <td>".$product['name']."</td>
-          <td>$".formatoChilenoReporte($product['totalProfit'])."</td>
-        </tr>";
-      } ?>
-    </table>
-    <!-- estadisticas de ganancia de prodcutos  -->
     <!-- datos de los productos -->
     <hr class="hr-style">
 
-    @component('components.report-meseros', ['data' => $data]);
-    @endcomponent
-
     <hr class="hr-style mt-1">
     <p class="text-spacing-3 header-title text-center text-uppercase ml-2 mr-2 mt-1">
-      REPORTE PARA COMERCIALIZADORA
-      ARRIAGADA&ARRIAGADA SPA
+      Fagotto SPA
     </p>
-    <p class="text-spacing-3 header-title text-center text-uppercase ml-2 mr-2">* SOFTWARE POS MADURO SG *</p>
+    <p class="text-spacing-3 header-title text-center text-uppercase ml-2 mr-2">Derechos Reservados © 2025</p>
   </body>
 </html>
 <style media="screen">
@@ -377,6 +319,23 @@
   .header-title{
     margin: 0px !important;
     margin-bottom: 3px !important;
+  }
+  
+  /* Estilos elegantes para el header */
+  .business-name {
+    font-size: 16px !important;
+    font-weight: 900 !important;
+    letter-spacing: 2px !important;
+    margin-bottom: 5px !important;
+    text-decoration: underline;
+  }
+  
+  .header-subtitle {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    letter-spacing: 1.5px !important;
+    margin-bottom: 8px !important;
+    color: #333;
   }
   /* hr style */
   .hr-style-mb{

@@ -27,37 +27,67 @@ class ArqueoCajaController extends Controller
             
             $sql = "CREATE TABLE IF NOT EXISTS `TurnosCaja` (
                 `id` int(11) NOT NULL AUTO_INCREMENT,
+                
+                -- INFORMACIÓN DE LA APP Y USUARIO
+                `app_id` int(11) NOT NULL DEFAULT 58,
+                `app_nombre` varchar(255) DEFAULT 'Aplicación Local',
+                `usuario_id` int(11) NOT NULL,
+                `usuario_nombre` varchar(255) NOT NULL,
+                
+                -- CONTROL DEL TURNO
                 `turno_abierto` tinyint(1) NOT NULL DEFAULT '1',
                 `turno_abierto_en` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `turno_cerrado_en` timestamp NULL DEFAULT NULL,
-                `usuario_id` int(11) NOT NULL,
-                `monto_inicial` decimal(10,2) NOT NULL DEFAULT '0.00',
-                `monto_final` decimal(10,2) NOT NULL DEFAULT '0.00',
-                `total_ventas` decimal(10,2) NOT NULL DEFAULT '0.00',
-                `total_contado` decimal(10,2) NOT NULL DEFAULT '0.00',
-                `total_tarjeta` decimal(10,2) NOT NULL DEFAULT '0.00',
-                `total_transferencia` decimal(10,2) NOT NULL DEFAULT '0.00',
-                `total_cheque` decimal(10,2) NOT NULL DEFAULT '0.00',
-                `total_credito` decimal(10,2) NOT NULL DEFAULT '0.00',
-                `total_uber_eats` decimal(10,2) NOT NULL DEFAULT '0.00',
-                `total_otros_medios` decimal(10,2) NOT NULL DEFAULT '0.00',
-                `total_general` decimal(10,2) NOT NULL DEFAULT '0.00',
-                `diferencia_general` decimal(10,2) NOT NULL DEFAULT '0.00',
+                `puede_hacer_arqueo` tinyint(1) NOT NULL DEFAULT '1',
+                `estado` enum('abierto','cerrado','pausado') DEFAULT 'abierto',
+                
+                -- FECHAS Y HORAS
+                `fecha_inicio` datetime NOT NULL,
+                `fecha_termino` datetime NULL DEFAULT NULL,
+                
+                -- MONTOS PRINCIPALES
+                `monto_inicial` decimal(15,2) NOT NULL DEFAULT '0.00',
+                `monto_final` decimal(15,2) NOT NULL DEFAULT '0.00',
+                
+                -- TOTALES
+                `total_sistema` decimal(15,2) NOT NULL DEFAULT '0.00',
+                `total_contado` decimal(15,2) NOT NULL DEFAULT '0.00',
+                `total_otros_medios` decimal(15,2) NOT NULL DEFAULT '0.00',
+                
+                -- DIFERENCIAS
+                `diferencia` decimal(15,2) NOT NULL DEFAULT '0.00',
+                `diferencia_general` decimal(15,2) NOT NULL DEFAULT '0.00',
+                
+                -- DETALLES JSON
+                `detalle_efectivo` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT '{}',
+                `detalle_medios_pago` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT '{}',
+                
+                -- INFORMACIÓN ADICIONAL
+                `numero_transacciones` int(11) DEFAULT '0',
                 `observaciones` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+                
+                -- TIMESTAMPS DE LARAVEL
                 `created_at` timestamp NULL DEFAULT NULL,
                 `updated_at` timestamp NULL DEFAULT NULL,
+                
+                -- CLAVE PRIMARIA E ÍNDICES
                 PRIMARY KEY (`id`),
                 KEY `idx_turno_estado` (`turno_abierto`),
                 KEY `idx_usuario` (`usuario_id`),
+                KEY `idx_app` (`app_id`),
                 KEY `idx_fecha_apertura` (`turno_abierto_en`),
-                KEY `idx_fecha_cierre` (`turno_cerrado_en`)
+                KEY `idx_fecha_cierre` (`turno_cerrado_en`),
+                KEY `idx_estado` (`estado`),
+                KEY `idx_fecha_inicio` (`fecha_inicio`),
+                KEY `idx_fecha_termino` (`fecha_termino`)
+                
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
             
             DB::connection('mysql_local')->unprepared($sql);
             
             return response()->json([
                 'success' => true,
-                'message' => 'Tabla TurnosCaja creada exitosamente',
+                'message' => 'Tabla TurnosCaja creada exitosamente con estructura compatible',
                 'database' => $database
             ]);
             
@@ -193,11 +223,60 @@ class ArqueoCajaController extends Controller
                 ConectionDB::ChangeDBToApp($app, true);
             }
 
-            $usuarioId = $request->get('usuario_id', 1);
+            // ARREGLO: Obtener usuario_id de múltiples fuentes
+            $usuarioId = null;
+            
+            // 1. Desde el request (si se envía explícitamente)
+            if ($request->has('usuario_id') && $request->get('usuario_id')) {
+                $usuarioId = $request->get('usuario_id');
+                Log::info('Usuario ID desde request:', ['usuario_id' => $usuarioId]);
+            }
+            
+            // 2. Desde el usuario autenticado (si existe)
+            if (!$usuarioId && auth()->check()) {
+                $usuarioId = auth()->user()->id;
+                Log::info('Usuario ID desde auth:', ['usuario_id' => $usuarioId]);
+            }
+            
+            // 3. Fallback: buscar cualquier turno abierto hoy
+            if (!$usuarioId) {
+                $usuarioId = 1; // Usuario por defecto
+                Log::warning('Usando usuario ID fallback:', ['usuario_id' => $usuarioId]);
+                
+                // ✅ NUEVO: Si no tenemos usuario específico, buscar cualquier turno abierto hoy
+                $appId = $app->id ?? 58;
+                $today = now()->format('Y-m-d');
+                
+                $turnoGeneral = TurnoCaja::where('app_id', $appId)
+                    ->where('estado', 'abierto')
+                    ->whereDate('fecha_inicio', $today)
+                    ->first();
+                    
+                if ($turnoGeneral) {
+                    Log::info('Encontrado turno general abierto:', ['turno_id' => $turnoGeneral->id, 'usuario_id' => $turnoGeneral->usuario_id]);
+                    return response()->json([
+                        'success' => true,
+                        'turno_abierto' => true,
+                        'turno' => $turnoGeneral,
+                        'puede_hacer_arqueo' => $turnoGeneral->puede_hacer_arqueo,
+                        'mensaje' => 'Tienes un turno abierto desde ' . $turnoGeneral->fecha_inicio->format('H:i')
+                    ]);
+                }
+            }
+            
             $appId = $app->id ?? 58;
+            Log::info('Verificando estado del turno:', [
+                'usuario_id' => $usuarioId, 
+                'app_id' => $appId
+            ]);
 
-            // Buscar turno abierto
+            // Buscar turno abierto específico del usuario
             $turnoAbierto = TurnoCaja::turnoAbiertoParaUsuario($usuarioId, $appId);
+            
+            Log::info('Resultado búsqueda turno específico:', [
+                'turno_encontrado' => $turnoAbierto ? true : false,
+                'turno_id' => $turnoAbierto ? $turnoAbierto->id : null
+            ]);
 
             if ($turnoAbierto) {
                 return response()->json([
@@ -740,6 +819,95 @@ class ArqueoCajaController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al cerrar turno: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener arqueos para dashboard global - NO usa CurrentApp::App()
+     * Permite consultar arqueos de cualquier app_id especificado en los parámetros
+     */
+    public function obtenerArqueosDashboard(Request $request)
+    {
+        try {
+            $appId = $request->get('app_id');
+            $fechaInicio = $request->get('fecha_inicio');
+            $fechaFin = $request->get('fecha_fin');
+            
+            Log::info('Dashboard Arqueos - Parámetros recibidos:', [
+                'app_id' => $appId,
+                'fecha_inicio' => $fechaInicio,
+                'fecha_fin' => $fechaFin
+            ]);
+            
+            if (!$appId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El parámetro app_id es obligatorio'
+                ], 400);
+            }
+            
+            $query = TurnoCaja::where('app_id', $appId);
+            
+            Log::info('Dashboard Arqueos - Query inicial:', [
+                'app_id' => $appId,
+                'total_sin_filtro_fecha' => TurnoCaja::where('app_id', $appId)->count()
+            ]);
+            
+            if ($fechaInicio) {
+                $query->whereDate('fecha_inicio', '>=', $fechaInicio);
+                Log::info('Dashboard Arqueos - Aplicando filtro fecha_inicio:', ['fecha' => $fechaInicio]);
+            }
+            
+            if ($fechaFin) {
+                $query->whereDate('fecha_inicio', '<=', $fechaFin);
+                Log::info('Dashboard Arqueos - Aplicando filtro fecha_fin:', ['fecha' => $fechaFin]);
+            }
+            
+            // Debug: Ver todos los registros de esta app_id
+            $todosLosRegistros = TurnoCaja::where('app_id', $appId)->get();
+            Log::info('Dashboard Arqueos - TODOS los registros para app_id ' . $appId, [
+                'registros' => $todosLosRegistros->map(function($r) {
+                    return [
+                        'id' => $r->id,
+                        'fecha_inicio' => $r->fecha_inicio,
+                        'estado' => $r->estado
+                    ];
+                })
+            ]);
+            
+            // TEMPORAL: Traer TODOS los registros para debug
+            $arqueos = TurnoCaja::all();
+            
+            Log::info('Dashboard Arqueos - TODOS LOS REGISTROS EN LA TABLA:', [
+                'total_registros' => $arqueos->count(),
+                'registros' => $arqueos->take(5)->map(function($r) {
+                    return [
+                        'id' => $r->id,
+                        'app_id' => $r->app_id,
+                        'fecha_inicio' => $r->fecha_inicio
+                    ];
+                })
+            ]);
+            
+            Log::info('Dashboard Arqueos - Resultados encontrados:', [
+                'total' => $arqueos->count(),
+                'app_id_consultado' => $appId
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $arqueos,
+                'total' => $arqueos->count(),
+                'app_id' => $appId
+            ]);
+            
+        } catch (Exception $e) {
+            Log::error('Error en obtenerArqueosDashboard: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener arqueos: ' . $e->getMessage()
             ], 500);
         }
     }

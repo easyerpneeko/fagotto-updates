@@ -57,6 +57,10 @@ Route::group(['middleware' => ['JwtMiddleware']], function () {
   Route::post('/product', 'ProductController@store');
   Route::put('/product/{id}', 'ProductController@update');
   Route::delete('/product/{id}', 'ProductController@remove');
+  
+  // Nuevas rutas para activar/desactivar productos (salsas)
+  Route::put('/product/{id}/toggle-active', 'ProductController@toggleActive');
+  Route::put('/product/{id}/toggle-trash', 'ProductController@toggleTrash');
   Route::get('/products', 'ProductController@index');
   Route::get('/products/sell', 'ProductController@getProductsOfSell');
 
@@ -195,6 +199,10 @@ Route::group(['middleware' => ['AppSecurity']], function () {
   Route::get('/web/getAppProducts', 'ReportAplicationController@getAppProducts');
   Route::get('/web/getAppCategories', 'ReportAplicationController@getAppCategories');
   Route::get('/web/getAppVentas', 'ReportAplicationController@getAppVentas');
+  
+  // Administración de Salsas - EasyERP
+  Route::get('/web/productos-salsas-easyerp', 'ReportAplicationController@getSalsasEasyERP');
+  Route::post('/web/actualizar-producto-easyerp', 'ReportAplicationController@actualizarProductoEasyERP');
   //Cobros
   Route::get('/web/getDenominaciones', 'CobrosController@getDenominaciones');
   Route::get('/web/getCobros', 'CobrosController@getCobros');
@@ -364,6 +372,13 @@ Route::group(['middleware' => ['AppSecurity']], function () {
             Route::post('/local/turno/cerrar', 'Controllers_local\ArqueoCajaController@cerrarTurnoConArqueo');
             Route::post('/local/arqueo', 'Controllers_local\ArqueoCajaController@guardarTurno');
             Route::get('/local/arqueos', 'Controllers_local\ArqueoCajaController@obtenerArqueos');
+            // NUEVO: Dashboard global - NO usa CurrentApp::App()
+            Route::get('/web/arqueos-dashboard', 'Controllers_local\ArqueoCajaController@obtenerArqueosDashboard');
+            
+            // ARQUEOS API NUEVA - Para página de turnos globales (nueva API)
+            Route::get('/local/arqueos-new', 'Controllers_local\ArqueosController@obtenerArqueos');
+            Route::post('/local/arqueos-new', 'Controllers_local\ArqueosController@crearArqueo');
+            Route::get('/local/arqueo-new/{id}', 'Controllers_local\ArqueosController@obtenerArqueo');
 
             // DEVOLUCIONES DE PRODUCTOS EN VENTAS
             Route::put('/local/sell/devolution/product/{product_sell_id}', 'Controllers_local\DevolutionsController@devolutionProduct');

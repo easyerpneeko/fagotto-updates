@@ -11,7 +11,15 @@ export async function crearTablaTurnos(context) {
 }
 
 export async function verificarEstadoTurno(context) {
+  // ✅ ARREGLO: Obtener usuario_id del store principal si está disponible
+  const currentUser = context.rootGetters['main/user'];
   let url = BaseUrl.getUrl('api/local/turno/estado');
+  
+  // Para requests GET, agregar parámetros a la URL
+  if (currentUser && currentUser.id) {
+    url += `?usuario_id=${currentUser.id}`;
+  }
+  
   const request = await Connection.request('get', url);
   if (request.success) {
     // ✅ CORREGIDO: Usar la clave correcta del backend
@@ -29,6 +37,15 @@ export async function verificarEstadoTurno(context) {
 
 export async function iniciarTurno(context, data) {
   let url = BaseUrl.getUrl('api/local/turno/iniciar');
+  
+  // ✅ ARREGLO: Incluir usuario_id automáticamente si no está presente
+  if (!data.usuario_id) {
+    const currentUser = context.rootGetters['main/user'];
+    if (currentUser && currentUser.id) {
+      data.usuario_id = currentUser.id;
+    }
+  }
+  
   const request = await Connection.request('post', url, data);
   if (request.success) {
     // ✅ ACTUALIZAR: Estado completo del turno

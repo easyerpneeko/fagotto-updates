@@ -867,31 +867,49 @@ export default {
           if(this.siiInstalled){
             if(this.settingFactura) this.listCounter.push( ['Facturas', '$'+this.formatNumber(String(request.factura))]);
             // if(this.settingBoleta) this.listCounter.push( ['Boletas', '$'+this.formatNumber(String(request.boletas))] );
-            if(this.settingBoleta) this.listCounter.push( ['Boleta', '$'+this.formatNumber(String(request.boleta))] );
-            if(this.settingFactura) this.listCounter.push( ['Guia Despacho', '$'+this.formatNumber(String(request.guia_despacho))]);
+            
+            // 1. Efectivo
+            if(this.settingBoleta) this.listCounter.push( ['Efectivo', '$'+this.formatNumber(String(request.boleta))] );
+            
+            // 2. Débito
+            if(this.settingDebito) this.listCounter.push( ['Débito', '$'+this.formatNumber(String(request.debito))]);
+            
+            // 3. Crédito
+            if(this.settingCredito) this.listCounter.push(['Crédito', '$'+this.formatNumber(String(request.credito))]);
+            
+            // 4. Transferencias
+            if(this.settingTransferencia) this.listCounter.push( ['Transferencias', '$'+this.formatNumber(String(request.transferencia))]);
+            
+            // 5. Pluxee
+            if(this.settingPluxee) this.listCounter.push( ['Pluxee', '$'+this.formatNumber(String(request.pluxee))]);
+            
+            // 6. Junaeb
+            if(this.settingJunaeb) this.listCounter.push(['Junaeb', '$'+this.formatNumber(String(request.junaeb))]);
+            
+            // 7. Edenred
+            if(this.settingEdenred) this.listCounter.push( ['Edenred', '$'+this.formatNumber(String(request.edenred))]);
+            
+            // 8. Amipass
+            if(this.settingAmipass) this.listCounter.push(['Amipass', '$'+this.formatNumber(String(request.amipass))]);
+            
+            // 9. Banco Chile 20%
+            if(this.settingBancoChile20) this.listCounter.push( ['Banco Chile 20%', '$'+this.formatNumber(String(request.banco_chile_20))]);
+            
+            // 10. Uber Eats
+            this.listCounter.push(['Uber Eats', '$'+this.formatNumber(String(request.uber))]);
+            
+            // 11. Pedidos Ya
+            if(this.settingPedidosYa) this.listCounter.push( ['Pedidos Ya', '$'+this.formatNumber(String(request.pedidos_ya))]);
+            
+            // 12. Rappi
+            if(this.settingRappi) this.listCounter.push(['Rappi', '$'+this.formatNumber(String(request.rappi))]);
 
             // if(this.settingBoletaLocal) this.listCounter.push( ['Efectivo', '$'+this.formatNumber(String(request.noSii))]);
             if(this.settingBoletaLocal) this.listCounter.push( ['Efectivo', '$'+this.formatNumber(String(request.efectivo))]);
             // if(this.settingBoletaLocal) this.listCounter.push( ['Boleta Local', '$'+this.formatNumber(String(request.boleta_local))]);
 
-            if(this.settingDebito) this.listCounter.push( ['Debito', '$'+this.formatNumber(String(request.debito))]);
-            if(this.settingAmipass) this.listCounter.push(['Amipass', '$'+this.formatNumber(String(request.amipass))]);
-            if(this.settingRappi) this.listCounter.push(['Rappi', '$'+this.formatNumber(String(request.rappi))]);
-            if(this.settingJunaeb) this.listCounter.push(['Junaeb', '$'+this.formatNumber(String(request.junaeb))]);
-            // TEMPORAL: Forzar mostrar Uber siempre para testing
-            this.listCounter.push(['Uber Eats - Boleta SII', '$'+this.formatNumber(String(request.uber))]);
-            if(this.settingSodexo) this.listCounter.push(['Sodexo', '$'+this.formatNumber(String(request.sodexo))]);
-            if(this.settingCredito) this.listCounter.push(['Credito', '$'+this.formatNumber(String(request.credito))]);
-            // if(this.settingNotaCredito) this.listCounter.push(['Nota de Credito', '$'+this.formatNumber(String(request.credito))]);
-            if(this.settingMulticaja) this.listCounter.push(['Multicaja', '$'+this.formatNumber(String(request.multicaja))]);
+            // Método adicional permitido
             if(this.settingConvenioEmpresa) this.listCounter.push(['Convenio Empresa', '$'+this.formatNumber(String(request.convenio_empresa))]);
-            if(this.settingTransferencia) this.listCounter.push( ['Transferencia', '$'+this.formatNumber(String(request.transferencia))]);
-            if(this.settingCheque) this.listCounter.push( ['Cheque', '$'+this.formatNumber(String(request.cheque))]);
-            if(this.settingStateBank) this.listCounter.push( ['Trasnbank', '$'+this.formatNumber(String(request.banco))]);
-            if(this.settingEdenred) this.listCounter.push( ['Edenred', '$'+this.formatNumber(String(request.edenred))]);
-            if(this.settingPedidosYa) this.listCounter.push( ['Pedidos Ya', '$'+this.formatNumber(String(request.pedidos_ya))]);
-            if(this.settingPluxee) this.listCounter.push( ['Pluxee', '$'+this.formatNumber(String(request.pluxee))]);
-            if(this.settingBancoChile20) this.listCounter.push( ['Banco De Chile 20%', '$'+this.formatNumber(String(request.banco_chile_20))]);
             
           }
           if(this.fastSellInstalled){

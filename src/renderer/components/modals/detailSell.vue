@@ -86,9 +86,11 @@
             @click="editarCliente(null)">
             Editar Cliente
           </button>
+          <!-- Botón cancelar factura comentado
           <button type="button" class="btn bg-dark text-white text-capitalize" @click="openCancelSell">
             Cancelar factura
           </button>
+          -->
           <!-- <button type="button" class="btn bg-dark text-white text-capitalize"
             v-if="notaInstalled && dataDetail && dataDetail.type == 'factura'" @click="cancelSell">
             Cancelar factura

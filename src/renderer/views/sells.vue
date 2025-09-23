@@ -10,10 +10,13 @@
       </div>
     </div>
 
-    <!-- Card principal que envuelve todo -->
+     
     <div class="card shadow-sm border-0">
       <div class="card-body">
-        <!-- Barra de filtros elegante -->
+        <!--     // Permisos para obtener las ventas
+    sellsGet:{ get(){ return ConfigHelper.HavePermission('gestionar_ventas'); } },
+    permissionRemoveSell:{ get(){ return ConfigHelper.HavePermission('eliminar_venta'); } },
+    isAdmin:{ get(){ return ConfigHelper.HavePermission('administrador') || ConfigHelper.HavePermission('reportes_avanzados'); } }ra de filtros elegante -->
         <div class="d-flex flex-wrap gap-2 mb-4 align-items-center">
           <div class="flex-grow-1" style="min-width: 200px;">
             <input 
@@ -73,7 +76,7 @@
             </button>
             
             <button 
-              @click="openReportSells()" 
+              @click="checkReportPermission()" 
               :class="['btn btn-dark btn-action',{'disabled': offOn}]"
               title="Generar reporte"
             >
@@ -133,14 +136,16 @@
                       >
                         <i class="fas fa-eye"></i>
                       </button>
+                      <!-- Botón de cancelar factura comentado - Solo para administradores
                       <button 
                         v-if="permissionRemoveSell && (item.trash==0)" 
                         class="btn btn-outline-danger btn-sm" 
                         @click="openVerify(item)"
-                        title="Eliminar venta"
+                        title="Cancelar factura"
                       >
                         <i class="fas fa-trash-alt"></i>
                       </button>
+                      -->
                     </div>
                   </td>
                 </tr>
@@ -257,7 +262,13 @@ export default {
   },
   methods:{
     formatNumber(number){
-      return FormatNumber.format(number);
+      // Formato correcto para pesos chilenos: separador de miles con punto
+      if (!number) return '0';
+      const num = parseFloat(number);
+      return new Intl.NumberFormat('es-CL', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(num);
     },
     deFormatNumber(number,backend = true){
       if (backend) {
@@ -423,6 +434,92 @@ export default {
     },
     async editarCliente(client){
       this.client = client;
+    },
+    checkReportPermission(){
+      if (this.isAdmin) {
+        // Si es admin, abrir el reporte normal
+        this.openReportSells();
+      } else {
+        // Si es cajero, mostrar modal de permiso denegado
+        this.showPermissionDeniedModal();
+      }
+    },
+    showPermissionDeniedModal(){
+      // Crear un modal profesional de permiso denegado
+      const modalHTML = `
+        <div id="permissionModal" style="
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0,0,0,0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 9999;
+          animation: fadeIn 0.3s ease-out;
+        ">
+          <div style="
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border: 1px solid #ddd;
+            max-width: 400px;
+            min-width: 350px;
+          ">
+            <div style="color: #dc3545; font-size: 48px; margin-bottom: 20px;">
+              ⚠️
+            </div>
+            <h3 style="color: #495057; margin-bottom: 15px; font-weight: 600;">
+              Acceso Denegado
+            </h3>
+            <p style="color: #6c757d; font-size: 16px; margin-bottom: 10px; line-height: 1.5;">
+              No tienes permisos para acceder a esta funcionalidad.
+            </p>
+            <p style="color: #6c757d; font-size: 14px; margin-bottom: 25px;">
+              Solo los administradores pueden generar reportes.
+            </p>
+            <button onclick="document.getElementById('permissionModal').remove()" style="
+              background: #007bff;
+              color: white;
+              border: none;
+              padding: 10px 24px;
+              border-radius: 4px;
+              font-size: 14px;
+              cursor: pointer;
+              font-weight: 500;
+              transition: background-color 0.2s;
+            " onmouseover="this.style.background='#0056b3'" onmouseout="this.style.background='#007bff'">
+              Entendido
+            </button>
+          </div>
+        </div>
+      `;
+
+      // Agregar estilos de animación si no existen
+      if (!document.getElementById('permissionStyles')) {
+        const style = document.createElement('style');
+        style.id = 'permissionStyles';
+        style.textContent = `
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // Insertar el modal en el DOM
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+      // Auto-cerrar después de 6 segundos
+      setTimeout(() => {
+        const modal = document.getElementById('permissionModal');
+        if (modal) modal.remove();
+      }, 6000);
     },
     openReportSells(){
       $('#reportSellsModal').modal('show');

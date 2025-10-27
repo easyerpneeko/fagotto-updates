@@ -28,6 +28,12 @@
               <i class="fas fa-percentage"></i>
               <span>-20%</span>
             </div>
+            <!-- Indicador de descuento Exclusivo Fagotto 10% -->
+            <div v-if="settingFagotto10" class="stats-badge" style="background: #dc3545; color: white;" 
+                 title="Exclusivo Fagotto 10% de descuento disponible">
+              <i class="fas fa-star"></i>
+              <span>-10%</span>
+            </div>
             <button type="button" class="btn-close" @click="closeModal(false)" aria-label="Close">
               <i class="fas fa-times"></i>
             </button>
@@ -266,6 +272,13 @@
                 </small>
               </button>
               
+              <!-- Botón exclusivo Fagotto 10% de descuento -->
+              <button v-if="settingFagotto10" @click="viewTicket('fagotto_10')" type="button"
+                class="btn text-white" style="background-color: #dc3545; font-weight: bold;">
+                <i class="fas fa-star me-2"></i>
+                Exclusivo Fagotto 10% al total
+              </button>
+              
               <button v-if="ticket_sell_close" type="button" class="btn bg-primario text-white"
                 @click="viewTicket('ticket_venta')">
                 Ticket + Cerrar venta
@@ -424,6 +437,23 @@ export default {
         
         // NO actualizar this.total aquí, se hará después de agregar la información especial
       }
+      
+      // Si es Exclusivo Fagotto 10% de descuento
+      if (val === 'fagotto_10') {
+        // Calcular el 10% de descuento
+        const originalTotal = this.total;
+        const tenPercentDiscount = originalTotal * 0.10;
+        const totalWithDiscount = originalTotal - tenPercentDiscount;
+        
+        // Confirmar con el usuario
+        const confirmMessage = `¿Confirmar venta con Exclusivo Fagotto 10% de descuento?\n\nTotal original: $${this.formatNumber(originalTotal)}\n10% descuento: -$${this.formatNumber(tenPercentDiscount)}\nTotal final: $${this.formatNumber(totalWithDiscount)}`;
+        
+        if (!confirm(confirmMessage)) {
+          return false;
+        }
+        
+        // NO actualizar this.total aquí, se hará después de agregar la información especial
+      }
 
       // Si es Uber, confirmar que se genere boleta SII
       if (val === 'uber') {
@@ -458,6 +488,29 @@ export default {
           date: this.chileTime ? this.chileTime.toISOString() : new Date().toISOString(),
           dayOfWeek: this.chileTime ? this.chileTime.getDay() : new Date().getDay(),
           enabled: this.isSpecialPaymentDay
+        };
+        
+        // Actualizar el total con el descuento para el procesamiento
+        this.total = totalWithDiscount;
+        this.ticketData.total = totalWithDiscount;
+      }
+      
+      // Si es Exclusivo Fagotto 10% de descuento
+      if (val === 'fagotto_10') {
+        const originalTotal = this.total;
+        const tenPercentDiscount = originalTotal * 0.10;
+        const totalWithDiscount = originalTotal - tenPercentDiscount;
+        
+        this.ticketData.specialPayment = {
+          paymentType: 'fagotto_10',
+          method: 'Exclusivo Fagotto 10%',
+          description: 'Descuento exclusivo de Fagotto del 10% aplicado al total',
+          originalTotal: originalTotal,
+          discountAmount: tenPercentDiscount,
+          finalTotal: totalWithDiscount,
+          discountPercentage: 10,
+          date: new Date().toISOString(),
+          enabled: true
         };
         
         // Actualizar el total con el descuento para el procesamiento
@@ -504,6 +557,13 @@ export default {
           paymentMethod: this.ticketData.paymentMethod,
           paymentDescription: this.ticketData.paymentDescription,
           uberEatsOrder: this.ticketData.uberEatsOrder
+        });
+      } else if (val === 'fagotto_10') {
+        // 🎯 FAGOTTO 10%: Generar boleta SII con descuento
+        this.typeCreateTicket = 'boleta';
+        console.log('🎯 FAGOTTO 10% - Configurado para generar boleta SII:', {
+          typeCreateTicket: this.typeCreateTicket,
+          specialPayment: this.ticketData.specialPayment
         });
       } else {
         if (val) this.typeCreateTicket = val;
@@ -1226,6 +1286,13 @@ export default {
       get() {
         if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
         return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.banco_chile_20');
+      }
+    },
+
+    settingFagotto10: {
+      get() {
+        if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+        return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.fagotto_10');
       }
     },
 

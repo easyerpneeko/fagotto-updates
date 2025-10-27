@@ -849,6 +849,7 @@ export default {
     settingPedidosYa:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.pedidos_ya') } },
     settingPluxee:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.pluxee') } },
     settingBancoChile20:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.banco_chile_20') } },
+    settingFagotto10:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.fagotto_10') } },
 
     getCounters: {
       get(){
@@ -895,13 +896,16 @@ export default {
             // 9. Banco Chile 20%
             if(this.settingBancoChile20) this.listCounter.push( ['Banco Chile 20%', '$'+this.formatNumber(String(request.banco_chile_20))]);
             
-            // 10. Uber Eats
+            // 10. Exclusivo Fagotto 10%
+            if(this.settingFagotto10) this.listCounter.push( ['Exclusivo Fagotto 10%', '$'+this.formatNumber(String(request.fagotto_10))]);
+            
+            // 11. Uber Eats
             this.listCounter.push(['Uber Eats', '$'+this.formatNumber(String(request.uber))]);
             
-            // 11. Pedidos Ya
+            // 12. Pedidos Ya
             if(this.settingPedidosYa) this.listCounter.push( ['Pedidos Ya', '$'+this.formatNumber(String(request.pedidos_ya))]);
             
-            // 12. Rappi
+            // 13. Rappi
             if(this.settingRappi) this.listCounter.push(['Rappi', '$'+this.formatNumber(String(request.rappi))]);
 
             // if(this.settingBoletaLocal) this.listCounter.push( ['Efectivo', '$'+this.formatNumber(String(request.noSii))]);

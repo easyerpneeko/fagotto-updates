@@ -843,6 +843,7 @@ export default {
     settingPedidosYa:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.pedidos_ya') } },
     settingPluxee:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.pluxee') } },
     settingBancoChile20:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.banco_chile_20') } },
+    settingFagotto10:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.fagotto_10') } },
 
     getCounters: {
       get(){
@@ -885,6 +886,7 @@ export default {
             if(this.settingPedidosYa) this.listCounter.push( ['Pedidos Ya', '$'+this.formatNumber(String(request.pedidos_ya))]);
             if(this.settingPluxee) this.listCounter.push( ['Pluxee', '$'+this.formatNumber(String(request.pluxee))]);
             if(this.settingBancoChile20) this.listCounter.push( ['Banco De Chile 20%', '$'+this.formatNumber(String(request.banco_chile_20))]);
+            if(this.settingFagotto10) this.listCounter.push( ['Exclusivo Fagotto 10%', '$'+this.formatNumber(String(request.fagotto_10))]);
             
           }
           if(this.fastSellInstalled){

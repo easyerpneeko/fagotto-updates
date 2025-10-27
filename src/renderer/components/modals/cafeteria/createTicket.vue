@@ -148,6 +148,7 @@ export default {
           && this.type_sell != 'edenred'
           && this.type_sell != 'junaeb'
           && this.type_sell != 'banco_chile_20'
+          && this.type_sell != 'fagotto_10'
           && this.type_sell != 'pluxee'
           && this.type_sell != 'pedidos_ya'
           && this.type_sell != null
@@ -177,6 +178,7 @@ export default {
           && this.type_sell != 'edenred'
           && this.type_sell != 'junaeb'
           && this.type_sell != 'banco_chile_20'
+          && this.type_sell != 'fagotto_10'
           && this.type_sell != 'pluxee'
           && this.type_sell != 'pedidos_ya'
           && this.type_sell != null){
@@ -206,6 +208,15 @@ export default {
         }
       }
 
+      if (this.type_sell == 'fagotto_10') {
+        thing.set('other_type', 'fagotto_10');
+        // Agregar información especial del pago Fagotto 10%
+        if (this.value.specialPayment) {
+          thing.append('special_payment_info', JSON.stringify(this.value.specialPayment));
+        }
+        console.log('✅ FAGOTTO 10% - Datos enviados:', this.value.specialPayment);
+      }
+
       // 🚀 DETECTAR UBER: Si typeCreateTicket es 'boleta' pero viene desde Uber
       if (this.typeCreateTicket === 'boleta' && this.value.paymentMethod === 'uber_eats') {
         console.log('🚀 UBER DETECTADO - Configurando other_type');
@@ -225,6 +236,16 @@ export default {
         };
         thing.append('uber_payment_info', JSON.stringify(uberInfo));
         console.log('🚀 UBER - Datos enviados:', uberInfo);
+      }
+
+      // 🎯 DETECTAR FAGOTTO 10%: Si typeCreateTicket es 'boleta' y tiene specialPayment con descuento
+      if (this.typeCreateTicket === 'boleta' && this.value.specialPayment && this.value.specialPayment.paymentType === 'fagotto_10') {
+        console.log('🎯 FAGOTTO 10% DETECTADO - Configurando other_type');
+        thing.set('other_type', 'fagotto_10');
+        
+        // Agregar información especial del descuento
+        thing.append('special_payment_info', JSON.stringify(this.value.specialPayment));
+        console.log('🎯 FAGOTTO 10% - Datos enviados:', this.value.specialPayment);
       }
 
       // 🚀 DETECTAR UBER POR paymentMethod en lugar de type_sell
@@ -302,7 +323,7 @@ export default {
         return false;
       }
 
-      if(this.turned_cafeteria && (this.type_sell == 'ticket_venta' || this.type_sell == 'boleta' || this.type_sell == 'factura' || this.type_sell == 'boleta_local' || this.type_sell == 'amipass')){
+      if(this.turned_cafeteria && (this.type_sell == 'ticket_venta' || this.type_sell == 'boleta' || this.type_sell == 'factura' || this.type_sell == 'boleta_local' || this.type_sell == 'amipass' || this.type_sell == 'fagotto_10')){
         $('#modalTurned').modal('show');
         this.sell_total = this.value.total;
       }

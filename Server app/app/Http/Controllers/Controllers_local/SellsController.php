@@ -94,6 +94,11 @@ class SellsController extends Controller
       }
     }
 
+    // 🚀 FIX UBER EATS: Si es Uber Eats, NO usar paymode = 'boleta'
+    if (isset($_request['other_type']) && ($_request['other_type'] === 'uber_eats' || $_request['other_type'] === 'uber')) {
+        $_request['paymode'] = $_request['other_type'];
+    }
+
     // Creando venta
     $sell = Sell::createSell($_request);
     if (!$sell) return response()->json("Error del servidor", 500);
@@ -258,6 +263,22 @@ class SellsController extends Controller
     }
 
     if (!isset($_request['fecha'])) $_request['fecha'] = $request['fecha'];
+
+    // 🚀 FIX UBER EATS: Si es Uber Eats, NO usar paymode = 'boleta'
+    // Usar paymode = 'uber_eats' para que aparezca en reportes correctamente
+    if (isset($_request['other_type']) && ($_request['other_type'] === 'uber_eats' || $_request['other_type'] === 'uber')) {
+        $_request['paymode'] = $_request['other_type']; // Usar 'uber_eats' o 'uber' como paymode
+        \Log::info('🚀 FIX UBER - Ajustando paymode para reportes:', [
+            'other_type' => $_request['other_type'],
+            'paymode_nuevo' => $_request['paymode'],
+            'uber_payment_info' => $_request['uber_payment_info'] ?? 'no disponible'
+        ]);
+    }
+
+    // 🎯 FIX FAGOTTO 10%: Si es Fagotto 10%, setear paymode correcto
+    if (isset($_request['other_type']) && $_request['other_type'] === 'fagotto_10') {
+        $_request['paymode'] = 'fagotto_10';
+    }
 
     // Creando venta
     $sell = Sell::createSell($_request);
@@ -541,6 +562,16 @@ class SellsController extends Controller
         }
 
         if (!isset($_request['fecha'])) $_request['fecha'] = $request['fecha'];
+
+        // 🚀 FIX UBER EATS: Si es Uber Eats, NO usar paymode = 'boleta'
+        if (isset($_request['other_type']) && ($_request['other_type'] === 'uber_eats' || $_request['other_type'] === 'uber')) {
+            $_request['paymode'] = $_request['other_type'];
+        }
+
+        // 🎯 FIX FAGOTTO 10%: Si es Fagotto 10%, setear paymode correcto
+        if (isset($_request['other_type']) && $_request['other_type'] === 'fagotto_10') {
+            $_request['paymode'] = 'fagotto_10';
+        }
 
         // Creando venta
         $sell = Sell::createSell($_request);
@@ -848,12 +879,14 @@ class SellsController extends Controller
         //Definiendo si ya fue procesado como factura o boleta o guia de despacho
         $folio = Folio::where('sell_id', $sell->id)->first();
 
+        // ✅ PRIORIDAD: Si tiene other_type (Uber, Fagotto 10%, Banco Chile 20%, etc.)
         if ($sell->other_type != null) {
           $formattedType = $this->formatPaymentMethod($sell->other_type);
           \Log::info("Formatted payment method: " . $formattedType);
           file_put_contents('/tmp/payment_debug.log', "Formatted payment method: " . $formattedType . "\n", FILE_APPEND);
           $sell->type = $formattedType;
         } else if ($folio) {
+          // Solo usar folio si NO tiene other_type
           $sell->type = $folio->type;
           $sell->glosa_sii = $folio->glosa_sii;
           \Log::info("Using folio type: " . $folio->type);
@@ -1337,6 +1370,7 @@ class SellsController extends Controller
       'pedidos_ya' => 'Pedidos Ya',
       'pluxee' => 'Pluxee',
       'banco_chile_20' => 'Banco De Chile 20%',
+      'fagotto_10' => 'Exclusivo Fagotto 10%',
       'cheque' => 'Cheque',
       'boleta_local' => 'Boleta Local',
       'factura' => 'Factura',

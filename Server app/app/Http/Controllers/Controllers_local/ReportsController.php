@@ -138,29 +138,55 @@ class ReportsController extends Controller
     $startDate = $request->input('startDate');
     $endDate = $request->input('endDate');
 
-    // $currentDate = Carbon::now();
-    $startDate = Carbon::createFromFormat('Y-m-d', $startDate)->setHour(6)->setMinute(0)->setSecond(0);
+    \Log::info('🔥 getSellsByHour - Parámetros:', [
+        'startDate' => $startDate,
+        'endDate' => $endDate
+    ]);
+
+    // Parsear fechas
+    $startDate = Carbon::createFromFormat('Y-m-d', $startDate)->setHour(0)->setMinute(0)->setSecond(0);
     $endDate = Carbon::createFromFormat('Y-m-d H:i:s', $endDate)->setHour(23)->setMinute(59)->setSecond(59);
 
-    $salesByHour = [];
+    // Obtener todas las ventas en el rango de fechas
+    $sells = DB::table($database2 . '.sells')
+        ->where('sells.trash', 0)
+        ->whereBetween('created_at', [$startDate, $endDate])
+        ->select('created_at', 'total')
+        ->get();
 
-    // Iterar por cada hora desde la hora de inicio hasta la hora de fin
-    $currentHour = $startDate->copy();
-    $endHourObj = $endDate->copy();
+    \Log::info('🔥 getSellsByHour - Ventas encontradas:', ['count' => $sells->count()]);
 
-    while ($currentHour <= $endHourObj) {
-      $nextHour = $currentHour->copy()->addHour();
-
-      $salesCount = DB::table($database2 . '.sells')->where('sells.trash', 0)
-      ->whereBetween('created_at', [$currentHour, $nextHour])
-      ->count();
-
-      $salesByHour[$currentHour->format('H:i:s')] = $salesCount;
-
-      $currentHour = $nextHour;
+    // Inicializar heatmap data (día de semana => hora => {count, total})
+    // Rango: 7:00 AM hasta 20:30 (8:30 PM)
+    $heatmapData = [];
+    for ($day = 0; $day <= 6; $day++) {
+        $heatmapData[$day] = [];
+        for ($hour = 7; $hour <= 20; $hour++) {
+            $heatmapData[$day][$hour] = ['count' => 0, 'total' => 0];
+        }
     }
 
-    return response()->json($salesByHour);
+    // Procesar cada venta
+    foreach ($sells as $sell) {
+        $date = Carbon::parse($sell->created_at);
+        $dayOfWeek = $date->dayOfWeek; // 0 = domingo, 1 = lunes, ..., 6 = sábado
+        $hour = (int) $date->format('H');
+
+        if ($hour >= 7 && $hour <= 20) {
+            $heatmapData[$dayOfWeek][$hour]['count']++;
+            $heatmapData[$dayOfWeek][$hour]['total'] += (float) $sell->total;
+        }
+    }
+
+    \Log::info('🔥 getSellsByHour - Heatmap generado:', [
+        'sample' => $heatmapData[1][12] ?? 'no data'
+    ]);
+
+    // Retornar en el formato esperado por el frontend
+    return response()->json([
+        'heatmap_data' => $heatmapData,
+        'total_sells' => $sells->count()
+    ]);
   }
 
   public function getCounters(Request $request, $self = false)
@@ -252,8 +278,40 @@ class ReportsController extends Controller
       'pedidos_ya' => ['modulos.ventas.submodulos.sii.ajustes.pedidos_ya', ['pedidos_ya']],
       'pluxee' => ['modulos.ventas.submodulos.sii.ajustes.pluxee', ['pluxee']],
       'guia_despacho' => ['modulos.ventas.submodulos.sii.ajustes.guia_despacho', ['guia_despacho']],
-      'banco_chile_20' => ['modulos.ventas.submodulos.sii.ajustes.banco_chile_20', ['banco_chile_20']]
+      'banco_chile_20' => ['modulos.ventas.submodulos.sii.ajustes.banco_chile_20', ['banco_chile_20']],
+      'fagotto_10' => ['modulos.ventas.submodulos.sii.ajustes.fagotto_10', ['fagotto_10']]
     ];
+    
+    // 🔍 DEBUG: Verificar configuración de Uber
+    \Log::info('🔍 DEBUG - Configuración de Uber en ajustes:', [
+        'ajuste_uber' => $ajustes['uber'],
+        'uber_habilitado' => CurrentApp::ConfStr('modulos.ventas.submodulos.sii.ajustes.uber') ? 'SI' : 'NO',
+        'valores_que_busca' => $ajustes['uber'][1],
+        'config_path_completo' => 'modulos.ventas.submodulos.sii.ajustes.uber'
+    ]);
+    
+    // 🔍 DEBUG EXTRA: Verificar si hay ventas de Uber en el rango
+    $uberTestQuery = Sell::whereBetween('created_at', [$_request['startDate'], $_request['endDate']])
+        ->where('trash', 0)
+        ->where(function($q) {
+            $q->where('other_type', 'uber')
+              ->orWhere('other_type', 'uber_eats')
+              ->orWhere('paymode', 'uber')
+              ->orWhere('paymode', 'uber_eats');
+        })
+        ->get();
+    
+    \Log::info('🔍 DEBUG - Ventas de Uber en rango de fechas:', [
+        'total_ventas_uber' => $uberTestQuery->count(),
+        'suma_total' => $uberTestQuery->sum('total'),
+        'primer_venta' => $uberTestQuery->first() ? [
+            'id' => $uberTestQuery->first()->id,
+            'other_type' => $uberTestQuery->first()->other_type,
+            'paymode' => $uberTestQuery->first()->paymode,
+            'type_sell' => $uberTestQuery->first()->type_sell,
+            'total' => $uberTestQuery->first()->total
+        ] : 'No hay ventas Uber'
+    ]);
 
     if (CurrentApp::ConfStr('modulos.ventas.submodulos.reporte.ajustes.datos_opcionales')) {
       $counters['orders'] = count($ventas);
@@ -308,6 +366,21 @@ class ReportsController extends Controller
           continue;
       }
       
+      // 🔍 DEBUG: Log TODAS las ventas para detectar Uber
+      if (stripos($venta->other_type, 'uber') !== false || 
+          stripos($venta->paymode, 'uber') !== false || 
+          stripos($venta->type_sell, 'uber') !== false) {
+          \Log::info('🔍 DEBUG - VENTA CON UBER DETECTADA:', [
+              'venta_id' => $venta->id,
+              'other_type' => $venta->other_type,
+              'paymode' => $venta->paymode,
+              'type_sell' => $venta->type_sell,
+              'total' => $venta->total,
+              'sell_folio' => $venta->sell_folio,
+              'fast_sell' => $venta->fast_sell
+          ]);
+      }
+      
       // calculado el total de todas las ventas
       $counters['balanceTotal']  += (float) $venta->total;
       // calculando la ganancia total
@@ -315,8 +388,27 @@ class ReportsController extends Controller
         $counters['gananciaTotal'] += $venta->gananciaTotal;
       }
 
+      // 🚨 PRIORIDAD: Verificar primero si es una venta especial (Uber, Rappi, etc)
+      // Esto evita que se cuente como boleta cuando en realidad es una venta de plataforma
       $counted = false;
       foreach ($ajustes as $key => $config) {
+          // 🔍 DEBUG ULTRA: Ver qué pasa con cada método de pago
+          if ($key === 'uber' && (stripos($venta->other_type, 'uber') !== false || stripos($venta->paymode, 'uber') !== false)) {
+              \Log::info('🔍 DEBUG ULTRA - Procesando venta Uber:', [
+                  'venta_id' => $venta->id,
+                  'key' => $key,
+                  'config_path' => $config[0],
+                  'config_values' => $config[1],
+                  'ConfStr_result' => CurrentApp::ConfStr($config[0]) ? 'HABILITADO' : 'DESHABILITADO',
+                  'other_type' => $venta->other_type,
+                  'paymode' => $venta->paymode,
+                  'type_sell' => $venta->type_sell,
+                  'in_array_other_type' => in_array($venta->other_type, $config[1]) ? 'SI' : 'NO',
+                  'in_array_paymode' => in_array($venta->paymode, $config[1]) ? 'SI' : 'NO',
+                  'in_array_type_sell' => in_array($venta->type_sell, $config[1]) ? 'SI' : 'NO'
+              ]);
+          }
+          
           if (CurrentApp::ConfStr($config[0])) {
               if (in_array($venta->other_type, $config[1]) || in_array($venta->paymode, $config[1]) || in_array($venta->type_sell, $config[1])) {
                   $counters[$key] += $venta->total;
@@ -324,12 +416,14 @@ class ReportsController extends Controller
                   
                   // 🚨 DEBUG: Log específico para Uber
                   if ($key === 'uber') {
-                      \Log::info('🔍 DEBUG BACKEND UBER ENCONTRADO:', [
+                      \Log::info('✅ UBER ENCONTRADO Y SUMADO EN REPORTE:', [
                           'venta_id' => $venta->id,
                           'other_type' => $venta->other_type,
                           'paymode' => $venta->paymode,
+                          'type_sell' => $venta->type_sell,
                           'total' => $venta->total,
-                          'config_uber' => $config[1]
+                          'tiene_folio' => $venta->sell_folio ? 'SI' : 'NO',
+                          'contador_uber_actual' => $counters['uber']
                       ]);
                   }
                   
@@ -348,6 +442,7 @@ class ReportsController extends Controller
       if (!$counted && !$venta->sell_folio && isset($_request['noSii'])) {
           $counters['noSii'] += $venta->total;
       } elseif (!$counted && $venta->sell_folio) {
+          // ✅ SOLO contar como boleta/factura si NO fue contada antes como método especial
           $folio = Folio::where('sell_id', $venta->id)->first();
           if ($folio) {
               if (isset($_request['factura']) && $folio->type == 'factura') {
@@ -575,20 +670,6 @@ class ReportsController extends Controller
       $workshifts = Workshift::with('user')
         ->whereDate('created_at', $currentDate)
         ->get();
-
-    // 🚨 FIX TEMPORAL: Contar manualmente las ventas de Uber Eats
-    \Log::info('🚨 FIX TEMPORAL - Contando ventas de Uber manualmente...');
-    $uberSalesTotal = Sell::whereBetween('created_at', [$_request['startDate'], $_request['endDate']])
-        ->where('trash', 0)
-        ->where('other_type', 'uber_eats')
-        ->sum('total');
-    
-    \Log::info('🚨 FIX TEMPORAL - Ventas Uber encontradas: $' . $uberSalesTotal);
-    
-    // Forzar el valor de uber en los contadores
-    $counters['uber'] = (float) $uberSalesTotal;
-    
-    \Log::info('🚨 FIX TEMPORAL - Counter uber establecido en: ' . $counters['uber']);
         
     if ($self) {
       return ['counters' => $counters, 'products' => $products, 'waiters' => $waiters, 'expenses' => $expenses, 'workshifts' => $workshifts];

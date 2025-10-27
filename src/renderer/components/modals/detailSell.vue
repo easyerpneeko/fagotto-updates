@@ -101,7 +101,7 @@
           </button>
 
           <button type="button" class="btn bg-primario text-white text-capitalize"
-            v-if="dataDetail && siiInstalled && settingBoleta && dataDetail.type == 'boleta'" @click="consultarVenta">
+            v-if="dataDetail && siiInstalled && settingBoleta && hasBoletaSII" @click="consultarVenta">
             Consultar Boleta
           </button>
 
@@ -124,7 +124,7 @@
           </button>
 
           <button type="button" class="btn bg-dark text-white text-capitalize"
-            v-if="dataDetail && siiInstalled && settingBoleta && dataDetail.type == 'boleta'"
+            v-if="dataDetail && siiInstalled && settingBoleta && hasBoletaSII"
             @click="procesarVenta((dataDetail.type) ? dataDetail.type : type, false, 'print')">
             Imprimir Boleta
           </button>
@@ -145,7 +145,7 @@
           </button>
 
           <button type="button" class="btn bg-dark text-white text-capitalize"
-            v-if="dataDetail && siiInstalled && settingBoleta && dataDetail.type == 'boleta'"
+            v-if="dataDetail && siiInstalled && settingBoleta && hasBoletaSII"
             @click="processGuiaDespacho((dataDetail.type) ? dataDetail.type : type, false, 'pdf')">
             PDF Boleta
           </button>
@@ -524,7 +524,19 @@ export default {
         return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.factura');
       }
     },
-    devoluciones: { get() { return ConfigHelper.ConfStr('modulos.ventas.submodulos.devolutions'); } }
+    devoluciones: { get() { return ConfigHelper.ConfStr('modulos.ventas.submodulos.devolutions'); } },
+    // ✅ Detectar si tiene boleta SII (incluye métodos especiales)
+    hasBoletaSII: {
+      get() {
+        if (!this.dataDetail) return false;
+        const specialMethodsWithBoleta = [
+          'Uber Eats - Boleta SII',
+          'Exclusivo Fagotto 10%',
+          'Banco De Chile 20%'
+        ];
+        return this.dataDetail.type === 'boleta' || specialMethodsWithBoleta.includes(this.dataDetail.type);
+      }
+    }
   },
   watch: {
     clientFromModal: {

@@ -54,6 +54,11 @@ class StringXML {
       //sustituir por "$i" si no funciona
       $detallesProducts .= '<NroLinDet>'.$i.'</NroLinDet>';
       $detallesProducts .= '<NmbItem>'.strtoupper($product).'</NmbItem>';
+      // AÑADIDO: Nodo DscItem (Descripción Adicional) - Usa la descripción del producto o un texto por defecto
+      $descripcionAdicional = isset($value->description_sii) && !empty($value->description_sii) 
+                             ? $value->description_sii 
+                             : 'DETALLE ADICIONAL';
+      $detallesProducts .= '<DscItem>'.strtoupper($descripcionAdicional).'</DscItem>';
       $detallesProducts .= '<QtyItem>'.$value->quantity.'</QtyItem>';
       $detallesProducts .= '<UnmdItem>UN</UnmdItem>';
 
@@ -83,6 +88,35 @@ class StringXML {
 
       $i++;
 
+    }
+
+    // 🎯 AGREGAR DESCUENTO ESPECIAL (Fagotto 10%, Banco Chile 20%, etc.)
+    if (isset($sell->special_payment_info) && !empty($sell->special_payment_info)) {
+      $specialInfo = json_decode($sell->special_payment_info, true);
+      
+      if (isset($specialInfo['discountAmount']) && $specialInfo['discountAmount'] > 0) {
+        $discountAmount = round($specialInfo['discountAmount']);
+        $discountName = isset($specialInfo['method']) ? $specialInfo['method'] : 'Descuento Especial';
+        
+        // Calcular descuento sin IVA
+        $discountAmountSinIva = round($discountAmount / (($ivaAmount/100) + 1));
+        
+        // Agregar línea de descuento como detalle negativo
+        $detallesProducts .= '<Detalle>';
+        $detallesProducts .= '<NroLinDet>'.$i.'</NroLinDet>';
+        $detallesProducts .= '<NmbItem>'.strtoupper($discountName).'</NmbItem>';
+        $detallesProducts .= '<DscItem>DESCUENTO APLICADO</DscItem>';
+        $detallesProducts .= '<QtyItem>1</QtyItem>';
+        $detallesProducts .= '<UnmdItem>UN</UnmdItem>';
+        
+        // Precio y monto negativos (sin IVA)
+        $detallesProducts .= '<PrcItem>-'.$discountAmountSinIva.'</PrcItem>';
+        $detallesProducts .= '<MontoItem>-'.$discountAmountSinIva.'</MontoItem>';
+        $detallesProducts .= '</Detalle>';
+        
+        // Restar del neto
+        $PN -= $discountAmountSinIva;
+      }
     }
 
     // $PT = round($PN * (($ivaAmount/100) + 1)); // Monto total <--- por que lo quitaste?
@@ -226,6 +260,7 @@ class StringXML {
 <Detalle>
   <NroLinDet><?= $product['i'] ?></NroLinDet>
   <NmbItem><?= strtoupper($product['nombre']) ?></NmbItem>
+  <DscItem><?= strtoupper(isset($product['description_sii']) && !empty($product['description_sii']) ? $product['description_sii'] : 'DETALLE ADICIONAL') ?></DscItem>
   <QtyItem><?= ($product['cantidad']) ?></QtyItem>
   <UnmdItem>UN</UnmdItem>
   <PrcItem><?= ( $product['precio']) ?></PrcItem>   
@@ -390,7 +425,8 @@ class StringXML {
                                           'i'=>$i,
                                           'cantidad'=>$value->quantity,
                                           'precio'=>round( $PUS,2),
-                                          'total'=>round( $PPT)]);
+                                          'total'=>round( $PPT),
+                                          'description_sii'=>isset($value->description_sii) ? $value->description_sii : '']);
 
       
 
@@ -928,7 +964,8 @@ class StringXML {
                                           'i'=>$i,
                                           'cantidad'=>$value->quantity,
                                           'precio'=>$PUS,
-                                          'total'=>$PPT]);
+                                          'total'=>$PPT,
+                                          'description_sii'=>isset($value->description_sii) ? $value->description_sii : '']);
 
       
 
@@ -1055,6 +1092,33 @@ class StringXML {
       $i++;
     }
 
+    // 🎯 AGREGAR DESCUENTO ESPECIAL (Fagotto 10%, Banco Chile 20%, etc.)
+    if (isset($sell->special_payment_info) && !empty($sell->special_payment_info)) {
+      $specialInfo = json_decode($sell->special_payment_info, true);
+      
+      if (isset($specialInfo['discountAmount']) && $specialInfo['discountAmount'] > 0) {
+        $discountAmount = round($specialInfo['discountAmount']);
+        $discountName = isset($specialInfo['method']) ? $specialInfo['method'] : 'Descuento Especial';
+        
+        // Agregar línea de descuento como detalle negativo
+        $detallesProducts .= '<Detalle>';
+        $detallesProducts .= '<NroLinDet>'.$i.'</NroLinDet>';
+        $detallesProducts .= '<CdgItem>
+        <TpoCodigo>INT1</TpoCodigo>
+        <VlrCodigo>DCTO</VlrCodigo>
+        </CdgItem>';
+        $detallesProducts .= '<NmbItem>'.strtoupper($discountName).'</NmbItem>';
+        $detallesProducts .= '<QtyItem>1</QtyItem>';
+        
+        // Precio y monto negativos
+        $detallesProducts .= '<PrcItem>-'.$discountAmount.'</PrcItem>';
+        $detallesProducts .= '<MontoItem>-'.$discountAmount.'</MontoItem>';
+        $detallesProducts .= '</Detalle>';
+        
+        // Restar del total
+        $PT -= $discountAmount;
+      }
+    }
 
     //* $PT = round($PN *(($ivaAmount/100) + 1)); // Monto total
 

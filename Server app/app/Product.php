@@ -29,6 +29,11 @@ class Product extends Model
     'ganancia_mayor',
     'compra',
     'product_variable_category',
+    'promo_active',
+    'promo_price',
+    'promo_combo_price',
+    'is_combo',
+    'discount_percentage',
   ];
 
   public static function newProduct($request){
@@ -65,6 +70,12 @@ class Product extends Model
     if (CurrentApp::ConfStr('modulos.productos.submodulos.precio_promo')) {
       $keysAllow[] = 'product_variable_category';
     }
+    if (CurrentApp::ConfStr('modulos.productos.submodulos.precio_promo')) {
+      $keysAllow[] = 'promo_combo_price';
+    }
+    if (CurrentApp::ConfStr('modulos.productos.submodulos.precio_promo')) {
+      $keysAllow[] = 'is_combo';
+    }
     if (CurrentApp::ConfStr('modulos.productos.ajustes.permitir_precio_variante')) {
       $keysAllow[] = 'prices';
     }
@@ -74,6 +85,9 @@ class Product extends Model
     if (CurrentApp::ConfStr('modulos.ventas.ajustes.permitir_ganancia')) {
       $keysAllow[] = 'ganancia_mayor';
     }
+    
+    // Siempre permitir discount_percentage (descuento para pedidos)
+    $keysAllow[] = 'discount_percentage';
 
     $itemToSave = [];
     if (isset($request['image'])) {
@@ -91,8 +105,16 @@ class Product extends Model
       $request['image'] = 'productDefault';
     }
     foreach ($keysAllow as $key){
-      if (isset($request[$key])) $itemToSave[$key] = $request[$key];
-      else $itemToSave[$key] = null;
+      if (isset($request[$key])) {
+        // Convertir is_combo a entero explícitamente
+        if ($key === 'is_combo') {
+          $itemToSave[$key] = (int) $request[$key];
+        } else {
+          $itemToSave[$key] = $request[$key];
+        }
+      } else {
+        $itemToSave[$key] = null;
+      }
     }
     return Product::create($itemToSave);
   }
@@ -148,6 +170,12 @@ class Product extends Model
     if (CurrentApp::ConfStr('modulos.productos.submodulos.precio_promo')) {
       $keysAllow[] = 'product_variable_category';
     }
+    if (CurrentApp::ConfStr('modulos.productos.submodulos.precio_promo')) {
+      $keysAllow[] = 'promo_combo_price';
+    }
+    if (CurrentApp::ConfStr('modulos.productos.submodulos.precio_promo')) {
+      $keysAllow[] = 'is_combo';
+    }
     if (CurrentApp::ConfStr('modulos.productos.ajustes.permitir_precio_variante')) {
       $keysAllow[] = 'prices';
     }
@@ -158,14 +186,33 @@ class Product extends Model
       $keysAllow[] = 'ganancia_mayor';
     }
 
+    // Siempre permitir discount_percentage (descuento para pedidos)
+    $keysAllow[] = 'discount_percentage';
 
     foreach ($keysAllow as $key){
       if (isset($request[$key])){
-        $Product->{$key} = $request[$key];
+        // Convertir is_combo a entero explícitamente
+        if ($key === 'is_combo') {
+          $Product->{$key} = (int) $request[$key];
+          \Log::info('🔧 Setting is_combo to: ' . $Product->{$key});
+        } else {
+          $Product->{$key} = $request[$key];
+        }
       }
     }
 
+    \Log::info('💾 Antes de guardar producto:', [
+      'id' => $Product->id,
+      'name' => $Product->name,
+      'is_combo' => $Product->is_combo
+    ]);
+
     if(!$Product->save()) return response()->json('Database error',500);
+
+    \Log::info('✅ Producto guardado exitosamente:', [
+      'id' => $Product->id,
+      'is_combo' => $Product->is_combo
+    ]);
 
     return response()->json('Producto editado exitosamente',200);
 

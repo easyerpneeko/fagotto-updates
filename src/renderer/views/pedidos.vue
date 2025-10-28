@@ -1,5 +1,8 @@
 <template>
     <div class="pedidos-container">
+        <!-- 🎃 Efecto Halloween: Arañas y telarañas cayendo -->
+        <div id="halloween-effect" class="halloween-effect"></div>
+        
         <div class="pedidos-main">
             <!-- Header Principal -->
             <div class="pedidos-header fade-in-up">
@@ -31,7 +34,7 @@
                     <div class="business-info">
                         <div class="info-item">
                             <div class="info-label">🏢 Datos del negocio</div>
-                            <p class="info-value">{{ this.app.Name }}</p>
+                            <p class="info-value">{{ this.app && this.app.Name ? this.app.Name : 'Cargando...' }}</p>
                         </div>
                         <div class="info-item">
                             <div class="info-label">📅 Fecha del pedido</div>
@@ -97,6 +100,26 @@
                                         Crear Pedido
                                     </button>
                                 </div>
+                            </div>
+
+                            <!-- 🎯 Resumen de Precios con Descuento -->
+                            <div v-if="this.products.length > 0" class="price-summary mt-3 p-3" style="background: #f8f9fa; border-radius: 10px; border-left: 4px solid #28a745;">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span style="font-weight: 500;">💰 Subtotal:</span>
+                                    <span style="font-size: 1.1em;">${{ formatearMonto(totalPrice) }}</span>
+                                </div>
+                                <div v-if="totalDiscountAmount > 0" class="d-flex justify-content-between align-items-center mb-2 text-success">
+                                    <span style="font-weight: 500;"><i class="fas fa-percentage"></i> Descuento:</span>
+                                    <span style="font-size: 1.1em;">-${{ formatearMonto(totalDiscountAmount) }}</span>
+                                </div>
+                                <hr v-if="totalDiscountAmount > 0" style="margin: 0.5rem 0;">
+                                <div class="d-flex justify-content-between align-items-center" style="font-weight: 700; font-size: 1.2em;">
+                                    <span>💵 Total Final:</span>
+                                    <span :class="{'text-success': totalDiscountAmount > 0}">${{ formatearMonto(finalTotal) }}</span>
+                                </div>
+                                <small v-if="totalDiscountAmount > 0" class="text-muted d-block mt-2 text-center">
+                                    <i class="fas fa-info-circle"></i> Has ahorrado ${{ formatearMonto(totalDiscountAmount) }} en este pedido
+                                </small>
                             </div>
                         </div>
                     </form>
@@ -492,6 +515,33 @@ export default {
         isAdmin: { get() { return (this.$store.getters['main/user'].role == 1) } },
 
         PedidoUrgenteInstalled: { get() { return ConfigHelper.ConfStr('modulos.pedidos.ajustes.pedidos_urgentes'); } },
+
+        // 🎯 Calcular descuento total basado en productos con discount_percentage
+        totalDiscountAmount: {
+            get() {
+                if (!this.products || !Array.isArray(this.products)) return 0;
+                
+                let discountTotal = 0;
+                this.products.forEach(product => {
+                    if (product.discount_percentage && product.discount_percentage > 0) {
+                        const productTotal = parseFloat(product.price || 0) * parseFloat(product.quantity || 1);
+                        const discount = (productTotal * parseFloat(product.discount_percentage)) / 100;
+                        discountTotal += discount;
+                    }
+                });
+                
+                return discountTotal;
+            }
+        },
+
+        // Total final con descuento aplicado
+        finalTotal: {
+            get() {
+                const total = parseFloat(this.totalPrice || 0);
+                const discount = parseFloat(this.totalDiscountAmount || 0);
+                return total - discount;
+            }
+        },
     },
     watch: {
 
@@ -635,11 +685,12 @@ export default {
                     status: 'nuevo',
                     products: this.products,
                     comment: this.comment,
-                    price: this.totalPrice,
+                    price: this.finalTotal,  // 🎯 Usar finalTotal con descuento aplicado
                     subtotal: this.subtotal,
                     iva: this.montoIva,
                     emergency: this.montoEmergencia,
                     despacho: this.montoDespacho,
+                    discount_amount: this.totalDiscountAmount,  // 🎯 Guardar monto de descuento
                     // transaccion: this.transaccion,
                     app_id: this.app.Id,
                 };
@@ -654,6 +705,11 @@ export default {
 
                 if (request.success) {
                     this.$awn.success('Pedido enviado Exitosamente', { labels: { success: 'CORRECTO' } });
+
+                    // 🎃 Si hay descuento de Halloween, activar efecto de arañas
+                    if (this.totalDiscountAmount > 0) {
+                        this.activarEfectoHalloween();
+                    }
 
                     this.name = this.me.fullname;
                     this.phone = "+56";

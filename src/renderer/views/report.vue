@@ -99,6 +99,8 @@
             </button>
           </div>
           
+          <!-- BOTÓN FINALIZAR TURNO DESHABILITADO -->
+          <!--
           <div class="shift-controls">
             <button 
               @click="endShift" 
@@ -110,6 +112,7 @@
               <span>Finalizar Turno</span>
             </button>
           </div>
+          -->
         </div>
       </div>
     </div>
@@ -406,7 +409,8 @@ export default {
         {key:'convenio_empresa',label:'Convenio Empresa', value:true},
         {key:'pedidos_ya',label:'Pedidos Ya', value:true},
         {key:'pluxee',label:'Pluxee', value:true},
-        {key:'banco_chile_20',label:'Banco De Chile 20%', value:true}
+        {key:'banco_chile_20',label:'Banco De Chile 20%', value:true},
+        {key:'halloween_20',label:'🎃 Halloween 20%', value:true}
       ]
     }
   },
@@ -850,6 +854,7 @@ export default {
     settingPluxee:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.pluxee') } },
     settingBancoChile20:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.banco_chile_20') } },
     settingFagotto10:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.fagotto_10') } },
+    settingHalloween20:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.halloween_20') } },
 
     getCounters: {
       get(){
@@ -899,10 +904,13 @@ export default {
             // 10. Exclusivo Fagotto 10%
             if(this.settingFagotto10) this.listCounter.push( ['Exclusivo Fagotto 10%', '$'+this.formatNumber(String(request.fagotto_10))]);
             
-            // 11. Uber Eats
+            // 11. 🎃 Halloween 20%
+            if(this.settingHalloween20) this.listCounter.push( ['🎃 Halloween 20%', '$'+this.formatNumber(String(request.halloween_20))]);
+            
+            // 12. Uber Eats
             this.listCounter.push(['Uber Eats', '$'+this.formatNumber(String(request.uber))]);
             
-            // 12. Pedidos Ya
+            // 13. Pedidos Ya
             if(this.settingPedidosYa) this.listCounter.push( ['Pedidos Ya', '$'+this.formatNumber(String(request.pedidos_ya))]);
             
             // 13. Rappi

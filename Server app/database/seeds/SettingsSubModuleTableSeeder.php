@@ -118,16 +118,6 @@ class SettingsSubModuleTableSeeder extends Seeder
         "keyname"=> "banco",
         "submodule_id" => DB::table("submodules")->where('keyname','sii')->first()->id
       ]);
-      DB::table("settings_submodules")->insert([
-        "name"=> "Pedidos Ya",
-        "keyname"=> "pedidos_ya",
-        "submodule_id" => DB::table("submodules")->where('keyname','sii')->first()->id
-      ]);
-      DB::table("settings_submodules")->insert([
-        "name"=> "Pluxee",
-        "keyname"=> "pluxee",
-        "submodule_id" => DB::table("submodules")->where('keyname','sii')->first()->id
-      ]);
       // NEW TYPES SELLS
       DB::table("settings_submodules")->insert([
         "name"=> "Mostrar datos opcionales",

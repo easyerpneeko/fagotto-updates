@@ -517,8 +517,28 @@ class RequestsController extends Controller
       $app = CurrentApp::App();
       $pedido['envs'] = json_decode($app->environment_vars);
         
-      // todos los productos
-       $products = json_decode($pedido->products);
+      // todos los productos con información completa
+      $products = json_decode($pedido->products);
+      
+      // 🔍 DEBUG: Ver qué productos tenemos
+      error_log('🚀 PRODUCTOS RECIBIDOS EN PDF: ' . json_encode($products));
+      
+      // Enriquecer productos con información adicional si es necesario
+      foreach ($products as &$product) {
+        // Asegurar que tenga precio si no lo tiene
+        if (!isset($product->price) || $product->price == 0) {
+          // Buscar el precio del producto en la base de datos
+          $dbProduct = DB::table($database . '.products')->where('name', $product->name)->first();
+          if ($dbProduct) {
+            $product->price = $dbProduct->price;
+          }
+        }
+        
+        // Asegurar que tenga cantidad
+        if (!isset($product->quantity)) {
+          $product->quantity = 1;
+        }
+      }
 
       $size = array(0, 0, 227, 600);
 

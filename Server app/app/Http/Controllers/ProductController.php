@@ -76,6 +76,7 @@ class ProductController extends Controller
 
   /**
    * Activar/Desactivar un producto (toggle active status)
+   * Cuando se desactiva, también se marca como eliminado (trash = 1)
    */
   public function toggleActive($id, Request $request){
     $product = Product::find($id);
@@ -89,6 +90,10 @@ class ProductController extends Controller
     
     $product->active = $newStatus;
     
+    // Cuando se desactiva (active = 0), también marcar como eliminado (trash = 1)
+    // Cuando se activa (active = 1), restaurar del trash (trash = 0)
+    $product->trash = $newStatus ? 0 : 1;
+    
     if(!$product->save()) {
         return response()->json([
             'success' => false,
@@ -96,13 +101,16 @@ class ProductController extends Controller
         ], 500);
     }
 
+    $actionMessage = $newStatus ? 'Producto activado y restaurado exitosamente' : 'Producto desactivado y eliminado exitosamente';
+
     return response()->json([
         'success' => true,
-        'message' => $newStatus ? 'Producto activado exitosamente' : 'Producto desactivado exitosamente',
+        'message' => $actionMessage,
         'data' => [
             'id' => $product->id,
             'name' => $product->name,
-            'active' => $product->active
+            'active' => $product->active,
+            'trash' => $product->trash
         ]
     ], 200);
   }

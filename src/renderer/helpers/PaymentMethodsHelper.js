@@ -143,6 +143,14 @@ export default class PaymentMethodsHelper {
         category: 'bank'
       },
       {
+        key: 'fagotto_10',
+        name: 'Exclusivo Fagotto 10%',
+        icon: 'fas fa-star',
+        color: 'danger',
+        emoji: '⭐',
+        category: 'special'
+      },
+      {
         key: 'fluxi',
         name: 'Fluxi',
         icon: 'fas fa-mobile-alt',

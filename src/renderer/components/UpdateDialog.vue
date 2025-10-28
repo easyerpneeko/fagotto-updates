@@ -150,7 +150,7 @@ export default {
         
         const response = await fetch('https://api.github.com/repos/easyerpneeko/fagotto-updates/releases/latest', {
           headers: {
-            'Authorization': 'token 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',
+            'Authorization': 'token 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',
             'Accept': 'application/vnd.github.v3+json'
           }
         });

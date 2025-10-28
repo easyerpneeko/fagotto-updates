@@ -42,6 +42,32 @@
             </div>
            
           </div>
+
+          <!-- 🎯 Descuento % para Pedidos -->
+          <div class="form-group col-12">
+            <label for="discountPercentage">
+              <i class="fas fa-percentage"></i> % Descuento en Pedidos
+              <small class="text-muted">(Opcional - Ej: Champiñón, Camarón, Pesto)</small>
+            </label>
+            <div class="input-group mb-3">
+              <input 
+                type="number" 
+                class="form-control" 
+                id="discountPercentage"
+                placeholder="0" 
+                min="0" 
+                max="100" 
+                step="0.01"
+                :disabled="waitResponse || !canEditAdvanced"
+                v-model="discount_percentage" 
+                @keyup.enter="newProduct">
+              <span class="input-group-text">%</span>
+            </div>
+            <small class="text-info d-block">
+              <i class="fas fa-info-circle"></i> Si se aplica descuento, se mostrará en el total del pedido automáticamente
+            </small>
+          </div>
+
           <div class="form-group col-md-6 col-12" v-if="precioCompraInstalled" >
             <label for="priceInput">Precio de compra</label>
             <div class="input-group mb-3">
@@ -229,6 +255,7 @@ export default {
       compra:0,
       mayor:0,
       ganancia_mayor:0,
+      discount_percentage: 0,  // 🎯 Nuevo campo para descuento en pedidos
       // campos de utilidad
       utilidad:0,
       utilidad_porcentaje:0,
@@ -507,6 +534,9 @@ export default {
         fields.push('ganancia_mayor');
       }
       
+      // 🎯 Siempre cargar discount_percentage
+      fields.push('discount_percentage');
+      
       if(this.promoInstalled){
         fields.push('promo_active');
       }
@@ -600,6 +630,9 @@ export default {
         fields.push('ganancia_mayor');
         fields.push('mayor');
       }
+
+      // 🎯 Siempre agregar discount_percentage
+      fields.push('discount_percentage');
 
       let fd = new FormData();
       

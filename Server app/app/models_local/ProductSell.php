@@ -23,6 +23,7 @@ class ProductSell extends Model
       'gananciaTotal',
       'product',
       'sell',
+      'description_sii',
     ];
 
     public static function createProductSell($request){
@@ -32,6 +33,7 @@ class ProductSell extends Model
         'unitary_price',
         'product',
         'sell',
+        'description_sii',
       ];
       if (CurrentApp::ConfStr('modulos.ventas.ajustes.permitir_ganancia')) {
         $keysAllow[] = 'gananciaTotal';

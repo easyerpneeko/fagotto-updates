@@ -641,6 +641,27 @@ Route::group(['prefix' => 'uber-eats', 'middleware' => ['AppSecurity', 'JwtMiddl
   Route::get('/orders', 'Controllers_local\UberEatsController@getOrders');
 });
 
+// ============ RUTAS DE REGISTRO DE LLEGADA ============
+Route::group(['prefix' => 'registro-llegada', 'middleware' => ['AppSecurity', 'JwtMiddleware']], function () {
+  // Obtener registros con filtros
+  Route::get('/', 'RegistroLlegadaController@index');
+  
+  // Crear nuevo registro de llegada
+  Route::post('/', 'RegistroLlegadaController@store');
+  
+  // Obtener estadísticas del día
+  Route::get('/estadisticas', 'RegistroLlegadaController@estadisticas');
+  
+  // Obtener lista de empleados
+  Route::get('/empleados', 'RegistroLlegadaController@empleados');
+  
+  // Obtener detalles de un registro específico
+  Route::get('/{id}', 'RegistroLlegadaController@show');
+  
+  // Eliminar registro (solo admin)
+  Route::delete('/{id}', 'RegistroLlegadaController@destroy');
+});
+
 Route::group(['middleware' => ['AppSecurity','JwtMiddleware']], function () {
   Route::post('broadcasting/auth',function (Request $request){ 
     $pusher = new Pusher\Pusher(env('PUSHER_APP_KEY'),env('PUSHER_APP_SECRET'), env('PUSHER_APP_ID')); return $pusher->socket_auth($request->request->get('channel_name'),$request->request->get('socket_id')); 

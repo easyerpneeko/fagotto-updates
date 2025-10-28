@@ -1,0 +1,66 @@
+PASOS PARA DEPLOY MANUAL (FTP/FileZilla)
+==========================================
+
+PASO 1: COMPILAR LOCAL
+-----------------------
+1. Abrir PowerShell en: c:\xampp\htdocs\Server app
+2. Ejecutar: npm run production
+3. Esperar a que termine (debe decir "DONE Compiled successfully")
+
+PASO 2: SUBIR ARCHIVOS PHP (vía FTP)
+-------------------------------------
+Subir estos 3 archivos:
+
+LOCAL: c:\xampp\htdocs\app\Http\Controllers\Controllers_local\SellsController.php
+SERVIDOR: /var/www/html/server/app/Http/Controllers/Controllers_local/SellsController.php
+
+LOCAL: c:\xampp\htdocs\app\Http\Controllers\Controllers_local\ReportsController.php
+SERVIDOR: /var/www/html/server/app/Http/Controllers/Controllers_local/ReportsController.php
+
+LOCAL: c:\xampp\htdocs\database\seeds\SettingsSubModuleTableSeeder.php
+SERVIDOR: /var/www/html/server/database/seeds/SettingsSubModuleTableSeeder.php
+
+PASO 3: SUBIR ARCHIVOS COMPILADOS (vía FTP)
+--------------------------------------------
+Subir estas carpetas completas (REEMPLAZAR):
+
+LOCAL: c:\xampp\htdocs\Server app\public\js\*
+SERVIDOR: /var/www/html/server/public/js/
+
+LOCAL: c:\xampp\htdocs\Server app\public\css\*
+SERVIDOR: /var/www/html/server/public/css/
+
+LOCAL: c:\xampp\htdocs\Server app\public\mix-manifest.json
+SERVIDOR: /var/www/html/server/public/mix-manifest.json
+
+PASO 4: EJECUTAR EN EL SERVIDOR (vía SSH)
+------------------------------------------
+ssh jimmy@posfagotto.cl
+
+cd /var/www/html/server
+
+# Permisos
+sudo chmod -R 777 storage/ bootstrap/cache/
+
+# Limpiar cachés
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+
+# Seeder
+php artisan db:seed --class=SettingsSubModuleTableSeeder
+
+PASO 5: BASE DE DATOS (phpMyAdmin)
+-----------------------------------
+Ejecutar en CADA base de datos de negocio:
+
+ALTER TABLE sells ADD COLUMN special_payment_info TEXT NULL;
+
+PASO 6: HABILITAR EN ADMIN
+---------------------------
+1. Ir a: https://posfagotto.cl/admin
+2. Ir a Configuración → Módulos → SII → Ajustes
+3. Activar "Exclusivo Fagotto 10%"
+4. Guardar
+
+¡LISTO! El botón "Exclusivo Fagotto 10%" ya debería aparecer.

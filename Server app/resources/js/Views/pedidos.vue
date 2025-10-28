@@ -29,7 +29,7 @@
           <table class="table table-striped projects">
             <thead>
               <tr>
-                <th class="">Nombredasdasdsad</th>
+                <th class="">Nombre</th>
                 <th class="">Unidad(Precio)</th>
                 <th class="">Precio Individual</th>
                 <th class="">Cantidad Minina</th>

@@ -9,6 +9,20 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
+        
+        <!-- 🎃 Banner de descuentos activos -->
+        <div v-if="Array.isArray(activeDiscounts) && activeDiscounts.length > 0" class="alert alert-warning mb-0" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a00 100%); border: none; border-radius: 0; color: white; text-align: center; padding: 15px;">
+          <h5 class="mb-2" style="font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+            🎃 ¡FELICIDADES! HAY DESCUENTOS ACTIVOS 🎃
+          </h5>
+          <p class="mb-1" style="font-size: 1.1rem;">
+            <strong>{{ activeDiscounts.length }}</strong> producto(s) con descuento especial
+          </p>
+          <p class="mb-0" style="font-size: 0.9rem; opacity: 0.95;">
+            ⏰ Válido hasta: <strong>{{ formatFecha(activeDiscounts[0].end_date) }}</strong>
+          </p>
+        </div>
+        
         <div class="modal-body p-0" style="overflow: auto; max-height: 70vh;">
           <div class="row g-3 p-3">
             <div class="col-md-6 p-3">
@@ -62,9 +76,11 @@
                   <h6 class="text-muted mb-2 fw-bold">🌶️ Salsas disponibles</h6>
                   <div class="d-flex flex-wrap gap-2">
                     <button v-for="(salsa, id) in salsasDisponibles" :key="id" type="button" @click="addSalsa(salsa)"
-                      class="btn btn-outline-primary btn-sm rounded-pill product-btn"
+                      class="btn btn-sm rounded-pill product-btn"
+                      :class="checkProductDiscount(salsa) ? 'btn-warning' : 'btn-outline-primary'"
                       :disabled="salsa.stock < salsa.min_stock"
-                      title="Click para añadir al pedido">
+                      :title="checkProductDiscount(salsa) ? '🎃 ¡Producto con descuento!' : 'Click para añadir al pedido'">
+                      <span v-if="checkProductDiscount(salsa)" class="discount-badge">🎃 -{{ checkProductDiscount(salsa).discount_value }}{{ checkProductDiscount(salsa).discount_type === 'percentage' ? '%' : '$' }}</span>
                       🛒 {{ salsa.name }} <i class="fa fa-plus ms-1"></i>
                     </button>
                   </div>
@@ -75,8 +91,10 @@
                   <div class="d-flex flex-wrap gap-2">
                     <button v-for="(producto, id) in opcionalesDisponibles" :key="id" type="button"
                       @click="addOpcional(producto)"
-                      class="btn btn-outline-success btn-sm rounded-pill product-btn"
-                      title="Click para añadir al pedido">
+                      class="btn btn-sm rounded-pill product-btn"
+                      :class="checkProductDiscount(producto) ? 'btn-warning' : 'btn-outline-success'"
+                      :title="checkProductDiscount(producto) ? '🎃 ¡Producto con descuento!' : 'Click para añadir al pedido'">
+                      <span v-if="checkProductDiscount(producto)" class="discount-badge">🎃 -{{ checkProductDiscount(producto).discount_value }}{{ checkProductDiscount(producto).discount_type === 'percentage' ? '%' : '$' }}</span>
                       ➕ {{ producto.name }} <i class="fa fa-plus ms-1"></i>
                     </button>
                   </div>
@@ -194,22 +212,42 @@
                     <tbody>
                       <tr>
                         <td>Monto neto</td>
-                        <td class="text-end fw-bold">${{ formatearMonto(this.montoNeto = this.calcularMontoNetoReal()) }}</td>
+                        <td class="text-end fw-bold">${{ formatearMonto(montoNeto) }}</td>
+                      </tr>
+                      <tr class="table-warning">
+                        <td class="fw-bold">🎃 Descuento Halloween</td>
+                        <td class="text-end fw-bold text-success">-${{ formatearMonto(totalDescuento) }}</td>
                       </tr>
                       <tr>
                         <td>Despacho {{ this.despacho * 100 }}%</td>
-                        <td class="text-end">${{ formatearMonto(this.montoDespacho = this.montoNeto * this.despacho) }}</td>
+                        <td class="text-end">${{ formatearMonto(montoDespacho) }}</td>
                       </tr>
                       <tr>
                         <td>IVA {{ this.iva * 100 }}%</td>
-                        <td class="text-end">${{ formatearMonto(this.montoIva = (this.montoNeto * this.iva)) }}</td>
+                        <td class="text-end">${{ formatearMonto(montoIva) }}</td>
                       </tr>
                       <tr class="table-success">
                         <td class="fw-bold">Total</td>
-                        <td class="text-end fw-bold fs-5">${{ formatearMonto(this.montoNeto + this.montoDespacho + this.montoIva) }}</td>
+                        <td class="text-end fw-bold fs-5">${{ formatearMonto(montoTotal) }}</td>
+                      </tr>
+                      <tr v-if="halloween20Active" class="table-danger">
+                        <td class="fw-bold">🎃 Descuento Halloween 20%</td>
+                        <td class="text-end fw-bold text-danger">-${{ formatearMonto(descuentoHalloween20) }}</td>
+                      </tr>
+                      <tr v-if="halloween20Active" class="table-success">
+                        <td class="fw-bold">💀 TOTAL FINAL</td>
+                        <td class="text-end fw-bold fs-4 text-success">${{ formatearMonto(totalConDescuentoHalloween) }}</td>
+                      </tr>
+                      <tr v-if="totalDescuento > 0 || halloween20Active" class="table-info">
+                        <td colspan="2" class="text-center fw-bold" style="color: #0c5460;">
+                          💰 ¡Ahorraste ${{ formatearMonto(totalDescuento + descuentoHalloween20) }} con descuentos! 🎉
+                        </td>
                       </tr>
                     </tbody>
                   </table>
+                  
+                  <!-- 🎃 Botón Halloween 20% descuento -->
+
                 </div>
               </div>
             </div>
@@ -237,6 +275,8 @@
 // Helpers y plugins
 import ConfigHelper from '@/helpers/ConfigHelper.js';
 import FormatNumber from '@/helpers/FormatNumber.js';
+import Connection from '@/helpers/Connection.js';
+import BaseUrl from '@/helpers/baseUrl.js';
 // import Loader from '@/helpers/Loader';
 import $ from 'jquery';
 
@@ -286,6 +326,16 @@ export default {
       montoTotal: 0,
       montoOpcionales: 0,
       isMultiplo: true,
+      
+      // 🎃 SISTEMA DE DESCUENTOS
+      activeDiscounts: [],
+      totalDescuento: 0,
+      productosConDescuento: [],
+      
+      // 🎃 Halloween 20% descuento
+      halloween20Active: false,
+      descuentoHalloween20: 0,
+      totalConDescuentoHalloween: 0,
 
     }
   },
@@ -293,8 +343,12 @@ export default {
 
   },
   async mounted() {
+    console.log('🔥🔥🔥 CATALOG MOUNTED - INICIANDO CARGA DE DESCUENTOS 🔥🔥🔥');
     //Trae los productos fijo de db 
     await this.cargarProductosFijos();
+    // 🎃 Cargar descuentos activos
+    await this.loadActiveDiscounts();
+    console.log('🎃 Descuentos después de cargar:', this.activeDiscounts);
     $(function () {
       $('[data-toggle="tooltip"]').tooltip()
     })
@@ -315,19 +369,168 @@ export default {
       this.montoDespacho = 0;
       this.montoNeto = 0;
       this.montoTotal = 0;
+      this.totalDescuento = 0;
+      this.productosConDescuento = [];
       $('#modalCatalog').modal('hide');
+    },
+    
+    // 🎃 MÉTODOS DE DESCUENTOS
+    async loadActiveDiscounts() {
+      console.log('🎃 [1/5] Iniciando loadActiveDiscounts...');
+      try {
+        // Obtener el ID de la aplicación desde el store
+        console.log('🎃 [2/5] Store completo:', this.$store.state);
+        console.log('🎃 [2/5] Store.main:', this.$store.state.main);
+        console.log('🎃 [2/5] Store.main.app:', this.$store.state.main.app);
+        
+        let applicationId = this.$store.state.main.app && this.$store.state.main.app.id;
+        
+        // 🔥 FALLBACK: Si no está en el store, intentar obtener desde ConfigHelper
+        if (!applicationId) {
+          console.warn('⚠️ App no en store, intentando ConfigHelper.Config()...');
+          const appData = ConfigHelper.Config();
+          console.log('🎃 [2.5/5] ConfigHelper.Config():', appData);
+          if (appData && appData.Id) {
+            applicationId = appData.Id;
+            console.log('✅ ID obtenido exitosamente de ConfigHelper:', applicationId);
+          }
+        }
+        
+        console.log('🎃 [3/5] Application ID obtenido:', applicationId);
+        
+        if (!applicationId) {
+          console.warn('⚠️ No se pudo obtener el ID de la sucursal');
+          return;
+        }
+        
+        const url = BaseUrl.getUrl(`api/local/discount/branch/${applicationId}`);
+        console.log('🎃 [4/5] URL a consultar:', url);
+        
+        const response = await Connection.request('get', url);
+        console.log('🎃 [4.5/5] Response recibido:', response);
+        console.log('🎃 [4.6/5] response.data tipo:', typeof response.data);
+        console.log('🎃 [4.7/5] response.data contenido completo:', JSON.stringify(response.data));
+        console.log('🎃 [4.8/5] response.data.discounts existe?:', response.data.discounts);
+        console.log('🎃 [4.9/5] Array.isArray(response.data):', Array.isArray(response.data));
+        
+        // Si hay error, mostrar detalles completos
+        if (response && !response.success) {
+          console.error('❌ ERROR DEL SERVIDOR:', response);
+          console.error('❌ Status:', response.status);
+          console.error('❌ Data completo:', JSON.stringify(response.data, null, 2));
+          
+          // Intentar mostrar mensaje de error específico
+          if (response.data) {
+            if (response.data.message) console.error('❌ Mensaje:', response.data.message);
+            if (response.data.error) console.error('❌ Error:', response.data.error);
+            if (response.data.exception) console.error('❌ Exception:', response.data.exception);
+            if (response.data.file) console.error('❌ Archivo:', response.data.file);
+            if (response.data.line) console.error('❌ Línea:', response.data.line);
+          }
+        }
+        
+        if (response && response.success) {
+          // El servidor devuelve los descuentos en response.data.discounts
+          const discountsData = response.data.discounts || response.data.data || response.data;
+          
+          // Asegurarse de que activeDiscounts sea siempre un array
+          this.activeDiscounts = Array.isArray(discountsData) ? discountsData : [];
+          console.log('✅ Descuentos cargados:', this.activeDiscounts);
+          console.log('✅ Cantidad de descuentos:', this.activeDiscounts.length);
+          console.log('✅ Primer descuento:', this.activeDiscounts[0]);
+          console.log('✅ Array.isArray check:', Array.isArray(this.activeDiscounts));
+          
+          if (this.activeDiscounts.length > 0) {
+            this.$awn.success(`🎃 ¡Hay ${this.activeDiscounts.length} descuentos activos para esta sucursal!`);
+          } else {
+            console.warn('⚠️ Array de descuentos está vacío');
+          }
+        } else {
+          console.warn('🎃 Response sin success o sin data:', response);
+          console.warn('🎃 response.success:', response.success);
+          console.warn('🎃 response.data:', response.data);
+          this.activeDiscounts = [];
+        }
+      } catch (error) {
+        console.error('❌ Error cargando descuentos:', error);
+        this.activeDiscounts = [];
+      }
+      console.log('🎃 [5/5] loadActiveDiscounts finalizado. activeDiscounts:', this.activeDiscounts);
+    },
+    
+    checkProductDiscount(producto) {
+      // Validar que activeDiscounts sea un array
+      if (!Array.isArray(this.activeDiscounts) || this.activeDiscounts.length === 0) {
+        return null;
+      }
+      
+      // Buscar si el producto tiene descuento activo
+      const descuentoActivo = this.activeDiscounts.find(discount => {
+        const productoId = Number(producto.id);
+        const discountProductId = Number(discount.product_id);
+        return discountProductId === productoId;
+      });
+      
+      if (descuentoActivo) {
+        console.log('✅ ¡DESCUENTO ENCONTRADO!', producto.name, 'ID:', producto.id, '→', descuentoActivo.discount_percentage + '%');
+        // Normalizar el formato del descuento para compatibilidad
+        return {
+          ...descuentoActivo,
+          discount_type: 'percentage',
+          discount_value: parseFloat(descuentoActivo.discount_percentage)
+        };
+      }
+      
+      return null;
+    },
+    
+    aplicarDescuento(producto, descuento) {
+      let montoDescuento = 0;
+      
+      if (descuento.discount_type === 'percentage') {
+        montoDescuento = (producto.costo * descuento.discount_value) / 100;
+      } else if (descuento.discount_type === 'fixed') {
+        montoDescuento = descuento.discount_value;
+      }
+      
+      return montoDescuento;
+    },
+    
+    formatFecha(fecha) {
+      if (!fecha) return '';
+      const date = new Date(fecha);
+      return date.toLocaleDateString('es-CL', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric' 
+      });
     },
     addSalsa(salsa) {
       const existingSalsa = this.salsasPedido.find((s) => s.name === salsa.name);
       if (existingSalsa) {
-        // existingSalsa.quantity += 100;
-        // existingSalsa.vasos += 1;
         console.log(`Salsa ${salsa.name} ya existente.`);
       } else {
         const salsaCopia = Object.assign({}, salsa);
-        salsaCopia.vasos = salsaCopia.min_quantity; // O también puedes usar: const salsaCopia = { ...salsa };
+        salsaCopia.vasos = salsaCopia.min_quantity;
+        
+        // 🎃 Verificar si tiene descuento
+        const descuento = this.checkProductDiscount(salsaCopia);
+        
+        if (descuento) {
+          salsaCopia.descuento = descuento;
+          this.productosConDescuento.push({
+            nombre: salsaCopia.name,
+            descuento: descuento.discount_value,
+            tipo: descuento.discount_type
+          });
+          
+          this.$awn.success(
+            `🎃 ¡${salsaCopia.name} tiene ${descuento.discount_value}% de descuento hasta el ${this.formatFecha(descuento.end_date)}!`,
+            { durations: { success: 5000 } }
+          );
+        }
+        
         this.salsasPedido.push(salsaCopia);
-        // console.log(this.salsasPedido);
       }
       this.calcularVasosSalsas()
     },
@@ -351,7 +554,24 @@ export default {
         console.log(`Opcional ${opcional.name} ya existente.`);
       } else {
         const opcionalCopia = Object.assign({}, opcional);
-        opcionalCopia.vasos = 1; // O también puedes usar: const opcionalCopia = { ...salsa };
+        opcionalCopia.vasos = 1;
+        
+        // 🎃 Verificar si tiene descuento
+        const descuento = this.checkProductDiscount(opcionalCopia);
+        if (descuento) {
+          opcionalCopia.descuento = descuento;
+          this.productosConDescuento.push({
+            nombre: opcionalCopia.name,
+            descuento: descuento.discount_value,
+            tipo: descuento.discount_type
+          });
+          
+          this.$awn.success(
+            `🎃 ¡${opcionalCopia.name} tiene ${descuento.discount_value}${descuento.discount_type === 'percentage' ? '%' : '$'} de descuento hasta el ${this.formatFecha(descuento.end_date)}!`,
+            { durations: { success: 5000 } }
+          );
+        }
+        
         this.opcionalPedido.push(opcionalCopia);
         // console.log(this.opcionalPedido);
       }
@@ -418,6 +638,7 @@ export default {
       });
 
       this.calcularCantidades();
+      this.calcularMontos(); // 🎃 Calcular montos con descuentos
 
     },
     calcularPrecioOpcionales() {
@@ -438,6 +659,7 @@ export default {
         }
 
       });
+      this.calcularMontos(); // 🎃 Calcular montos con descuentos
     },
     addProducts() {
       console.log('Productos pedido: ', this.productosPedido);
@@ -603,6 +825,10 @@ export default {
           this.productosFijos[producto] = []; // Opcional: Eliminar el elemento de productosFijos
         }
         // console.log('salsas : ', this.salsasDisponibles);
+        console.log('🌶️ SALSAS DISPONIBLES CON IDs:');
+        for (let key in this.salsasDisponibles) {
+          console.log(`  - ${this.salsasDisponibles[key].name}: ID ${this.salsasDisponibles[key].id}`);
+        }
       }
     },
     convertirAKilogramosYRedondear(gramos, multiplicador) {
@@ -624,12 +850,61 @@ export default {
     calcularMontoNetoReal() {
       // Calcular el monto neto sumando el costo real de cada salsa
       let montoSalsas = 0;
+      this.totalDescuento = 0;
+      
       this.salsasPedido.forEach((salsa) => {
-        montoSalsas += salsa.vasos * this.getPrecioSalsa(salsa);
+        let costoSalsa = salsa.vasos * this.getPrecioSalsa(salsa);
+        
+        // 🎃 Aplicar descuento si existe
+        if (salsa.descuento) {
+          const descuentoMonto = this.aplicarDescuento({ costo: costoSalsa }, salsa.descuento);
+          this.totalDescuento += descuentoMonto;
+          costoSalsa -= descuentoMonto;
+        }
+        
+        montoSalsas += costoSalsa;
+      });
+      
+      // Aplicar descuentos a productos opcionales
+      let montoOpcionalesConDescuento = 0;
+      this.opcionalPedido.forEach((producto) => {
+        let costoProducto = producto.price;
+        
+        // 🎃 Aplicar descuento si existe
+        if (producto.descuento) {
+          const descuentoMonto = this.aplicarDescuento({ costo: costoProducto }, producto.descuento);
+          this.totalDescuento += descuentoMonto;
+          costoProducto -= descuentoMonto;
+        }
+        
+        montoOpcionalesConDescuento += costoProducto;
       });
       
       // Agregar el costo de los productos opcionales
-      return montoSalsas + this.montoOpcionales;
+      return montoSalsas + montoOpcionalesConDescuento;
+    },
+    
+    // 🎃 Método para calcular todos los montos (neto, IVA, despacho, total)
+    calcularMontos() {
+      this.montoNeto = this.calcularMontoNetoReal();
+      this.montoDespacho = this.montoNeto * this.despacho;
+      this.montoIva = this.montoNeto * this.iva;
+      this.montoTotal = this.montoNeto + this.montoDespacho + this.montoIva;
+      
+      if (this.totalDescuento > 0) {
+        console.log('💰 TOTAL DESCUENTO HALLOWEEN: $' + this.totalDescuento.toFixed(0));
+      }
+    },
+    
+    // 🎃 Activar/desactivar descuento Halloween 20%
+    toggleHalloween20() {
+      this.halloween20Active = !this.halloween20Active;
+      
+      if (this.halloween20Active) {
+        this.$awn.success('🎃 Descuento Halloween 20% aplicado!', { durations: { success: 3000 } });
+      } else {
+        this.$awn.info('Descuento Halloween removido');
+      }
     }
   },
   computed: {
@@ -745,5 +1020,78 @@ export default {
 
 .mt-4 {
   margin-top: 1.5rem;
+}
+
+/* 🎃 Estilos para sistema de descuentos */
+.discount-badge {
+  background: #ff6a00;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  margin-right: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.btn-warning.product-btn {
+  background: linear-gradient(135deg, #ffd93d 0%, #ff9a56 100%);
+  border: 2px solid #ff6a00;
+  color: #000;
+  font-weight: bold;
+  box-shadow: 0 4px 8px rgba(255, 106, 0, 0.3);
+}
+
+.btn-warning.product-btn:hover {
+  background: linear-gradient(135deg, #ff9a56 0%, #ff6a00 100%);
+  transform: scale(1.08);
+  box-shadow: 0 6px 12px rgba(255, 106, 0, 0.5);
+}
+
+.table-warning {
+  background-color: #fff3cd !important;
+}
+
+.table-info {
+  background-color: #d1ecf1 !important;
+}
+
+/* 🎃 Botón Halloween 20% */
+.btn-halloween-20 {
+  background: linear-gradient(135deg, #ff6600 0%, #ff9933 100%);
+  border: 2px solid #ff3300;
+  color: white;
+  font-weight: bold;
+  padding: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(255, 102, 0, 0.4);
+}
+
+.btn-halloween-20:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ff3300 0%, #ff6600 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(255, 51, 0, 0.6);
+}
+
+.btn-halloween-20.active {
+  background: linear-gradient(135deg, #28a745 0%, #5cb85c 100%);
+  border-color: #1e7e34;
+}
+
+.btn-halloween-20:disabled {
+  background: #6c757d;
+  border-color: #6c757d;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

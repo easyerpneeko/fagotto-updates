@@ -279,6 +279,16 @@
                 Exclusivo Fagotto 10% al total
               </button>
               
+              <!-- 🎃 Botón Halloween 20% descuento -->
+              <button v-if="settingHalloween20" @click="viewTicket('halloween_20')" type="button"
+                class="btn text-white" style="background: linear-gradient(135deg, #ff6600 0%, #ff9933 100%); font-weight: bold; border: 2px solid #ff3300;">
+                <i class="fas fa-pumpkin-spice me-2"></i>
+                🎃 Halloween 20% DESCUENTO 🎃
+                <small class="d-block" style="font-size: 0.75em;">
+                  Especial temporada Halloween
+                </small>
+              </button>
+              
               <button v-if="ticket_sell_close" type="button" class="btn bg-primario text-white"
                 @click="viewTicket('ticket_venta')">
                 Ticket + Cerrar venta
@@ -454,6 +464,23 @@ export default {
         
         // NO actualizar this.total aquí, se hará después de agregar la información especial
       }
+      
+      // 🎃 Si es Halloween 20% de descuento
+      if (val === 'halloween_20') {
+        // Calcular el 20% de descuento
+        const originalTotal = this.total;
+        const twentyPercentDiscount = originalTotal * 0.20;
+        const totalWithDiscount = originalTotal - twentyPercentDiscount;
+        
+        // Confirmar con el usuario
+        const confirmMessage = `🎃 ¿Confirmar venta con HALLOWEEN 20% DESCUENTO? 🎃\n\nTotal original: $${this.formatNumber(originalTotal)}\n20% descuento: -$${this.formatNumber(twentyPercentDiscount)}\nTotal final: $${this.formatNumber(totalWithDiscount)}`;
+        
+        if (!confirm(confirmMessage)) {
+          return false;
+        }
+        
+        // NO actualizar this.total aquí, se hará después de agregar la información especial
+      }
 
       // Si es Uber, confirmar que se genere boleta SII
       if (val === 'uber') {
@@ -518,6 +545,29 @@ export default {
         this.ticketData.total = totalWithDiscount;
       }
       
+      // 🎃 Si es Halloween 20% de descuento
+      if (val === 'halloween_20') {
+        const originalTotal = this.total;
+        const twentyPercentDiscount = originalTotal * 0.20;
+        const totalWithDiscount = originalTotal - twentyPercentDiscount;
+        
+        this.ticketData.specialPayment = {
+          paymentType: 'halloween_20',
+          method: 'Halloween 20%',
+          description: '🎃 Descuento especial Halloween del 20% aplicado al total',
+          originalTotal: originalTotal,
+          discountAmount: twentyPercentDiscount,
+          finalTotal: totalWithDiscount,
+          discountPercentage: 20,
+          date: new Date().toISOString(),
+          enabled: true
+        };
+        
+        // Actualizar el total con el descuento para el procesamiento
+        this.total = totalWithDiscount;
+        this.ticketData.total = totalWithDiscount;
+      }
+      
       if (this.ticket_description) {
         this.ticketData.description = this.ticketDescription;
       }
@@ -562,6 +612,13 @@ export default {
         // 🎯 FAGOTTO 10%: Generar boleta SII con descuento
         this.typeCreateTicket = 'boleta';
         console.log('🎯 FAGOTTO 10% - Configurado para generar boleta SII:', {
+          typeCreateTicket: this.typeCreateTicket,
+          specialPayment: this.ticketData.specialPayment
+        });
+      } else if (val === 'halloween_20') {
+        // 🎃 HALLOWEEN 20%: Generar boleta SII con descuento
+        this.typeCreateTicket = 'boleta';
+        console.log('🎃 HALLOWEEN 20% - Configurado para generar boleta SII:', {
           typeCreateTicket: this.typeCreateTicket,
           specialPayment: this.ticketData.specialPayment
         });
@@ -1293,6 +1350,13 @@ export default {
       get() {
         if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
         return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.fagotto_10');
+      }
+    },
+    
+    settingHalloween20: {
+      get() {
+        if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+        return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.halloween_20');
       }
     },
 

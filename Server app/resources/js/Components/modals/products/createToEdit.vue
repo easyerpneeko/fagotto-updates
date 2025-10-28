@@ -34,6 +34,33 @@
           <label for="stock">Stock</label>
           <input v-model="stock" type="text" class="form-control" id="stock" >
         </div>
+        
+        <!-- 🎯 Campo de Descuento % -->
+        <div class="form-group col-12">
+          <label for="discount_percentage">
+            <i class="fas fa-percentage"></i> % Descuento en Pedidos
+            <small class="text-muted">(0-100)</small>
+          </label>
+          <div class="input-group">
+            <input 
+              v-model="discount_percentage" 
+              type="number" 
+              class="form-control" 
+              id="discount_percentage"
+              min="0"
+              max="100"
+              step="0.01"
+              placeholder="0.00"
+            >
+            <div class="input-group-append">
+              <span class="input-group-text">%</span>
+            </div>
+          </div>
+          <small class="form-text text-muted">
+            <i class="fas fa-info-circle"></i> Ej: Champiñón 15%, Camarón 20%, Pesto 10%
+          </small>
+        </div>
+        
         <div v-if="isApp && optionsApps && optionsApps.length > 0" class="form-group col-12">
           <label>Aplicación</label>
           <v-select :options="optionsApps" v-model="app_id" style="width: 100%;"></v-select>
@@ -65,6 +92,7 @@ export default {
       min_quantity:null,
       stock: null,
       app_id:null,
+      discount_percentage: 0,  // 🎯 Nuevo campo
       isApp: false
     }
   },
@@ -88,6 +116,7 @@ export default {
         this.min_quantity =  value.min_quantity;
         this.stock =  value.stock;
         this.app_id =  value.app_id;
+        this.discount_percentage = value.discount_percentage || 0;  // 🎯 Cargar descuento
       }else{
         this.name =  null;
         this.price =  null;
@@ -95,6 +124,7 @@ export default {
         this.min_quantity =  null;
         this.stock =  null;
         this.app_id =  null;
+        this.discount_percentage = 0;  // 🎯 Reset descuento
       }
     }
   },
@@ -115,7 +145,8 @@ export default {
           price: this.price,
           compra: this.compra,
           min_quantity: this.min_quantity,
-          stock: this.stock
+          stock: this.stock,
+          discount_percentage: this.discount_percentage  // 🎯 Agregar descuento
         };
         if(this.isApp && this.app_id) data.app_id = this.app_id.value;
 
@@ -135,6 +166,7 @@ export default {
         this.min_quantity = null,
         this.stock = null,
         this.app_id = null,
+        this.discount_percentage = 0,  // 🎯 Reset descuento
         this.isApp = false;
         this.showModal = false;
         this.$emit('refresh', true);

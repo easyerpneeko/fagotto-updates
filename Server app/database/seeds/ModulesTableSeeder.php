@@ -25,8 +25,7 @@ class ModulesTableSeeder extends Seeder
           'productos_gestion' => 'Gestionar productos',
           'productos_obtener' => 'Obtener productos',
           'productos_modificar_stock' => 'Modificar el stock de productos',
-          'crear_productos_nueva_venta' => 'Crear productos desde nueva venta',
-          'editar_productos_avanzado' => 'Editar productos (modal avanzado)'
+          'crear_productos_nueva_venta' => 'Crear productos desde nueva venta'
           /*
             Muchos administradores querran que ninguno de sus empleados
             pueda modificar el stock por que se robaran los productos

@@ -16,6 +16,7 @@ use App\Helpers\MPage;
 
 use App\models_local\Product;
 use App\models_local\HistoryProduct;
+use App\models_local\ComboStep;
 
 use Dompdf\Dompdf;
 use Response;
@@ -103,6 +104,15 @@ class ProductsController extends Controller
     // dd($data);
     $products = Product::newProduct($data);
     if(!$products) return response()->json("Database Error",500);
+    
+    // Guardar pasos del combo si existe
+    if (isset($data['is_combo']) && $data['is_combo'] == 1 && isset($data['combo_steps'])) {
+      $comboSteps = json_decode($data['combo_steps'], true);
+      if (is_array($comboSteps)) {
+        ComboStep::saveSteps($products->id, $comboSteps);
+      }
+    }
+    
     $this->transactionHistory($products,null, 'created');
 
     return response()->json(['Producto registrado exitosamente'],200);
@@ -165,7 +175,30 @@ class ProductsController extends Controller
     }
 
     $this->transactionHistory($data,$product,'updated');
-    return Product::EditProduct($data, $id);
+    
+    // Log para debug
+    \Log::info('🎯 editProduct - Datos recibidos:', [
+      'is_combo' => $data['is_combo'] ?? 'no enviado',
+      'combo_steps' => isset($data['combo_steps']) ? 'sí enviado' : 'no enviado'
+    ]);
+    
+    $result = Product::EditProduct($data, $id);
+    
+    // Guardar pasos del combo si existe
+    if (isset($data['is_combo']) && $data['is_combo'] == 1 && isset($data['combo_steps'])) {
+      \Log::info('✅ Guardando pasos del combo para producto ' . $id);
+      $comboSteps = json_decode($data['combo_steps'], true);
+      if (is_array($comboSteps)) {
+        ComboStep::saveSteps($id, $comboSteps);
+        \Log::info('✅ Pasos guardados: ' . count($comboSteps));
+      }
+    } else if (isset($data['is_combo']) && $data['is_combo'] == 0) {
+      \Log::info('❌ Eliminando pasos del combo para producto ' . $id);
+      // Si desactivan el combo, eliminar los pasos
+      ComboStep::where('product_id', $id)->delete();
+    }
+    
+    return $result;
   }
 
   protected function getProductsOfSell(){
@@ -177,6 +210,11 @@ class ProductsController extends Controller
     foreach ($pquery as $key) {
       if ($key->prices) {
         $key->prices = json_decode($key->prices);
+      }
+      
+      // Agregar pasos del combo si es un combo
+      if ($key->is_combo == 1) {
+        $key->combo_steps = ComboStep::getStepsByProduct($key->id);
       }
     }
     return $pquery;
@@ -230,6 +268,14 @@ class ProductsController extends Controller
             if ($product->prices) {
                 $productArray['prices'] = json_decode($product->prices);
             }
+            
+            // 🎯 Agregar pasos del combo si es un combo guiado
+            if (isset($product->is_combo) && $product->is_combo == 1) {
+                \Log::info("🎯 [getProductsOfSell2] Product {$product->id} ({$product->name}) is_combo = {$product->is_combo}, loading steps...");
+                $productArray['combo_steps'] = ComboStep::getStepsByProduct($product->id);
+                \Log::info("✅ [getProductsOfSell2] Loaded " . count($productArray['combo_steps']) . " steps for product {$product->id}");
+            }
+            
             $products[] = $productArray;
         }
         return response()->json($products, 222);
@@ -290,6 +336,13 @@ class ProductsController extends Controller
     foreach ($Paginated['items'] as $key) {
       if ($key->prices) {
         $key->prices = json_decode($key->prices);
+      }
+      
+      // Agregar pasos del combo si es un combo
+      if (isset($key->is_combo) && $key->is_combo == 1) {
+        \Log::info("🎯 Product {$key->id} ({$key->name}) is_combo = {$key->is_combo}, loading steps...");
+        $key->combo_steps = ComboStep::getStepsByProduct($key->id);
+        \Log::info("✅ Loaded " . count($key->combo_steps) . " steps for product {$key->id}");
       }
     }
     return response()->json($Paginated);
@@ -403,7 +456,7 @@ class ProductsController extends Controller
     return $this->transactionHistory($data, $product, 'stock');
   }
 
-  public function transactionHistory($ProdNew = null, $ProdOld = null, $type) {
+  public function transactionHistory($ProdNew = null, $ProdOld = null, $type = null) {
     $user = auth()->user();
     $transaction = "";
     $field_afected = "";

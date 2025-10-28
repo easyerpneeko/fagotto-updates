@@ -61,6 +61,23 @@
             <img class="home_logo" src="../assets/logo.png" alt="fagotto-erp">
           </div>
           
+          <!-- 🎃 MENSAJE DE HALLOWEEN (solo visible el 31 de Octubre) -->
+          <div v-if="isHalloweenDay" class="halloween-message">
+            <div class="halloween-pumpkins">
+              <span class="pumpkin">🎃</span>
+              <span class="pumpkin">🎃</span>
+              <span class="pumpkin">🎃</span>
+            </div>
+            <h2 class="halloween-title">¡FELIZ HALLOWEEN!</h2>
+            <p class="halloween-subtitle">Te Desea Fagotto</p>
+            <div class="halloween-decoration">
+              <span>👻</span>
+              <span>💀</span>
+              <span>🕷️</span>
+              <span>🦇</span>
+            </div>
+          </div>
+          
           <div class="welcome-content">
             <h1 class="welcome-title mb-3">
               <span class="greeting-time">{{ greetingMessage }}</span>, 
@@ -130,6 +147,15 @@ export default {
     // ✅ NUEVO: Obtener estado del turno desde el store (base de datos)
     turnoActivo() {
       return this.$store.getters['arqueo/turnoActivo'];
+    },
+
+    // 🎃 NUEVO: Verificar si es semana de Halloween (28-31 de Octubre)
+    isHalloweenDay() {
+      const hoy = new Date();
+      const mes = hoy.getMonth(); // 0 = Enero, 9 = Octubre
+      const dia = hoy.getDate();
+      // Mostrar desde el 28 hasta el 31 de Octubre (toda la semana de Halloween)
+      return mes === 9 && dia >= 28 && dia <= 31;
     }
 
   },
@@ -674,6 +700,191 @@ export default {
   .admin-message {
     padding: 12px 16px;
     font-size: 0.9rem;
+  }
+}
+
+/* ===== 🎃 ESTILOS PARA MENSAJE DE HALLOWEEN ===== */
+.halloween-message {
+  background: linear-gradient(135deg, #ff6a00 0%, #ff9a56 100%);
+  border: 3px solid #ff3300;
+  border-radius: 25px;
+  padding: 30px;
+  margin: 30px 0;
+  box-shadow: 0 15px 40px rgba(255, 102, 0, 0.5);
+  animation: halloween-float 3s ease-in-out infinite alternate, halloween-glow 4s ease-in-out infinite alternate;
+  position: relative;
+  overflow: hidden;
+}
+
+.halloween-message::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: halloween-shine 8s infinite;
+}
+
+@keyframes halloween-float {
+  0% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes halloween-glow {
+  0% {
+    box-shadow: 0 15px 40px rgba(255, 102, 0, 0.5);
+  }
+  100% {
+    box-shadow: 0 20px 60px rgba(255, 102, 0, 0.8), 0 0 40px rgba(255, 154, 86, 0.6);
+  }
+}
+
+@keyframes halloween-shine {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+.halloween-pumpkins {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.pumpkin {
+  font-size: 3rem;
+  animation: pumpkin-bounce 2s ease-in-out infinite;
+  display: inline-block;
+}
+
+.pumpkin:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.pumpkin:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.pumpkin:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+@keyframes pumpkin-bounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-15px) rotate(-10deg);
+  }
+  75% {
+    transform: translateY(-5px) rotate(10deg);
+  }
+}
+
+.halloween-title {
+  font-size: 3rem;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 51, 0, 0.8);
+  margin-bottom: 10px;
+  animation: halloween-title-pulse 2s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes halloween-title-pulse {
+  0%, 100% {
+    transform: scale(1);
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 51, 0, 0.8);
+  }
+  50% {
+    transform: scale(1.05);
+    text-shadow: 0 6px 12px rgba(0, 0, 0, 0.6), 0 0 30px rgba(255, 51, 0, 1);
+  }
+}
+
+.halloween-subtitle {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.halloween-decoration {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.halloween-decoration span {
+  font-size: 2rem;
+  animation: halloween-decoration-spin 4s ease-in-out infinite;
+  display: inline-block;
+}
+
+.halloween-decoration span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.halloween-decoration span:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.halloween-decoration span:nth-child(3) {
+  animation-delay: 1s;
+}
+
+.halloween-decoration span:nth-child(4) {
+  animation-delay: 1.5s;
+}
+
+@keyframes halloween-decoration-spin {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-15deg) scale(1.2);
+  }
+  75% {
+    transform: rotate(15deg) scale(0.9);
+  }
+}
+
+/* Responsive Halloween */
+@media (max-width: 768px) {
+  .halloween-message {
+    padding: 20px;
+    margin: 20px 10px;
+  }
+  
+  .halloween-title {
+    font-size: 2.2rem;
+  }
+  
+  .halloween-subtitle {
+    font-size: 1.4rem;
+  }
+  
+  .pumpkin {
+    font-size: 2.5rem;
+  }
+  
+  .halloween-decoration span {
+    font-size: 1.5rem;
   }
 }
 </style>

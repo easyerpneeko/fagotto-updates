@@ -501,12 +501,13 @@ export default {
             requiresTurno: true
           });
 
-          menu.push({
-            label: 'Franquiciados',
-            route: '/inicio/franquiciados',
-            icon: 'fas fa-handshake',
-            requiresTurno: true
-          });
+          // ❌ DESHABILITADO - Franquiciados
+          // menu.push({
+          //   label: 'Franquiciados',
+          //   route: '/inicio/franquiciados',
+          //   icon: 'fas fa-handshake',
+          //   requiresTurno: true
+          // });
         }
         //Modulo de pedidos
         if (pedidos) {
@@ -518,14 +519,14 @@ export default {
           });
         }
         
-        //Modulo de Uber Eats
-        menu.push({
-          label: 'Uber Eats',
-          route: '/inicio/uber-eats',
-          icon: 'fas fa-motorcycle',
-          badge: 'NEW',
-          requiresTurno: true
-        });
+        // ❌ DESHABILITADO - Uber Eats
+        // menu.push({
+        //   label: 'Uber Eats',
+        //   route: '/inicio/uber-eats',
+        //   icon: 'fas fa-motorcycle',
+        //   badge: 'NEW',
+        //   requiresTurno: true
+        // });
         
         //Modulo de pedidos de pasteles
         if (reposteria) {

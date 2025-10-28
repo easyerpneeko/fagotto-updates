@@ -29,13 +29,13 @@ node .electron-vue/build.js
 ```powershell
 # ⚠️ IMPORTANTE: Usar token + deploy en UNA SOLA LÍNEA
 # Esto evita que electron-builder pierda el token durante el empaquetado
-$env:GH_TOKEN="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"; npx electron-builder build --win --publish always
+$env:GH_TOKEN="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"; npx electron-builder build --win --publish always
 ```
 
 ### 6. **❌ NO USAR (Método que falla)**
 ```powershell
 # ❌ ESTO NO FUNCIONA - electron-builder pierde el token
-$env:GH_TOKEN = "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"
+$env:GH_TOKEN = "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"
 npx electron-builder build --win --publish always
 ```
 
@@ -48,7 +48,7 @@ npx electron-builder build --win --publish always
 node .electron-vue/build.js
 
 # Deploy con token configurado en la misma línea (FUNCIONA 100%)
-$env:GH_TOKEN="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"; npx electron-builder build --win --publish always
+$env:GH_TOKEN="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"; npx electron-builder build --win --publish always
 ```
 
 ## ⚠️ **PROBLEMA COMÚN Y SOLUCIÓN**
@@ -64,7 +64,7 @@ Error: GitHub Personal Access Token is not set, neither programmatically, nor us
 
 ### **✅ Comando Correcto:**
 ```powershell
-$env:GH_TOKEN="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"; npx electron-builder build --win --publish always
+$env:GH_TOKEN="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"; npx electron-builder build --win --publish always
 ```
 
 ### **❌ Comando que Falla:**
@@ -99,7 +99,7 @@ npx electron-builder build --win --publish always
 ### **Error: GitHub Token inválido - SOLUCIÓN DEFINITIVA**
 ```powershell
 # ✅ USAR ESTE COMANDO (token + deploy en una línea)
-$env:GH_TOKEN="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"; npx electron-builder build --win --publish always
+$env:GH_TOKEN="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"; npx electron-builder build --win --publish always
 ```
 
 ### **Error: electron-builder no encontrado**

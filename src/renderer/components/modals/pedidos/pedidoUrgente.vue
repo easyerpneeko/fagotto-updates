@@ -9,20 +9,6 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                
-                <!-- 🎃 Banner de descuentos activos -->
-                <div v-if="Array.isArray(activeDiscounts) && activeDiscounts.length > 0" class="alert alert-warning mb-0" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a00 100%); border: none; border-radius: 0; color: white; text-align: center; padding: 15px;">
-                    <h5 class="mb-2" style="font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-                        🎃 ¡FELICIDADES! HAY DESCUENTOS ACTIVOS 🎃
-                    </h5>
-                    <p class="mb-1" style="font-size: 1.1rem;">
-                        <strong>{{ activeDiscounts.length }}</strong> producto(s) con descuento especial
-                    </p>
-                    <p class="mb-0" style="font-size: 0.9rem; opacity: 0.95;">
-                        ⏰ Válido hasta: <strong>{{ formatFecha(activeDiscounts[0].end_date) }}</strong>
-                    </p>
-                </div>
-                
                 <div class="modal-body p-0" style="overflow: auto; max-height: 70vh;">
                     <div class="row g-3 p-3">
                         <div class="col-md-5 p-3">
@@ -38,10 +24,8 @@
                                         <template v-for="(producto, index) in productos">
                                             <button v-if="(producto.name != 'Despacho' && producto.name != 'Queso')" type="button"
                                                 @click="addProduct(producto)"
-                                                class="btn btn-sm rounded-pill product-btn"
-                                                :class="checkProductDiscount(producto) ? 'btn-warning' : 'btn-outline-primary'"
-                                                :title="checkProductDiscount(producto) ? '🎃 ¡Producto con descuento!' : 'Click para añadir al pedido urgente'">
-                                                <span v-if="checkProductDiscount(producto)" class="discount-badge">🎃 -{{ checkProductDiscount(producto).discount_value }}%</span>
+                                                class="btn btn-outline-primary btn-sm rounded-pill product-btn"
+                                                title="Click para añadir al pedido urgente">
                                                 🛒 {{ producto.name }} <i class="fa fa-plus ms-1"></i>
                                             </button>
                                         </template>
@@ -153,9 +137,9 @@
                                                 <td>Monto neto</td>
                                                 <td class="text-end fw-bold">${{ formatNumber(this.montoNeto) }}</td>
                                             </tr>
-                                            <tr v-if="totalDescuento > 0" class="table-warning">
-                                                <td class="fw-bold">🎃 Descuento Halloween</td>
-                                                <td class="text-end fw-bold text-success">-${{ formatNumber(totalDescuento) }}</td>
+                                            <tr v-if="totalDiscountAmount > 0" class="table-success">
+                                                <td class="fw-bold">💰 Descuento productos</td>
+                                                <td class="text-end fw-bold text-success">-${{ formatNumber(totalDiscountAmount) }}</td>
                                             </tr>
                                             <tr>
                                                 <td v-if="emergency">Despacho urgente</td>
@@ -206,8 +190,6 @@
 // Helpers y plugins
 import ConfigHelper from '@/helpers/ConfigHelper.js';
 import FormatNumber from '@/helpers/FormatNumber.js';
-import Connection from '@/helpers/Connection.js';
-import BaseUrl from '@/helpers/baseUrl.js';
 // import Loader from '@/helpers/Loader';
 
 export default {
@@ -239,24 +221,16 @@ export default {
             montoEmergencia:0,
             montoOpcionales: 0,
             vasoxsalsa: 1,
-            emergency: true,
-            
-            // 🎃 SISTEMA DE DESCUENTOS
-            activeDiscounts: [],
-            totalDescuento: 0,
-            productosConDescuento: [],
+            emergency: true
         }
     },
     components: {
 
     },
     async mounted() {
-        console.log('🔥🔥🔥 PEDIDO URGENTE MOUNTED - INICIANDO CARGA DE DESCUENTOS 🔥🔥🔥');
         //Trae los productos fijo de db 
         await this.getProducts();
-        // 🎃 Cargar descuentos activos
-        await this.loadActiveDiscounts();
-        console.log('🎃 Descuentos después de cargar:', this.activeDiscounts);
+
     },
     methods: {
         async closeModal(refresh = false) {
@@ -270,136 +244,15 @@ export default {
             this.productosPedido = [];
             this.productoSend = [];
             this.totalPrice = 0;
-            this.totalDescuento = 0;
-            this.productosConDescuento = [];
 
             $('#pedidoUrgente').modal('hide');
         },
-        
-        // 🎃 MÉTODOS DE DESCUENTOS
-        async loadActiveDiscounts() {
-            console.log('🎃 [1/5] Iniciando loadActiveDiscounts en pedido urgente...');
-            try {
-                // Obtener el ID de la aplicación desde el store
-                let applicationId = this.$store.state.main.app && this.$store.state.main.app.id;
-                
-                // 🔥 FALLBACK: Si no está en el store, intentar obtener desde ConfigHelper
-                if (!applicationId) {
-                    console.warn('⚠️ App no en store, intentando ConfigHelper.Config()...');
-                    const appData = ConfigHelper.Config();
-                    if (appData && appData.Id) {
-                        applicationId = appData.Id;
-                        console.log('✅ ID obtenido exitosamente de ConfigHelper:', applicationId);
-                    }
-                }
-                
-                console.log('🎃 [3/5] Application ID obtenido:', applicationId);
-                
-                if (!applicationId) {
-                    console.warn('⚠️ No se pudo obtener el ID de la sucursal');
-                    return;
-                }
-                
-                const url = BaseUrl.getUrl(`api/local/discount/branch/${applicationId}`);
-                console.log('🎃 [4/5] URL a consultar:', url);
-                
-                const response = await Connection.request('get', url);
-                console.log('🎃 [4.5/5] Response recibido:', response);
-                
-                if (response && response.success) {
-                    // El servidor devuelve los descuentos en response.data.discounts
-                    const discountsData = response.data.discounts || response.data.data || response.data;
-                    
-                    // Asegurarse de que activeDiscounts sea siempre un array
-                    this.activeDiscounts = Array.isArray(discountsData) ? discountsData : [];
-                    console.log('✅ Descuentos cargados en pedido urgente:', this.activeDiscounts);
-                    console.log('✅ Cantidad de descuentos:', this.activeDiscounts.length);
-                    
-                    if (this.activeDiscounts.length > 0) {
-                        this.$awn.success(`🎃 ¡Hay ${this.activeDiscounts.length} descuentos activos para pedidos urgentes!`);
-                    }
-                } else {
-                    console.warn('🎃 Response sin success o sin data:', response);
-                    this.activeDiscounts = [];
-                }
-            } catch (error) {
-                console.error('❌ Error cargando descuentos:', error);
-                this.activeDiscounts = [];
-            }
-            console.log('🎃 [5/5] loadActiveDiscounts finalizado. activeDiscounts:', this.activeDiscounts);
-        },
-        
-        checkProductDiscount(producto) {
-            // Validar que activeDiscounts sea un array
-            if (!Array.isArray(this.activeDiscounts) || this.activeDiscounts.length === 0) {
-                return null;
-            }
-            
-            // Buscar si el producto tiene descuento activo
-            const descuentoActivo = this.activeDiscounts.find(discount => {
-                const productoId = Number(producto.id);
-                const discountProductId = Number(discount.product_id);
-                return discountProductId === productoId;
-            });
-            
-            if (descuentoActivo) {
-                console.log('✅ ¡DESCUENTO ENCONTRADO en urgente!', producto.name, 'ID:', producto.id, '→', descuentoActivo.discount_percentage + '%');
-                // Normalizar el formato del descuento para compatibilidad
-                return {
-                    ...descuentoActivo,
-                    discount_type: 'percentage',
-                    discount_value: parseFloat(descuentoActivo.discount_percentage)
-                };
-            }
-            
-            return null;
-        },
-        
-        aplicarDescuento(producto, descuento) {
-            let montoDescuento = 0;
-            
-            if (descuento.discount_type === 'percentage') {
-                montoDescuento = (producto.costo * descuento.discount_value) / 100;
-            } else if (descuento.discount_type === 'fixed') {
-                montoDescuento = descuento.discount_value;
-            }
-            
-            return montoDescuento;
-        },
-        
-        formatFecha(fecha) {
-            if (!fecha) return '';
-            const date = new Date(fecha);
-            return date.toLocaleDateString('es-CL', { 
-                day: '2-digit', 
-                month: '2-digit', 
-                year: 'numeric' 
-            });
-        },
-        
         addProduct(producto) {
             const existingProduct = this.productosPedido.find((p) => p.name === producto.name);
             if (existingProduct) {
                 console.log(`Producto ${producto.name} ya existente.`);
             } else {
                 const productoCopia = Object.assign({}, producto);
-                
-                // 🎃 Verificar si tiene descuento
-                const descuento = this.checkProductDiscount(productoCopia);
-                
-                if (descuento) {
-                    productoCopia.descuento = descuento;
-                    this.productosConDescuento.push({
-                        nombre: productoCopia.name,
-                        descuento: descuento.discount_value,
-                        tipo: descuento.discount_type
-                    });
-                    
-                    this.$awn.success(
-                        `🎃 ¡${productoCopia.name} tiene ${descuento.discount_value}% de descuento hasta el ${this.formatFecha(descuento.end_date)}!`,
-                        { durations: { success: 5000 } }
-                    );
-                }
                 
                 if (productoCopia.category == 2) {
                     productoCopia.vasos = productoCopia.min_quantity;
@@ -425,8 +278,6 @@ export default {
         calcularMontos() {
             //monto neto
             this.montoNeto = 0;
-            this.totalDescuento = 0;
-            
             //Corregimos cantidades no validas de las salsas
             this.validateInput();
 
@@ -436,22 +287,8 @@ export default {
                 } else {
                     this.productosPedido[index].costo = this.productosPedido[index].quantity * this.productosPedido[index].compra;
                 }
-                
-                // 🎃 Aplicar descuento si existe
-                if (this.productosPedido[index].descuento) {
-                    const descuentoMonto = this.aplicarDescuento(
-                        { costo: this.productosPedido[index].costo }, 
-                        this.productosPedido[index].descuento
-                    );
-                    this.totalDescuento += descuentoMonto;
-                    this.productosPedido[index].costo -= descuentoMonto;
-                }
 
                 this.montoNeto += parseFloat(this.productosPedido[index].costo);
-            }
-            
-            if (this.totalDescuento > 0) {
-                console.log('💰 TOTAL DESCUENTO HALLOWEEN (URGENTE): $' + this.totalDescuento.toFixed(0));
             }
             
             this.montoIva = Math.ceil(this.iva * this.montoNeto);
@@ -465,7 +302,9 @@ export default {
                 this.montoEmergencia = 0;
             }
 
-            this.totalPrice = Math.ceil(this.montoNeto + this.montoDespacho + this.montoIva + this.montoEmergencia);
+            // 🎯 Calcular el total final restando el descuento
+            const discountAmount = this.totalDiscountAmount;
+            this.totalPrice = Math.ceil(this.montoNeto + this.montoDespacho + this.montoIva + this.montoEmergencia - discountAmount);
         },
         addProducts() {
             console.log('Productos pedido: ', this.productosPedido);
@@ -543,7 +382,33 @@ export default {
         }
     },
     computed: {
-        isDespachoGratis: { get() { return ConfigHelper.ConfStr('modulos.pedidos.ajustes.despacho_gratis'); } }
+        isDespachoGratis: { get() { return ConfigHelper.ConfStr('modulos.pedidos.ajustes.despacho_gratis'); } },
+
+        // 🎯 Calcular descuento total basado en productos con discount_percentage
+        totalDiscountAmount: {
+            get() {
+                if (!this.productosPedido || !Array.isArray(this.productosPedido)) return 0;
+                
+                let discountTotal = 0;
+                this.productosPedido.forEach(product => {
+                    if (product.discount_percentage && product.discount_percentage > 0) {
+                        let productTotal = 0;
+                        
+                        // Calcular según categoría (igual que en calcularMontos)
+                        if (product.category == 2) {
+                            productTotal = parseFloat(product.vasos || 0) * parseFloat(product.compra || 0);
+                        } else {
+                            productTotal = parseFloat(product.quantity || 1) * parseFloat(product.compra || 0);
+                        }
+                        
+                        const discount = (productTotal * parseFloat(product.discount_percentage)) / 100;
+                        discountTotal += discount;
+                    }
+                });
+                
+                return Math.ceil(discountTotal);
+            }
+        }
     },
 }
 </script>
@@ -667,45 +532,5 @@ export default {
 
 .text-success {
     color: #198754 !important;
-}
-
-/* 🎃 Estilos para sistema de descuentos */
-.discount-badge {
-    background: #ff6a00;
-    color: white;
-    padding: 2px 6px;
-    border-radius: 10px;
-    font-size: 0.7rem;
-    font-weight: bold;
-    margin-right: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
-}
-
-.btn-warning.product-btn {
-    background: linear-gradient(135deg, #ffd93d 0%, #ff9a56 100%);
-    border: 2px solid #ff6a00;
-    color: #000;
-    font-weight: bold;
-    box-shadow: 0 4px 8px rgba(255, 106, 0, 0.3);
-}
-
-.btn-warning.product-btn:hover {
-    background: linear-gradient(135deg, #ff9a56 0%, #ff6a00 100%);
-    transform: scale(1.08);
-    box-shadow: 0 6px 12px rgba(255, 106, 0, 0.5);
-}
-
-.table-success {
-    background-color: #d1f2dd !important;
 }
 </style>

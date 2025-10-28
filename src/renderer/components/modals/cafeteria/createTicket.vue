@@ -149,6 +149,7 @@ export default {
           && this.type_sell != 'junaeb'
           && this.type_sell != 'banco_chile_20'
           && this.type_sell != 'fagotto_10'
+          && this.type_sell != 'halloween_20'
           && this.type_sell != 'pluxee'
           && this.type_sell != 'pedidos_ya'
           && this.type_sell != null
@@ -179,6 +180,7 @@ export default {
           && this.type_sell != 'junaeb'
           && this.type_sell != 'banco_chile_20'
           && this.type_sell != 'fagotto_10'
+          && this.type_sell != 'halloween_20'
           && this.type_sell != 'pluxee'
           && this.type_sell != 'pedidos_ya'
           && this.type_sell != null){
@@ -217,6 +219,16 @@ export default {
         console.log('✅ FAGOTTO 10% - Datos enviados:', this.value.specialPayment);
       }
 
+      // 🎃 HALLOWEEN 20%: Configurar other_type para que se registre correctamente
+      if (this.type_sell == 'halloween_20') {
+        thing.set('other_type', 'halloween_20');
+        // Agregar información especial del pago Halloween 20%
+        if (this.value.specialPayment) {
+          thing.append('special_payment_info', JSON.stringify(this.value.specialPayment));
+        }
+        console.log('✅ 🎃 HALLOWEEN 20% - Datos enviados:', this.value.specialPayment);
+      }
+
       // 🚀 DETECTAR UBER: Si typeCreateTicket es 'boleta' pero viene desde Uber
       if (this.typeCreateTicket === 'boleta' && this.value.paymentMethod === 'uber_eats') {
         console.log('🚀 UBER DETECTADO - Configurando other_type');
@@ -246,6 +258,30 @@ export default {
         // Agregar información especial del descuento
         thing.append('special_payment_info', JSON.stringify(this.value.specialPayment));
         console.log('🎯 FAGOTTO 10% - Datos enviados:', this.value.specialPayment);
+      }
+
+      // 🎃 DETECTAR HALLOWEEN 20%: Si typeCreateTicket es 'boleta' y tiene specialPayment con halloween_20
+      if (this.typeCreateTicket === 'boleta' && this.value.specialPayment && this.value.specialPayment.paymentType === 'halloween_20') {
+        console.log('🎃 HALLOWEEN 20% DETECTADO - Configurando other_type');
+        thing.set('other_type', 'halloween_20');
+        
+        // Agregar información especial del descuento Halloween
+        const halloweenInfo = {
+          paymentMethod: 'halloween_20',
+          paymentDescription: '🎃 Halloween 20% - Boleta SII con descuento',
+          paymentType: 'halloween_20',
+          specialPaymentType: 'halloween_20',
+          source: 'halloween_20',
+          reportCategory: 'special_discounts',
+          ...this.value.specialPayment
+        };
+        thing.append('special_payment_info', JSON.stringify(halloweenInfo));
+        thing.append('payment_method', 'halloween_20');
+        thing.append('payment_description', '🎃 Halloween 20% - Descuento especial');
+        thing.append('special_payment_type', 'halloween_20');
+        
+        console.log('🎃 HALLOWEEN 20% - Datos enviados al backend:', halloweenInfo);
+        console.log('🎃 HALLOWEEN DEBUG - FormData other_type:', thing.get('other_type'));
       }
 
       // 🚀 DETECTAR UBER POR paymentMethod en lugar de type_sell

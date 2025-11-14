@@ -410,7 +410,7 @@ export default {
         {key:'pedidos_ya',label:'Pedidos Ya', value:true},
         {key:'pluxee',label:'Pluxee', value:true},
         {key:'banco_chile_20',label:'Banco De Chile 20%', value:true},
-        {key:'halloween_20',label:'🎃 Halloween 20%', value:true}
+
       ]
     }
   },
@@ -844,17 +844,17 @@ export default {
     settingRappi:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.rappi') } },
     settingJunaeb:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.junaeb') } },
     settingUber:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.uber') } },
+    settingPedidosYa:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.pedidos_ya') } },
     settingSodexo:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.sodexo') } },
     settingNotaCredito:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.nota_de_credito') } },
     settingCredito:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.credito') } },
     settingAmipass:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.amipass') } },
     settingMulticaja:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.multicaja') } },
     settingEdenred:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.edenred') } },
-    settingPedidosYa:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.pedidos_ya') } },
     settingPluxee:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.pluxee') } },
     settingBancoChile20:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.banco_chile_20') } },
     settingFagotto10:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.fagotto_10') } },
-    settingHalloween20:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.halloween_20') } },
+
 
     getCounters: {
       get(){
@@ -904,8 +904,7 @@ export default {
             // 10. Exclusivo Fagotto 10%
             if(this.settingFagotto10) this.listCounter.push( ['Exclusivo Fagotto 10%', '$'+this.formatNumber(String(request.fagotto_10))]);
             
-            // 11. 🎃 Halloween 20%
-            if(this.settingHalloween20) this.listCounter.push( ['🎃 Halloween 20%', '$'+this.formatNumber(String(request.halloween_20))]);
+
             
             // 12. Uber Eats
             this.listCounter.push(['Uber Eats', '$'+this.formatNumber(String(request.uber))]);

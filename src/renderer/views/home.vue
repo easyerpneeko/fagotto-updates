@@ -61,41 +61,39 @@
             <img class="home_logo" src="../assets/logo.png" alt="fagotto-erp">
           </div>
           
-          <!-- 🎃 MENSAJE DE HALLOWEEN (solo visible el 31 de Octubre) -->
-          <div v-if="isHalloweenDay" class="halloween-message">
-            <div class="halloween-pumpkins">
-              <span class="pumpkin">🎃</span>
-              <span class="pumpkin">🎃</span>
-              <span class="pumpkin">🎃</span>
+          <!-- 📋 MENSAJE INFORMATIVO SOBRE BOLETAS DELIVERY -->
+          <div class="delivery-info-message">
+            <div class="info-icon-container">
+              <i class="fas fa-file-invoice"></i>
             </div>
-            <h2 class="halloween-title">¡FELIZ HALLOWEEN!</h2>
-            <p class="halloween-subtitle">Te Desea Fagotto</p>
-            <div class="halloween-decoration">
-              <span>👻</span>
-              <span>💀</span>
-              <span>🕷️</span>
-              <span>🦇</span>
+            <h3 class="info-title">Actualización del Sistema de Facturación</h3>
+            <p class="info-description">
+              A partir de ahora, <strong>todas las boletas generadas con métodos de pago de plataformas de delivery</strong> 
+              (Uber Eats, Rappi, Pedidos Ya) serán <strong>informadas automáticamente al Servicio de Impuestos Internos (SII)</strong>.
+            </p>
+            <div class="info-benefits">
+              <div class="benefit-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Cumplimiento tributario automático</span>
+              </div>
+              <div class="benefit-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Reportes independientes por plataforma</span>
+              </div>
+              <div class="benefit-item">
+                <i class="fas fa-shield-alt"></i>
+                <span>Mayor transparencia y control</span>
+              </div>
             </div>
+            <p class="info-footer">
+              Sistema actualizado para mayor eficiencia y cumplimiento normativo.
+            </p>
           </div>
           
           <div class="welcome-content">
-            <h1 class="welcome-title mb-3">
-              <span class="greeting-time">{{ greetingMessage }}</span>, 
-              <span class="user-name">{{ this.me.fullname }}</span>! 👋
-            </h1>
-            <p class="welcome-subtitle">
-              Tu sistema está listo para <span class="highlight-text">seguir creciendo</span> 🚀
-            </p>
-            <div class="welcome-badge">
-              <i class="fas fa-rocket me-2"></i>
-              Fagotto ERP 
-            </div>
             
             <!-- Badge de turno activo -->
-            <div class="turno-activo-badge mt-4">
-              <i class="fas fa-check-circle me-2"></i>
-              Turno de caja activo
-            </div>
+           
           </div>
         </div>
 
@@ -147,15 +145,6 @@ export default {
     // ✅ NUEVO: Obtener estado del turno desde el store (base de datos)
     turnoActivo() {
       return this.$store.getters['arqueo/turnoActivo'];
-    },
-
-    // 🎃 NUEVO: Verificar si es semana de Halloween (28-31 de Octubre)
-    isHalloweenDay() {
-      const hoy = new Date();
-      const mes = hoy.getMonth(); // 0 = Enero, 9 = Octubre
-      const dia = hoy.getDate();
-      // Mostrar desde el 28 hasta el 31 de Octubre (toda la semana de Halloween)
-      return mes === 9 && dia >= 28 && dia <= 31;
     }
 
   },
@@ -534,6 +523,177 @@ export default {
   }
 }
 
+/* ===== 📋 ESTILOS PARA MENSAJE INFORMATIVO DELIVERY ===== */
+.delivery-info-message {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  border: 3px solid #2c5f8d;
+  border-radius: 20px;
+  padding: 35px;
+  margin: 30px 0;
+  box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
+  position: relative;
+  overflow: hidden;
+  animation: info-fade-in 1s ease-out;
+}
+
+.delivery-info-message::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: info-shine 3s infinite;
+}
+
+@keyframes info-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes info-shine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.info-icon-container {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.info-icon-container i {
+  font-size: 4rem;
+  color: white;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  animation: info-icon-pulse 2s ease-in-out infinite;
+}
+
+@keyframes info-icon-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.info-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  margin-bottom: 20px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 2;
+}
+
+.info-description {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.95);
+  text-align: center;
+  line-height: 1.8;
+  margin-bottom: 25px;
+  position: relative;
+  z-index: 2;
+}
+
+.info-description strong {
+  color: white;
+  font-weight: 600;
+}
+
+.info-benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 25px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px 20px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.benefit-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(5px);
+}
+
+.benefit-item i {
+  font-size: 1.5rem;
+  color: #a8d5ff;
+  min-width: 30px;
+}
+
+.benefit-item span {
+  color: white;
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.info-footer {
+  text-align: center;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-style: italic;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 2px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 2;
+}
+
+/* Responsive para mensaje delivery */
+@media (max-width: 768px) {
+  .delivery-info-message {
+    padding: 25px 20px;
+    margin: 20px 10px;
+  }
+  
+  .info-icon-container i {
+    font-size: 3rem;
+  }
+  
+  .info-title {
+    font-size: 1.6rem;
+  }
+  
+  .info-description {
+    font-size: 1rem;
+  }
+  
+  .benefit-item {
+    padding: 12px 15px;
+  }
+  
+  .benefit-item i {
+    font-size: 1.3rem;
+  }
+  
+  .benefit-item span {
+    font-size: 0.95rem;
+  }
+}
+
 .turno-icon-container {
   position: relative;
 }
@@ -703,188 +863,4 @@ export default {
   }
 }
 
-/* ===== 🎃 ESTILOS PARA MENSAJE DE HALLOWEEN ===== */
-.halloween-message {
-  background: linear-gradient(135deg, #ff6a00 0%, #ff9a56 100%);
-  border: 3px solid #ff3300;
-  border-radius: 25px;
-  padding: 30px;
-  margin: 30px 0;
-  box-shadow: 0 15px 40px rgba(255, 102, 0, 0.5);
-  animation: halloween-float 3s ease-in-out infinite alternate, halloween-glow 4s ease-in-out infinite alternate;
-  position: relative;
-  overflow: hidden;
-}
-
-.halloween-message::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  animation: halloween-shine 8s infinite;
-}
-
-@keyframes halloween-float {
-  0% {
-    transform: translateY(0px);
-  }
-  100% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes halloween-glow {
-  0% {
-    box-shadow: 0 15px 40px rgba(255, 102, 0, 0.5);
-  }
-  100% {
-    box-shadow: 0 20px 60px rgba(255, 102, 0, 0.8), 0 0 40px rgba(255, 154, 86, 0.6);
-  }
-}
-
-@keyframes halloween-shine {
-  0% {
-    transform: translateX(-100%) translateY(-100%) rotate(45deg);
-  }
-  100% {
-    transform: translateX(100%) translateY(100%) rotate(45deg);
-  }
-}
-
-.halloween-pumpkins {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-bottom: 15px;
-}
-
-.pumpkin {
-  font-size: 3rem;
-  animation: pumpkin-bounce 2s ease-in-out infinite;
-  display: inline-block;
-}
-
-.pumpkin:nth-child(1) {
-  animation-delay: 0s;
-}
-
-.pumpkin:nth-child(2) {
-  animation-delay: 0.3s;
-}
-
-.pumpkin:nth-child(3) {
-  animation-delay: 0.6s;
-}
-
-@keyframes pumpkin-bounce {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-15px) rotate(-10deg);
-  }
-  75% {
-    transform: translateY(-5px) rotate(10deg);
-  }
-}
-
-.halloween-title {
-  font-size: 3rem;
-  font-weight: 900;
-  color: white;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 51, 0, 0.8);
-  margin-bottom: 10px;
-  animation: halloween-title-pulse 2s ease-in-out infinite;
-  position: relative;
-  z-index: 2;
-}
-
-@keyframes halloween-title-pulse {
-  0%, 100% {
-    transform: scale(1);
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 51, 0, 0.8);
-  }
-  50% {
-    transform: scale(1.05);
-    text-shadow: 0 6px 12px rgba(0, 0, 0, 0.6), 0 0 30px rgba(255, 51, 0, 1);
-  }
-}
-
-.halloween-subtitle {
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: #fff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-  margin-bottom: 20px;
-  position: relative;
-  z-index: 2;
-}
-
-.halloween-decoration {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 15px;
-}
-
-.halloween-decoration span {
-  font-size: 2rem;
-  animation: halloween-decoration-spin 4s ease-in-out infinite;
-  display: inline-block;
-}
-
-.halloween-decoration span:nth-child(1) {
-  animation-delay: 0s;
-}
-
-.halloween-decoration span:nth-child(2) {
-  animation-delay: 0.5s;
-}
-
-.halloween-decoration span:nth-child(3) {
-  animation-delay: 1s;
-}
-
-.halloween-decoration span:nth-child(4) {
-  animation-delay: 1.5s;
-}
-
-@keyframes halloween-decoration-spin {
-  0%, 100% {
-    transform: rotate(0deg) scale(1);
-  }
-  25% {
-    transform: rotate(-15deg) scale(1.2);
-  }
-  75% {
-    transform: rotate(15deg) scale(0.9);
-  }
-}
-
-/* Responsive Halloween */
-@media (max-width: 768px) {
-  .halloween-message {
-    padding: 20px;
-    margin: 20px 10px;
-  }
-  
-  .halloween-title {
-    font-size: 2.2rem;
-  }
-  
-  .halloween-subtitle {
-    font-size: 1.4rem;
-  }
-  
-  .pumpkin {
-    font-size: 2.5rem;
-  }
-  
-  .halloween-decoration span {
-    font-size: 1.5rem;
-  }
-}
 </style>

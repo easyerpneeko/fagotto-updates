@@ -219,15 +219,7 @@ export default {
         console.log('✅ FAGOTTO 10% - Datos enviados:', this.value.specialPayment);
       }
 
-      // 🎃 HALLOWEEN 20%: Configurar other_type para que se registre correctamente
-      if (this.type_sell == 'halloween_20') {
-        thing.set('other_type', 'halloween_20');
-        // Agregar información especial del pago Halloween 20%
-        if (this.value.specialPayment) {
-          thing.append('special_payment_info', JSON.stringify(this.value.specialPayment));
-        }
-        console.log('✅ 🎃 HALLOWEEN 20% - Datos enviados:', this.value.specialPayment);
-      }
+
 
       // 🚀 DETECTAR UBER: Si typeCreateTicket es 'boleta' pero viene desde Uber
       if (this.typeCreateTicket === 'boleta' && this.value.paymentMethod === 'uber_eats') {
@@ -248,6 +240,48 @@ export default {
         };
         thing.append('uber_payment_info', JSON.stringify(uberInfo));
         console.log('🚀 UBER - Datos enviados:', uberInfo);
+      }
+
+      // 🍕 DETECTAR PEDIDOS YA: Si typeCreateTicket es 'boleta' pero viene desde Pedidos Ya
+      if (this.typeCreateTicket === 'boleta' && this.value.paymentMethod === 'pedidos_ya') {
+        console.log('🍕 PEDIDOS YA DETECTADO - Configurando other_type');
+        thing.set('other_type', 'pedidos_ya');
+        
+        // Información adicional de Pedidos Ya para reportes
+        if (this.value.paymentDescription) {
+          thing.append('payment_description', this.value.paymentDescription);
+        }
+        const pedidosYaInfo = {
+          paymentMethod: this.value.paymentMethod || 'pedidos_ya',
+          paymentDescription: this.value.paymentDescription || 'Pedidos Ya - Boleta SII',
+          pedidosYaOrder: this.value.pedidosYaOrder || true,
+          specialPaymentType: this.value.specialPaymentType || 'pedidos_ya',
+          source: 'pedidos_ya',
+          reportCategory: 'delivery_platforms'
+        };
+        thing.append('pedidos_ya_payment_info', JSON.stringify(pedidosYaInfo));
+        console.log('🍕 PEDIDOS YA - Datos enviados:', pedidosYaInfo);
+      }
+
+      // 🛵 DETECTAR RAPPI: Si typeCreateTicket es 'boleta' pero viene desde Rappi
+      if (this.typeCreateTicket === 'boleta' && this.value.paymentMethod === 'rappi') {
+        console.log('🛵 RAPPI DETECTADO - Configurando other_type');
+        thing.set('other_type', 'rappi');
+        
+        // Información adicional de Rappi para reportes
+        if (this.value.paymentDescription) {
+          thing.append('payment_description', this.value.paymentDescription);
+        }
+        const rappiInfo = {
+          paymentMethod: this.value.paymentMethod || 'rappi',
+          paymentDescription: this.value.paymentDescription || 'Rappi - Boleta SII',
+          rappiOrder: this.value.rappiOrder || true,
+          specialPaymentType: this.value.specialPaymentType || 'rappi',
+          source: 'rappi',
+          reportCategory: 'delivery_platforms'
+        };
+        thing.append('rappi_payment_info', JSON.stringify(rappiInfo));
+        console.log('🛵 RAPPI - Datos enviados:', rappiInfo);
       }
 
       // 🎯 DETECTAR FAGOTTO 10%: Si typeCreateTicket es 'boleta' y tiene specialPayment con descuento
@@ -317,6 +351,70 @@ export default {
         
         console.log('🚀 UBER EATS - Datos enviados al backend:', uberInfo);
         console.log('🚀 UBER DEBUG - FormData other_type:', thing.get('other_type'));
+      }
+
+      // 🍕 DETECTAR PEDIDOS YA POR paymentMethod
+      if (this.value.paymentMethod === 'pedidos_ya' || this.type_sell == 'pedidos_ya') {
+        console.log('✅ PEDIDOS YA DEBUG - Estableciendo other_type');
+        thing.set('other_type', 'pedidos_ya');
+        
+        if (this.value.paymentMethod) {
+          thing.append('payment_method', this.value.paymentMethod);
+        }
+        if (this.value.paymentDescription) {
+          thing.append('payment_description', this.value.paymentDescription);
+        }
+        if (this.value.pedidosYaOrder) {
+          thing.append('pedidos_ya_order', this.value.pedidosYaOrder ? 'true' : 'false');
+        }
+        if (this.value.specialPaymentType) {
+          thing.append('special_payment_type', this.value.specialPaymentType);
+        }
+        
+        const pedidosYaInfo = {
+          paymentMethod: this.value.paymentMethod || 'pedidos_ya',
+          paymentDescription: this.value.paymentDescription || 'Pedidos Ya - Boleta SII',
+          pedidosYaOrder: this.value.pedidosYaOrder || true,
+          specialPaymentType: this.value.specialPaymentType || 'pedidos_ya',
+          source: 'pedidos_ya',
+          reportCategory: 'delivery_platforms'
+        };
+        thing.append('pedidos_ya_payment_info', JSON.stringify(pedidosYaInfo));
+        
+        console.log('🍕 PEDIDOS YA - Datos enviados al backend:', pedidosYaInfo);
+        console.log('🍕 PEDIDOS YA DEBUG - FormData other_type:', thing.get('other_type'));
+      }
+
+      // 🛵 DETECTAR RAPPI POR paymentMethod
+      if (this.value.paymentMethod === 'rappi' || this.type_sell == 'rappi') {
+        console.log('✅ RAPPI DEBUG - Estableciendo other_type');
+        thing.set('other_type', 'rappi');
+        
+        if (this.value.paymentMethod) {
+          thing.append('payment_method', this.value.paymentMethod);
+        }
+        if (this.value.paymentDescription) {
+          thing.append('payment_description', this.value.paymentDescription);
+        }
+        if (this.value.rappiOrder) {
+          thing.append('rappi_order', this.value.rappiOrder ? 'true' : 'false');
+        }
+        if (this.value.specialPaymentType) {
+          thing.append('special_payment_type', this.value.specialPaymentType);
+        }
+        
+        const rappiInfo = {
+          paymentMethod: this.value.paymentMethod || 'rappi',
+          paymentDescription: this.value.paymentDescription || 'Rappi - Boleta SII',
+          rappiOrder: this.value.rappiOrder || true,
+          specialPaymentType: this.value.specialPaymentType || 'rappi',
+          source: 'rappi',
+          reportCategory: 'delivery_platforms'
+        };
+        thing.append('rappi_payment_info', JSON.stringify(rappiInfo));
+        
+        console.log('🛵 RAPPI - Datos enviados al backend:', rappiInfo);
+        console.log('🛵 RAPPI DEBUG - FormData other_type:', thing.get('other_type'));
       }
 
       if (this.type_sell == 'credito') {

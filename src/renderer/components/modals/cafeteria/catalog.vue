@@ -210,7 +210,7 @@
                 Ticket + Transferencia
               </button>
               <button v-if="settingRappi" @click="viewTicket('rappi')" type="button" class="btn bg-primario text-white">
-                Ticket + Rappi
+                Ticket + Rappi (Boleta SII)
               </button>
               <button v-if="settingJunaeb" @click="viewTicket('Junaeb')" type="button" class="btn bg-primario text-white">
                 Ticket + Junaeb
@@ -255,7 +255,7 @@
               </button>
               <button v-if="settingPedidosYa" @click="viewTicket('pedidos_ya')" type="button"
                 class="btn bg-primario text-white">
-                Ticket + Boleta Pedidos Ya
+                Ticket + Pedidos Ya (Boleta SII)
               </button>
               <button v-if="settingPluxee" @click="viewTicket('pluxee')" type="button"
                 class="btn bg-primario text-white">
@@ -277,16 +277,6 @@
                 class="btn text-white" style="background-color: #dc3545; font-weight: bold;">
                 <i class="fas fa-star me-2"></i>
                 Exclusivo Fagotto 10% al total
-              </button>
-              
-              <!-- 🎃 Botón Halloween 20% descuento -->
-              <button v-if="settingHalloween20" @click="viewTicket('halloween_20')" type="button"
-                class="btn text-white" style="background: linear-gradient(135deg, #ff6600 0%, #ff9933 100%); font-weight: bold; border: 2px solid #ff3300;">
-                <i class="fas fa-pumpkin-spice me-2"></i>
-                🎃 Halloween 20% DESCUENTO 🎃
-                <small class="d-block" style="font-size: 0.75em;">
-                  Especial temporada Halloween
-                </small>
               </button>
               
               <button v-if="ticket_sell_close" type="button" class="btn bg-primario text-white"
@@ -465,26 +455,27 @@ export default {
         // NO actualizar this.total aquí, se hará después de agregar la información especial
       }
       
-      // 🎃 Si es Halloween 20% de descuento
-      if (val === 'halloween_20') {
-        // Calcular el 20% de descuento
-        const originalTotal = this.total;
-        const twentyPercentDiscount = originalTotal * 0.20;
-        const totalWithDiscount = originalTotal - twentyPercentDiscount;
-        
-        // Confirmar con el usuario
-        const confirmMessage = `🎃 ¿Confirmar venta con HALLOWEEN 20% DESCUENTO? 🎃\n\nTotal original: $${this.formatNumber(originalTotal)}\n20% descuento: -$${this.formatNumber(twentyPercentDiscount)}\nTotal final: $${this.formatNumber(totalWithDiscount)}`;
+      // Si es Uber, confirmar que se genere boleta SII
+      if (val === 'uber') {
+        const confirmMessage = `¿Confirmar venta con Uber Eats?\n\nSe generará una boleta del SII\nTotal: $${this.formatNumber(this.total)}`;
         
         if (!confirm(confirmMessage)) {
           return false;
         }
-        
-        // NO actualizar this.total aquí, se hará después de agregar la información especial
       }
 
-      // Si es Uber, confirmar que se genere boleta SII
-      if (val === 'uber') {
-        const confirmMessage = `¿Confirmar venta con Uber Eats?\n\nSe generará una boleta del SII\nTotal: $${this.formatNumber(this.total)}`;
+      // Si es Pedidos Ya, confirmar que se genere boleta SII
+      if (val === 'pedidos_ya') {
+        const confirmMessage = `¿Confirmar venta con Pedidos Ya?\n\nSe generará una boleta del SII\nTotal: $${this.formatNumber(this.total)}`;
+        
+        if (!confirm(confirmMessage)) {
+          return false;
+        }
+      }
+
+      // Si es Rappi, confirmar que se genere boleta SII
+      if (val === 'rappi') {
+        const confirmMessage = `¿Confirmar venta con Rappi?\n\nSe generará una boleta del SII\nTotal: $${this.formatNumber(this.total)}`;
         
         if (!confirm(confirmMessage)) {
           return false;
@@ -545,29 +536,6 @@ export default {
         this.ticketData.total = totalWithDiscount;
       }
       
-      // 🎃 Si es Halloween 20% de descuento
-      if (val === 'halloween_20') {
-        const originalTotal = this.total;
-        const twentyPercentDiscount = originalTotal * 0.20;
-        const totalWithDiscount = originalTotal - twentyPercentDiscount;
-        
-        this.ticketData.specialPayment = {
-          paymentType: 'halloween_20',
-          method: 'Halloween 20%',
-          description: '🎃 Descuento especial Halloween del 20% aplicado al total',
-          originalTotal: originalTotal,
-          discountAmount: twentyPercentDiscount,
-          finalTotal: totalWithDiscount,
-          discountPercentage: 20,
-          date: new Date().toISOString(),
-          enabled: true
-        };
-        
-        // Actualizar el total con el descuento para el procesamiento
-        this.total = totalWithDiscount;
-        this.ticketData.total = totalWithDiscount;
-      }
-      
       if (this.ticket_description) {
         this.ticketData.description = this.ticketDescription;
       }
@@ -608,17 +576,38 @@ export default {
           paymentDescription: this.ticketData.paymentDescription,
           uberEatsOrder: this.ticketData.uberEatsOrder
         });
+      } else if (val === 'pedidos_ya') {
+        // 🍕 PEDIDOS YA: Generar boleta SII con identificación especial
+        this.typeCreateTicket = 'boleta';
+        this.ticketData.paymentMethod = 'pedidos_ya';
+        this.ticketData.paymentDescription = 'Pedidos Ya - Boleta SII';
+        this.ticketData.pedidosYaOrder = true;
+        this.ticketData.specialPaymentType = 'pedidos_ya';
+        
+        console.log('🍕 PEDIDOS YA - Datos configurados:', {
+          typeCreateTicket: this.typeCreateTicket,
+          paymentMethod: this.ticketData.paymentMethod,
+          paymentDescription: this.ticketData.paymentDescription,
+          pedidosYaOrder: this.ticketData.pedidosYaOrder
+        });
+      } else if (val === 'rappi') {
+        // 🛵 RAPPI: Generar boleta SII con identificación especial
+        this.typeCreateTicket = 'boleta';
+        this.ticketData.paymentMethod = 'rappi';
+        this.ticketData.paymentDescription = 'Rappi - Boleta SII';
+        this.ticketData.rappiOrder = true;
+        this.ticketData.specialPaymentType = 'rappi';
+        
+        console.log('🛵 RAPPI - Datos configurados:', {
+          typeCreateTicket: this.typeCreateTicket,
+          paymentMethod: this.ticketData.paymentMethod,
+          paymentDescription: this.ticketData.paymentDescription,
+          rappiOrder: this.ticketData.rappiOrder
+        });
       } else if (val === 'fagotto_10') {
         // 🎯 FAGOTTO 10%: Generar boleta SII con descuento
         this.typeCreateTicket = 'boleta';
         console.log('🎯 FAGOTTO 10% - Configurado para generar boleta SII:', {
-          typeCreateTicket: this.typeCreateTicket,
-          specialPayment: this.ticketData.specialPayment
-        });
-      } else if (val === 'halloween_20') {
-        // 🎃 HALLOWEEN 20%: Generar boleta SII con descuento
-        this.typeCreateTicket = 'boleta';
-        console.log('🎃 HALLOWEEN 20% - Configurado para generar boleta SII:', {
           typeCreateTicket: this.typeCreateTicket,
           specialPayment: this.ticketData.specialPayment
         });
@@ -658,7 +647,7 @@ export default {
       this.productoSend = [];
       this.ticketDescription = '';
       this.clientTicket = '',
-        this.total = null;
+      this.total = null;
       this.gananciaTotal = null;
       $('#createTicket').modal('hide');
       $('#modalCatalog').modal('hide');

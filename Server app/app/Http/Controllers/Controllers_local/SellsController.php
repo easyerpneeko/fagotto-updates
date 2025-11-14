@@ -94,8 +94,8 @@ class SellsController extends Controller
       }
     }
 
-    // 🚀 FIX UBER EATS: Si es Uber Eats, NO usar paymode = 'boleta'
-    if (isset($_request['other_type']) && ($_request['other_type'] === 'uber_eats' || $_request['other_type'] === 'uber')) {
+    // 🚀 FIX UBER EATS: Si es Uber Eats, Rappi o Pedidos Ya, NO usar paymode = 'boleta'
+    if (isset($_request['other_type']) && in_array($_request['other_type'], ['uber_eats', 'uber', 'rappi', 'pedidos_ya'])) {
         $_request['paymode'] = $_request['other_type'];
     }
 
@@ -264,14 +264,14 @@ class SellsController extends Controller
 
     if (!isset($_request['fecha'])) $_request['fecha'] = $request['fecha'];
 
-    // 🚀 FIX UBER EATS: Si es Uber Eats, NO usar paymode = 'boleta'
-    // Usar paymode = 'uber_eats' para que aparezca en reportes correctamente
-    if (isset($_request['other_type']) && ($_request['other_type'] === 'uber_eats' || $_request['other_type'] === 'uber')) {
-        $_request['paymode'] = $_request['other_type']; // Usar 'uber_eats' o 'uber' como paymode
-        \Log::info('🚀 FIX UBER - Ajustando paymode para reportes:', [
+    // 🚀 FIX UBER EATS, RAPPI, PEDIDOS YA: Si es Uber Eats, Rappi o Pedidos Ya, NO usar paymode = 'boleta'
+    // Usar paymode = 'uber_eats'/'rappi'/'pedidos_ya' para que aparezca en reportes correctamente
+    if (isset($_request['other_type']) && in_array($_request['other_type'], ['uber_eats', 'uber', 'rappi', 'pedidos_ya'])) {
+        $_request['paymode'] = $_request['other_type']; // Usar 'uber_eats', 'uber', 'rappi' o 'pedidos_ya' como paymode
+        \Log::info('🚀 FIX PAYMENT - Ajustando paymode para reportes:', [
             'other_type' => $_request['other_type'],
             'paymode_nuevo' => $_request['paymode'],
-            'uber_payment_info' => $_request['uber_payment_info'] ?? 'no disponible'
+            'payment_info' => $_request[($_request['other_type'] ?? 'uber') . '_payment_info'] ?? 'no disponible'
         ]);
     }
 

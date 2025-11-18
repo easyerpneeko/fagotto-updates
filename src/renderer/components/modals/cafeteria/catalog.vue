@@ -72,6 +72,21 @@
                     </div>
                     <div class="category-glow"></div>
                   </button>
+                  
+                  <!-- Botón especial Gelateria -->
+                  <button 
+                    v-if="gelateriaActive"
+                    @click="openGelateria"
+                    class="category-btn category-btn-special">
+                    <div class="category-icon">
+                      <i class="fas fa-ice-cream"></i>
+                    </div>
+                    <span class="category-name">Gelateria</span>
+                    <div class="category-arrow">
+                      <i class="fas fa-chevron-right"></i>
+                    </div>
+                    <div class="category-glow"></div>
+                  </button>
                 </div>
               </div>
             </div>
@@ -320,6 +335,7 @@
     <modalVerify :propVerify="propVerify" @refreshData="refreshData" />
     <ticket :typeCreateTicket="typeCreateTicket" v-model="ticketData" @changeValue="changeValue"
       @closeModal="closeModal" />
+    <venta-copas @addCopa="handleAddCopa" />
   </div>
 </template>
 
@@ -329,6 +345,7 @@ import customTable from '@/components/tables/table.vue';
 import cardProductOrders from '@/components/cards/card_product_orders.vue';
 import ticket from '@/components/modals/cafeteria/createTicket.vue';
 import modalVerify from '@/components/modals/verifyDelete.vue';
+import ventaCopas from '@/components/modals/cafeteria/ventaCopas.vue';
 
 // Helpers y plugins
 import ConfigHelper from '@/helpers/ConfigHelper.js';
@@ -367,6 +384,8 @@ export default {
       // Datos para método de pago especial Banco De Chile 20%
       chileTime: null,
       isSpecialPaymentDay: false,
+      // Estado del módulo Gelateria
+      gelateriaActive: true, // Activado por defecto hasta implementar backend
       jsonTable: {
         btn: true,
         items: [],
@@ -391,6 +410,7 @@ export default {
     modalVerify,
     ticket,
     customTable,
+    ventaCopas,
   },
   mounted() {
     //HavePermission
@@ -399,6 +419,9 @@ export default {
     
     // Verificar la hora de Chile para el método de pago especial
     this.checkChileTime();
+    
+    // Verificar el estado del módulo Gelateria
+    this.checkGelateriaStatus();
     
     // Verificar la hora cada 5 minutos por si cambia el día
     setInterval(() => {
@@ -765,6 +788,75 @@ export default {
       }else{
         this.promo_active = false;
       }
+    },
+
+    // Verificar estado del módulo Gelateria
+    async checkGelateriaStatus() {
+      try {
+        console.log('🔍 Consultando estado de Gelateria...');
+        const response = await this.$Connection.getHttp(`${this.$Connection.route}/local/gelateria/status`);
+        console.log('📡 Respuesta Gelateria:', response);
+        
+        if (response.ok && response.data) {
+          this.gelateriaActive = response.data.is_active || false;
+          console.log('🍦 Estado Gelateria:', this.gelateriaActive);
+        } else {
+          console.warn('⚠️ Respuesta no válida, usando valor por defecto (true)');
+          this.gelateriaActive = true; // Mantener visible si falla
+        }
+      } catch (error) {
+        console.error('❌ Error al verificar estado de Gelateria:', error);
+        this.gelateriaActive = true; // Mantener visible si falla
+      }
+    },
+
+    // Abrir modal de Gelateria
+    openGelateria() {
+      $('#modalVentaCopas').modal('show');
+    },
+
+    // Manejar adición de copa desde modal ventaCopas
+    handleAddCopa(copaData) {
+      console.log('🍦 Datos recibidos de ventaCopas:', copaData);
+      
+      // Determinar si es un producto de categoría o copa personalizada
+      const isProductoCatalogo = copaData.id && copaData.type === 'copa_producto';
+      
+      if (isProductoCatalogo) {
+        // Es un producto del catálogo (categoria 55, 56, 57)
+        this.quantityAdd({
+          id: copaData.id,
+          name: copaData.name,
+          price: parseFloat(copaData.price),
+          promo_price: copaData.promo_price ? parseFloat(copaData.promo_price) : null,
+          quantity: 1,
+          prices: copaData.prices || [],
+          cecina: copaData.cecina || false,
+          ganancia: copaData.ganancia || 0,
+          category: copaData.category || null
+        });
+      } else {
+        // Es una copa personalizada (sistema antiguo de sabores)
+        this.quantityAdd({
+          id: `copa_${Date.now()}`,
+          name: copaData.name,
+          price: parseFloat(copaData.price),
+          promo_price: null,
+          quantity: 1,
+          prices: [{ price: parseFloat(copaData.price) }],
+          cecina: false,
+          is_copa: true,
+          copa_details: {
+            size: copaData.size,
+            flavors: copaData.flavors
+          }
+        });
+      }
+
+      console.log('✅ Producto agregado al carrito');
+      
+      // NO cerrar el modal - dejar que ventaCopas.vue lo maneje
+      // $('#modalVentaCopas').modal('hide');
     },
 
     search(input) {

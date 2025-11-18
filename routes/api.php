@@ -88,6 +88,11 @@ Route::group(['middleware' => ['JwtMiddleware']], function () {
   Route::put('/ingredient/{id}', 'GlobalIngredientController@update');
   Route::get('/ingredients', 'GlobalIngredientController@index');
 
+  // Configuración Gelateria (Admin)
+  Route::get('/gelateria/config', 'Admin\GelateriaConfigController@index');
+  Route::post('/gelateria/config/update', 'Admin\GelateriaConfigController@update');
+  Route::get('/gelateria/status', 'Admin\GelateriaConfigController@getStatus');
+
   // Folios
   Route::post('/folios/{id}', 'SIIController@readXML');
   Route::get('/folios/{id}', 'SIIController@getFolios');
@@ -231,6 +236,9 @@ Route::group(['middleware' => ['AppSecurity']], function () {
   // 🎃 APIs de Descuentos para el POS (solo requieren App-Key, no JWT)
   Route::get('/local/discount/branch/{applicationId}', 'Controllers_local\ProductDiscountController@getActiveDiscountsByBranch');
   Route::post('/local/discount/check', 'Controllers_local\ProductDiscountController@checkProductDiscount');
+
+  // 🍦 API de Gelateria para el POS (solo requiere App-Key, no JWT)
+  Route::get('/local/gelateria/status', 'Admin\GelateriaConfigController@getStatus');
 
   Route::group(['middleware' => ['JwtMiddleware']], function () {
 

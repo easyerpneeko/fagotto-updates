@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciando TOTEM...</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .loader-container {
+      text-align: center;
+      color: white;
+    }
+
+    .logo {
+      width: 150px;
+      height: 150px;
+      margin: 0 auto 30px;
+      background: white;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      font-weight: bold;
+      color: #667eea;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 15px;
+      font-weight: 300;
+      letter-spacing: 2px;
+    }
+
+    .loading-text {
+      font-size: 18px;
+      opacity: 0.9;
+      margin-bottom: 30px;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      margin: 0 auto;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .status {
+      margin-top: 20px;
+      font-size: 14px;
+      opacity: 0.7;
+      font-style: italic;
+    }
+
+    .error-message {
+      display: none;
+      background: rgba(255,255,255,0.2);
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 30px;
+      max-width: 500px;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .retry-button {
+      margin-top: 20px;
+      padding: 12px 30px;
+      background: white;
+      color: #667eea;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .retry-button:hover {
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="loader-container">
+    <div class="logo">🍰</div>
+    <h1>TOTEM FAGOTTO</h1>
+    <div class="loading-text">Iniciando sistema de pagos...</div>
+    <div class="spinner"></div>
+    <div class="status" id="status">Conectando con servidor PHP...</div>
+    
+    <div class="error-message" id="error">
+      <p>⚠️ No se pudo conectar con el servidor</p>
+      <button class="retry-button" onclick="location.reload()">Reintentar</button>
+    </div>
+  </div>
+
+  <script>
+    let retryCount = 0;
+    const maxRetries = 10;
+
+    function updateStatus(message) {
+      document.getElementById('status').textContent = message;
+    }
+
+    function showError() {
+      document.getElementById('error').classList.add('show');
+      document.querySelector('.spinner').style.display = 'none';
+    }
+
+    async function checkServer() {
+      try {
+        const response = await fetch('/totem.html', { method: 'HEAD' });
+        if (response.ok) {
+          updateStatus('✅ Conexión establecida, cargando aplicación...');
+          setTimeout(() => {
+            window.location.href = '/totem.html';
+          }, 500);
+        } else {
+          throw new Error('Servidor no disponible');
+        }
+      } catch (error) {
+        retryCount++;
+        if (retryCount < maxRetries) {
+          updateStatus(`Reintentando conexión (${retryCount}/${maxRetries})...`);
+          setTimeout(checkServer, 1000);
+        } else {
+          updateStatus('❌ Error de conexión');
+          showError();
+        }
+      }
+    }
+
+    // Iniciar verificación
+    setTimeout(checkServer, 1500);
+  </script>
+</body>
+</html>

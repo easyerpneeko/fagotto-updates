@@ -1,0 +1,34 @@
+# Dependencias de Composer
+/vendor/
+composer.lock
+
+# Configuración local
+.env
+
+# Archivos de almacenamiento
+/storage/tokens/*.json
+/storage/logs/*.log
+/storage/notifications/*.json
+
+# Mantener directorios vacíos
+!storage/tokens/.gitkeep
+!storage/logs/.gitkeep
+!storage/notifications/.gitkeep
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-*
+*.swp
+*.swo
+*~
+
+# Archivos temporales
+*.tmp
+*.bak
+*.cache

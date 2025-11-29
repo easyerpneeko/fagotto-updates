@@ -741,105 +741,75 @@ class StringXML {
         }
       }
 
-      $precioVaso = 0;
-
-      //Eliminar los "vasos de la formula"
-      foreach ($products as $key => $value) {
-        if ($value->id == 1) { 
-          //Guardamos el precio del vaso
-          $precioVaso = $value->price;
-          //Eliminamos el vaso de la lista de productos
-          unset($products[$key]); }
-      }
-
-      // Determinar si el pedido tiene solo salsas ALFREDO/BOLOÑESA
-      $soloAlfredoBolonesa = true;
-      $tieneSalsas = false;
+      // Paso 1: Calcular el total de todos los productos y contar productos
+      $totalGeneral = 0;
+      $cantidadProductos = 0;
       
       foreach ($products as $value) {
-        if ($value->category === 2) { // Solo evaluar salsas
-          $tieneSalsas = true;
-          if ($value->name !== 'ALFREDO' && $value->name !== 'BOLOÑESA') {
-            $soloAlfredoBolonesa = false;
-            break;
-          }
+        // Saltar el vaso (id=1) ya que su costo se distribuye
+        if ($value->id == 1) {
+          continue;
+        }
+        // Contar solo productos que forman la fórmula (salsas, queso, huevos, harina)
+        // Excluir opcionales (category 3)
+        if ($value->category !== 3) {
+          $totalGeneral += $value->costo;
+          $cantidadProductos++;
         }
       }
       
-      // Si no hay salsas en el pedido, usar precio normal
-      if (!$tieneSalsas) {
-        $soloAlfredoBolonesa = false;
-      }
-
+      // Paso 2: Calcular el monto que le corresponde a cada producto
+      $montoPorProducto = $cantidadProductos > 0 ? round($totalGeneral / $cantidadProductos, 2) : 0;
+      
       $XML_DETALLE = '';
-      // Varibles para los calculos y el xml
       $i = 1;
-      $subtotal = '0'; // Inicializar como string para precisión decimal
+      $subtotal = 0;
 
-      // Pasamos los items al detalle solo nombre y cantidad
+      // Paso 3: Generar detalle con el monto equitativo
       foreach ($products as $key => $value) {
-        // eliminar los vasos de los productos
-
-        
-        //Cant productos que conforman la formula Vaso (Salsa,Queso,Huevo,Harina) = 4;
-        $cantidadProd = 4;
-
-        // Si el pedido tiene solo ALFREDO/BOLOÑESA, usar precio 1508, sino usar precio normal 1875
-        if ($soloAlfredoBolonesa) {
-          $montoPorcentaje = 1508 / $cantidadProd;  // 377 para cada producto
-        } else {
-          $montoPorcentaje = $precioVaso / $cantidadProd;  // 25% para cada producto
+        // Saltar el vaso
+        if ($value->id == 1) {
+          continue;
         }
-        
-        //Salsas
-        if($value->category === 2){
-          // Si el pedido tiene solo ALFREDO/BOLOÑESA, todos usan 377
-          if ($soloAlfredoBolonesa || $value->name === 'ALFREDO' || $value->name === 'BOLOÑESA') {
-              $unitario = 377; // 1508 ÷ 4 = 377
-          } else {
-              $unitario = round($montoPorcentaje, 2); // 468.75 para otras salsas
-          }
+
+        // Calcular cantidad según categoría
+        if ($value->category === 2) {
+          // Salsas: cantidad = vasos
           $quantity = $value->vasos;
-          $total = round($value->vasos * $unitario);
-
-        //$value->price, esta variable contiene la cantidad que lleva la formula 22gr o 27gr
-
-        //Por kilos Queso , separo el queso para pasar el monto a kilos
-        }else if($value->id == 5){
-          
-          $unitario = round($montoPorcentaje, 2);
-          $quantity = (($value->quantity*1000)/$value->price);
-          $total = round($quantity * $unitario);
-        //Por kilos harina
-        }else if($value->id == 9 ){
-          $unitario = round($montoPorcentaje, 2);
-          $quantity = ($value->quantity*$value->price);
-          $total = round($quantity * $unitario);
-        //Opcionales 
-        }else if($value->category === 3){
-          $unitario = round($value->compra);
+        } else if ($value->category === 3) {
+          // Opcionales: usar su costo real
           $quantity = $value->quantity;
-          $total = round($quantity * $unitario);
-
-        //Por unidad 
-        }else if($value->category === 1){
-          $unitario = round($montoPorcentaje * $value->price, 2); // precio unitario por item completo
-          $quantity = $value->quantity; // cantidad real de items
-          $total = round($quantity * $unitario);
+          $montoPorProducto = $value->costo; // Opcionales usan su costo real
+        } else if ($value->id == 5) {
+          // Queso: por kilos
+          $quantity = round(($value->quantity * 1000) / $value->price, 2);
+        } else if ($value->id == 9) {
+          // Harina
+          $quantity = $value->quantity * $value->price;
+        } else if ($value->category === 1) {
+          // Por unidad (huevos, etc)
+          $quantity = $value->quantity;
+        } else {
+          // Default
+          $quantity = $value->quantity;
         }
 
-        $XML_DETALLE .= Self::DetallePedido(
-                                            [ 'nombre'=>$value->name,
-                                              'i'=>$i,
-                                              'cantidad'=>$quantity,
-                                              'precio'=>floatval($unitario),
-                                              'total'=>floatval($total)
-                                            ]
-                                          );
+        // Total para este producto
+        $total = $value->category === 3 ? $value->costo : $montoPorProducto;
+        
+        // Precio unitario
+        $unitario = $quantity > 0 ? round($total / $quantity, 2) : 0;
+
+        $XML_DETALLE .= Self::DetallePedido([
+          'nombre' => $value->name,
+          'i' => $i,
+          'cantidad' => $quantity,
+          'precio' => $unitario,
+          'total' => round($total)
+        ]);
 
         $i++;
-        $subtotal = bcadd($subtotal, $total, 2); // Sumar con precisión
-
+        $subtotal += round($total);
       }
         
       $montoDespacho = (isset($pedido->despacho) && $pedido->despacho != 0) ? $pedido->despacho : '0.00';

@@ -180,6 +180,12 @@ class SettingsTableSeeder extends Seeder
           "keyname"=> "enter_para_buscar",
           "module_id" => DB::table("modules")->where('keyname','ventas')->first()->id
         ]);
+        // Permitir cupones de descuento
+        DB::table("settings_modules")->insert([
+          "name"=> "Cupón",
+          "keyname"=> "cupon",
+          "module_id" => DB::table("modules")->where('keyname','cafeteria')->first()->id
+        ]);
         /*
           INSERT INTO `settings_modules`
           (`id`, `name`, `keyname`, `module_id`, `env_vars`, `created_at`, `updated_at`)

@@ -34,6 +34,11 @@
               <i class="fas fa-star"></i>
               <span>-10%</span>
             </div>
+            <!-- Botón de Cupón -->
+            <button v-if="cuponInstalled" type="button" class="btn-cupon" @click="openCupon" title="Aplicar cupón de descuento">
+              <i class="fas fa-ticket-alt"></i>
+              <span>Cupón</span>
+            </button>
             <button type="button" class="btn-close" @click="closeModal(false)" aria-label="Close">
               <i class="fas fa-times"></i>
             </button>
@@ -47,6 +52,29 @@
             <!-- Sidebar de categorías con animaciones -->
             <div v-if="(categoriesInstalled && Allcategories && Allcategories.length > 0)"
               class="categories-sidebar">
+              
+              <!-- Buscador de productos -->
+              <div class="search-box-sidebar">
+                <i class="fas fa-search search-icon"></i>
+                <input 
+                  v-model="productSearch" 
+                  type="text" 
+                  class="search-input" 
+                  :placeholder="searchPlaceholder"
+                  @keyup.enter="search(productSearch)"
+                  @focus="stopPlaceholderRotation"
+                  @blur="startPlaceholderRotation"
+                />
+                <button v-if="productSearch" @click="productSearch = ''" class="clear-search" title="Limpiar búsqueda">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <!-- Mensaje informativo animado -->
+              <div class="search-info-banner">
+                <i class="fas fa-lightbulb"></i>
+                <span>¡Ahora puedes buscar productos! 🔍</span>
+              </div>
               
               <div class="categories-section">
                 <div class="categories-header">
@@ -74,8 +102,8 @@
                   </button>
                   
                   <!-- Botón especial Gelateria -->
-                  <button 
-                    v-if="gelateriaActive"
+                  <button
+                    v-if="gelateriaInstalled"
                     @click="openGelateria"
                     class="category-btn category-btn-special">
                     <div class="category-icon">
@@ -335,7 +363,9 @@
     <modalVerify :propVerify="propVerify" @refreshData="refreshData" />
     <ticket :typeCreateTicket="typeCreateTicket" v-model="ticketData" @changeValue="changeValue"
       @closeModal="closeModal" />
-    <venta-copas @addCopa="handleAddCopa" />
+    <venta-copas :products="products" @addCopa="handleAddCopa" />
+    <modal-cupon @abrir-seleccion="abrirModalSeleccion" />
+    <modal-seleccion-cupon ref="modalSeleccionCupon" @producto-seleccionado="agregarProductoCupon" />
   </div>
 </template>
 
@@ -346,6 +376,8 @@ import cardProductOrders from '@/components/cards/card_product_orders.vue';
 import ticket from '@/components/modals/cafeteria/createTicket.vue';
 import modalVerify from '@/components/modals/verifyDelete.vue';
 import ventaCopas from '@/components/modals/cafeteria/ventaCopas.vue';
+import modalCupon from '@/components/modals/cafeteria/modalCupon.vue';
+import modalSeleccionCupon from '@/components/modals/cafeteria/modalSeleccionCupon.vue';
 
 // Helpers y plugins
 import ConfigHelper from '@/helpers/ConfigHelper.js';
@@ -372,6 +404,17 @@ export default {
       filters: ['name', 'barcode'],
       total: 0,
       timeoutT: null,
+      // Placeholders rotativos para el buscador
+      searchPlaceholders: [
+        'Buscar producto...',
+        'Prueba: Red Bull 🦅',
+        'La bebida de Jimmy 😎',
+        'Buscar por nombre...',
+        'Buscar por código...'
+      ],
+      currentPlaceholderIndex: 0,
+      placeholderInterval: null,
+      searchPlaceholder: 'Buscar producto...',
       gananciaTotal: null,
       propVerify: null,
       order: false,
@@ -384,8 +427,6 @@ export default {
       // Datos para método de pago especial Banco De Chile 20%
       chileTime: null,
       isSpecialPaymentDay: false,
-      // Estado del módulo Gelateria
-      gelateriaActive: true, // Activado por defecto hasta implementar backend
       jsonTable: {
         btn: true,
         items: [],
@@ -411,6 +452,8 @@ export default {
     ticket,
     customTable,
     ventaCopas,
+    modalCupon,
+    modalSeleccionCupon,
   },
   mounted() {
     //HavePermission
@@ -420,8 +463,8 @@ export default {
     // Verificar la hora de Chile para el método de pago especial
     this.checkChileTime();
     
-    // Verificar el estado del módulo Gelateria
-    this.checkGelateriaStatus();
+    // Iniciar rotación de placeholders
+    this.startPlaceholderRotation();
     
     // Verificar la hora cada 5 minutos por si cambia el día
     setInterval(() => {
@@ -429,6 +472,38 @@ export default {
     }, 300000); // 5 minutos = 300,000 ms
   },
   methods: {
+    // Abrir modal de cupón
+    openCupon() {
+      $('#modalCupon').modal('show');
+    },
+    
+    // Abrir modal de selección después de validar cupón
+    abrirModalSeleccion(cuponData) {
+      console.log('🎫 Cupón válido, abriendo modal de selección:', cuponData);
+      this.$refs.modalSeleccionCupon.openModal(cuponData);
+    },
+    
+    // Agregar producto con cupón al carrito
+    agregarProductoCupon(producto) {
+      console.log('✅ Producto con cupón:', producto);
+      this.quantityAdd(producto);
+    },
+
+    // Métodos para placeholder rotativo
+    startPlaceholderRotation() {
+      this.placeholderInterval = setInterval(() => {
+        this.currentPlaceholderIndex = (this.currentPlaceholderIndex + 1) % this.searchPlaceholders.length;
+        this.searchPlaceholder = this.searchPlaceholders[this.currentPlaceholderIndex];
+      }, 3000); // Cambia cada 3 segundos
+    },
+
+    stopPlaceholderRotation() {
+      if (this.placeholderInterval) {
+        clearInterval(this.placeholderInterval);
+        this.placeholderInterval = null;
+      }
+    },
+
     // tickets (require board)
 
     //JC FECHA 2022-12-14
@@ -790,26 +865,6 @@ export default {
       }
     },
 
-    // Verificar estado del módulo Gelateria
-    async checkGelateriaStatus() {
-      try {
-        console.log('🔍 Consultando estado de Gelateria...');
-        const response = await this.$Connection.getHttp(`${this.$Connection.route}/local/gelateria/status`);
-        console.log('📡 Respuesta Gelateria:', response);
-        
-        if (response.ok && response.data) {
-          this.gelateriaActive = response.data.is_active || false;
-          console.log('🍦 Estado Gelateria:', this.gelateriaActive);
-        } else {
-          console.warn('⚠️ Respuesta no válida, usando valor por defecto (true)');
-          this.gelateriaActive = true; // Mantener visible si falla
-        }
-      } catch (error) {
-        console.error('❌ Error al verificar estado de Gelateria:', error);
-        this.gelateriaActive = true; // Mantener visible si falla
-      }
-    },
-
     // Abrir modal de Gelateria
     openGelateria() {
       $('#modalVentaCopas').modal('show');
@@ -921,8 +976,13 @@ export default {
       }
       this.productoSend.push(data);
       this.jsonTable.items = this.productoSend;
-      // Ejecuto #calculatePlus ✅
-      this.calculatePlus(i, data, (this.priceUnitaryInstalled) ? true : false);
+      // Ejecuto #calculatePlus ✅ (skip para productos con cupón)
+      if (!data.has_cupon) {
+        this.calculatePlus(i, data, (this.priceUnitaryInstalled) ? true : false);
+      } else {
+        // Para productos con cupón, recalcular total directamente
+        this.calculateTotal();
+      }
     },
 
     quantityAdd(data) { //#fere-warp1
@@ -1447,6 +1507,18 @@ export default {
       }
     },
 
+    cuponInstalled: { 
+      get() { 
+        return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.cupon'); 
+      } 
+    },
+
+    gelateriaInstalled: { 
+      get() { 
+        return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.gelateria'); 
+      } 
+    },
+
     filteredList: {
       get() {
         clearTimeout(this.timeoutT);
@@ -1510,6 +1582,11 @@ export default {
         };
       }
     },
+  },
+  
+  beforeDestroy() {
+    // Limpiar intervalo de placeholders
+    this.stopPlaceholderRotation();
   },
 }
 </script>

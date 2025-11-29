@@ -256,6 +256,12 @@ import FormatNumber from '@/helpers/FormatNumber.js';
 
 export default {
   name: 'VentaCopas',
+  props: {
+    products: {
+      type: Array,
+      default: () => []
+    }
+  },
   data() {
     return {
       selectedOption: null, // 'copas', 'barquillos', 'postres', 'extras'
@@ -343,117 +349,30 @@ export default {
     },
 
     // Cargar productos de la categoría ID 55 (Copas)
-    async loadCopaProducts() {
-      console.log('🚀 Iniciando carga de productos de Copas...');
-      this.loading = true;
-      try {
-        const response = await this.$store.dispatch('products/getProductsOfSell2');
-        console.log('📦 Respuesta del store:', response);
-        
-        if (response.success) {
-          // Filtrar productos de la categoría 55 (Copas) - MISMO PATRÓN QUE catalog.vue
-          const filteredProducts = response.data.filter(product => {
-            if (product.category == 55) {
-              return product;
-            }
-            return false;
-          });
-          
-          // Usar $set para forzar reactividad
-          this.$set(this, 'copaProducts', filteredProducts);
-          
-          console.log('🍦 Productos de Copas (categoría 55):', this.copaProducts);
-          console.log('📋 Total productos cargados:', response.data.length);
-          console.log('✅ Loading set to false');
-        } else {
-          console.error('❌ Response.success es false');
-        }
-      } catch (error) {
-        console.error('❌ Error cargando productos de copas:', error);
-        this.$awn.alert('Error al cargar los productos');
-      } finally {
-        this.loading = false;
-        console.log('🏁 Finally ejecutado - loading:', this.loading);
-        console.log('🏁 copaProducts.length:', this.copaProducts.length);
-        // Forzar actualización de Vue
-        this.$forceUpdate();
-      }
+    loadCopaProducts() {
+      console.log('🚀 Filtrando productos de Copas desde props...');
+      // Filtrar productos de la categoría 55 (Copas)
+      const filteredProducts = this.products.filter(product => product.category == 55);
+      this.$set(this, 'copaProducts', filteredProducts);
+      console.log('🍦 Productos de Copas (categoría 55):', this.copaProducts);
     },
 
     // Cargar productos de la categoría ID 56 (Barquillos)
-    async loadBarquilloProducts() {
-      console.log('🚀 Iniciando carga de productos de Barquillos...');
-      this.loading = true;
-      try {
-        const response = await this.$store.dispatch('products/getProductsOfSell2');
-        console.log('📦 Respuesta del store:', response);
-        
-        if (response.success) {
-          // Filtrar productos de la categoría 56 (Barquillos)
-          const filteredProducts = response.data.filter(product => {
-            if (product.category == 56) {
-              return product;
-            }
-            return false;
-          });
-          
-          // Usar $set para forzar reactividad
-          this.$set(this, 'barquilloProducts', filteredProducts);
-          
-          console.log('🍪 Productos de Barquillos (categoría 56):', this.barquilloProducts);
-          console.log('📋 Total productos cargados:', response.data.length);
-          console.log('✅ Loading set to false');
-        } else {
-          console.error('❌ Response.success es false');
-        }
-      } catch (error) {
-        console.error('❌ Error cargando productos de barquillos:', error);
-        this.$awn.alert('Error al cargar los productos');
-      } finally {
-        this.loading = false;
-        console.log('🏁 Finally ejecutado - loading:', this.loading);
-        console.log('🏁 barquilloProducts.length:', this.barquilloProducts.length);
-        // Forzar actualización de Vue
-        this.$forceUpdate();
-      }
+    loadBarquilloProducts() {
+      console.log('🚀 Filtrando productos de Barquillos desde props...');
+      // Filtrar productos de la categoría 56 (Barquillos)
+      const filteredProducts = this.products.filter(product => product.category == 56);
+      this.$set(this, 'barquilloProducts', filteredProducts);
+      console.log('🍪 Productos de Barquillos (categoría 56):', this.barquilloProducts);
     },
 
     // Cargar productos de la categoría ID 57 (Postres)
-    async loadPostreProducts() {
-      console.log('🚀 Iniciando carga de productos de Postres...');
-      this.loading = true;
-      try {
-        const response = await this.$store.dispatch('products/getProductsOfSell2');
-        console.log('📦 Respuesta del store:', response);
-        
-        if (response.success) {
-          // Filtrar productos de la categoría 57 (Postres)
-          const filteredProducts = response.data.filter(product => {
-            if (product.category == 57) {
-              return product;
-            }
-            return false;
-          });
-          
-          // Usar $set para forzar reactividad
-          this.$set(this, 'postreProducts', filteredProducts);
-          
-          console.log('🎂 Productos de Postres (categoría 57):', this.postreProducts);
-          console.log('📋 Total productos cargados:', response.data.length);
-          console.log('✅ Loading set to false');
-        } else {
-          console.error('❌ Response.success es false');
-        }
-      } catch (error) {
-        console.error('❌ Error cargando productos de postres:', error);
-        this.$awn.alert('Error al cargar los productos');
-      } finally {
-        this.loading = false;
-        console.log('🏁 Finally ejecutado - loading:', this.loading);
-        console.log('🏁 postreProducts.length:', this.postreProducts.length);
-        // Forzar actualización de Vue
-        this.$forceUpdate();
-      }
+    loadPostreProducts() {
+      console.log('🚀 Filtrando productos de Postres desde props...');
+      // Filtrar productos de la categoría 57 (Postres)
+      const filteredProducts = this.products.filter(product => product.category == 57);
+      this.$set(this, 'postreProducts', filteredProducts);
+      console.log('🎂 Productos de Postres (categoría 57):', this.postreProducts);
     },
 
     // Agregar producto del catálogo al carrito
@@ -521,25 +440,12 @@ export default {
     },
 
     // Cargar productos de la categoría ID 58 (Extras)
-    async loadExtrasProducts() {
-      this.loading = true;
-      try {
-        const response = await this.$store.dispatch('products/getProductsOfSell2');
-        if (response.success) {
-          this.extrasProducts = response.data.filter(product => {
-            if (product.category == 58) {
-              return product;
-            }
-            return false;
-          });
-          console.log('🍓 Productos de Extras (categoría 58):', this.extrasProducts);
-        }
-      } catch (error) {
-        console.error('Error cargando productos de extras:', error);
-        this.$awn.alert('Error al cargar los productos');
-      } finally {
-        this.loading = false;
-      }
+    loadExtrasProducts() {
+      console.log('🚀 Filtrando productos de Extras desde props...');
+      // Filtrar productos de la categoría 58 (Extras)
+      const filteredProducts = this.products.filter(product => product.category == 58);
+      this.$set(this, 'extrasProducts', filteredProducts);
+      console.log('🍓 Productos de Extras (categoría 58):', this.extrasProducts);
     },
     
     selectSize(size) {

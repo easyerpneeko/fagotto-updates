@@ -287,6 +287,7 @@ export default {
       if(modalAddtion) $('#addtionWaiter').modal('show');
       else $('#modalAssignWaiter').modal('show');
     },
+
     tiempo_en_ocupacion(board) {
       console.log("[BOARD]waiter:",board.waiter)
       if (board.waiter === null) {
@@ -343,6 +344,7 @@ export default {
     cafeteriaInstalled:           { get(){ return ConfigHelper.ConfStr('modulos.cafeteria'); } },
     waiters:                      { get(){ return this.$store.getters['waiters/getAllWaiters'] }},
     addtionsWaitersInstalled:     { get(){ return ConfigHelper.ConfStr('modulos.cafeteria.submodulos.additions_waiter'); } },
+    cuponInstalled:               { get(){ return true; } }, // Siempre activo - cambiar a false para desactivar
     isGarzonModeEnabled:          { get(){ return ConfigHelper.ConfStr('modulos.cafeteria.submodulos.garzon_mode'); } },
     desactivarMesasByGarzonMode:  { get(){ return ConfigHelper.ConfStr('modulos.cafeteria.submodulos.garzon_mode.ajustes.desactive_boards'); } },
     boardsChangeColor: { get(){ return ConfigHelper.ConfStr('modulos.cafeteria.ajustes.change_board_color'); } },

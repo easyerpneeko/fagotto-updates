@@ -215,6 +215,9 @@ Route::group(['middleware' => ['AppSecurity']], function () {
 
   Route::post('/local/login', 'Controllers_local\LoginLocal@login');
 
+  // Cupones de descuento (sin autenticación para validar desde el POS)
+  Route::post('/cupones/validar', 'CuponController@validar');
+  Route::post('/cupones/aplicar', 'CuponController@aplicar');
 
   Route::group(['middleware' => ['JwtMiddleware']], function () {
 

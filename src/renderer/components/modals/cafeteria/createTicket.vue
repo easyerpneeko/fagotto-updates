@@ -43,6 +43,7 @@ import FormatNumber from '@/helpers/FormatNumber.js';
 import Print from '@/helpers/Print.js';
 import Loader from '@/helpers/Loader';
 import ConfigHelper from '@/helpers/ConfigHelper.js';
+import Connection from '@/helpers/Connection.js';
 
 export default {
   components:{ customTable, modalClient },
@@ -92,8 +93,22 @@ export default {
       // Datos basicos
       console.log('createTicket ======1', this.value);
       console.log('createTicket ======2', this.type_sell);
+      
+      // 🎫 PREPARAR PRODUCTOS: Reemplazar IDs únicos con IDs reales para productos con cupón
+      const productsForBackend = this.value.products.map(product => {
+        if (product.has_cupon && product.product_id_real) {
+          // Producto con cupón: usar ID real para que el backend lo encuentre en la BD
+          console.log(`🎫 Reemplazando ID único "${product.id}" con ID real "${product.product_id_real}"`);
+          return {
+            ...product,
+            id: product.product_id_real // Reemplazar ID único con ID real
+          };
+        }
+        return product; // Productos normales sin cambios
+      });
+      
       let data = { //PD: maravillas del state less UwU
-        products: JSON.stringify(this.value.products),
+        products: JSON.stringify(productsForBackend),
         total: this.deFormatNumber(this.value.total, false),
         gananciaTotal: (this.gananciaInstalled) ? this.deFormatNumber(this.value.gananciaTotal,false) : 0,
         waiter_id: this.value.waiter_id,
@@ -455,6 +470,85 @@ export default {
       if (!request.success) {
         this.$awn.alert(request.data);
         return false;
+      }
+
+      // ✅ MARCAR CUPONES COMO USADOS DESPUÉS DE VENTA EXITOSA
+      const cuponesUsados = this.value.products.filter(p => p.has_cupon && p.cupon_codigo);
+      if (cuponesUsados.length > 0) {
+        console.log('🎫 Detectados cupones en la venta:', cuponesUsados);
+        
+        // ✅ Obtener datos ANTES del loop (una sola vez)
+        const currentUser = this.$store.getters['main/user'];
+        let appData = null;
+        try {
+          const appRequest = await this.$store.dispatch('main/refreshData', '?slim');
+          appData = appRequest.data;
+          console.log('🔍 DEBUG - appData:', appData);
+        } catch (e) {
+          console.error('❌ Error obteniendo appData:', e);
+        }
+        
+        console.log('🔍 DEBUG - currentUser:', currentUser);
+        
+        // Extraer datos una vez
+        const sucursalId = (appData && appData.Id) || null;
+        const sucursalNombre = (appData && (appData.name_public || appData.Name)) || 'Sin sucursal';
+        const usuarioId = (currentUser && currentUser.id) || null;
+        const usuarioNombre = (currentUser && currentUser.username) || 'Sin usuario';
+        
+        console.log('🔍 DEBUG - Datos extraídos:', { sucursalId, sucursalNombre, usuarioId, usuarioNombre });
+        
+        for (const producto of cuponesUsados) {
+          try {
+            
+            const cuponData = {
+              codigo: producto.cupon_codigo,
+              cupon_id: producto.cupon_id,
+              orden_id: request.data.order ? request.data.order.id : null,
+              
+              // ✅ Sucursal = App actual
+              sucursal_id: sucursalId,
+              sucursal_nombre: sucursalNombre,
+              
+              // ✅ Usuario = Usuario logueado
+              usuario_id: usuarioId,
+              usuario_nombre: usuarioNombre,
+              
+              categoria_id: producto.categoria_id,
+              categoria_nombre: producto.categoria_nombre,
+              producto_id: producto.producto_id,
+              producto_nombre: producto.producto_nombre,
+              precio_original: producto.precio_original,
+              precio_con_cupon: producto.price
+            };
+            
+            console.log('🎫 Marcando cupón como usado:', cuponData);
+            
+            // Llamar al backend para marcar como usado
+            try {
+              const url = 'https://posfagotto.cl/api/cupones/aplicar';
+              console.log('🎫 URL del endpoint:', url);
+              
+              const response = await Connection.fetch(url, 'POST', cuponData, null, false);
+              console.log('✅ Cupón marcado como usado en backend - Response completa:', response);
+              
+              if (response && response.ok && response.data && response.data.success) {
+                console.log('✅✅✅ CUPÓN ACTUALIZADO CORRECTAMENTE EN BD');
+                console.log('✅ Detalles:', response.data);
+              } else {
+                console.error('❌ Backend respondió pero sin success:', response);
+                console.error('❌ Mensaje de error:', response.data ? response.data.mensaje : 'Sin mensaje');
+                console.error('❌ Errores completos:', response.data);
+              }
+            } catch (err) {
+              console.error('⚠️ Error COMPLETO al marcar cupón:', err);
+            }
+            
+            console.log('✅ Cupón procesado (request enviado):', producto.cupon_codigo);
+          } catch (error) {
+            console.error('❌ Error al procesar cupón:', error);
+          }
+        }
       }
 
       if(this.turned_cafeteria && (this.type_sell == 'ticket_venta' || this.type_sell == 'boleta' || this.type_sell == 'factura' || this.type_sell == 'boleta_local' || this.type_sell == 'amipass' || this.type_sell == 'fagotto_10')){

@@ -28,6 +28,7 @@ import co_mobile_devices from './client_orders/mobile_devices';
 import cafeteria_kitchen from './cafeteria/kitchen';
 import clients from './clients';
 import guia from './guia';
+import metas from './metas';
 
 Vue.use(Vuex)
 export default new Vuex.Store({
@@ -49,7 +50,8 @@ export default new Vuex.Store({
     'cafeteria/kitchen': cafeteria_kitchen,
     'client_orders/mobile_devices': co_mobile_devices,
     clients,
-    guia
+    guia,
+    metas
   },
   plugins: [
     createPersistedState(),

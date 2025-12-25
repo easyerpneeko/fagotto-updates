@@ -89,7 +89,7 @@ function cardListOrden(prp) {
     else if (prp.category == 4) {
         return `<li class="list-group-item">
                 <div class="d-flex justify-content-between">
-                    <span>${prp.name}</span>   <b>${prp.name == "Queso" ? (prp.quantity * 1000) / 459 + ' Bolsas' : prp.quantity + 'kg'}</b>
+                    <span>${prp.name}</span>   <b>${prp.name == "Queso" ? Math.round((prp.quantity * 1000) / 459) + ' Bolsas' : prp.quantity + 'kg'}</b>
                 </div>                            
             </li>`
     } else {

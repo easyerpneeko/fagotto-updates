@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 const { autoUpdater } = require('electron-updater');
 const fs = require('fs');
 const path = require('path');
@@ -48,9 +48,86 @@ async function createMainWindow() {/**/
   })
 
   // Set The Menu to the Main Window
-  mainWindow.setMenuBarVisibility(false)
+  createApplicationMenu();
+  // mainWindow.setMenuBarVisibility(false)
 
 
+}
+
+function createApplicationMenu() {
+  const template = [
+    {
+      label: 'Archivo',
+      submenu: [
+        {
+          label: 'Crear Pedido',
+          accelerator: 'CmdOrCtrl+N',
+          click: () => {
+            if (mainWindow) {
+              mainWindow.webContents.send('navigate-to', 'crear-pedido');
+            }
+          }
+        },
+        {
+          label: 'Totem',
+          accelerator: 'CmdOrCtrl+T',
+          click: () => {
+            if (mainWindow) {
+              // Cargar la página del kiosko
+              const totemURL = process.env.NODE_ENV === 'development'
+                ? `http://localhost:9080/pages/kiosko_menu.html`
+                : `file://${__dirname}/pages/kiosko_menu.html`;
+              mainWindow.loadURL(totemURL);
+            }
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Salir',
+          accelerator: 'CmdOrCtrl+Q',
+          click: () => {
+            app.quit();
+          }
+        }
+      ]
+    },
+    {
+      label: 'Editar',
+      submenu: [
+        { label: 'Deshacer', accelerator: 'CmdOrCtrl+Z', role: 'undo' },
+        { label: 'Rehacer', accelerator: 'Shift+CmdOrCtrl+Z', role: 'redo' },
+        { type: 'separator' },
+        { label: 'Cortar', accelerator: 'CmdOrCtrl+X', role: 'cut' },
+        { label: 'Copiar', accelerator: 'CmdOrCtrl+C', role: 'copy' },
+        { label: 'Pegar', accelerator: 'CmdOrCtrl+V', role: 'paste' }
+      ]
+    },
+    {
+      label: 'Ver',
+      submenu: [
+        { label: 'Recargar', accelerator: 'CmdOrCtrl+R', role: 'reload' },
+        { label: 'Pantalla Completa', accelerator: 'F11', role: 'togglefullscreen' },
+        { type: 'separator' },
+        { label: 'DevTools', accelerator: 'F12', role: 'toggleDevTools' }
+      ]
+    },
+    {
+      label: 'Ayuda',
+      submenu: [
+        {
+          label: 'Acerca de',
+          click: () => {
+            if (mainWindow) {
+              mainWindow.webContents.send('show-about');
+            }
+          }
+        }
+      ]
+    }
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
 }
 
 function initApp() {
@@ -68,7 +145,7 @@ function initApp() {
 }
 
 // Read GitHub token from environment variable or file
-let githubToken = process.env.GH_TOKEN || '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';
+let githubToken = process.env.GH_TOKEN || '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';
 
 console.log('🔍 Looking for GitHub token...');
 console.log('🔑 Token from environment:', process.env.GH_TOKEN ? 'Present' : 'Missing');
@@ -93,18 +170,36 @@ console.log('🔑 Final token configured:', githubToken ? 'Present' : 'Missing')
 function customFetchBinary(url, options = {}) {
   return new Promise((resolve, reject) => {
     const urlObj = new URL(url);
+    
+    // Add authorization header if downloading from GitHub
+    const headers = options.headers || {};
+    if (urlObj.hostname.includes('github')) {
+      if (githubToken) {
+        headers['Authorization'] = `token ${githubToken}`;
+        headers['Accept'] = 'application/octet-stream';
+        console.log('🔐 Adding GitHub auth to binary download for:', urlObj.hostname);
+      }
+    }
+    
+    console.log('📥 Requesting:', url);
+    console.log('🔑 Headers:', Object.keys(headers));
+    
     const requestOptions = {
       hostname: urlObj.hostname,
       path: urlObj.pathname + urlObj.search,
       method: options.method || 'GET',
-      headers: options.headers || {}
+      headers: headers
     };
 
     const req = https.request(requestOptions, (res) => {
-      // Handle redirects
+      console.log('📨 Response status:', res.statusCode, 'from', urlObj.hostname);
+      
+      // Handle redirects - preserve auth headers
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
         console.log('📍 Redirect to:', res.headers.location);
-        customFetchBinary(res.headers.location, options).then(resolve).catch(reject);
+        // Preserve headers for redirect
+        const redirectOptions = { ...options, headers: headers };
+        customFetchBinary(res.headers.location, redirectOptions).then(resolve).catch(reject);
         return;
       }
       
@@ -307,18 +402,24 @@ async function downloadFileWithAuth(asset, version) {
         });
       }
       
-      // For public repos, use direct download URL without authentication
-      const downloadUrl = asset.browser_download_url;
+      // Use API URL (asset.url) instead of browser_download_url for private repos
+      // This allows authentication via token
+      const downloadUrl = asset.url;
       
-      console.log('📥 Downloading from public repo (no auth):', downloadUrl);
+      console.log('📥 Downloading from API with auth:', downloadUrl);
+      console.log('🔑 Using token:', githubToken ? (githubToken.substring(0, 10) + '...') : 'NONE');
       
       const response = await customFetchBinary(downloadUrl);
       
+      console.log('📨 Final response status:', response.status);
+      
       if (!response.ok) {
-        console.error('❌ Download response:', response.status, response.statusText);
-        console.error('❌ Response headers:', response.headers);
-        console.error('❌ Download URL tried:', downloadUrl);
-        throw new Error(`Error al descargar: ${response.status}`);
+        console.error('❌ Download failed!');
+        console.error('   Status:', response.status, response.statusText);
+        console.error('   Headers:', JSON.stringify(response.headers, null, 2));
+        console.error('   URL:', downloadUrl);
+        console.error('   Token present:', !!githubToken);
+        throw new Error(`Error al descargar: ${response.status} - ${response.statusText}`);
       }
       
       // Create downloads folder if it doesn't exist

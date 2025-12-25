@@ -45,6 +45,39 @@
       </div>
     </template>
 
+    <!-- Footer con Meta Diaria -->
+    <div v-if="currentMeta && currentMeta.meta_diaria" class="panel_footer">
+      <!-- Contenedor de corazones flotantes -->
+      <div class="hearts-container">
+        <div v-for="heart in floatingHearts" :key="heart.id" class="floating-heart" :style="heart.style">
+          ❤️
+        </div>
+      </div>
+      
+      <div class="meta-container">
+        <div class="fecha-dia">
+          <span class="fecha-label">📅 {{ fechaHoy }}</span>
+        </div>
+        <div class="meta-info">
+          <span class="meta-label">Meta del Día:</span>
+          <span class="meta-value">${{ formatNumber(deFormatNumber(currentMeta.meta_diaria)) }}</span>
+        </div>
+        <div class="meta-progress-info">
+          <span class="ventas-label">Ventas:</span>
+          <span class="ventas-value">${{ formatNumber(ventasHoy) }}</span>
+          <span class="porcentaje-badge" :class="porcentajeClass">{{ porcentajeCumplimiento }}%</span>
+        </div>
+      </div>
+      <div class="progress-bar-container">
+        <div class="progress-bar" :style="{ width: porcentajeCumplimiento + '%' }" :class="porcentajeClass"></div>
+      </div>
+    </div>
+    <div v-else-if="currentMeta === null" class="panel_footer">
+      <div class="meta-container">
+        <span class="meta-label-empty">⚠️ Sin meta configurada</span>
+      </div>
+    </div>
+
     <complete-order @refresh="refreshData" />
     <assing-waiter  @refresh="openBoard" @success="openBoard"/>
     <catalog        @refresh="refreshData"/>
@@ -67,6 +100,13 @@ export default {
     value: {
       type: Boolean,
       default: false
+    }
+  },
+  data() {
+    return {
+      floatingHearts: [],
+      heartIdCounter: 0,
+      previousVentas: 0
     }
   },
   methods:{
@@ -163,6 +203,31 @@ export default {
       }
       $('#modalAssignWaiter').modal('show');
     },
+    lanzarCorazones() {
+      // Crear 3-5 corazones aleatorios
+      const cantidad = Math.floor(Math.random() * 3) + 3;
+      for (let i = 0; i < cantidad; i++) {
+        setTimeout(() => {
+          const heart = {
+            id: this.heartIdCounter++,
+            style: {
+              left: Math.random() * 80 + 10 + '%',
+              animationDelay: Math.random() * 0.5 + 's',
+              fontSize: Math.random() * 10 + 20 + 'px'
+            }
+          };
+          this.floatingHearts.push(heart);
+          
+          // Eliminar corazón después de la animación (3 segundos)
+          setTimeout(() => {
+            const index = this.floatingHearts.findIndex(h => h.id === heart.id);
+            if (index !== -1) {
+              this.floatingHearts.splice(index, 1);
+            }
+          }, 3000);
+        }, i * 200);
+      }
+    }
   },
   computed:{
     offOn: {
@@ -175,11 +240,71 @@ export default {
       get(){ return this.$store.getters['cafeteria/getBoard'] },
       set(value){ this.$store.commit('cafeteria/setProperty', {key: 'board', data: value}) }
     },
+    currentMeta: { get(){ return this.$store.getters['metas/getCurrentMeta'] } },
+    reportCounters: { get(){ return this.$store.getters['reports/getterCounters'] } },
+    ventasHoy() {
+      // Usar el balanceTotal del reporte del día actual
+      if (this.reportCounters && this.reportCounters.balanceTotal) {
+        return parseFloat(this.reportCounters.balanceTotal);
+      }
+      return 0;
+    },
+    porcentajeCumplimiento() {
+      if (!this.currentMeta || !this.currentMeta.meta_diaria) return 0;
+      const meta = parseFloat(this.currentMeta.meta_diaria);
+      const ventas = parseFloat(this.ventasHoy);
+      if (meta === 0) return 0;
+      return Math.min(Math.round((ventas / meta) * 100), 100);
+    },
+    porcentajeClass() {
+      const porcentaje = this.porcentajeCumplimiento;
+      if (porcentaje >= 100) return 'completado';
+      if (porcentaje >= 75) return 'alto';
+      if (porcentaje >= 50) return 'medio';
+      return 'bajo';
+    },
+    fechaHoy() {
+      const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      const hoy = new Date();
+      return `${dias[hoy.getDay()]}, ${hoy.getDate()} de ${meses[hoy.getMonth()]}`;
+    },
     // HavePermission
     cafeteriaInstalled:{ get(){ return ConfigHelper.ConfStr('modulos.cafeteria'); } },
     waiters:{ get(){ return this.$store.getters['waiters/getAllWaiters'] } },
     isGarzonModeEnabled:      { get(){ return ConfigHelper.ConfStr('modulos.cafeteria.submodulos.garzon_mode'); }}
   },
+  watch: {
+    ventasHoy(newValue, oldValue) {
+      // Detectar cuando hay una venta nueva
+      if (newValue > oldValue && oldValue > 0) {
+        this.lanzarCorazones();
+      }
+    }
+  },
+  async mounted() {
+    // Cargar la meta diaria del local
+    await this.$store.dispatch('metas/fetchCurrentMeta');
+    
+    // Cargar los counters del día actual (ventas del día)
+    const hoy = new Date();
+    const params = {
+      startDate: hoy.toISOString().split('T')[0] + ' 00:00:00',
+      endDate: hoy.toISOString().split('T')[0] + ' 23:59:59',
+      params: true,
+      factura: true,
+      boleta: true,
+      fastSell: true,
+      noSii: true,
+      credito: true,
+      debito: true,
+      efectivo: true
+    };
+    await this.$store.dispatch('reports/GetCounters', params);
+    
+    // Guardar ventas iniciales
+    this.previousVentas = this.ventasHoy;
+  }
 }
 </script>
 
@@ -243,6 +368,188 @@ export default {
     padding: 10px;
     .panel_items_title{
       color: #fff;
+    }
+  }
+
+  .panel_footer{
+    margin-top: auto;
+    padding: 15px 12px;
+    border-top: 2px solid var(--primary);
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hearts-container{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .floating-heart{
+    position: absolute;
+    bottom: 0;
+    animation: floatUp 3s ease-out forwards;
+    opacity: 0;
+    user-select: none;
+  }
+
+  @keyframes floatUp {
+    0% {
+      bottom: 0;
+      opacity: 1;
+      transform: translateY(0) scale(1) rotate(0deg);
+    }
+    50% {
+      opacity: 1;
+      transform: translateY(-50px) scale(1.2) rotate(15deg);
+    }
+    100% {
+      bottom: 100%;
+      opacity: 0;
+      transform: translateY(-100px) scale(0.8) rotate(-15deg);
+    }
+  }
+
+  .meta-container{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .fecha-dia{
+    text-align: center;
+    padding: 4px 0;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 6px;
+  }
+
+  .fecha-label{
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .meta-info{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .meta-progress-info{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+  }
+
+  .meta-label{
+    font-weight: 700;
+    color: #495057;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .ventas-label{
+    font-weight: 600;
+    color: #6c757d;
+    font-size: 15px;
+  }
+
+  .ventas-value{
+    font-weight: 700;
+    color: #495057;
+    font-size: 16px;
+  }
+
+  .porcentaje-badge{
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 14px;
+    
+    &.bajo{
+      background: #ffc107;
+      color: #000;
+    }
+    
+    &.medio{
+      background: #17a2b8;
+      color: #fff;
+    }
+    
+    &.alto{
+      background: #28a745;
+      color: #fff;
+    }
+    
+    &.completado{
+      background: #20c997;
+      color: #fff;
+    }
+  }
+
+  .meta-label-empty{
+    font-weight: 500;
+    color: #6c757d;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .meta-value{
+    font-weight: bold;
+    color: var(--primary);
+    font-size: 20px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  .progress-bar-container{
+    width: 100%;
+    height: 10px;
+    background: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    position: relative;
+    z-index: 1;
+  }
+
+  .progress-bar{
+    height: 100%;
+    transition: width 0.5s ease, background 0.3s ease;
+    border-radius: 10px;
+    
+    &.bajo{
+      background: linear-gradient(90deg, #ffc107 0%, #ffca28 100%);
+    }
+    
+    &.medio{
+      background: linear-gradient(90deg, #17a2b8 0%, #20c1db 100%);
+    }
+    
+    &.alto{
+      background: linear-gradient(90deg, #28a745 0%, #34ce57 100%);
+    }
+    
+    &.completado{
+      background: linear-gradient(90deg, #20c997 0%, #29e6b3 100%);
     }
   }
 </style>

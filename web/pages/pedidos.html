@@ -187,6 +187,32 @@
         .btn-toolbar .btn-primary {
             background: var(--primary-gradient);
             border: none;
+            color: white;
+        }
+
+        .btn-toolbar .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            border: none !important;
+            color: white !important;
+        }
+
+        .btn-toolbar .btn-success:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+            color: white !important;
+            border: none !important;
+        }
+
+        /* FORZAR ESTILOS PARA EL BOTÓN EXPORTAR EXCEL */
+        button[onclick="exportarExcel()"] {
+            background: #10b981 !important;
+            color: white !important;
+            border: 1px solid #10b981 !important;
+        }
+
+        button[onclick="exportarExcel()"]:hover {
+            background: #059669 !important;
+            color: white !important;
+            border: 1px solid #059669 !important;
         }
 
         /* ========== INPUTS MODERNOS SOLO EN TOOLBAR ========== */
@@ -406,6 +432,26 @@
             max-width: 700px;
         }
 
+        /* ========== BOTÓN ACTUALIZAR NOTIFICACIONES ========== */
+        .sidebar-heading .btn-outline-primary {
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            background: transparent;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            transition: var(--transition);
+        }
+
+        .sidebar-heading .btn-outline-primary:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .sidebar-heading .btn-outline-primary i {
+            font-size: 0.8rem;
+        }
+
         /* ========== RESPONSIVE ========== */
         @media (max-width: 768px) {
             .d-flex.justify-content-between.flex-wrap {
@@ -469,9 +515,9 @@
                     <h6
                         class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
                         <span>Sucursales</span>
-                        <a class="link-secondary" href="#" aria-label="Add a new report">
-                            <span data-feather="plus-circle"></span>
-                        </a>
+                        <button class="btn btn-sm btn-outline-primary" onclick="refreshNotifications()" title="Actualizar notificaciones">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
                     </h6>
                     <ul class="nav flex-column mb-2 list-group" id="sucursales-list">
                         <li class="nav-item">
@@ -516,6 +562,11 @@
 
                             <button type="button" class="btn btn-primary form-control"
                                 onclick="getByDate()">Buscar</button>
+                                
+                            <button type="button" class="btn btn-success form-control" 
+                                onclick="exportarExcel()" title="Exportar pedidos a Excel">
+                                <i class="fas fa-file-excel"></i> Exportar Excel
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -528,11 +579,72 @@
                         </div>
                         <div class="card-body">
                             <div id="tablas-container">
-                                <h4>Noticias</h4>
-                                <p>
-                                    En esta seccion estaran las noticias concernientes a los pedidos, para estar al
-                                    tanto de los ultimos cambios e informacion relevante
-                                </p>
+                                <div class="alert alert-info border-0 shadow-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="fas fa-bullhorn fa-2x me-3"></i>
+                                        <div>
+                                            <h4 class="mb-1">📢 ACTUALIZACIONES DEL SISTEMA - 29 Septiembre 2025</h4>
+                                            <small>Desarrollado por: <strong>Jimmy</strong> 👨‍💻</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="card h-100 border-0 shadow">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-success">
+                                                    <i class="fas fa-file-pdf me-2"></i>Nueva Guía de Despacho
+                                                </h5>
+                                                <p class="card-text">
+                                                    ✅ Se incorporó la <strong>Guía de Despacho</strong> con formato FAGOTTO<br>
+                                                    ✅ Botón "Imprimir Guía" disponible al ver detalle del pedido<br>
+                                                    ✅ PDF optimizado con formato profesional<br>
+                                                    ✅ Corrección de unidades para focaccias (kg → unidades)
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card h-100 border-0 shadow">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-primary">
+                                                    <i class="fas fa-bell me-2"></i>Sistema de Notificaciones
+                                                </h5>
+                                                <p class="card-text">
+                                                    ✅ Las notificaciones ya <strong>NO se pierden</strong> al hacer clic<br>
+                                                    ✅ Auto-refresh cada 30 segundos<br>
+                                                    ✅ Botón manual de actualización<br>
+                                                    ✅ Alertas visuales para nuevos pedidos
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-warning mt-4 border-0 shadow">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-info-circle fa-lg me-3"></i>
+                                        <div>
+                                            <h6 class="mb-1">💡 Instrucciones Importantes:</h6>
+                                            <p class="mb-0">
+                                                Para usar la nueva <strong>Guía de Despacho</strong>: 
+                                                Haz clic en <strong>"Ver Detalle"</strong> de cualquier pedido → 
+                                                Luego presiona el botón verde <strong>"Guía de Despacho"</strong> 📄
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card border-0 shadow mt-4" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                                    <div class="card-body text-center">
+                                        <h5><i class="fas fa-code me-2"></i>Créditos de Desarrollo</h5>
+                                        <p class="mb-0">
+                                            <strong>Desarrollador:</strong> Jimmy 🚀<br>
+                                            <em>"No perdamos más tiempo con sistemas que no funcionan. Ahora todo está optimizado y funcional."</em>
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                             <div class="card-footer" id="footer-container">
                                 <nav aria-label="pagination">
@@ -593,6 +705,9 @@
                                     </div>
                                 </div>
                                 <div class="modal-footer">
+                                    <button type="button" class="btn btn-success me-2" onclick="imprimirPedidoPDF()">
+                                        <i class="fas fa-file-pdf"></i> Guía de Despacho
+                                    </button>
                                     <button type="button" class="btn btn-primary"
                                         data-bs-dismiss="modal">Cerrar</button>
                                     <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
@@ -739,7 +854,7 @@
                     </div> -->
 
                     <!-- Cliente modal -->
-                    <div style="" class="modal full-modal fade" id="clientCreate" tabindex="-1" role="dialog" aria-labelledby="clientCreate" aria-hidden="true" data-backdrop="false">
+                    <div class="modal full-modal fade" id="clientCreate" tabindex="-1" role="dialog" aria-labelledby="clientCreate" aria-hidden="true" data-backdrop="false">
                         <div class="modal-dialog modal-dialog-small modal-md modal-dialog-centered" role="document">
                             <div class="modal-content full-modal-content">
                                 <div class="modal-header bg-success">
@@ -831,7 +946,7 @@
                     </div>
 
                     <!-- Modal Cancelar Factura (Nota de Crédito) -->
-                    <div style="" class="modal full-modal fade" id="cancelarFacturaModal" tabindex="-1" role="dialog" aria-labelledby="cancelarFacturaModal" aria-hidden="true" data-backdrop="false">
+                    <div class="modal full-modal fade" id="cancelarFacturaModal" tabindex="-1" role="dialog" aria-labelledby="cancelarFacturaModal" aria-hidden="true" data-backdrop="false">
                         <div class="modal-dialog modal-dialog-small modal-md modal-dialog-centered" role="document">
                             <div class="modal-content full-modal-content">
                                 <div class="modal-header bg-warning">
@@ -877,8 +992,156 @@
             </main>
         </div>
     </div>
+
+    <!-- Modal Obligatorio de Actualizaciones -->
+    <div class="modal fade" id="actualizacionesModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h4 class="modal-title">
+                        <i class="fas fa-rocket me-2"></i>
+                        🎉 ¡NUEVAS FUNCIONALIDADES DISPONIBLES!
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <div class="badge bg-success fs-6 px-3 py-2">
+                            <i class="fas fa-calendar me-1"></i>
+                            Actualizaciones del 29 de Septiembre 2025
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card bg-light h-100">
+                                <div class="card-body">
+                                    <h5 class="text-success">
+                                        <i class="fas fa-file-pdf me-2"></i>
+                                        Guía de Despacho PDF
+                                    </h5>
+                                    <ul class="list-unstyled">
+                                        <li>✅ Formato FAGOTTO profesional</li>
+                                        <li>✅ Botón en detalle de pedidos</li>
+                                        <li>✅ Unidades corregidas (focaccias)</li>
+                                        <li>✅ Layout optimizado</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light h-100">
+                                <div class="card-body">
+                                    <h5 class="text-primary">
+                                        <i class="fas fa-bell me-2"></i>
+                                        Notificaciones Mejoradas
+                                    </h5>
+                                    <ul class="list-unstyled">
+                                        <li>✅ Ya NO se pierden al hacer clic</li>
+                                        <li>✅ Auto-refresh cada 30 segundos</li>
+                                        <li>✅ Botón de actualización manual</li>
+                                        <li>✅ Alertas visuales emergentes</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-4 border-0">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-lightbulb fa-2x text-warning me-3"></i>
+                            <div>
+                                <h6 class="mb-1">💡 Cómo usar la Guía de Despacho:</h6>
+                                <p class="mb-0">
+                                    1️⃣ Ve a cualquier pedido → <strong>"Ver Detalle"</strong><br>
+                                    2️⃣ Presiona el botón verde <strong>"Guía de Despacho"</strong><br>
+                                    3️⃣ Se generará automáticamente el PDF optimizado 📄
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-warning bg-warning bg-opacity-10 mt-4">
+                        <div class="card-body text-center">
+                            <h5 class="text-dark">
+                                <i class="fas fa-user-tie me-2"></i>
+                                Desarrollado por: <strong>Jimmy</strong> 👨‍💻
+                            </h5>
+                            <p class="text-muted mb-0 fst-italic">
+                                "No perdamos más tiempo con sistemas que no funcionan.<br>
+                                Ahora todo está optimizado y funcional para cocina."
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-lg px-5" onclick="aceptarActualizaciones()" 
+                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none;">
+                        <i class="fas fa-check-circle me-2"></i>
+                        ¡PERFECTO! Ya entendí las mejoras
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/pedidos_v2.js"></script>
+    
+    <!-- Script para Modal de Actualizaciones Obligatorio -->
+    <script>
+        // Verificar si ya vio las actualizaciones hoy
+        function checkActualizacionesVistas() {
+            const fechaHoy = '2025-09-29';
+            const visto = localStorage.getItem('actualizaciones_vistas_' + fechaHoy);
+            
+            if (!visto) {
+                // Mostrar modal obligatorio después de que cargue la página
+                setTimeout(() => {
+                    const modal = new bootstrap.Modal(document.getElementById('actualizacionesModal'));
+                    modal.show();
+                }, 1500);
+            }
+        }
+
+        // Función para aceptar las actualizaciones
+        function aceptarActualizaciones() {
+            const fechaHoy = '2025-09-29';
+            localStorage.setItem('actualizaciones_vistas_' + fechaHoy, 'true');
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('actualizacionesModal'));
+            modal.hide();
+            
+            // Mostrar mensaje de confirmación
+            setTimeout(() => {
+                const notification = document.createElement('div');
+                notification.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; width: 350px;';
+                notification.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-thumbs-up text-success me-2"></i>
+                        <div>
+                            <strong>¡Excelente!</strong><br>
+                            <small>Ya puedes usar todas las nuevas funciones. ¡Que tengas un buen trabajo!</small>
+                        </div>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 8000);
+            }, 500);
+        }
+
+        // Ejecutar al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            checkActualizacionesVistas();
+        });
+    </script>
+    
     <script>
         // OVERRIDE función procesarNotaCredito para forzar POST
         async function procesarNotaCredito() {

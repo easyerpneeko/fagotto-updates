@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiosko - Menú Digital</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(145deg, #e8f0f7 0%, #d4e4f0 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .kiosko-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR MENU */
+        .sidebar-menu {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #ffbc0d 0%, #ffa500 100%);
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .sidebar-header .logo {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-size: 3rem;
+            font-weight: 800;
+            color: #ffbc0d;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .menu-categories {
+            flex: 1;
+            padding: 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+            gap: 1rem;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 188, 13, 0.1);
+            border-left-color: #ffbc0d;
+        }
+
+        .menu-item.active {
+            background: rgba(255, 188, 13, 0.2);
+            border-left-color: #ffbc0d;
+            font-weight: 600;
+        }
+
+        .menu-item-icon {
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f5;
+            border-radius: 8px;
+            font-size: 1.2rem;
+        }
+
+        .menu-item.active .menu-item-icon {
+            background: #ffbc0d;
+            color: white;
+        }
+
+        .menu-item-text {
+            font-size: 0.95rem;
+            color: #2c2c2c;
+        }
+
+        /* MAIN CONTENT AREA */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .content-header {
+            background: white;
+            padding: 2rem 3rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .header-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #2c2c2c;
+            margin: 0;
+        }
+
+        .header-subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .content-body {
+            flex: 1;
+            padding: 2rem 3rem;
+            overflow-y: auto;
+        }
+
+        /* FEATURED CATEGORIES GRID */
+        .featured-categories {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ffbc0d, #ffa500);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .category-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .category-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .category-image {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(135deg, #f5f5f5, #e8e8e8);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .category-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2c2c2c;
+        }
+
+        /* PROMOTIONAL BANNER */
+        .promo-banner {
+            background: linear-gradient(135deg, #8B0000, #DC143C);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 8px 20px rgba(139, 0, 0, 0.3);
+        }
+
+        .promo-content h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .promo-content p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .promo-image {
+            width: 200px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+        }
+
+        /* PRODUCTS SECTION */
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            margin-bottom: 1.5rem;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .product-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: #ffbc0d;
+            color: #2c2c2c;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            z-index: 5;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #f9f9f9, #f0f0f0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .product-info {
+            padding: 1.25rem;
+        }
+
+        .product-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2c2c2c;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .product-description {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .product-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffbc0d;
+        }
+
+        /* FOOTER CART */
+        .footer-cart {
+            background: white;
+            padding: 1.5rem 3rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .cart-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .cart-icon {
+            width: 60px;
+            height: 60px;
+            background: #ffbc0d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        .cart-total {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #2c2c2c;
+        }
+
+        .footer-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-action {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-continue {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-continue:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-qr {
+            background: #ffbc0d;
+            color: #2c2c2c;
+        }
+
+        .btn-qr:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 188, 13, 0.3);
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ffbc0d;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ffa500;
+        }
+    </style>
+</head>
+<body>
+    <div class="kiosko-container">
+        <!-- SIDEBAR MENU -->
+        <aside class="sidebar-menu">
+            <div class="sidebar-header">
+                <div class="logo">M</div>
+            </div>
+            
+            <div class="menu-categories">
+                <div class="menu-item active" data-category="home">
+                    <div class="menu-item-icon">🏠</div>
+                    <div class="menu-item-text">Home</div>
+                </div>
+                
+                <div class="menu-item" data-category="desayunos">
+                    <div class="menu-item-icon">🌅</div>
+                    <div class="menu-item-text">Desayunos</div>
+                </div>
+                
+                <div class="menu-item" data-category="mccombos">
+                    <div class="menu-item-icon">🍔</div>
+                    <div class="menu-item-text">McCombos</div>
+                </div>
+                
+                <div class="menu-item" data-category="menu">
+                    <div class="menu-item-icon">📋</div>
+                    <div class="menu-item-text">Menú</div>
+                </div>
+                
+                <div class="menu-item" data-category="cafe">
+                    <div class="menu-item-icon">☕</div>
+                    <div class="menu-item-text">Café Premium</div>
+                </div>
+                
+                <div class="menu-item" data-category="mcpollo">
+                    <div class="menu-item-icon">🍗</div>
+                    <div class="menu-item-text">McPollo</div>
+                </div>
+                
+                <div class="menu-item" data-category="signature">
+                    <div class="menu-item-icon">⭐</div>
+                    <div class="menu-item-text">Signature Collection</div>
+                </div>
+                
+                <div class="menu-item" data-category="postres">
+                    <div class="menu-item-icon">🍰</div>
+                    <div class="menu-item-text">Postres</div>
+                </div>
+                
+                <div class="menu-item" data-category="bebidas">
+                    <div class="menu-item-icon">🥤</div>
+                    <div class="menu-item-text">Bebidas</div>
+                </div>
+                
+                <div class="menu-item" data-category="compartir">
+                    <div class="menu-item-icon">🍟</div>
+                    <div class="menu-item-text">Para compartir</div>
+                </div>
+                
+                <div class="menu-item" data-category="cajita">
+                    <div class="menu-item-icon">🎁</div>
+                    <div class="menu-item-text">Cajita Feliz</div>
+                </div>
+                
+                <div class="menu-item" data-category="happy">
+                    <div class="menu-item-icon">😊</div>
+                    <div class="menu-item-text">Happy Meal</div>
+                </div>
+                
+                <div class="menu-item" data-category="hamburguesas">
+                    <div class="menu-item-icon">🍔</div>
+                    <div class="menu-item-text">Hamburguesas</div>
+                </div>
+                
+                <div class="menu-item" data-category="mccafe">
+                    <div class="menu-item-icon">☕</div>
+                    <div class="menu-item-text">McCafé</div>
+                </div>
+                
+                <div class="menu-item" data-category="mcflurry">
+                    <div class="menu-item-icon">🍦</div>
+                    <div class="menu-item-text">McFlurry's</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- HEADER -->
+            <header class="content-header">
+                <h1 class="header-title">¡Hora del antojo!</h1>
+                <p class="header-subtitle">Descubre nuestro menú</p>
+            </header>
+
+            <!-- BODY CONTENT -->
+            <div class="content-body">
+                <!-- FEATURED CATEGORIES -->
+                <div class="featured-categories">
+                    <div class="category-card" data-category="mccombos">
+                        <div class="category-image">🍔</div>
+                        <div class="category-name">McCombos</div>
+                    </div>
+                    
+                    <div class="category-card" data-category="cajita">
+                        <div class="category-image">🎁</div>
+                        <div class="category-name">Cajita Feliz</div>
+                    </div>
+                    
+                    <div class="category-card" data-category="signature">
+                        <div class="category-image">⭐</div>
+                        <div class="category-name">Signature Collection</div>
+                    </div>
+                    
+                    <div class="category-card" data-category="postres">
+                        <div class="category-image">🍰</div>
+                        <div class="category-name">Postres</div>
+                    </div>
+                </div>
+
+                <!-- PROMOTIONAL BANNER -->
+                <div class="promo-banner">
+                    <div class="promo-content">
+                        <h3>🍦 McFlurry Especial</h3>
+                        <p>¡Nuevo sabor disponible! Pruébalo hoy</p>
+                    </div>
+                    <div class="promo-image">🍨</div>
+                </div>
+
+                <!-- RECOMMENDED PRODUCTS -->
+                <div class="section-title">Productos recomendados</div>
+                
+                <div class="products-grid">
+                    <div class="product-card">
+                        <div class="product-badge">Nuevo</div>
+                        <div class="product-image">🍔</div>
+                        <div class="product-info">
+                            <div class="product-name">Big Mac Combo</div>
+                            <div class="product-description">Hamburguesa con papas medianas y bebida</div>
+                            <div class="product-price">$8.990</div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="product-badge">Popular</div>
+                        <div class="product-image">🍗</div>
+                        <div class="product-info">
+                            <div class="product-name">McNuggets x10</div>
+                            <div class="product-description">10 piezas de nuggets crujientes</div>
+                            <div class="product-price">$6.490</div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="product-badge">Oferta</div>
+                        <div class="product-image">🥤</div>
+                        <div class="product-info">
+                            <div class="product-name">Combo McFlurry</div>
+                            <div class="product-description">McFlurry Oreo + bebida mediana</div>
+                            <div class="product-price">$4.990</div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="product-image">🍔</div>
+                        <div class="product-info">
+                            <div class="product-name">Quarter Pounder</div>
+                            <div class="product-description">Hamburguesa de carne 100% vacuno</div>
+                            <div class="product-price">$7.990</div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="product-image">☕</div>
+                        <div class="product-info">
+                            <div class="product-name">Café Americano</div>
+                            <div class="product-description">Café 100% colombiano</div>
+                            <div class="product-price">$2.490</div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="product-image">🍟</div>
+                        <div class="product-info">
+                            <div class="product-name">Papas Grandes</div>
+                            <div class="product-description">Papas fritas tamaño grande</div>
+                            <div class="product-price">$2.990</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER CART -->
+            <footer class="footer-cart">
+                <div class="cart-info">
+                    <div class="cart-icon">🛒</div>
+                    <div>
+                        <div style="font-size: 0.9rem; color: #666;">Total</div>
+                        <div class="cart-total">$<span id="cartTotal">0</span></div>
+                    </div>
+                </div>
+
+                <div class="footer-actions">
+                    <button class="btn-action btn-continue">
+                        <i class="fas fa-check-circle"></i>
+                        Continuar
+                    </button>
+                    <button class="btn-action btn-qr">
+                        <i class="fas fa-qrcode"></i>
+                        Pedir desde el celular
+                    </button>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            let cartTotal = 0;
+            let cartItems = [];
+
+            // Menu item click
+            $('.menu-item').click(function() {
+                $('.menu-item').removeClass('active');
+                $(this).addClass('active');
+                
+                const category = $(this).data('category');
+                console.log('Categoría seleccionada:', category);
+                
+                // Aquí cargarías los productos de la categoría
+            });
+
+            // Category card click
+            $('.category-card').click(function() {
+                const category = $(this).data('category');
+                $(`.menu-item[data-category="${category}"]`).click();
+            });
+
+            // Product card click
+            $('.product-card').click(function() {
+                const productName = $(this).find('.product-name').text();
+                const priceText = $(this).find('.product-price').text();
+                const price = parseInt(priceText.replace('$', '').replace('.', ''));
+                
+                // Agregar al carrito
+                cartItems.push({
+                    name: productName,
+                    price: price,
+                    timestamp: Date.now()
+                });
+                
+                cartTotal += price;
+                $('#cartTotal').text(cartTotal.toLocaleString('es-CL'));
+                
+                // Animación de añadir al carrito
+                $(this).css('transform', 'scale(0.95)');
+                setTimeout(() => {
+                    $(this).css('transform', '');
+                }, 200);
+                
+                console.log('Producto añadido:', productName, price);
+            });
+
+            // Botón continuar - PROCESAR PAGO CON MERCADO PAGO
+            $('.btn-continue').click(async function() {
+                if (cartTotal <= 0) {
+                    alert('🛒 Tu carrito está vacío\nAgregá productos para continuar');
+                    return;
+                }
+
+                // Mostrar loading
+                const btnText = $(this).html();
+                $(this).html('<i class="fas fa-spinner fa-spin"></i> Procesando...').prop('disabled', true);
+
+                try {
+                    await procesarPago();
+                } catch (error) {
+                    console.error('Error en pago:', error);
+                    alert('❌ Error al procesar el pago\n' + error.message);
+                } finally {
+                    $(this).html(btnText).prop('disabled', false);
+                }
+            });
+
+            // Botón QR
+            $('.btn-qr').click(function() {
+                alert('🔜 Próximamente:\nPodrás escanear un código QR para continuar tu pedido desde el celular');
+            });
+
+            // FUNCIÓN PARA PROCESAR PAGO CON MERCADO PAGO
+            async function procesarPago() {
+                if (cartTotal <= 0) return;
+
+                console.log('💳 Procesando pago...', {
+                    total: cartTotal,
+                    items: cartItems
+                });
+
+                // Cambiar icono del carrito
+                $('.cart-icon').text('⏳');
+
+                // Crear FormData con el monto
+                const formData = new FormData();
+                formData.append('monto', cartTotal);
+
+                try {
+                    // Enviar al backend PHP que se comunica con Mercado Pago
+                    const response = await fetch('../../TOTEM/enviar-pago-web.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const html = await response.text();
+                    console.log('Respuesta del servidor:', html);
+
+                    // Buscar el Order ID en la respuesta HTML
+                    const orderIdMatch = html.match(/Order ID:<\/strong>\s*([A-Z0-9]+)/i);
+                    
+                    if (orderIdMatch) {
+                        const orderId = orderIdMatch[1];
+                        
+                        alert(
+                            '✅ ¡Pago enviado al terminal!\n\n' +
+                            '📋 Order ID: ' + orderId + '\n\n' +
+                            '💳 Acercá tu tarjeta al Point Smart\n' +
+                            'para completar el pago'
+                        );
+
+                        // Abrir ventana de validación
+                        window.open(
+                            '../../TOTEM/validar-pago.php?order_id=' + orderId,
+                            '_blank',
+                            'width=1200,height=800'
+                        );
+
+                        // Limpiar carrito
+                        cartItems = [];
+                        cartTotal = 0;
+                        $('#cartTotal').text('0');
+                        $('.cart-icon').text('🛒');
+                        
+                        console.log('✅ Pedido procesado exitosamente');
+
+                    } else if (html.includes('Ya hay un pago pendiente')) {
+                        throw new Error('Ya hay un pago pendiente en el terminal.\nCompletá o cancelá el pago actual primero.');
+                    } else {
+                        throw new Error('No se pudo crear el pago en el terminal.');
+                    }
+
+                } catch (error) {
+                    $('.cart-icon').text('🛒');
+                    throw error;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

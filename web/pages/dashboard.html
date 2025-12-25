@@ -33,7 +33,7 @@
     <script src="../assets/helpers/helperRoutes.js"></script>
     <script src="../assets/helpers/helperStore.js"></script>
     <script src="../assets/helpers/helperRequest.js"></script>
-    <script src="../assets/helpers/helperFunctions.js"></script>
+    <script src="../assets/helpers/helperFunctions.js?v=2025102101"></script>
     <style>
         /* ========== VARIABLES CSS MEJORADAS ========== */
         :root {
@@ -106,9 +106,9 @@
         }
 
         .brand-logo-mobile {
-            height: 28px;
+            height: 40px;
             width: auto;
-            max-width: 28px;
+            max-width: 150px;
             object-fit: contain;
             background: transparent !important;
             border: none;
@@ -332,8 +332,11 @@
             font-weight: 800;
             color: var(--text-primary);
             margin-bottom: 0.25rem;
-            line-height: 1;
+            line-height: 1.2;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            word-break: keep-all;
+            overflow-wrap: break-word;
+            hyphens: none;
         }
 
         .kpi-label {
@@ -426,6 +429,16 @@
             .kpi-label {
                 font-size: 0.75rem;
             }
+            
+            .filters-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .custom-date-filter {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
         }
 
         @media (max-width: 480px) {
@@ -440,6 +453,21 @@
 
             .quick-filters {
                 justify-content: center;
+            }
+            
+            .custom-date-filter {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+            }
+            
+            .date-input-group {
+                width: 100%;
+            }
+            
+            .date-input {
+                width: 100%;
+                min-width: unset;
             }
         }
 
@@ -515,6 +543,25 @@
             border-bottom: 1px solid rgba(226, 232, 240, 0.5);
             transition: var(--transition);
             font-weight: 500;
+        }
+
+        /* Hacer números más grandes SOLO en las tablas de franquicias */
+        #franquiciasTable.modern-table tbody td,
+        #fagottoTable.modern-table tbody td {
+            font-size: 1.1rem !important; /* +2 tamaños más grande */
+            font-weight: 600 !important;
+        }
+
+        #franquiciasTable.modern-table tbody td:nth-child(2),
+        #franquiciasTable.modern-table tbody td:nth-child(3), 
+        #franquiciasTable.modern-table tbody td:nth-child(4),
+        #franquiciasTable.modern-table tbody td:nth-child(5),
+        #fagottoTable.modern-table tbody td:nth-child(2),
+        #fagottoTable.modern-table tbody td:nth-child(3),
+        #fagottoTable.modern-table tbody td:nth-child(4),
+        #fagottoTable.modern-table tbody td:nth-child(5) {
+            font-size: 1.2rem !important; /* Números aún más grandes */
+            font-weight: 700 !important;
         }
 
         .modern-table tbody tr {
@@ -604,29 +651,31 @@
             display: flex;
             align-items: center;
             gap: 1rem;
+            flex-wrap: wrap;
         }
 
         .date-input-group {
             position: relative;
             display: flex;
-            align-items: center;
+            align-items: flex-end;
+            gap: 0.5rem;
         }
 
         .date-input-group i {
-            position: absolute;
-            left: 1rem;
             color: var(--text-secondary);
-            z-index: 2;
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .date-input {
             background: var(--card-background);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            padding: 0.75rem 1rem;
             font-size: 0.875rem;
             transition: var(--transition);
-            min-width: 180px;
+            min-width: 150px;
+            width: 150px;
         }
 
         .date-input:focus {
@@ -696,6 +745,27 @@
             text-align: center;
             margin-top: 1rem;
             font-weight: 500;
+            max-width: 600px;
+            padding: 0 2rem;
+        }
+
+        .loader-message h4 {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .loader-message p {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* ========== GRÁFICO MODERNO ========== */
@@ -752,11 +822,16 @@
 
         @media (max-width: 480px) {
             .kpi-value {
-                font-size: 1.25rem;
+                font-size: 1rem;
+                line-height: 1.3;
             }
 
             .card-header-modern h5 {
                 font-size: 1rem;
+            }
+            
+            .kpi-label {
+                font-size: 0.7rem;
             }
         }
 
@@ -792,6 +867,13 @@
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
+        }
+
+        /* Animación de rebote para emojis del loader */
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         /* Animación para los valores */
@@ -834,6 +916,45 @@
         .modern-table tbody tr.table-danger {
             background-color: rgba(239, 68, 68, 0.1) !important;
             border-left: 4px solid var(--danger-color);
+        }
+
+        /* ========== TABLA ORDENABLE ========== */
+        .sortable-table thead th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: background-color 0.2s;
+        }
+
+        .sortable-table thead th.sortable:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .sortable-table thead th .sort-icon {
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            transition: color 0.2s;
+        }
+
+        .sortable-table thead th.sortable:hover .sort-icon {
+            color: var(--primary-color);
+        }
+
+        .sortable-table thead th.sort-asc .sort-icon {
+            color: var(--primary-color);
+        }
+
+        .sortable-table thead th.sort-desc .sort-icon {
+            color: var(--primary-color);
+        }
+
+        .sortable-table thead th.sort-asc .sort-icon::before {
+            content: "\f0de"; /* fa-sort-up */
+        }
+
+        .sortable-table thead th.sort-desc .sort-icon::before {
+            content: "\f0dd"; /* fa-sort-down */
         }
 
         /* ========== ESTADOS DE CARGA ========== */
@@ -913,10 +1034,10 @@
                 top: 0;
                 left: 0;
                 height: 100vh;
-                z-index: 1045;
+                z-index: 1055;
                 width: 280px;
                 transform: translateX(-100%);
-                background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%);
                 backdrop-filter: blur(20px);
                 border-right: 1px solid rgba(226, 232, 240, 0.3);
                 box-shadow: var(--shadow-xl);
@@ -932,8 +1053,8 @@
                 left: 0;
                 width: 100vw;
                 height: 100vh;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: -1;
+                background: rgba(0, 0, 0, 0.6);
+                z-index: 1050;
                 opacity: 0;
                 transition: opacity 0.3s ease;
                 pointer-events: none;
@@ -947,6 +1068,20 @@
             .main-content {
                 margin-left: 0 !important;
                 width: 100% !important;
+                padding: 1rem !important;
+            }
+            
+            .modern-header {
+                padding: 0.75rem 1rem;
+            }
+            
+            .kpi-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+            
+            .content-card {
+                margin-bottom: 1.5rem;
             }
         }
 
@@ -994,6 +1129,38 @@
             border: none;
             border-bottom: 1px solid rgba(226, 232, 240, 0.2);
             background: transparent;
+        }
+
+        /* Prevenir scroll del body cuando el menú está abierto */
+        body.mobile-menu-open {
+            overflow: hidden;
+        }
+        
+        /* Estilos para nav items en móvil */
+        .nav-item-mobile {
+            border-bottom: 1px solid rgba(226, 232, 240, 0.2);
+        }
+        
+        .nav-item-mobile .nav-link {
+            padding: 1rem 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-item-mobile .nav-link:hover,
+        .nav-item-mobile .nav-link.active {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
+            color: var(--primary-color);
+        }
+        
+        .nav-item-mobile .nav-link i {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
         }
 
         .mobile-accordion .accordion-button {
@@ -1089,8 +1256,24 @@
 <body>
     <div id="loader" class="loading hide">
         <div class="spin"></div>
-        <p id="loaderMessage" class="loader-message d-none">Puede tardar en cargar hasta 5 minutos, espere un momento
-            por favor.</p>
+        <img src="../assets/css/logo.png" alt="Fagotto ERP" style="width: 180px; height: auto; margin-top: 1.5rem; animation: fadeInUp 0.6s ease-out;">
+        
+        <div class="loader-message">
+            <h4 style="color: white; margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600;">
+                <span id="loader-status" style="display: inline-block;">
+                    <span style="display: inline-block; animation: bounceIn 0.5s;">🔍</span> Buscando datos en el servidor...
+                </span>
+            </h4>
+            <p style="color: rgba(255,255,255,0.9); font-size: 0.95rem; line-height: 1.6; max-width: 500px; margin: 0 auto;">
+                ✨ <strong>El servidor se actualizó con consultas optimizadas</strong><br>
+                <small style="color: rgba(255,255,255,0.85); font-size: 2rem;">
+                    Tiempo transcurrido: <strong id="loader-timer" style="color: #10b981;">0.0s</strong> ⚡
+                </small>
+            </p>
+            <p style="color: rgba(255,255,255,0.6); font-size: 0.8rem; margin-top: 1rem; font-style: italic;">
+                — Saludos, Jimmy 🤖
+            </p>
+        </div>
     </div>
     
     <header class="modern-header">
@@ -1130,12 +1313,13 @@
             </div>
         </div>
     </header>
+    
+    <!-- Mobile overlay (fuera del sidebar) -->
+    <div class="mobile-sidebar-overlay d-lg-none" id="mobile-sidebar-overlay"></div>
+    
     <div class="container-fluid p-0">
         <div class="row g-0">
             <nav id="sidebarMenu" class="col-md-3 col-lg-2 modern-sidebar">
-                <!-- Mobile overlay -->
-                <div class="mobile-sidebar-overlay d-lg-none" id="mobile-sidebar-overlay"></div>
-                
                 <div class="sidebar-content">
                     <!-- Mobile header -->
                     <div class="mobile-sidebar-header d-lg-none">
@@ -1160,129 +1344,59 @@
                                 </a>
                             </div>
 
-                            <!-- Operaciones -->
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#operacionesCollapse">
-                                        <i class="fas fa-cogs"></i>
-                                        <span>Operaciones</span>
-                                    </button>
-                                </h2>
-                                <div id="operacionesCollapse" class="accordion-collapse collapse" data-bs-parent="#mobileAccordion">
-                                    <div class="accordion-body">
-                                        <a class="nav-link-sub" href="./garzones.html">
-                                            <i class="fas fa-user"></i>
-                                            Garzones
-                                        </a>
-                                        <a class="nav-link-sub" href="./cocinafagotto.html">
-                                            <i class="fas fa-utensils"></i>
-                                            Cocina
-                                        </a>
-                                        <a class="nav-link-sub" href="./cocina/cocina2.html">
-                                            <i class="fa-solid fa-ticket"></i>
-                                            Ordenes
-                                        </a>
-                                    </div>
-                                </div>
+                            <div class="nav-item-mobile">
+                                <a class="nav-link" href="./pedidos.html">
+                                    <i class="fas fa-box"></i>
+                                    <span>Pedidos</span>
+                                </a>
                             </div>
 
-                            <!-- Pedidos -->
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pedidosCollapse">
-                                        <i class="fas fa-shopping-cart"></i>
-                                        <span>Pedidos</span>
-                                    </button>
-                                </h2>
-                                <div id="pedidosCollapse" class="accordion-collapse collapse" data-bs-parent="#mobileAccordion">
-                                    <div class="accordion-body">
-                                        <a class="nav-link-sub" href="./pedidos.html">
-                                            <i class="fas fa-box"></i>
-                                            Pedidos Generales
-                                        </a>
-                                        <a class="nav-link-sub" href="./pedidos_reposteria.html">
-                                            <i class="fas fa-birthday-cake"></i>
-                                            Pedidos Repostería
-                                        </a>
-                                    </div>
-                                </div>
+                            <div class="nav-item-mobile">
+                                <a class="nav-link" href="./sells.html">
+                                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                                    <span>Ventas Globales</span>
+                                </a>
                             </div>
 
-                            <!-- Finanzas -->
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#finanzasCollapse">
-                                        <i class="fas fa-dollar-sign"></i>
-                                        <span>Finanzas</span>
-                                    </button>
-                                </h2>
-                                <div id="finanzasCollapse" class="accordion-collapse collapse" data-bs-parent="#mobileAccordion">
-                                    <div class="accordion-body">
-                                        <a class="nav-link-sub" href="./cobros.html">
-                                            <i class="fa-solid fa-file-invoice-dollar"></i>
-                                            Cobros
-                                        </a>
-                                        <a class="nav-link-sub" href="./sells.html">
-                                            <i class="fa-solid fa-file-invoice-dollar"></i>
-                                            Ventas
-                                        </a>
-                                    </div>
-                                </div>
+                            <div class="nav-item-mobile">
+                                <a class="nav-link" href="./turnos_globales_new.html">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Turnos Globales</span>
+                                </a>
                             </div>
 
-                            <!-- Inventario -->
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#inventarioCollapse">
-                                        <i class="fas fa-warehouse"></i>
-                                        <span>Inventario</span>
-                                    </button>
-                                </h2>
-                                <div id="inventarioCollapse" class="accordion-collapse collapse" data-bs-parent="#mobileAccordion">
-                                    <div class="accordion-body">
-                                        <a class="nav-link-sub" href="./stock.html">
-                                            <i class="fa-solid fa-bottle-droplet"></i>
-                                            Stock Salsas
-                                        </a>
-                                        <a class="nav-link-sub" href="./stock_products.html">
-                                            <i class="fa-solid fa-boxes-stacked"></i>
-                                            Stock Productos
-                                        </a>
-                                    </div>
-                                </div>
+                            <div class="nav-item-mobile">
+                                <a class="nav-link" href="./centro-costos.html">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Centro De Costos</span>
+                                </a>
                             </div>
 
-                            <!-- Administración -->
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#adminCollapse">
-                                        <i class="fas fa-cog"></i>
-                                        <span>Administración</span>
-                                    </button>
-                                </h2>
-                                <div id="adminCollapse" class="accordion-collapse collapse" data-bs-parent="#mobileAccordion">
-                                    <div class="accordion-body">
-                                        <a class="nav-link-sub" href="./administracion_salsas.html">
-                                            <i class="fas fa-utensils"></i>
-                                            Administración Salsas
-                                        </a>
-                                        <a class="nav-link-sub" href="./danielys/index.php">
-                                            <i class="fa-solid fa-registered"></i>
-                                            Registro Empresas
-                                        </a>
-                                    </div>
-                                </div>
+                            <div class="nav-item-mobile">
+                                <a class="nav-link" href="./metas_diarias.html">
+                                    <i class="fas fa-bullseye"></i>
+                                    <span>Metas Diarias</span>
+                                </a>
                             </div>
+
+                            <div class="nav-item-mobile">
+                                <a class="nav-link" href="./stock.html">
+                                    <i class="fas fa-boxes"></i>
+                                    <span>Control de Stock</span>
+                                </a>
+                            </div>
+
+        
 
                             <!-- Sucursales en móvil -->
                             <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sucursalesCollapse">
+                                <h2 class="accordion-header" id="headingSucursales">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sucursalesCollapse" aria-expanded="false" aria-controls="sucursalesCollapse">
                                         <i class="fas fa-store"></i>
                                         <span>Sucursales</span>
                                     </button>
                                 </h2>
-                                <div id="sucursalesCollapse" class="accordion-collapse collapse" data-bs-parent="#mobileAccordion">
+                                <div id="sucursalesCollapse" class="accordion-collapse collapse" data-bs-parent="#mobileAccordion" aria-labelledby="headingSucursales">
                                     <div class="accordion-body" id="sucursales-list-mobile">
                                         <div class="nav-link-sub">
                                             <i class="fas fa-spinner fa-spin"></i>
@@ -1319,19 +1433,27 @@
                                 </li>
                                 
                                 <li class="nav-item">
-                                    <a class="nav-link" href="./turnos_globales.html">
+                                    <a class="nav-link" href="./turnos_globales_new.html">
                                         <i class="fas fa-clock"></i>
                                         Turnos Globales
                                     </a>
                                 </li>
-                                
-                                <li class="nav-item">
-                                    <a class="nav-link" href="./administracion_salsas.html">
-                                        <i class="fas fa-utensils"></i>
-                                        Administración Salsas
+                               
+
+                                  <li class="nav-item">
+                                    <a class="nav-link" href="./centro-costos.html">
+                                        <i class="fas fa-clock"></i>
+                                        Centro De Costos
                                     </a>
                                 </li>
-                            </ul>
+
+                                <li class="nav-item">
+                                    <a class="nav-link" href="./stock.html">
+                                        <i class="fas fa-boxes"></i>
+                                        Control de Stock
+                                    </a>
+                                </li>
+                               
 
                             <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
                                 <span><i class="fas fa-store"></i> Sucursales</span>
@@ -1344,26 +1466,6 @@
                                     </a>
                                 </li>
                             </ul>
-                        </div>
-
-                        <!-- Sucursales en móvil -->
-                        <div class="d-lg-none">
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sucursalesCollapse">
-                                        <i class="fas fa-store"></i>
-                                        <span>Sucursales</span>
-                                    </button>
-                                </h2>
-                                <div id="sucursalesCollapse" class="accordion-collapse collapse" data-bs-parent="#mobileAccordion">
-                                    <div class="accordion-body" id="sucursales-list-mobile">
-                                        <div class="nav-link-sub">
-                                            <i class="fas fa-spinner fa-spin"></i>
-                                            CARGANDO...
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -1398,7 +1500,17 @@
                         <div class="custom-date-filter">
                             <div class="date-input-group">
                                 <i class="fas fa-calendar"></i>
-                                <input type="date" id="date" class="form-control date-input">
+                                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                    <label for="startDate" style="color: var(--text-secondary); font-size: 0.75rem; font-weight: 500;">Desde:</label>
+                                    <input type="date" id="startDate" class="form-control date-input">
+                                </div>
+                            </div>
+                            <div class="date-input-group" style="margin-left: 10px;">
+                                <i class="fas fa-calendar"></i>
+                                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                    <label for="endDate" style="color: var(--text-secondary); font-size: 0.75rem; font-weight: 500;">Hasta:</label>
+                                    <input type="date" id="endDate" class="form-control date-input">
+                                </div>
                             </div>
                             <button type="button" class="btn btn-search" onclick="getByDate()">
                                 <i class="fas fa-search"></i>
@@ -1410,9 +1522,10 @@
 
                 <!-- TARJETAS KPI MEJORADAS -->
                 <div class="kpi-grid fade-in">
+                    <!-- VENTAS TOTALES FRANQUICIAS -->
                     <div class="kpi-card ventas-totales">
                         <div class="kpi-trend">
-                            <i class="fas fa-arrow-up"></i>
+                            <i class="fas fa-handshake"></i>
                         </div>
                         <div class="kpi-header">
                             <div class="kpi-icon">
@@ -1420,69 +1533,56 @@
                             </div>
                         </div>
                         <div class="kpi-content">
-                            <div class="kpi-value" id="kpi-ventas-totales">$0</div>
-                            <div class="kpi-label">Ventas Totales del Día Franqucias</div>
+                            <div class="kpi-value" id="kpi-ventas-franquicias">$0</div>
+                            <div class="kpi-label">Ventas Totales Franquicias</div>
                         </div>
                     </div>
                     
+                    <!-- VENTAS TOTALES SUCURSALES (SIN TRAI I PASTI) -->
                     <div class="kpi-card sucursal-top">
                         <div class="kpi-trend">
-                            <i class="fas fa-crown"></i>
+                            <i class="fas fa-building"></i>
                         </div>
                         <div class="kpi-header">
                             <div class="kpi-icon">
-                                <i class="fas fa-trophy"></i>
+                                <i class="fas fa-store"></i>
                             </div>
                         </div>
                         <div class="kpi-content">
-                            <div class="kpi-value" id="kpi-sucursal-top">-</div>
-                            <div class="kpi-label">Sucursal con Mayor Venta</div>
+                            <div class="kpi-value" id="kpi-ventas-sucursales">$0</div>
+                            <div class="kpi-label">Ventas Totales Sucursales</div>
                         </div>
                     </div>
                     
+                    <!-- VENTAS TOTALES TRAI I PASTI -->
                     <div class="kpi-card peor-negocio">
                         <div class="kpi-trend">
-                            <i class="fas fa-arrow-down"></i>
+                            <i class="fas fa-utensils"></i>
                         </div>
                         <div class="kpi-header">
                             <div class="kpi-icon">
-                                <i class="fas fa-exclamation-triangle"></i>
+                                <i class="fas fa-pizza-slice"></i>
                             </div>
                         </div>
                         <div class="kpi-content">
-                            <div class="kpi-value" id="kpi-peor-negocio">-</div>
-                            <div class="kpi-label">Peor Negocio</div>
-                            
+                            <div class="kpi-value" id="kpi-ventas-trai">$0</div>
+                            <div class="kpi-label">Ventas Totales Trai i Pasti</div>
                         </div>
                     </div>
                     
+                    <!-- VENTAS TOTALES FRANQUICIAS + SUCURSALES -->
                     <div class="kpi-card facturas-totales">
                         <div class="kpi-trend">
-                            <i class="fas fa-file-alt"></i>
+                            <i class="fas fa-chart-pie"></i>
                         </div>
                         <div class="kpi-header">
                             <div class="kpi-icon">
-                                <i class="fas fa-file-invoice-dollar"></i>
+                                <i class="fas fa-dollar-sign"></i>
                             </div>
                         </div>
                         <div class="kpi-content">
-                            <div class="kpi-value" id="kpi-facturas-totales">$0</div>
-                            <div class="kpi-label">Monto Total General</div>
-                        </div>
-                    </div>
-                    
-                    <div class="kpi-card total-facturado">
-                        <div class="kpi-trend">
-                            <i class="fas fa-receipt"></i>
-                        </div>
-                        <div class="kpi-header">
-                            <div class="kpi-icon">
-                                <i class="fas fa-calculator"></i>
-                            </div>
-                        </div>
-                        <div class="kpi-content">
-                            <div class="kpi-value" id="kpi-total-facturado">$0</div>
-                            <div class="kpi-label">Total Facturado</div>
+                            <div class="kpi-value" id="kpi-ventas-total-general">$0</div>
+                            <div class="kpi-label">Ventas Totales Franquicias + Sucursales</div>
                         </div>
                     </div>
                 </div>
@@ -1495,30 +1595,44 @@
                     </div>
                     <div class="card-body-modern">
                         <div class="table-responsive">
-                            <table class="table modern-table">
+                            <table class="table modern-table sortable-table" id="franquiciasTable">
                                 <thead>
                                     <tr>
-                                        <th scope="col">
+                                        <th scope="col" class="sortable" data-column="0" data-type="text">
                                             <i class="fas fa-store"></i>
                                             Sucursal
+                                            <i class="fas fa-sort sort-icon"></i>
                                         </th>
-                                        <th scope="col">
-                                            <i class="fas fa-money-bill-wave"></i>
-                                            Gastos Del Día
+                                        <th scope="col" class="sortable" data-column="1" data-type="number">
+                                            <i class="fas fa-dollar-sign"></i>
+                                            Venta Bruta
+                                            <i class="fas fa-sort sort-icon"></i>
                                         </th>
-                                        <th scope="col">
-                                            <i class="fas fa-chart-line"></i>
-                                            Monto Neto
+                                        <th scope="col" class="sortable" data-column="2" data-type="number">
+                                            <i class="fas fa-hashtag"></i>
+                                            Tickets
+                                            <i class="fas fa-sort sort-icon"></i>
                                         </th>
-                                        <th scope="col">
-                                            <i class="fas fa-wallet"></i>
-                                            Saldo Total
+                                        <th scope="col" class="sortable" data-column="3" data-type="number">
+                                            <i class="fas fa-motorcycle"></i>
+                                            Venta Delivery
+                                            <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th scope="col" class="sortable" data-column="4" data-type="text">
+                                            <i class="fas fa-ticket-alt"></i>
+                                            Ticket P/Delivery
+                                            <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th scope="col" class="sortable" data-column="5" data-type="number">
+                                            <i class="fas fa-percent"></i>
+                                            %
+                                            <i class="fas fa-sort sort-icon"></i>
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody id="tabla-counters-tbody">
                                     <tr>
-                                        <td colspan="4" class="text-center">
+                                        <td colspan="6" class="text-center">
                                             <i class="fas fa-spinner fa-spin"></i>
                                             CARGANDO...
                                         </td>
@@ -1537,7 +1651,7 @@
                     </div>
                     <div class="card-body-modern">
                         <div class="table-responsive">
-                            <table class="table modern-table">
+                            <table class="table modern-table" id="fagottoTable">
                                 <thead>
                                     <tr>
                                         <th scope="col">
@@ -1545,28 +1659,214 @@
                                             Sucursal
                                         </th>
                                         <th scope="col">
-                                            <i class="fas fa-money-bill-wave"></i>
-                                            Gastos Del Día
+                                            <i class="fas fa-dollar-sign"></i>
+                                            Venta Bruta
                                         </th>
                                         <th scope="col">
-                                            <i class="fas fa-chart-line"></i>
-                                            Monto Neto
+                                            <i class="fas fa-hashtag"></i>
+                                            Tickets
                                         </th>
                                         <th scope="col">
-                                            <i class="fas fa-wallet"></i>
-                                            Saldo Total
+                                            <i class="fas fa-motorcycle"></i>
+                                            Venta Delivery
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-ticket-alt"></i>
+                                            Ticket P/Delivery
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-percent"></i>
+                                            %
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody id="tabla-counters-fagotto-tbody">
                                     <tr>
-                                        <td colspan="4" class="text-center">
+                                        <td colspan="6" class="text-center">
                                             <i class="fas fa-spinner fa-spin"></i>
                                             CARGANDO...
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== TABLA COMPARATIVA AÑO A AÑO POR SUCURSAL ========== -->
+                <div class="content-card fade-in" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%); border: 2px solid rgba(139, 92, 246, 0.3);">
+                    <div class="card-header-modern" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);">
+                        <i class="fas fa-chart-bar"></i>
+                        <h5>📊 Comparación Detallada por Sucursal: <span id="fecha-2025" style="color: #fbbf24;">-</span> vs <span id="fecha-2024" style="color: #f97316;">-</span></h5>
+                    </div>
+                    <div class="card-body-modern">
+                        <div class="table-responsive">
+                            <table class="table modern-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" rowspan="2" style="vertical-align: middle;">
+                                            <i class="fas fa-store"></i>
+                                            Sucursal
+                                        </th>
+                                        <th scope="col" colspan="3" style="text-align: center; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.2) 100%);">
+                                            <i class="fas fa-calendar-check"></i>
+                                            <span id="header-fecha-2025">Ayer 2025</span>
+                                        </th>
+                                        <th scope="col" colspan="3" style="text-align: center; background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%);">
+                                            <i class="fas fa-history"></i>
+                                            <span id="header-fecha-2024">Mismo Día 2024</span>
+                                        </th>
+                                        <th scope="col" colspan="2" style="text-align: center; background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%);">
+                                            <i class="fas fa-chart-line"></i>
+                                            Comparación
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th style="background: rgba(16, 185, 129, 0.1);">
+                                            <i class="fas fa-dollar-sign"></i> Ventas
+                                        </th>
+                                        <th style="background: rgba(16, 185, 129, 0.1);">
+                                            <i class="fas fa-receipt"></i> Tickets
+                                        </th>
+                                        <th style="background: rgba(16, 185, 129, 0.1);">
+                                            <i class="fas fa-calculator"></i> T. Promedio
+                                        </th>
+                                        <th style="background: rgba(245, 158, 11, 0.1);">
+                                            <i class="fas fa-dollar-sign"></i> Ventas
+                                        </th>
+                                        <th style="background: rgba(245, 158, 11, 0.1);">
+                                            <i class="fas fa-receipt"></i> Tickets
+                                        </th>
+                                        <th style="background: rgba(245, 158, 11, 0.1);">
+                                            <i class="fas fa-calculator"></i> T. Promedio
+                                        </th>
+                                        <th style="background: rgba(139, 92, 246, 0.1);">
+                                            <i class="fas fa-arrows-alt-h"></i> Diferencia $
+                                        </th>
+                                        <th style="background: rgba(139, 92, 246, 0.1);">
+                                            <i class="fas fa-percentage"></i> Diferencia %
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-comparacion-tbody">
+                                    <tr>
+                                        <td colspan="9" class="text-center">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            Cargando comparación...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Explicación de la tabla -->
+                        <div style="background: rgba(139, 92, 246, 0.1); border-left: 4px solid #8b5cf6; padding: 1rem; border-radius: 8px; margin-top: 1.5rem;">
+                            <p style="margin: 0; color: #1e293b; font-size: 0.85rem;">
+                                <i class="fas fa-lightbulb" style="color: #8b5cf6;"></i>
+                                <strong>¿Cómo leer esta tabla?</strong><br>
+                                Compara el rendimiento de <strong>cada sucursal</strong> del día de ayer con el mismo día del año anterior.<br>
+                                • <span style="color: #10b981;">↗️ Verde</span> = Crecimiento respecto al año pasado<br>
+                                • <span style="color: #ef4444;">↘️ Rojo</span> = Caída respecto al año pasado
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MAPA DE CALOR DE SALSAS - TODAS LAS SUCURSALES -->
+                <div class="content-card fade-in" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); border: 2px solid rgba(102, 126, 234, 0.3);">
+                    <div class="card-header-modern" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <i class="fas fa-utensils"></i>
+                        <h5><span id="globalSauceHeatmapTitle">Mapa de Calor - Ventas de Salsas (Todas las Sucursales)</span></h5>
+                    </div>
+                    <div class="card-body-modern">
+                        <!-- KPIs de Totales -->
+                        <div class="row g-3 mb-4" id="globalSauceKpisContainer">
+                            <div class="col-md-3">
+                                <div class="p-3 rounded" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-bottle-droplet fa-2x text-white me-3"></i>
+                                        <div class="text-white">
+                                            <div style="font-size: 0.75rem; opacity: 0.9;">Salsa Extra</div>
+                                            <div style="font-size: 1.5rem; font-weight: bold;" id="globalSauceExtraTotal">0</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3 rounded" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-bacon fa-2x text-white me-3"></i>
+                                        <div class="text-white">
+                                            <div style="font-size: 0.75rem; opacity: 0.9;">Fettucine Total</div>
+                                            <div style="font-size: 1.5rem; font-weight: bold;" id="globalFettucineTotal">0</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3 rounded" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-bacon fa-2x text-white me-3"></i>
+                                        <div class="text-white">
+                                            <div style="font-size: 0.75rem; opacity: 0.9;">Bigoli Total</div>
+                                            <div style="font-size: 1.5rem; font-weight: bold;" id="globalBigoliTotal">0</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3 rounded" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-cheese fa-2x text-white me-3"></i>
+                                        <div class="text-white">
+                                            <div style="font-size: 0.75rem; opacity: 0.9;">Queso Extra</div>
+                                            <div style="font-size: 1.5rem; font-weight: bold;" id="globalQuesoExtraTotal">0</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabla Mapa de Calor -->
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered sauce-heatmap-table" id="globalSauceHeatmapTable">
+                                <thead class="table-dark">
+                                    <tr id="globalSauceHeatmapHeader">
+                                        <th class="sticky-col">Salsa</th>
+                                        <!-- Los días se generarán dinámicamente -->
+                                    </tr>
+                                </thead>
+                                <tbody id="globalSauceHeatmapBody">
+                                    <tr>
+                                        <td colspan="100%" class="text-center text-muted py-4">
+                                            <i class="fas fa-spinner fa-spin me-2"></i>
+                                            Cargando datos de salsas...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Leyenda y Estadísticas -->
+                        <div class="row mt-4">
+                            <div class="col-md-8">
+                                <div class="sauce-legend d-flex flex-wrap gap-2 align-items-center">
+                                    <span class="me-2"><strong>Intensidad:</strong></span>
+                                    <span class="badge sauce-cell-0">0</span>
+                                    <span class="badge sauce-cell-1">1-5</span>
+                                    <span class="badge sauce-cell-2">6-15</span>
+                                    <span class="badge sauce-cell-3">16-30</span>
+                                    <span class="badge sauce-cell-4">31-50</span>
+                                    <span class="badge sauce-cell-5">51+</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="sauce-stats" id="globalSauceStats">
+                                    <i class="fas fa-trophy text-warning me-2"></i>
+                                    <strong>Salsa Más Vendida:</strong>
+                                    <div id="globalTopSauce" class="mt-2">-</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1617,14 +1917,14 @@
                 <div class="content-card fade-in">
                     <div class="card-header-modern">
                         <i class="fas fa-chart-bar"></i>
-                        <h5>Análisis de Sucursales</h5>
+                        <h5>Análisis de Sucursales - Ranking de Ventas</h5>
                     </div>
-                    <div class="chart-container">
-                        <canvas id="sucursalesChart" width="900" height="480"></canvas>
+                    <div class="card-body-modern">
+                        <div class="chart-container" style="height: 600px; position: relative;">
+                            <canvas id="sucursalesChart"></canvas>
+                        </div>
                     </div>
                 </div>
-
-            
 
                 <!-- PEDIDOS -->
                 <div class="content-card fade-in">
@@ -1649,8 +1949,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"
         integrity="sha384-zNy6FEbO50N+Cg5wap8IKA4M/ZnLJgzc6w2NqACZaK0u0FXfOWRRJOnQtpZun8ha"
         crossorigin="anonymous"></script>
-    <script src="../assets/js/dashboard-kpis.js"></script>
-    <script src="../assets/js/dashboard.js"></script>
+    <script src="../assets/js/dashboard-kpis.js?v=2025111001"></script>
+    <script src="../assets/js/dashboard-delivery-tickets.js?v=2025110501"></script>
+    <script src="../assets/js/dashboard.js?v=2025110501"></script>
+    <script src="../assets/js/dashboard-comparison.js?v=2025102101"></script>
     <script src="../assets/js/cocinafagotto.js"></script>
     <script>
         (!_store().serial.isset()) ? window.location.href = "../index.html" : "";
@@ -1682,6 +1984,13 @@
                     this.classList.add('active');
                 });
             });
+
+            // Cargar comparación año a año después de 2 segundos
+            setTimeout(function() {
+                if (typeof loadYearComparison === 'function') {
+                    loadYearComparison();
+                }
+            }, 2000);
         });
 
         // ========== MOBILE MENU FUNCTIONALITY ==========
@@ -1719,6 +2028,31 @@
             if (overlay) {
                 overlay.addEventListener('click', closeMobileMenu);
             }
+
+            // Fix accordion toggle functionality
+            const accordionButtons = document.querySelectorAll('.accordion-button');
+            accordionButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const target = this.getAttribute('data-bs-target');
+                    const collapse = document.querySelector(target);
+                    
+                    if (collapse) {
+                        const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                        
+                        if (isExpanded) {
+                            // Collapse
+                            collapse.classList.remove('show');
+                            this.classList.add('collapsed');
+                            this.setAttribute('aria-expanded', 'false');
+                        } else {
+                            // Expand
+                            collapse.classList.add('show');
+                            this.classList.remove('collapsed');
+                            this.setAttribute('aria-expanded', 'true');
+                        }
+                    }
+                });
+            });
 
             // Close menu when clicking on nav links
             const navLinks = document.querySelectorAll('.nav-link-sub, .nav-item-mobile .nav-link');

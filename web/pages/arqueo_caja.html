@@ -141,6 +141,87 @@
             max-height: 400px;
             overflow-y: auto;
         }
+
+        /* Comparación de Saldos */
+        .comparison-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 2px solid var(--border-color);
+        }
+
+        .comparison-item {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 2px solid transparent;
+        }
+
+        .balance-sistema {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-color: #3b82f6;
+        }
+
+        .balance-cajero {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-color: #f59e0b;
+        }
+
+        .resultado-comparacion {
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border: 3px solid;
+            transition: all 0.3s ease;
+        }
+
+        .resultado-exacto {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-color: #10b981;
+            color: #065f46;
+        }
+
+        .resultado-leve {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+
+        .resultado-grave {
+            background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+            border-color: #f97316;
+            color: #7c2d12;
+        }
+
+        .resultado-peligro {
+            background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+            border-color: #ef4444;
+            color: #991b1b;
+            animation: pulse-danger 2s infinite;
+        }
+
+        @keyframes pulse-danger {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .icono-resultado {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .mensaje-diferencia {
+            font-size: 0.95rem;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 6px;
+        }
     </style>
 </head>
 
@@ -335,6 +416,35 @@
                                 <span>Diferencia:</span>
                                 <strong id="diferencia" class="text-success">$0</strong>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparación Sistema vs Cajero -->
+                <div class="arqueo-card">
+                    <div class="card-body p-4">
+                        <h5 class="mb-3"><i class="fas fa-balance-scale me-2"></i>Comparación de Saldos</h5>
+                        
+                        <div class="comparison-item balance-sistema">
+                            <small class="text-muted d-block mb-1">Total Balance (Sistema)</small>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Balance final después de gastos</span>
+                                <strong class="fs-5" id="balanceSistema">$0</strong>
+                            </div>
+                        </div>
+
+                        <div class="comparison-item balance-cajero">
+                            <small class="text-muted d-block mb-1">Total Registrado por Cajero</small>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Lo que dijo que tenía</span>
+                                <strong class="fs-5" id="balanceCajero">$0</strong>
+                            </div>
+                        </div>
+
+                        <div id="resultadoComparacion" class="resultado-comparacion resultado-exacto" style="display: none;">
+                            <span class="icono-resultado" id="iconoResultado">✓</span>
+                            <div id="mensajeResultado">Cálculo pendiente</div>
+                            <div class="mensaje-diferencia" id="detalleDiferencia"></div>
                         </div>
                     </div>
                 </div>

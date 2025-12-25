@@ -2,14 +2,30 @@ $(document).ready(function () {
     // _name.text(_store().session.user().get("username")) //obtenemos el nombre del usuario
     getPedidos();
     loadSucursalesList();
+    
+    // Obtener información de la franquicia si hay un id en la URL
+    console.log("🔍 DEBUG - ID de la URL:", id);
+    if (id) {
+        console.log("✅ DEBUG - Llamando a getApp()");
+        getApp();
+    } else {
+        console.log("❌ DEBUG - No hay ID en la URL, no se llama getApp()");
+    }
+    
+    // Auto-refresh de notificaciones cada 30 segundos
+    setInterval(function() {
+        loadSucursalesList();
+        console.log('🔔 Notificaciones actualizadas automáticamente');
+    }, 30000); // 30 segundos
 })
 
 const app_name = document.getElementById('app-name');
 var startDateValue;
 var endDateValue;
 const urlParams = new URLSearchParams(window.location.search);
-const id = urlParams.get('id');
+let id = urlParams.get('id'); // Cambiar a let para poder actualizarla
 const waiters = [];
+window.currentFranquiciaName = 'N/A'; // Variable global para almacenar el nombre de la franquicia
 
 
 async function getData(startDate, endDate) {
@@ -40,7 +56,16 @@ function getApp() {
         dev: true,
         method: 'GET'
     }, {}, function (request) {
-        app_name.innerHTML = request[0].name;
+        console.log("🔍 DEBUG getApp() - Respuesta completa:", request);
+        if (request && request[0] && request[0].name) {
+            window.currentFranquiciaName = request[0].name;
+            console.log("✅ DEBUG getApp() - Nombre guardado:", request[0].name);
+            if (app_name) {
+                app_name.innerHTML = request[0].name;
+            }
+        } else {
+            console.log("❌ DEBUG getApp() - No se pudo obtener el nombre");
+        }
     });
 }
 
@@ -88,13 +113,16 @@ function getNowDate() {
 }
 
 async function getPedidos(startDate = null, endDate = null, page) {
-    if (id) {
+    // Usar selectedSucursalId si está disponible, sino usar id de URL
+    const currentId = selectedSucursalId || id;
+    
+    if (currentId) {
         var params = `?params=true&page=${page || 1}`;
         var url = "";
         if (startDate && endDate) {
-            url = generarURLApi(`/web/getAppRequests${params}&id=${id}&startDate=${startDate}&endDate=${endDate}`);
+            url = generarURLApi(`/web/getAppRequests${params}&id=${currentId}&startDate=${startDate}&endDate=${endDate}`);
         } else {
-            url = generarURLApi(`/web/getAppRequests${params}&id=${id}`);
+            url = generarURLApi(`/web/getAppRequests${params}&id=${currentId}`);
         }
 
         await __conection({
@@ -146,9 +174,14 @@ async function getPedidos(startDate = null, endDate = null, page) {
                             case 'rechazado': pedido_status = '<i class="fa fa-ban icon" aria-hidden="true" style="font-size: 2rem; color: red;"></i>';
                                 break;
                         }
+                        // 🚨 VERIFICAR SI ES PEDIDO DE EMERGENCIA
+                        const esEmergencia = pedidos[pedido].emergency && parseFloat(pedidos[pedido].emergency) > 0;
+                        const emergenciaStyle = esEmergencia ? 'style="background-color: #ffeaa7; border-left: 4px solid #e17055;"' : '';
+                        const emergenciaIcon = esEmergencia ? '<span title="Pedido de Emergencia">🚨</span> ' : '';
+                        
                         if (pedidos[pedido].print != 1) {
-                            fila += `<tr>
-                                        <td><b>${pedidos[pedido].id}</b></td>
+                            fila += `<tr ${emergenciaStyle}>
+                                        <td><b>${emergenciaIcon}${pedidos[pedido].id}</b></td>
                                         <td><b>${app}</b></td>
                                         <td>${pedidos[pedido].contact_name}</td>
                                         <td>${pedidos[pedido].contact_phone}</td>
@@ -240,8 +273,30 @@ function verPedido(app_id, id) {
     }, {}, function (request) {
         const pedido = request;
 
+        // 🚨 VERIFICAR SI ES PEDIDO DE EMERGENCIA
+        const esEmergencia = pedido.emergency && parseFloat(pedido.emergency) > 0;
+        console.log(`${esEmergencia ? '🚨 PEDIDO DE EMERGENCIA' : '📝 Pedido Normal'} - ID: ${id}`);
+        
+        // Hacer disponible globalmente para el PDF
+        window.currentPedidoEsEmergencia = esEmergencia;
+
         const products = JSON.parse(pedido.products);
-        console.log(products);
+        console.log("🔍 PRODUCTOS RECIBIDOS DE LA API:", products);
+        
+        // Analizar cada producto individualmente
+        products.forEach((product, index) => {
+            console.log(`📦 Producto ${index + 1}:`, {
+                name: product.name,
+                quantity: product.quantity,
+                category: product.category,
+                id: product.id,
+                esFocaccia: product.name.toLowerCase().includes('focaccia'),
+                esCategoria3: product.category == 3
+            });
+        });
+        
+        // Guardar productos originales para el PDF
+        productosOriginales = products;
         const productsModal = document.getElementById('productsModal')
 
         // const button = event.relatedTarget
@@ -258,48 +313,77 @@ function verPedido(app_id, id) {
             
             let fila = "";
 
-            // FunciÃ³n para determinar la unidad correcta
+            // FunciÃ³n para determinar la unidad correcta - VERSIÓN ROBUSTA
             function getUnidadProducto(product) {
-                // Casos especÃ­ficos con sus unidades
-                if (product.name === 'Botella de Huevos 1L') {
-                    return product.quantity + ' botellas';
-                }
-                if (product.name === 'Aceite Vegetal 5L') {
-                    return product.quantity + ' unidades';
-                }
-                if (product.name === 'Pliego (124 stickers)') {
-                    return product.quantity + ' Pliego';
+                console.log("🔍 MODAL ANALISIS:", {
+                    nombre: product.name,
+                    cantidad: product.quantity,
+                    categoria: product.category,
+                    id: product.id,
+                    nombreLower: product.name.toLowerCase()
+                });
+                
+                // FOCACCIAS - MÁXIMA PRIORIDAD - MÚLTIPLES DETECTORES
+                // ⚠️ IMPORTANTE: Solo detectar focaccias por nombre si REALMENTE contiene "focaccia"
+                const esFocacciaNombre = product.name.toLowerCase().includes('focaccia') && !product.name.toLowerCase().includes('pesto');
+                const esCategoria3 = product.category == 3;
+                const esFocacciaID = [11, 23, 27, 28].includes(product.id); // ✅ AGREGADO ID 27 para Focaccia alleato
+                
+                // 🥫 EXCLUSIÓN ESPECÍFICA: El pesto (salsa ID 19) NUNCA es focaccia
+                const esPestoSalsaPorID = product.id == 19; // Pesto salsa específico
+                const esPestoSalsa = product.name.toLowerCase().includes('pesto') && !product.name.toLowerCase().includes('focaccia');
+                
+                if ((esFocacciaNombre || esCategoria3 || esFocacciaID) && !esPestoSalsaPorID && !esPestoSalsa) {
+                    const cantidadFinal = parseInt(product.quantity) || product.quantity;
+                    console.log("🥖 FOCACCIA CONFIRMADA:", {
+                        nombre: product.name,
+                        cantidadOriginal: product.quantity,
+                        cantidadFinal: cantidadFinal,
+                        detectadoPor: esFocacciaNombre ? 'NOMBRE' : esCategoria3 ? 'CATEGORIA_3' : 'ID_FOCACCIA'
+                    });
+                    return cantidadFinal + ' unidades';
                 }
                 
-                // Productos que NO van en kg (van en unidades)
-                const productosUnidades = [
-                    'Vaso', 'Sandwich', 'Aceite de oliva 5kg', 'Harina', 'Bolsa',
-                    'Focaccia Salame', 'Focaccia Pesto', 'Focaccia alleato', 
-                    'Focaccia Pollo Pimenton', 'papel mantequilla (Focaccia)', 
-                    'Papel Mantequilla (Bandeja)'
-                ];
+                // 🥫 SALSAS - SIEMPRE EN KILOGRAMOS (prioridad alta)
+                if (product.id == 19) { // Pesto salsa específico
+                    console.log("🥫 PESTO SALSA DETECTADO (ID 19):", product.name, "->", product.quantity + ' kg');
+                    return product.quantity + ' kg';
+                }
                 
+                const esSalsa = product.name.toLowerCase().includes('bolonesa') ||
+                               product.name.toLowerCase().includes('champinon') ||
+                               product.name.toLowerCase().includes('alfredo') ||
+                               product.name.toLowerCase().includes('mostaza');
+                
+                if (esSalsa && !product.name.toLowerCase().includes('focaccia')) {
+                    console.log("🥫 SALSA DETECTADA:", product.name, "->", product.quantity + ' kg');
+                    return product.quantity + ' kg';
+                }
+                
+                // Casos específicos
+                if (product.name === 'Botella de Huevos 1L') return product.quantity + ' botellas';
+                if (product.name === 'Aceite Vegetal 5L') return product.quantity + ' unidades';
+                if (product.name === 'Pliego (124 stickers)') return product.quantity + ' Pliego';
+                
+                // Productos específicos en unidades
+                const productosUnidades = ['Vaso', 'Sandwich', 'Aceite de oliva 5kg', 'Harina', 'Bolsa', 'papel mantequilla (Focaccia)', 'Papel Mantequilla (Bandeja)'];
                 if (productosUnidades.includes(product.name)) {
                     return product.quantity + ' unidades';
                 }
                 
-                // Productos que van en kg
+                // Por defecto kg
+                console.log("⚡ Producto va en KG:", product.name);
                 return product.quantity + ' kg';
             }
 
-            if(products[product].id == 2){
-                 fila = `<tr>
-                                <td>${i}</td> 
-                                <td>${products[product].name.toUpperCase()}</td> 
-                                <td>${products[product].quantity+" ("+Math.ceil(products[product].price)+"gr"+")"}</td>  
-                        </tr>`;
-            }else{
-                fila = `<tr>
-                    <td>${i}</td> 
-                    <td>${products[product].name.toUpperCase()}</td> 
-                    <td>${getUnidadProducto(products[product])}</td>  
-                </tr>`;
-            }
+            // TODOS los productos usan la función getUnidadProducto para unidades correctas
+            const unidadCalculada = getUnidadProducto(products[product]);
+            console.log("🔥 HTML GENERADO PARA:", products[product].name, "→", unidadCalculada);
+            fila = `<tr>
+                <td>${i}</td> 
+                <td>${products[product].name.toUpperCase()}</td> 
+                <td>${unidadCalculada}</td>  
+            </tr>`;
             
 
 
@@ -309,7 +393,17 @@ function verPedido(app_id, id) {
         
         const listData = document.getElementById('data-pedido');
 
-        const bodyList = `<li class="list-group-item d-flex justify-content-between align-items-start">
+        // Crear indicador de emergencia
+        const emergenciaHtml = esEmergencia ? 
+            `<li class="list-group-item d-flex justify-content-between align-items-start" style="background-color: #ffeaa7; border-left: 4px solid #e17055;">
+                <div class="ms-2 me-auto">
+                    <div class="fw-bold text-danger">🚨 PEDIDO DE EMERGENCIA</div>
+                    ¡Este pedido requiere atención prioritaria!
+                </div>
+            </li>` : '';
+
+        const bodyList = `${emergenciaHtml}
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
                             <div class="ms-2 me-auto">
                                 <div class="fw-bold">Nombre</div>
                                 ${pedido.contact_name}
@@ -335,7 +429,7 @@ function verPedido(app_id, id) {
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-start">
                             <div class="ms-2 me-auto">
-                                <div class="fw-bold">ReseÃ±a</div>
+                                <div class="fw-bold">Reseña</div>
                                 ${pedido.review}
                             </div>
                         </li>`;
@@ -405,6 +499,9 @@ function rechazarPedido(app_id, id) {
     });
 }
 
+// Variable global para tracking de notificaciones
+let lastNotificationCount = {};
+
 async function loadSucursalesList() {
     let apps = []; // Array para almacenar los datos de id y name
 
@@ -426,6 +523,12 @@ async function loadSucursalesList() {
                         name: app.name,
                         pedidosNew: app.pedidosNew
                     };
+                    
+                    // Si este app coincide con el ID actual, guardar el nombre
+                    if (id && app.id == id) {
+                        window.currentFranquiciaName = app.name;
+                        console.log("✅ DEBUG loadSucursalesList() - Nombre guardado desde lista:", app.name);
+                    }
                 });
 
                 // console.log(apps);
@@ -438,6 +541,15 @@ async function loadSucursalesList() {
         // Handle errors appropriately
     }
 
+    // Detectar nuevos pedidos y mostrar notificación
+    apps.forEach(app => {
+        const previousCount = lastNotificationCount[app.id] || 0;
+        if (app.pedidosNew > previousCount && previousCount > 0) {
+            showNewOrderNotification(app.name, app.pedidosNew - previousCount);
+        }
+        lastNotificationCount[app.id] = app.pedidosNew;
+    });
+
     //Renderizar Lista de sucursales
     let sucursalesList = document.getElementById('sucursales-list');
     sucursalesList.innerHTML = '';
@@ -446,7 +558,7 @@ async function loadSucursalesList() {
         let fila = "";
         if (app.pedidosNew > 0) {
             fila = `  <li class="nav-item list-group-item">
-                            <a href="/pages/pedidos.html?id=${app.id}" type="button" class="nav-link d-inline position-relative">
+                            <a href="javascript:void(0)" onclick="selectSucursal(${app.id}, '${app.name}')" class="nav-link d-inline position-relative">
                                 ${app.name} 
                                 <span class="position-absolute start-100 translate-middle badge rounded-pill bg-danger">
                                    ${app.pedidosNew} 
@@ -455,7 +567,7 @@ async function loadSucursalesList() {
                         </li>`;
         } else {
             fila = `  <li class="nav-item list-group-item">
-                            <a href="/pages/pedidos.html?id=${app.id}" type="button" class="nav-link d-inline position-relative">
+                            <a href="javascript:void(0)" onclick="selectSucursal(${app.id}, '${app.name}')" class="nav-link d-inline position-relative">
                                 ${app.name}
                             </a>  
                         </li>`;
@@ -463,6 +575,79 @@ async function loadSucursalesList() {
 
         sucursalesList.innerHTML += fila;
     });
+}
+
+// Función para refrescar notificaciones manualmente
+function refreshNotifications() {
+    console.log('🔄 Actualizando notificaciones manualmente...');
+    loadSucursalesList();
+}
+
+// Función para mostrar notificación de nuevos pedidos
+function showNewOrderNotification(sucursalName, newOrdersCount) {
+    // Crear notificación visual
+    const notification = document.createElement('div');
+    notification.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    notification.style.cssText = `
+        top: 20px; 
+        right: 20px; 
+        z-index: 9999; 
+        width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `;
+    
+    notification.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-bell text-success me-2"></i>
+            <div>
+                <strong>¡Nuevos Pedidos!</strong><br>
+                <small>${newOrdersCount} nuevo(s) pedido(s) en <strong>${sucursalName}</strong></small>
+            </div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remover después de 10 segundos
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 10000);
+    
+    console.log(`🔔 Nuevos pedidos detectados: ${newOrdersCount} en ${sucursalName}`);
+}
+
+// Variable global para la sucursal seleccionada
+let selectedSucursalId = null;
+
+// Función para seleccionar sucursal sin recargar página
+function selectSucursal(sucursalId, sucursalName) {
+    selectedSucursalId = sucursalId;
+    
+    // Actualizar la variable id global
+    id = sucursalId;
+    
+    // Actualizar el nombre de la franquicia actual para el PDF
+    window.currentFranquiciaName = sucursalName;
+    
+    // Actualizar URL sin recargar página
+    const newUrl = `${window.location.pathname}?id=${sucursalId}`;
+    window.history.pushState({sucursalId: sucursalId}, '', newUrl);
+    
+    // Cargar pedidos de la sucursal seleccionada
+    getPedidos();
+    
+    // Actualizar título
+    const titleElement = document.querySelector('.d-flex.justify-content-between.flex-wrap h1');
+    if (titleElement) {
+        titleElement.textContent = `Pedidos - ${sucursalName}`;
+    }
+    
+    console.log(`📍 Sucursal seleccionada: ${sucursalName} (ID: ${sucursalId})`);
+    console.log(`✅ Nombre actualizado para PDF: ${window.currentFranquiciaName}`);
+    console.log(`✅ ID actualizado: ${id}`);
 }
 
 let pedidoId = 0;
@@ -771,5 +956,545 @@ async function verFacturaPDF(pedidoId) {
         desactivateLoader(); // Ensure loader is always deactivated
         console.error("Error al obtener PDF de factura:", error);
         alert('❌ Error de conexión al obtener la factura.');
+    }
+}
+
+// Función para exportar pedidos a Excel
+function exportarExcel() {
+    if (!id) {
+        alert('❌ Error: No se ha seleccionado una sucursal.');
+        return;
+    }
+
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    
+    // Construir la URL con parámetros
+    let url = generarURLApi(`/web/exportAppRequestsExcel?id=${id}`);
+    
+    if (startDate && endDate) {
+        url += `&startDate=${startDate}&endDate=${endDate}`;
+    } else if (startDate) {
+        url += `&startDate=${startDate}`;
+    } else if (endDate) {
+        url += `&endDate=${endDate}`;
+    }
+
+    // Mostrar mensaje de carga
+    const botonExcel = document.querySelector('button[onclick="exportarExcel()"]');
+    if (!botonExcel) {
+        alert('❌ Error: No se encontró el botón de exportar.');
+        return;
+    }
+
+    const originalText = botonExcel.innerHTML;
+    botonExcel.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+    botonExcel.disabled = true;
+
+    // Agregar headers de autenticación y descargar
+    console.log('🔗 URL Excel:', url);
+    
+    fetch(url, {
+        method: 'GET',
+        headers: credentials()
+    })
+    .then(response => {
+        console.log('📋 Response status:', response.status);
+        console.log('📋 Response headers:', response.headers);
+        
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+        
+        // Verificar que sea realmente un archivo Excel
+        const contentType = response.headers.get('Content-Type');
+        console.log('📄 Content-Type:', contentType);
+        
+        if (!contentType || !contentType.includes('spreadsheet')) {
+            console.warn('⚠️ Advertencia: El contenido no parece ser un archivo Excel');
+        }
+        
+        // Obtener nombre del archivo de los headers
+        const disposition = response.headers.get('Content-Disposition');
+        let filename = 'pedidos_export.xls';
+        
+        if (disposition) {
+            console.log('📄 Content-Disposition header:', disposition);
+            
+            // Intentar extraer filename de diferentes formas
+            if (disposition.includes('filename*=')) {
+                // RFC 5987 encoded filename
+                const match = disposition.match(/filename\*=UTF-8''([^;]+)/);
+                if (match) {
+                    filename = decodeURIComponent(match[1]);
+                }
+            } else if (disposition.includes('filename=')) {
+                // Simple filename
+                const match = disposition.match(/filename="?([^";\s]+)"?/);
+                if (match) {
+                    filename = match[1];
+                }
+            }
+        } else {
+            // Si no hay header, generar nombre basado en fecha
+            const now = new Date();
+            const dateStr = now.toISOString().slice(0, 10);
+            filename = `pedidos_${dateStr}.xls`;
+        }
+        
+        console.log('📁 Filename:', filename);
+        
+        return response.blob().then(blob => {
+            console.log('📦 Blob size:', blob.size, 'bytes');
+            console.log('📦 Blob type:', blob.type);
+            return { blob, filename };
+        });
+    })
+    .then(({ blob, filename }) => {
+        // Crear URL del blob y descargar
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+        
+        // Mostrar mensaje de éxito
+        console.log('✅ Archivo Excel generado correctamente:', filename);
+        
+        // Mostrar toast de éxito si está disponible
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: 'Archivo Excel generado y descargado correctamente.',
+                timer: 3000,
+                showConfirmButton: false
+            });
+        } else {
+            alert('✅ Archivo Excel generado y descargado correctamente.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        
+        // Mostrar error más descriptivo
+        let errorMessage = 'Error al generar el archivo Excel';
+        if (error.message.includes('fetch')) {
+            errorMessage = 'Error de conexión con el servidor';
+        } else if (error.message.includes('500')) {
+            errorMessage = 'Error interno del servidor';
+        } else if (error.message.includes('404')) {
+            errorMessage = 'Endpoint no encontrado';
+        }
+        
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: errorMessage + ': ' + error.message
+            });
+        } else {
+            alert('❌ ' + errorMessage + ': ' + error.message);
+        }
+    })
+    .finally(() => {
+        // Restaurar botón
+        if (botonExcel) {
+            botonExcel.innerHTML = originalText;
+            botonExcel.disabled = false;
+        }
+    });
+}
+
+// Variable global para almacenar la información del pedido actual
+let pedidoActualParaImprimir = null;
+let productosOriginales = null;
+
+// Función auxiliar para cargar imagen como base64
+async function loadImageAsBase64(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            
+            try {
+                const base64 = canvas.toDataURL('image/png');
+                console.log("✅ Imagen convertida a base64 exitosamente");
+                resolve(base64);
+            } catch (error) {
+                console.error("❌ Error convirtiendo a base64:", error);
+                reject(error);
+            }
+        };
+        
+        img.onerror = function() {
+            console.error("❌ Error cargando imagen:", src);
+            reject(new Error('No se pudo cargar la imagen'));
+        };
+        
+        img.src = src + '?' + new Date().getTime(); // Cache buster
+    });
+}
+
+// Función para imprimir el pedido actual en PDF con formato de Guía de Despacho FAGOTTO
+async function imprimirPedidoPDF() {
+    console.log("🚀 INICIANDO GENERACIÓN DE PDF");
+    
+    // Verificar dependencias críticas
+    if (typeof window.jspdf === 'undefined') {
+        console.error("❌ jsPDF no está cargado");
+        alert("Error: jsPDF no está disponible");
+        return;
+    }
+    
+    try {
+        // Crear el PDF usando jsPDF con tamaño A4 explícito
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('portrait', 'mm', 'a4'); // Forzar A4 portrait
+        
+        // Configuración de la página
+        const pageWidth = pdf.internal.pageSize.width;  // 210mm para A4
+        const pageHeight = pdf.internal.pageSize.height; // 297mm para A4
+        const margin = 15;
+        
+        console.log(`📄 DIMENSIONES PDF: ${pageWidth}mm x ${pageHeight}mm`);
+        
+        // Obtener datos del modal actual
+        const productTable = document.getElementById('table-products');
+        const total = document.getElementById('total').textContent;
+        const pedidoTitle = document.querySelector('#productsModalLabel').textContent;
+        
+        // Extraer número de pedido del título
+        const numeroPedido = pedidoTitle.match(/\d+/) ? pedidoTitle.match(/\d+/)[0] : 'N/A';
+        
+        // ENCABEZADO - Logo profesional y título
+        pdf.setFontSize(16);
+        pdf.setFont("helvetica", "bold");
+        
+        // 🎨 LOGO PROFESIONAL FAGOTTO
+        try {
+            console.log("🔍 Cargando logo profesional...");
+            const logoBase64 = await loadImageAsBase64('/assets/css/negro.png');
+            
+            // Agregar logo al PDF (posición x, y, ancho, alto)
+            pdf.addImage(logoBase64, 'PNG', 15, 8, 30, 18);
+            console.log("✅ Logo agregado exitosamente al PDF");
+            
+        } catch (error) {
+            console.error("❌ Error cargando logo, usando fallback:", error);
+            
+            // Fallback profesional con estilo FAGOTTO
+            pdf.setFillColor(0, 0, 0); // Fondo negro
+            pdf.rect(15, 8, 30, 18, 'F'); // Rectángulo de fondo
+            
+            pdf.setTextColor(255, 255, 255); // Texto blanco
+            pdf.setFontSize(14);
+            pdf.setFont("helvetica", "bold");
+            pdf.text("FAGOTTO", 18, 20);
+            
+            console.log("✅ Fallback logo aplicado");
+        }
+        
+        // Título principal con pedido # 
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(16);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("Guía de despacho FAGOTTO", 50, 15);
+        
+        // Obtener el nombre de la franquicia de la variable global actualizada
+        const franquiciaName = window.currentFranquiciaName || 'N/A';
+        
+        // Debug: verificar qué valor tiene la franquicia
+        console.log("🔍 DEBUG PDF - Nombre de franquicia:", franquiciaName);
+        console.log("🔍 DEBUG PDF - Variable global:", window.currentFranquiciaName);
+        console.log("🔍 DEBUG PDF - ID actual:", id);
+        
+        // Pedido # y Franquicia debajo del título
+        pdf.setFontSize(15);
+        pdf.text(`Pedido #: ${numeroPedido}`, 50, 25);
+        pdf.text(`Franquicia: ${franquiciaName}`, 50, 35);
+        
+        // 🚨 AGREGAR INDICADOR DE EMERGENCIA AL PDF
+        let startYAdjust = 0; // Ajuste para el resto del contenido
+        if (window.currentPedidoEsEmergencia) {
+            pdf.setTextColor(255, 0, 0); // Rojo
+            pdf.setFont("helvetica", "bold");
+            pdf.setFontSize(14);
+            pdf.text("🚨 PEDIDO DE EMERGENCIA - PRIORIDAD ALTA", 50, 45);
+            pdf.setTextColor(0, 0, 0); // Volver a negro
+            pdf.setFont("helvetica", "normal");
+            startYAdjust = 10; // Mover el resto del contenido hacia abajo
+        }
+        
+        // SECCIÓN DE TOTAL Y FECHA (COMPACTADA)
+        let startY = 45 + startYAdjust;
+        
+        // Rectángulo para TOTAL (reemplaza Local)
+        pdf.rect(margin, startY, 90, 12); // Más chico (12 en lugar de 15)
+        pdf.setFontSize(15);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("Total:", margin + 5, startY + 8);
+        
+        // Valor del total
+        pdf.setFont("helvetica", "normal");
+        const totalValue = document.getElementById('total') ? document.getElementById('total').textContent : '$0';
+        pdf.text(totalValue, margin + 35, startY + 8);
+        
+        // Rectángulo para Fecha (bien alineado)
+        pdf.rect(margin + 90, startY, 90, 12); // Más chico
+        pdf.setFont("helvetica", "bold"); 
+        pdf.text("Fecha:", margin + 95, startY + 8);
+        
+        // Fecha actual (bien posicionada)
+        pdf.setFont("helvetica", "normal");
+        const fechaActual = new Date().toLocaleDateString('es-CL');
+        pdf.text(fechaActual, margin + 125, startY + 8);
+        
+        // TABLA DE PRODUCTOS (MÁS COMPACTA)
+        startY += 15; // Menos espacio
+        
+        // Encabezados de tabla (más chicos)
+        pdf.rect(margin, startY, 120, 10);
+        pdf.rect(margin + 120, startY, 60, 10);
+        
+        pdf.setFontSize(15); // Texto más pequeño
+        pdf.setFont("helvetica", "bold");
+        pdf.text("PRODUCTO", margin + 5, startY + 7);
+        pdf.text("CANT.", margin + 125, startY + 7);
+        
+        // Productos de la lista predefinida de FAGOTTO (sin tildes para evitar problemas)
+        const productosFagotto = [
+            'Bolonesa', 'Champinon', 'Camaron', 'Pesto', 'Alfredo', 'Pollo mostaza',
+            'Queso', 'Huevos', 'Mezcla', 'Vasos', 'Bolsas', 'Papel M.',
+            'Stickers', 'Aceite', 'F. Pesto', 'F. Aleato', 'F. Salami', 'F.Pollo / Pim'
+        ];
+        
+        startY += 10; // Cabecera más chica
+        const rowHeight = 9; // Filas más chicas
+        
+        // FUNCIÓN PDF - IDÉNTICA AL MODAL
+        function getUnidadProducto(product) {
+            console.log("🔍 PDF ANALISIS:", {
+                nombre: product.name,
+                cantidad: product.quantity,
+                categoria: product.category,
+                id: product.id,
+                nombreLower: product.name.toLowerCase()
+            });
+            
+            // FOCACCIAS - MÁXIMA PRIORIDAD - MÚLTIPLES DETECTORES
+            // ⚠️ IMPORTANTE: Solo detectar focaccias por nombre si REALMENTE contiene "focaccia"
+            const esFocacciaNombre = product.name.toLowerCase().includes('focaccia') && !product.name.toLowerCase().includes('pesto');
+            const esCategoria3 = product.category == 3;
+            const esFocacciaID = [11, 23, 27, 28].includes(product.id); // ✅ AGREGADO ID 27 para Focaccia alleato
+            
+            // 🥫 EXCLUSIÓN ESPECÍFICA: El pesto (salsa ID 19) NUNCA es focaccia
+            const esPestoSalsaPorID = product.id == 19; // Pesto salsa específico
+            const esPestoSalsa = product.name.toLowerCase().includes('pesto') && !product.name.toLowerCase().includes('focaccia');
+            
+            if ((esFocacciaNombre || esCategoria3 || esFocacciaID) && !esPestoSalsaPorID && !esPestoSalsa) {
+                const cantidadFinal = parseInt(product.quantity) || product.quantity;
+                console.log("🥖 PDF FOCACCIA CONFIRMADA:", {
+                    nombre: product.name,
+                    cantidadOriginal: product.quantity,
+                    cantidadFinal: cantidadFinal,
+                    detectadoPor: esFocacciaNombre ? 'NOMBRE' : esCategoria3 ? 'CATEGORIA_3' : 'ID_FOCACCIA'
+                });
+                return cantidadFinal + ' unidades';
+            }
+            
+            // 🥫 SALSAS - SIEMPRE EN KILOGRAMOS (prioridad alta)
+            if (product.id == 19) { // Pesto salsa específico
+                console.log("🥫 PDF PESTO SALSA DETECTADO (ID 19):", product.name, "->", product.quantity + ' kg');
+                return product.quantity + ' kg';
+            }
+            
+            const esSalsa = product.name.toLowerCase().includes('bolonesa') ||
+                           product.name.toLowerCase().includes('champinon') ||
+                           product.name.toLowerCase().includes('alfredo') ||
+                           product.name.toLowerCase().includes('mostaza');
+            
+            if (esSalsa && !product.name.toLowerCase().includes('focaccia')) {
+                console.log("🥫 PDF SALSA DETECTADA:", product.name, "->", product.quantity + ' kg');
+                return product.quantity + ' kg';
+            }
+            
+            // Casos específicos
+            if (product.name === 'Botella de Huevos 1L') return product.quantity + ' botellas';
+            if (product.name === 'Aceite Vegetal 5L') return product.quantity + ' unidades';
+            if (product.name === 'Pliego (124 stickers)') return product.quantity + ' Pliego';
+            
+            // Productos específicos en unidades
+            const productosUnidades = ['Vaso', 'Sandwich', 'Aceite de oliva 5kg', 'Harina', 'Bolsa', 'papel mantequilla (Focaccia)', 'Papel Mantequilla (Bandeja)'];
+            if (productosUnidades.includes(product.name)) {
+                return product.quantity + ' unidades';
+            }
+            
+            // Por defecto kg
+            console.log("⚡ PDF Producto va en KG:", product.name);
+            return product.quantity + ' kg';
+        }
+        
+        // Usar los productos originales de la API en lugar del DOM
+        const productosDelPedido = {};
+        
+        if (productosOriginales) {
+            console.log("🔍 Productos originales para PDF:", productosOriginales);
+            
+            for (const key in productosOriginales) {
+                const producto = productosOriginales[key];
+                console.log("📦 Procesando producto:", producto);
+                
+                // Para producto con id=2 usar formato especial (gramos)
+                let cantidadFormateada;
+                if (producto.id == 2) {
+                    cantidadFormateada = producto.quantity + " (" + Math.ceil(producto.price) + "gr)";
+                } else {
+                    cantidadFormateada = getUnidadProducto(producto);
+                }
+                
+                productosDelPedido[producto.name.toLowerCase()] = cantidadFormateada;
+                console.log("✅ Mapeado:", producto.name, "->", cantidadFormateada);
+            }
+        } else {
+            console.warn("⚠️ No hay productos originales disponibles, intentando leer del DOM...");
+            // Fallback: leer del DOM si no hay productos originales
+            if (productTable) {
+                const rows = productTable.querySelectorAll('tr');
+                rows.forEach((row) => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length >= 3) {
+                        const nombreProducto = cells[1].textContent.trim();
+                        const cantidadFormateada = cells[2].textContent.trim();
+                        productosDelPedido[nombreProducto.toLowerCase()] = cantidadFormateada;
+                    }
+                });
+            }
+        }
+        
+        // 🔥 GENERAR FILAS SOLO PARA LOS PRODUCTOS DEL PEDIDO ACTUAL
+        let filaIndex = 0;
+        
+        if (productosOriginales && Array.isArray(productosOriginales)) {
+            console.log("📋 GENERANDO PDF SOLO CON PRODUCTOS DEL PEDIDO:", productosOriginales.length);
+            
+            productosOriginales.forEach((producto) => {
+                const y = startY + (filaIndex * rowHeight);
+                
+                // Rectángulos para cada fila
+                pdf.rect(margin, y, 120, rowHeight);
+                pdf.rect(margin + 120, y, 60, rowHeight);
+                
+                // Nombre del producto (texto más pequeño)
+                pdf.setFont("helvetica", "normal");
+                pdf.setFontSize(15);
+                pdf.text(producto.name.toUpperCase(), margin + 3, y + 6);
+                
+                // Obtener cantidad con unidad correcta
+                const cantidad = getUnidadProducto(producto);
+                console.log(`📦 PDF PRODUCTO: ${producto.name} → ${cantidad}`);
+                
+                // Mostrar cantidad en el PDF
+                pdf.setFont("helvetica", "bold");
+                pdf.setFontSize(15);
+                pdf.text(cantidad, margin + 125, y + 6);
+                
+                filaIndex++; // Incrementar índice de fila
+            });
+        } else {
+            console.warn("⚠️ No hay productos originales para generar PDF");
+        }
+        
+        // SECCIÓN INFERIOR - Recibe, Fecha, Hora, Firma
+        const bottomY = startY + (filaIndex * rowHeight) + 20;
+        
+        // Verificar que no se salga de la página
+        console.log(`📍 POSICIÓN INFERIOR: ${bottomY}mm (máximo: ${pageHeight - 20}mm)`);
+        
+        if (bottomY + 40 > pageHeight) {
+            console.warn("⚠️ CONTENIDO SE SALE DE LA PÁGINA - Ajustando...");
+        }
+        
+        // Rectángulo Recibe
+        pdf.rect(margin, bottomY, 180, 15);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(8);
+        pdf.text("Recibe", margin + 5, bottomY + 10);
+        pdf.line(margin + 30, bottomY + 10, margin + 170, bottomY + 10);
+        
+        // Rectángulo Fecha
+        pdf.rect(margin, bottomY + 15, 60, 15);
+        pdf.text("Fecha", margin + 5, bottomY + 25);
+        pdf.text("____/____/____", margin + 25, bottomY + 25);
+        
+        // Rectángulo Hora  
+        pdf.rect(margin + 60, bottomY + 15, 60, 15);
+        pdf.text("Hora", margin + 65, bottomY + 25);
+        pdf.text("____:____", margin + 85, bottomY + 25);
+        
+        // Rectángulo Firma
+        pdf.rect(margin + 120, bottomY + 15, 60, 15);
+        pdf.text("Firma", margin + 125, bottomY + 25);
+        
+        // FOOTER CON CRÉDITOS DE DESARROLLO 🚀
+        const footerY = pageHeight - 20; // 20mm desde abajo
+        
+        // Texto de créditos - Solo letras centradas sin decoración
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8);
+        pdf.setTextColor(0, 0, 0); // Negro normal
+        
+        const creditoTexto = "";
+        const desarrolladorTexto = "";
+        
+        // Centrar el texto en la página
+        const textWidth1 = pdf.getTextWidth(creditoTexto);
+        const textWidth2 = pdf.getTextWidth(desarrolladorTexto);
+        const centerX = pageWidth / 2;
+        
+        pdf.text(creditoTexto, centerX - (textWidth1 / 2), footerY + 3);
+        pdf.text(desarrolladorTexto, centerX - (textWidth2 / 2), footerY + 8);
+        
+        console.log("📝 FOOTER LIMPIO: Solo texto centrado");
+        
+        // Guardar el PDF
+        const nombreArchivo = `GuiaDespacho_Pedido_${numeroPedido}_${new Date().getTime()}.pdf`;
+        console.log("✅ PDF GENERADO EXITOSAMENTE:", nombreArchivo);
+        pdf.save(nombreArchivo);
+        
+        // Mostrar mensaje de éxito
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Guía de Despacho Generada!',
+                text: `PDF generado: ${nombreArchivo}`,
+                timer: 3000,
+                showConfirmButton: false
+            });
+        } else {
+            alert(`✅ Guía de Despacho generada: ${nombreArchivo}`);
+        }
+        
+    } catch (error) {
+        console.error('Error al generar PDF:', error);
+        
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al generar la Guía de Despacho: ' + error.message
+            });
+        } else {
+            alert('❌ Error al generar la Guía de Despacho: ' + error.message);
+        }
     }
 }

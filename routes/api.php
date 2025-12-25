@@ -33,6 +33,19 @@ Route::get('/getAppByIdAlt/{id}', 'AplicationController@getAppById');
 Route::get('/cobros', 'Controllers_local\PaymentsController@getPayment');
 Route::post('/cobros', 'Controllers_local\PaymentsController@notifyPago');
 
+// Promociones Master - Rutas públicas sin autenticación
+Route::get('/promo/master/pastas', 'Controllers_local\PromoMasterController@getPastaTypes');
+Route::get('/promo/master/salsas', 'Controllers_local\PromoMasterController@getSalsaTypes');
+Route::get('/promo/master/data', 'Controllers_local\PromoMasterController@getPromoData');
+
+// Totem - Rutas públicas sin autenticación
+Route::get('/totem/categorias', 'Controllers_local\TotemController@getCategorias');
+Route::get('/totem/productos', 'Controllers_local\TotemController@getProductos');
+Route::get('/totem/data', 'Controllers_local\TotemController@getTotemData');
+Route::post('/totem/productos', 'Controllers_local\TotemController@crearProducto');
+Route::put('/totem/productos/{id}', 'Controllers_local\TotemController@actualizarProducto');
+Route::delete('/totem/productos/{id}', 'Controllers_local\TotemController@eliminarProducto');
+
 /*Route::get('/codeTest', function() {
   session(['app-current' => Aplication::find(1)]);
   session(['app-config' => CurrentApp::App()->getApp()]);
@@ -301,6 +314,7 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::get('/local/products/index', 'ProductController@getProductsOfSell');
 
           Route::post('/local/products/updateStock/{id}', 'ProductController@updateStock'); 
+          Route::get('/local/products/stockHistory', 'ProductController@getStockHistory'); 
           
           Route::get('/local/products/fagotto', 'Controllers_local\ProductsController@getProductsOfFagotto');
 //JC - 

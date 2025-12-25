@@ -18,7 +18,7 @@
                     <div v-if="PedidoUrgenteInstalled" class="col-lg-4 col-md-5 col-12 mt-3 mt-md-0">
                         <button type="button" data-toggle="modal" data-target="#pedidoUrgente"
                             class="btn-urgente w-100 pulse">
-                            🚨 Pedido Urgente
+                            Pedido Individual
                         </button>
                     </div>
                 </div>

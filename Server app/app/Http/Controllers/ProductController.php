@@ -171,7 +171,7 @@ class ProductController extends Controller
   public function updateStock(Request $request, $id)
   {
       $request->validate([
-          'stock_added' => 'required|integer|min:1', // Solo permite valores positivos
+          'stock_added' => 'required|integer', // Permite positivos y negativos
       ]);
 
       $product = Product::find($id);
@@ -181,7 +181,13 @@ class ProductController extends Controller
       }
 
       $oldStock = $product->stock;
-      $product->stock += $request->stock_added; // Sumar el stock añadido
+      $product->stock += $request->stock_added; // Sumar o restar
+      
+      // Evitar stock negativo
+      if ($product->stock < 0) {
+          return response()->json(['message' => 'El stock no puede ser negativo'], 400);
+      }
+      
       $product->save();
 
       $userId = null;
@@ -204,5 +210,15 @@ class ProductController extends Controller
       ]);
 
       return response()->json(['message' => 'Stock actualizado correctamente'], 200);
+  }
+
+  public function getStockHistory()
+  {
+      $changes = ProductChange::where('field_name', 'stock')
+          ->orderBy('created_at', 'desc')
+          ->limit(100)
+          ->get();
+
+      return response()->json($changes, 200);
   }
 }

@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FagottoERP - Dashboard Moderno</title>
+    <link rel="icon" type="image/x-icon" href="../assets/css/negro.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+    <!--styles-->
+    <link href="../assets/css/dashboard.css" rel="stylesheet">
+    <!-- <link rel="stylesheet" href="../assets/css/cocina.css"> -->
+    <!-- <link rel="stylesheet" href="../assets/css/garzon.css"> -->
+    <link rel="stylesheet" href="../assets/css/global.css">
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" />
+    <link rel="stylesheet" type="text/css"
+        href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css" />
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+
+    <!--helpers-->
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+    <script src="../assets/helpers/helperFunctions.js?v=2025102101"></script>
+    <style>
+        /* ========== VARIABLES CSS MEJORADAS ========== */
+        :root {
+            --primary-color: #3b82f6;
+            --primary-rgb: 59, 130, 246;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --background-gradient: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+            --card-background: rgba(255, 255, 255, 0.8);
+            --glass-background: rgba(255, 255, 255, 0.1);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #9ca3af;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --border-radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ========== ESTILOS BASE MEJORADOS ========== */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--background-gradient);
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        /* ========== HEADER MODERNO MEJORADO ========== */
+        .modern-header {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .modern-header .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-logo {
+            height: 32px;
+            width: auto;
+            max-width: 200px;
+            object-fit: contain;
+            background: transparent !important;
+
+        }
+
+        .brand-logo-mobile {
+            height: 28px;
+            width: auto;
+            max-width: 28px;
+            object-fit: contain;
+            background: transparent !important;
+            border: none;
+            box-shadow: none;
+        }
+
+        /* ========== SISTEMA DE ACTUALIZACIÓN MEJORADO ========== */
+        .update-status {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+        }
+
+        .progress-container {
+            width: 100px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #3b82f6);
+            border-radius: 2px;
+            animation: progressMove 7s linear infinite;
+        }
+
+        @keyframes progressMove {
+            0% { width: 100%; }
+            100% { width: 0%; }
+        }
+
+        .update-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .btn-refresh {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 6px;
+            transition: var(--transition);
+            margin-left: 0.5rem;
+        }
+
+        .btn-refresh:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: rotate(180deg);
+        }
+
+        .btn-logout {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+
+        /* ========== SIDEBAR MODERNO ========== */
+        .modern-sidebar {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+        .modern-sidebar .nav-link {
+            color: var(--text-secondary);
+            padding: 0.75rem 1.5rem;
+            margin: 0.25rem 1rem;
+            border-radius: 8px;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .modern-sidebar .nav-link:hover,
+        .modern-sidebar .nav-link.active {
+            background: var(--primary-gradient);
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .modern-sidebar .nav-link i {
+            width: 20px;
+            margin-right: 0.75rem;
+        }
+
+        /* ========== CONTENIDO PRINCIPAL ========== */
+        .main-content {
+            background: transparent;
+            padding: 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* ========== TARJETAS KPI MEJORADAS ========== */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .kpi-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s ease;
+            opacity: 0;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-xl);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .kpi-card:hover::after {
+            animation: shimmer 1.5s ease-in-out;
+            opacity: 1;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(200%) rotate(45deg); }
+        }
+
+        .kpi-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .kpi-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+
+        .kpi-icon::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.2), transparent);
+            z-index: 1;
+        }
+
+        .kpi-icon i {
+            position: relative;
+            z-index: 2;
+        }
+
+        .kpi-content {
+            flex: 1;
+        }
+
+        .kpi-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            word-break: keep-all;
+            overflow-wrap: break-word;
+            hyphens: none;
+        }
+
+        .kpi-label {
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+        }
+
+        .kpi-trend {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: var(--success-color);
+        }
+
+        /* Estilos específicos por tipo de KPI con colores más sutiles */
+        .kpi-card.ventas-totales {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, rgba(5, 150, 105, 0.03) 100%);
+        }
+
+        .kpi-card.ventas-totales .kpi-icon {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .kpi-card.sucursal-top {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.03) 0%, rgba(37, 99, 235, 0.03) 100%);
+        }
+
+        .kpi-card.sucursal-top .kpi-icon {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .kpi-card.peor-negocio {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.03) 0%, rgba(220, 38, 38, 0.03) 100%);
+        }
+
+        .kpi-card.peor-negocio .kpi-icon {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .kpi-card.facturas-totales {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.03) 0%, rgba(217, 119, 6, 0.03) 100%);
+        }
+
+        .kpi-card.facturas-totales .kpi-icon {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .kpi-card.total-facturado {
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.03) 0%, rgba(101, 50, 14, 0.03) 100%);
+        }
+
+        .kpi-card.total-facturado .kpi-icon {
+            background: linear-gradient(135deg, #8b4513 0%, #65320e 100%);
+        }
+
+        /* Responsive para KPIs */
+        @media (max-width: 768px) {
+            .kpi-grid {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 1rem;
+            }
+
+            .kpi-card {
+                padding: 1.25rem;
+                min-height: 120px;
+            }
+
+            .kpi-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.25rem;
+            }
+
+            .kpi-value {
+                font-size: 1.5rem;
+            }
+
+            .kpi-label {
+                font-size: 0.75rem;
+            }
+            
+            .filters-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .custom-date-filter {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filters-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .quick-filters {
+                justify-content: center;
+            }
+            
+            .custom-date-filter {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+            }
+            
+            .date-input-group {
+                width: 100%;
+            }
+            
+            .date-input {
+                width: 100%;
+                min-width: unset;
+            }
+        }
+
+        /* ========== TARJETAS DE CONTENIDO ========== */
+        .content-card {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .content-card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header-modern {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-bottom: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-header-modern h5 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+
+        .card-header-modern i {
+            font-size: 1.25rem;
+        }
+
+        .card-body-modern {
+            padding: 2rem;
+        }
+
+        /* ========== TABLAS MODERNAS MEJORADAS ========== */
+        .modern-table {
+            background: transparent;
+            border: none;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .modern-table thead th {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%);
+            border: none;
+            color: var(--text-primary);
+            font-weight: 700;
+            padding: 1.25rem 1rem;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            position: relative;
+        }
+
+        .modern-table thead th i {
+            margin-right: 0.5rem;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        .modern-table tbody td {
+            border: none;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        /* Hacer números más grandes SOLO en las tablas de franquicias */
+        #franquiciasTable.modern-table tbody td,
+        #fagottoTable.modern-table tbody td {
+            font-size: 1.1rem !important; /* +2 tamaños más grande */
+            font-weight: 600 !important;
+        }
+
+        #franquiciasTable.modern-table tbody td:nth-child(2),
+        #franquiciasTable.modern-table tbody td:nth-child(3), 
+        #franquiciasTable.modern-table tbody td:nth-child(4),
+        #franquiciasTable.modern-table tbody td:nth-child(5),
+        #fagottoTable.modern-table tbody td:nth-child(2),
+        #fagottoTable.modern-table tbody td:nth-child(3),
+        #fagottoTable.modern-table tbody td:nth-child(4),
+        #fagottoTable.modern-table tbody td:nth-child(5) {
+            font-size: 1.2rem !important; /* Números aún más grandes */
+            font-weight: 700 !important;
+        }
+
+        .modern-table tbody tr {
+            transition: var(--transition);
+        }
+
+        .modern-table tbody tr:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%);
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .modern-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .modern-table tbody tr:last-child {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+            font-weight: 700;
+        }
+
+        .modern-table tbody tr:last-child:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%);
+        }
+
+        /* ========== TOOLBAR MODERNO MEJORADO ========== */
+        .toolbar-modern {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .toolbar-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .filters-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+
+        .quick-filters {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--glass-background);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 0.5rem;
+        }
+
+        .btn-filter {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .btn-filter:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+
+        .btn-filter.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .custom-date-filter {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .date-input-group {
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            gap: 0.5rem;
+        }
+
+        .date-input-group i {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .date-input {
+            background: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            transition: var(--transition);
+            min-width: 150px;
+            width: 150px;
+        }
+
+        .date-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-search {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-search:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        /* ========== LOADER MODERNO ========== */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading.hide {
+            display: none;
+        }
+
+        .spin {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-message {
+            color: white;
+            text-align: center;
+            margin-top: 1rem;
+            font-weight: 500;
+            max-width: 600px;
+            padding: 0 2rem;
+        }
+
+        .loader-message h4 {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .loader-message p {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ========== GRÁFICO MODERNO ========== */
+        .chart-container {
+            position: relative;
+            padding: 2rem;
+            background: var(--card-background);
+            border-radius: var(--border-radius);
+        }
+
+        canvas {
+            user-select: none;
+        }
+
+        #chartjs-tooltip {
+            opacity: 1;
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.875rem;
+            pointer-events: none;
+            transition: all 0.1s ease;
+            transform: translate(-50%, 0);
+            backdrop-filter: blur(8px);
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+
+            .kpi-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .modern-header {
+                padding: 1rem;
+            }
+
+            .card-header-modern,
+            .card-body-modern,
+            .toolbar-modern {
+                padding: 1rem;
+            }
+
+            .kpi-value {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .kpi-value {
+                font-size: 1rem;
+                line-height: 1.3;
+            }
+
+            .card-header-modern h5 {
+                font-size: 1rem;
+            }
+            
+            .kpi-label {
+                font-size: 0.7rem;
+            }
+        }
+
+        /* ========== UTILIDADES ========== */
+        .text-gradient {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Efectos de loading mejorados */
+        .kpi-value.loading {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmerLoading 1.5s infinite;
+            color: transparent;
+            border-radius: 4px;
+            min-height: 1.75rem;
+        }
+
+        @keyframes shimmerLoading {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* Pulso suave para valores actualizados */
+        .kpi-value.updated {
+            animation: pulseUpdate 0.6s ease-out;
+        }
+
+        @keyframes pulseUpdate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Animación de rebote para emojis del loader */
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Animación para los valores */
+        .kpi-value {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .contador-tiempo {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: var(--primary-color);
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        /* ========== INDICADORES EN TABLAS ========== */
+        .modern-table tbody tr.table-success {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border-left: 4px solid var(--success-color);
+        }
+
+        .modern-table tbody tr.table-warning {
+            background-color: rgba(245, 158, 11, 0.1) !important;
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .modern-table tbody tr.table-danger {
+            background-color: rgba(239, 68, 68, 0.1) !important;
+            border-left: 4px solid var(--danger-color);
+        }
+
+        /* ========== TABLA ORDENABLE ========== */
+        .sortable-table thead th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: background-color 0.2s;
+        }
+
+        .sortable-table thead th.sortable:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .sortable-table thead th .sort-icon {
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            transition: color 0.2s;
+        }
+
+        .sortable-table thead th.sortable:hover .sort-icon {
+            color: var(--primary-color);
+        }
+
+        .sortable-table thead th.sort-asc .sort-icon {
+            color: var(--primary-color);
+        }
+
+        .sortable-table thead th.sort-desc .sort-icon {
+            color: var(--primary-color);
+        }
+
+        .sortable-table thead th.sort-asc .sort-icon::before {
+            content: "\f0de"; /* fa-sort-up */
+        }
+
+        .sortable-table thead th.sort-desc .sort-icon::before {
+            content: "\f0dd"; /* fa-sort-down */
+        }
+
+        /* ========== ESTADOS DE CARGA ========== */
+        .loading-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .loading-state i {
+            animation: spin 1s linear infinite;
+        }
+
+        /* ========== BADGES MODERNOS ========== */
+        .badge {
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+        }
+
+        .badge.bg-primary {
+            background: var(--primary-gradient) !important;
+        }
+
+        /* ========== MOBILE MENU STYLES ========== */
+        .mobile-menu-toggle {
+            border: none;
+            background: transparent;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--accent-color);
+        }
+
+        .mobile-menu-toggle .hamburger {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .mobile-menu-toggle .hamburger span {
+            width: 20px;
+            height: 2px;
+            background: currentColor;
+            border-radius: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-toggle.active .hamburger span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .mobile-menu-toggle.active .hamburger span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .mobile-menu-toggle.active .hamburger span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -6px);
+        }
+
+        /* Mobile Sidebar */
+        .modern-sidebar {
+            transition: transform 0.3s ease;
+        }
+
+        @media (max-width: 991.98px) {
+            .modern-sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                z-index: 1045;
+                width: 280px;
+                transform: translateX(-100%);
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+                backdrop-filter: blur(20px);
+                border-right: 1px solid rgba(226, 232, 240, 0.3);
+                box-shadow: var(--shadow-xl);
+            }
+
+            .modern-sidebar.show {
+                transform: translateX(0);
+            }
+
+            .mobile-sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: -1;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                pointer-events: none;
+            }
+
+            .mobile-sidebar-overlay.show {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+        }
+
+        .sidebar-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mobile-sidebar-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .mobile-menu-close {
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-close:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary-color);
+        }
+
+        .sidebar-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 0;
+        }
+
+        /* Mobile Accordion Styles */
+        .mobile-accordion {
+            --bs-accordion-bg: transparent;
+            --bs-accordion-border-color: rgba(226, 232, 240, 0.3);
+            --bs-accordion-border-radius: 0;
+        }
+
+        .mobile-accordion .accordion-item {
+            border: none;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.2);
+            background: transparent;
+        }
+
+        .mobile-accordion .accordion-button {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            padding: 1rem 1.5rem;
+            font-weight: 500;
+            border-radius: 0;
+            box-shadow: none;
+            transition: var(--transition);
+        }
+
+        .mobile-accordion .accordion-button:not(.collapsed) {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary-color);
+        }
+
+        .mobile-accordion .accordion-button:focus {
+            box-shadow: none;
+            border-color: transparent;
+        }
+
+        .mobile-accordion .accordion-button::after {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%233b82f6'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+            transition: transform 0.3s ease;
+        }
+
+        .mobile-accordion .accordion-button:not(.collapsed)::after {
+            transform: rotate(180deg);
+        }
+
+        .mobile-accordion .accordion-body {
+            padding: 0;
+            background: rgba(248, 250, 252, 0.5);
+        }
+
+        .nav-item-mobile {
+            padding: 0 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-item-mobile .nav-link {
+            color: var(--text-primary);
+            padding: 0.75rem 0;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .nav-item-mobile .nav-link.active {
+            color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.1);
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .nav-link-sub {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link-sub:hover {
+            color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.05);
+            border-left-color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .nav-link-sub i {
+            width: 16px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        /* Prevent body scroll when mobile menu is open */
+        body.mobile-menu-open {
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loader" class="loading hide">
+        <div class="spin"></div>
+        <img src="../assets/css/logo.png" alt="Fagotto ERP" style="width: 180px; height: auto; margin-top: 1.5rem; animation: fadeInUp 0.6s ease-out;">
+        
+        <div class="loader-message">
+            <h4 style="color: white; margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600;">
+                <span id="loader-status" style="display: inline-block;">
+                    <span style="display: inline-block; animation: bounceIn 0.5s;">🔍</span> Buscando datos en el servidor...
+                </span>
+            </h4>
+            <p style="color: rgba(255,255,255,0.9); font-size: 0.95rem; line-height: 1.6; max-width: 500px; margin: 0 auto;">
+                ✨ <strong>El servidor se actualizó con consultas optimizadas</strong><br>
+                <small style="color: rgba(255,255,255,0.85); font-size: 2rem;">
+                    Tiempo transcurrido: <strong id="loader-timer" style="color: #10b981;">0.0s</strong> ⚡
+                </small>
+            </p>
+            <p style="color: rgba(255,255,255,0.6); font-size: 0.8rem; margin-top: 1rem; font-style: italic;">
+                — Saludos, Jimmy 🤖
+            </p>
+        </div>
+    </div>
+    
+    <header class="modern-header">
+        <div class="d-flex align-items-center justify-content-between w-100">
+            <div class="d-flex align-items-center">
+                <!-- Botón hamburger para móvil -->
+                <button class="mobile-menu-toggle d-lg-none" id="mobile-menu-toggle">
+                    <div class="hamburger">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </button>
+                
+                <h1 class="navbar-brand mb-0">
+                    <img src="../assets/css/logo.png" alt="Fagotto ERP" class="brand-logo">
+                </h1>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3">
+                <div class="update-status d-none d-sm-flex">
+                    <div class="progress-container">
+                        <div class="progress-bar"></div>
+                    </div>
+                    <span class="update-text">
+                        🔁 Actualización en: <span id="divConteo">Cargando...</span>
+                        <button class="btn-refresh" onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </span>
+                </div>
+                
+                <button class="btn btn-logout" id="btn-restore">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="d-none d-sm-inline">Salir</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 modern-sidebar">
+                <!-- Mobile overlay -->
+                <div class="mobile-sidebar-overlay d-lg-none" id="mobile-sidebar-overlay"></div>
+                
+                <div class="sidebar-content">
+                    <!-- Mobile header -->
+                    <div class="mobile-sidebar-header d-lg-none">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h5 class="mb-0 d-flex align-items-center gap-2">
+                                <img src="../assets/css/logo.png" alt="Fagotto ERP" class="brand-logo-mobile">
+                            </h5>
+                            <button class="mobile-menu-close" id="mobile-menu-close">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-scroll">
+                        <!-- Menú principal -->
+                        <div class="accordion mobile-accordion d-lg-none" id="mobileAccordion">
+                            <!-- Dashboard -->
+                            <div class="nav-item-mobile">
+                                <a class="nav-link active" href="./dashboard.html">
+                                    <i class="fa fa-home"></i>
+                                    <span>Tablero</span>
+                                </a>
+                            </div>
+
+        
+
+                            <!-- Sucursales en móvil -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sucursalesCollapse">
+                                        <i class="fas fa-store"></i>
+                                        <span>Sucursales</span>
+                                    </button>
+                                </h2>
+                                <div id="sucursalesCollapse" class="accordion-collapse collapse" data-bs-parent="#mobileAccordion">
+                                    <div class="accordion-body" id="sucursales-list-mobile">
+                                        <div class="nav-link-sub">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            CARGANDO...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Desktop menu (oculto en móvil) -->
+                        <div class="d-none d-lg-block">
+                            <ul class="nav nav-pills flex-column mb-4">
+                                <li class="nav-item">
+                                    <a class="nav-link active" aria-current="page" href="./dashboard.html">
+                                        <i class="fa fa-home"></i>
+                                        Tablero
+                                    </a>
+                                </li>
+                               
+                            
+                                <li class="nav-item">
+                                    <a class="nav-link" href="./pedidos.html">
+                                        <i class="fas fa-box"></i>
+                                        Pedidos
+                                    </a>
+                                </li>
+                               
+                                <li class="nav-item">
+                                    <a class="nav-link" href="./sells.html">
+                                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                                        Ventas Globales
+                                    </a>
+                                </li>
+                                
+                                <li class="nav-item">
+                                    <a class="nav-link" href="./turnos_globales_new.html">
+                                        <i class="fas fa-clock"></i>
+                                        Turnos Globales
+                                    </a>
+                                </li>
+                               
+
+                            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                                <span><i class="fas fa-store"></i> Sucursales</span>
+                            </h6>
+                            <ul class="nav flex-column mb-2" id="sucursales-list">
+                                <li class="nav-item">
+                                    <a class="nav-link">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        CARGANDO...
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Sucursales en móvil -->
+                        <div class="d-lg-none">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sucursalesCollapse">
+                                        <i class="fas fa-store"></i>
+                                        <span>Sucursales</span>
+                                    </button>
+                                </h2>
+                                <div id="sucursalesCollapse" class="accordion-collapse collapse" data-bs-parent="#mobileAccordion">
+                                    <div class="accordion-body" id="sucursales-list-mobile">
+                                        <div class="nav-link-sub">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            CARGANDO...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+                <!-- TOOLBAR MODERNO MEJORADO -->
+                <div class="toolbar-modern fade-in">
+                    <div class="toolbar-header">
+                        <div>
+                            <h1 class="h2 mb-1 text-gradient">Dashboard Ejecutivo</h1>
+                            <p class="text-muted mb-0">Análisis de rendimiento en tiempo real</p>
+                        </div>
+                    </div>
+                    
+                    <div class="filters-container">
+                        <div class="quick-filters">
+                            <button type="button" class="btn btn-filter active" onclick="getThisDay()" data-period="day">
+                                <i class="fas fa-calendar-day"></i>
+                                <span>Hoy</span>
+                            </button>
+                            <button type="button" class="btn btn-filter" onclick="getThisWeek()" data-period="week">
+                                <i class="fas fa-calendar-week"></i>
+                                <span>Semana</span>
+                            </button>
+                            <button type="button" class="btn btn-filter" onclick="getThisMonth()" data-period="month">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Mes</span>
+                            </button>
+                        </div>
+                        
+                        <div class="custom-date-filter">
+                            <div class="date-input-group">
+                                <i class="fas fa-calendar"></i>
+                                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                    <label for="startDate" style="color: var(--text-secondary); font-size: 0.75rem; font-weight: 500;">Desde:</label>
+                                    <input type="date" id="startDate" class="form-control date-input">
+                                </div>
+                            </div>
+                            <div class="date-input-group" style="margin-left: 10px;">
+                                <i class="fas fa-calendar"></i>
+                                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                    <label for="endDate" style="color: var(--text-secondary); font-size: 0.75rem; font-weight: 500;">Hasta:</label>
+                                    <input type="date" id="endDate" class="form-control date-input">
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-search" onclick="getByDate()">
+                                <i class="fas fa-search"></i>
+                                <span>Buscar</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TARJETAS KPI MEJORADAS -->
+                <div class="kpi-grid fade-in">
+                    <div class="kpi-card ventas-totales">
+                        <div class="kpi-trend">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="kpi-header">
+                            <div class="kpi-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="kpi-ventas-totales">$0</div>
+                            <div class="kpi-label">Ventas Totales del Día Franqucias</div>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-card sucursal-top">
+                        <div class="kpi-trend">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <div class="kpi-header">
+                            <div class="kpi-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="kpi-sucursal-top">-</div>
+                            <div class="kpi-label">Sucursal con Mayor Venta</div>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-card peor-negocio">
+                        <div class="kpi-trend">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="kpi-header">
+                            <div class="kpi-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="kpi-peor-negocio">-</div>
+                            <div class="kpi-label">Peor Negocio</div>
+                            
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-card facturas-totales">
+                        <div class="kpi-trend">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="kpi-header">
+                            <div class="kpi-icon">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="kpi-facturas-totales">$0</div>
+                            <div class="kpi-label">Monto Total General</div>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-card total-facturado">
+                        <div class="kpi-trend">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <div class="kpi-header">
+                            <div class="kpi-icon">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="kpi-total-facturado">$0</div>
+                            <div class="kpi-label">Total Facturado</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== NUEVA SECCIÓN: COMPARACIÓN AÑO ACTUAL VS ANTERIOR ========== -->
+                <div class="content-card fade-in" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 51, 234, 0.05) 100%); border: 2px solid rgba(59, 130, 246, 0.3);">
+                    <div class="card-header-modern" style="background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);">
+                        <i class="fas fa-calendar-week"></i>
+                        <h5>📊 Comparación: AYER vs Mismo Día de la Semana 2024</h5>
+                    </div>
+                    <div class="card-body-modern">
+                        <!-- Grid de KPIs Comparativos -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                            
+                            <!-- Ventas Año Actual (Ayer) -->
+                            <div class="kpi-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);">
+                                <div class="kpi-header">
+                                    <div class="kpi-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                                        <i class="fas fa-calendar-day"></i>
+                                    </div>
+                                </div>
+                                <div class="kpi-content">
+                                    <div class="kpi-value" id="kpi-current-year" style="color: #10b981;">$0</div>
+                                    <div class="kpi-label" style="font-size: 0.75rem;">
+                                        <span id="comparison-current-date">AYER 2025</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Ventas Año Anterior (Mismo Día) -->
+                            <div class="kpi-card" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);">
+                                <div class="kpi-header">
+                                    <div class="kpi-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </div>
+                                </div>
+                                <div class="kpi-content">
+                                    <div class="kpi-value" id="kpi-previous-year" style="color: #f59e0b;">$0</div>
+                                    <div class="kpi-label" style="font-size: 0.75rem;">
+                                        <span id="comparison-previous-date">Mismo Día 2024</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Diferencia en Pesos -->
+                            <div class="kpi-card" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%);">
+                                <div class="kpi-trend" id="comparison-trend">
+                                    <i class="fas fa-minus"></i>
+                                </div>
+                                <div class="kpi-header">
+                                    <div class="kpi-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </div>
+                                </div>
+                                <div class="kpi-content">
+                                    <div class="kpi-value" id="kpi-difference-amount" style="font-size: 1.5rem;">$0</div>
+                                    <div class="kpi-label">Diferencia</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Diferencia en Porcentaje -->
+                            <div class="kpi-card" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);">
+                                <div class="kpi-header">
+                                    <div class="kpi-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                                        <i class="fas fa-percentage"></i>
+                                    </div>
+                                </div>
+                                <div class="kpi-content">
+                                    <div class="kpi-value" id="kpi-difference-percent" style="font-size: 2rem; font-weight: 900;">0%</div>
+                                    <div class="kpi-label">Crecimiento</div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        
+                        <!-- Indicador de Tendencia Global -->
+                        <div style="text-align: center; margin-top: 1.5rem; padding: 1rem; background: rgba(255, 255, 255, 0.5); border-radius: 12px; backdrop-filter: blur(10px);">
+                            <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.5rem; font-weight: 600;">
+                                TENDENCIA GENERAL
+                            </div>
+                            <div id="comparison-trend" style="font-size: 3rem; transition: all 0.3s ease;">
+                                <i class="fas fa-minus" style="color: #94a3b8;"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Mensaje explicativo -->
+                        <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                            <p style="margin: 0; color: #1e293b; font-size: 0.9rem;">
+                                <i class="fas fa-info-circle" style="color: #3b82f6;"></i>
+                                <strong>Comparación Inteligente:</strong> Compara <strong>AYER</strong> con el <strong>mismo día de la semana</strong> del año pasado.
+                                <span style="display: block; margin-top: 0.5rem; font-size: 0.85rem; color: #64748b;">
+                                    ✅ Ejemplo: Si AYER fue <strong>Lunes 20 Oct 2025</strong>, se compara con el <strong>Lunes más cercano de Oct 2024 (21 Oct)</strong>
+                                </span>
+                                <span style="display: block; margin-top: 0.5rem; font-size: 0.85rem; color: #64748b;">
+                                    🔄 Los días se corren cada año, por eso comparamos el mismo día de la semana, no la misma fecha
+                                </span>
+                                <span style="display: block; margin-top: 0.5rem; font-size: 0.85rem; color: #64748b;">
+                                    📈 Positivo = Crecimiento | 📉 Negativo = Caída
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FRANQUICIAS -->
+                <div class="content-card fade-in">
+                    <div class="card-header-modern">
+                        <i class="fas fa-handshake"></i>
+                        <h5>Fagotto Franquicias</h5>
+                    </div>
+                    <div class="card-body-modern">
+                        <div class="table-responsive">
+                            <table class="table modern-table sortable-table" id="franquiciasTable">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" class="sortable" data-column="0" data-type="text">
+                                            <i class="fas fa-store"></i>
+                                            Sucursal
+                                            <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th scope="col" class="sortable" data-column="1" data-type="number">
+                                            <i class="fas fa-dollar-sign"></i>
+                                            Venta Bruta
+                                            <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th scope="col" class="sortable" data-column="2" data-type="number">
+                                            <i class="fas fa-hashtag"></i>
+                                            Tickets
+                                            <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th scope="col" class="sortable" data-column="3" data-type="number">
+                                            <i class="fas fa-motorcycle"></i>
+                                            Venta Delivery
+                                            <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th scope="col" class="sortable" data-column="4" data-type="number">
+                                            <i class="fas fa-percent"></i>
+                                            %
+                                            <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-counters-tbody">
+                                    <tr>
+                                        <td colspan="4" class="text-center">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            CARGANDO...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUCURSALES OFICIALES -->
+                <div class="content-card fade-in">
+                    <div class="card-header-modern">
+                        <i class="fas fa-building"></i>
+                        <h5>Fagotto Sucursales Oficiales</h5>
+                    </div>
+                    <div class="card-body-modern">
+                        <div class="table-responsive">
+                            <table class="table modern-table" id="fagottoTable">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">
+                                            <i class="fas fa-store"></i>
+                                            Sucursal
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-dollar-sign"></i>
+                                            Venta Bruta
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-hashtag"></i>
+                                            Tickets
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-motorcycle"></i>
+                                            Venta Delivery
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-percent"></i>
+                                            %
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-counters-fagotto-tbody">
+                                    <tr>
+                                        <td colspan="4" class="text-center">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            CARGANDO...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== TABLA COMPARATIVA AÑO A AÑO POR SUCURSAL ========== -->
+                <div class="content-card fade-in" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%); border: 2px solid rgba(139, 92, 246, 0.3);">
+                    <div class="card-header-modern" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);">
+                        <i class="fas fa-chart-bar"></i>
+                        <h5>📊 Comparación Detallada por Sucursal: <span id="fecha-2025" style="color: #fbbf24;">-</span> vs <span id="fecha-2024" style="color: #f97316;">-</span></h5>
+                    </div>
+                    <div class="card-body-modern">
+                        <div class="table-responsive">
+                            <table class="table modern-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" rowspan="2" style="vertical-align: middle;">
+                                            <i class="fas fa-store"></i>
+                                            Sucursal
+                                        </th>
+                                        <th scope="col" colspan="3" style="text-align: center; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.2) 100%);">
+                                            <i class="fas fa-calendar-check"></i>
+                                            <span id="header-fecha-2025">Ayer 2025</span>
+                                        </th>
+                                        <th scope="col" colspan="3" style="text-align: center; background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%);">
+                                            <i class="fas fa-history"></i>
+                                            <span id="header-fecha-2024">Mismo Día 2024</span>
+                                        </th>
+                                        <th scope="col" colspan="2" style="text-align: center; background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%);">
+                                            <i class="fas fa-chart-line"></i>
+                                            Comparación
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th style="background: rgba(16, 185, 129, 0.1);">
+                                            <i class="fas fa-dollar-sign"></i> Ventas
+                                        </th>
+                                        <th style="background: rgba(16, 185, 129, 0.1);">
+                                            <i class="fas fa-receipt"></i> Tickets
+                                        </th>
+                                        <th style="background: rgba(16, 185, 129, 0.1);">
+                                            <i class="fas fa-calculator"></i> T. Promedio
+                                        </th>
+                                        <th style="background: rgba(245, 158, 11, 0.1);">
+                                            <i class="fas fa-dollar-sign"></i> Ventas
+                                        </th>
+                                        <th style="background: rgba(245, 158, 11, 0.1);">
+                                            <i class="fas fa-receipt"></i> Tickets
+                                        </th>
+                                        <th style="background: rgba(245, 158, 11, 0.1);">
+                                            <i class="fas fa-calculator"></i> T. Promedio
+                                        </th>
+                                        <th style="background: rgba(139, 92, 246, 0.1);">
+                                            <i class="fas fa-arrows-alt-h"></i> Diferencia $
+                                        </th>
+                                        <th style="background: rgba(139, 92, 246, 0.1);">
+                                            <i class="fas fa-percentage"></i> Diferencia %
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-comparacion-tbody">
+                                    <tr>
+                                        <td colspan="9" class="text-center">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            Cargando comparación...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Explicación de la tabla -->
+                        <div style="background: rgba(139, 92, 246, 0.1); border-left: 4px solid #8b5cf6; padding: 1rem; border-radius: 8px; margin-top: 1.5rem;">
+                            <p style="margin: 0; color: #1e293b; font-size: 0.85rem;">
+                                <i class="fas fa-lightbulb" style="color: #8b5cf6;"></i>
+                                <strong>¿Cómo leer esta tabla?</strong><br>
+                                Compara el rendimiento de <strong>cada sucursal</strong> del día de ayer con el mismo día del año anterior.<br>
+                                • <span style="color: #10b981;">↗️ Verde</span> = Crecimiento respecto al año pasado<br>
+                                • <span style="color: #ef4444;">↘️ Rojo</span> = Caída respecto al año pasado
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FACTURACIÓN -->
+                <div class="content-card fade-in">
+                    <div class="card-header-modern">
+                        <i class="fas fa-file-invoice"></i>
+                        <h5>Fagotto Facturación</h5>
+                    </div>
+                    <div class="card-body-modern">
+                        <div class="table-responsive">
+                            <table class="table modern-table" id="tabla-counters-facturacion">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">
+                                            <i class="fas fa-building"></i>
+                                            Razón Social
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-id-card"></i>
+                                            RUT
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-dollar-sign"></i>
+                                            Monto
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-file-pdf"></i>
+                                            PDF
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-counters-facturacion-tbody">
+                                    <tr>
+                                        <td colspan="4" class="text-center">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            CARGANDO...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GRÁFICO DE SUCURSALES -->
+                <div class="content-card fade-in">
+                    <div class="card-header-modern">
+                        <i class="fas fa-chart-bar"></i>
+                        <h5>Análisis de Sucursales - Ranking de Ventas</h5>
+                    </div>
+                    <div class="card-body-modern">
+                        <div class="chart-container" style="height: 600px; position: relative;">
+                            <canvas id="sucursalesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PEDIDOS -->
+                <div class="content-card fade-in">
+                    <div class="card-header-modern">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h5>Estado de Pedidos</h5>
+                    </div>
+                    <div class="card-body-modern">
+                        <div id="card-render" class="slick-carousel">
+                            <!-- Los pedidos se cargarán aquí dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+    <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"
+        integrity="sha384-uO3SXW5IuS1ZpFPKugNNWqTZRRglnUJK6UAZ/gxOX80nxEkN9NcGZTftn6RzhGWE"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"
+        integrity="sha384-zNy6FEbO50N+Cg5wap8IKA4M/ZnLJgzc6w2NqACZaK0u0FXfOWRRJOnQtpZun8ha"
+        crossorigin="anonymous"></script>
+    <script src="../assets/js/dashboard-kpis.js?v=2025102101"></script>
+    <script src="../assets/js/dashboard.js?v=2025102401"></script>
+    <script src="../assets/js/dashboard-comparison.js?v=2025102101"></script>
+    <script src="../assets/js/cocinafagotto.js"></script>
+    <script>
+        (!_store().serial.isset()) ? window.location.href = "../index.html" : "";
+
+        if (_store().session.user().get("role") != 100) {
+            let id = _store().id.get();
+            window.location.href = "sucursal.html?id=" + id;
+        }
+
+        const _btn_restart = $("#btn-restore");
+
+        _btn_restart.click(function () {
+            _store().serial.delete();           //borramos el serial
+            _store().session.delete()           //borramos la session
+            _store().session.user().delete()    //borramos el usuario
+            //renviamos  a index
+            window.location.href = "../index.html"
+        })
+
+        // Manejar filtros activos
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterButtons = document.querySelectorAll('.btn-filter');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remover clase activa de todos los botones
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    // Agregar clase activa al botón clickeado
+                    this.classList.add('active');
+                });
+            });
+            
+            // ========== CARGAR COMPARACIÓN AÑO ACTUAL VS ANTERIOR ==========
+            console.log('🚀 Iniciando carga de comparación anual...');
+            setTimeout(function() {
+                loadYearComparison();
+            }, 2000); // Esperar 2 segundos para que carguen los datos principales primero
+        });
+
+        // ========== MOBILE MENU FUNCTIONALITY ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const mobileMenuClose = document.getElementById('mobile-menu-close');
+            const sidebar = document.getElementById('sidebarMenu');
+            const overlay = document.getElementById('mobile-sidebar-overlay');
+
+            function toggleMobileMenu() {
+                mobileMenuToggle.classList.toggle('active');
+                sidebar.classList.toggle('show');
+                overlay.classList.toggle('show');
+                document.body.classList.toggle('mobile-menu-open');
+            }
+
+            function closeMobileMenu() {
+                mobileMenuToggle.classList.remove('active');
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
+                document.body.classList.remove('mobile-menu-open');
+            }
+
+            // Toggle menu
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+            }
+
+            // Close menu
+            if (mobileMenuClose) {
+                mobileMenuClose.addEventListener('click', closeMobileMenu);
+            }
+
+            // Close menu when clicking overlay
+            if (overlay) {
+                overlay.addEventListener('click', closeMobileMenu);
+            }
+
+            // Close menu when clicking on nav links
+            const navLinks = document.querySelectorAll('.nav-link-sub, .nav-item-mobile .nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', closeMobileMenu);
+            });
+
+            // Handle escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('show')) {
+                    closeMobileMenu();
+                }
+            });
+
+            // Close menu on window resize if screen becomes large
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 992 && sidebar.classList.contains('show')) {
+                    closeMobileMenu();
+                }
+            });
+
+            // Initialize sucursales for mobile menu too
+            if (typeof cargarSucursales === 'function') {
+                cargarSucursales();
+            }
+        });
+    </script>
+</body>
+
+</html>

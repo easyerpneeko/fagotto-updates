@@ -19,6 +19,7 @@ class ArqueoCaja {
         
         this.ventasEfectivoDelDia = 0;
         this.totalVentasDelDia = 0;
+        this.balanceSistema = 0;
         
         this.init();
     }
@@ -33,6 +34,7 @@ class ArqueoCaja {
         $('.denomination-input').on('input', () => {
             this.calculateTotal();
             this.calcularDiferencia();
+            this.compararSaldos();
         });
 
         // Botón guardar arqueo
@@ -62,7 +64,81 @@ class ArqueoCaja {
             total += cantidad * this.denominations[id];
         }
         
-        $('#totalCounted').text('$' + this.formatMoney(total));
+        $('#balanceCajero').text('$' + this.formatMoney(total));
+        return total;
+    }
+
+    /**
+     * Comparar saldos entre sistema y cajero
+     */
+    compararSaldos() {
+        let totalCajero = this.calculateTotal();
+        let totalSistema = this.balanceSistema;
+        
+        if (totalCajero === 0 && totalSistema === 0) {
+            $('#resultadoComparacion').hide();
+            return;
+        }
+
+        $('#resultadoComparacion').show();
+        
+        let diferencia = totalSistema - totalCajero; // Positivo = falta, Negativo = sobra
+        let diferenciaAbs = Math.abs(diferencia);
+        
+        let resultado = {
+            clase: '',
+            icono: '',
+            mensaje: '',
+            detalle: ''
+        };
+
+        if (diferencia === 0) {
+            // PERFECTO - Cuadra exactamente
+            resultado.clase = 'resultado-exacto';
+            resultado.icono = '✓';
+            resultado.mensaje = '¡PERFECTO! El arqueo cuadra exactamente';
+            resultado.detalle = 'No hay diferencia entre el sistema y el conteo del cajero';
+        } 
+        else if (diferencia > 0) {
+            // FALTA DINERO
+            if (diferenciaAbs <= 10000) {
+                resultado.clase = 'resultado-leve';
+                resultado.icono = '⚠️';
+                resultado.mensaje = 'DIFERENCIA LEVE';
+                resultado.detalle = `Faltan $${this.formatMoney(diferenciaAbs)} - No es tan grave, puede ser error de conteo`;
+            } 
+            else if (diferenciaAbs <= 20000) {
+                resultado.clase = 'resultado-grave';
+                resultado.icono = '⚠️';
+                resultado.mensaje = 'DIFERENCIA GRAVE';
+                resultado.detalle = `Faltan $${this.formatMoney(diferenciaAbs)} - Revisar caja urgente, posible error o faltante`;
+            } 
+            else {
+                resultado.clase = 'resultado-peligro';
+                resultado.icono = '🚨';
+                resuthis.balanceSistema = response.ventasEfectivo || 0; // Balance del sistema
+                    
+                    $('#ventasEfectivo').text('$' + this.formatMoney(this.ventasEfectivoDelDia));
+                    $('#totalVentas').text('$' + this.formatMoney(this.totalVentasDelDia));
+                    $('#balanceSistema').text('$' + this.formatMoney(this.balanceSistema));
+                    
+                    this.calcularDiferencia();
+                    this.compararSaldos
+            // SOBRA DINERO
+            resultado.clase = 'resultado-leve';
+            resultado.icono = '💰';
+            resultado.mensaje = 'SOBRA DINERO';
+            resultado.detalle = `Sobran $${this.formatMoney(diferenciaAbs)} - Revisar si hay ventas sin registrar o error de conteo`;
+        }
+
+        // Aplicar resultado
+        $('#resultadoComparacion')
+            .removeClass('resultado-exacto resultado-leve resultado-grave resultado-peligro')
+            .addClass(resultado.clase);
+        
+        $('#iconoResultado').text(resultado.icono);
+        $('#mensajeResultado').text(resultado.mensaje);
+        $('#detalleDiferencia').text(resultado.detalle)nted').text('$' + this.formatMoney(total));
         return total;
     }
 
@@ -211,6 +287,7 @@ class ArqueoCaja {
         // Validar que tenga al menos un valor
         if (Object.keys(detalleConteo).length === 0) {
             this.showWarning('Debe ingresar al menos una denominación');
+        this.compararSaldos();
             return;
         }
 

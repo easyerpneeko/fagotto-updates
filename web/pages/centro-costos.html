@@ -1,0 +1,2217 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FagottoERP - Centro de Costos</title>
+    <link rel="icon" type="image/x-icon" href="../assets/css/negro.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+    
+    <!--styles-->
+    <link href="../assets/css/dashboard.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/global.css">
+
+    <!--helpers-->
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+    <script src="../assets/helpers/helperFunctions.js?v=2025102101"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --background-gradient: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+            --card-background: rgba(255, 255, 255, 0.8);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --border-radius: 16px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--background-gradient);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .modern-header {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .modern-header .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .content-wrapper {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-card-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-card-icon.primary {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary-color);
+        }
+
+        .stat-card-icon.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .stat-card-icon.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+
+        .stat-card-icon.danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .stat-card-icon.secondary {
+            background: rgba(100, 116, 139, 0.1);
+            color: #64748b;
+        }
+
+        .stat-card-icon.info {
+            background: rgba(14, 165, 233, 0.1);
+            color: #0ea5e9;
+        }
+
+        .stat-card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .content-card {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .content-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .content-card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .btn-modern {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-modern:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .table-modern {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 0.5rem;
+        }
+
+        .table-modern thead th {
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.75rem 1rem;
+            border: none;
+        }
+
+        .table-modern tbody tr {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .table-modern tbody tr:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-modern tbody td {
+            padding: 1rem;
+            border: none;
+            vertical-align: middle;
+        }
+
+        .table-modern tbody tr td:first-child {
+            border-radius: 10px 0 0 10px;
+        }
+
+        .table-modern tbody tr td:last-child {
+            border-radius: 0 10px 10px 0;
+        }
+
+        .badge-modern {
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin: 0 0.25rem;
+        }
+
+        .btn-icon:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(59, 130, 246, 0.02);
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.1);
+            transform: scale(1.02);
+        }
+
+        .file-preview {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .badge-category {
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .badge-alimentos { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+        .badge-aseo { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
+        .badge-embalaje { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+        .badge-otros { background: rgba(107, 114, 128, 0.1); color: #4b5563; }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-link-document {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-link-document:hover {
+            text-decoration: underline;
+        }
+
+        /* Animaciones */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .content-card, .stat-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Loader personalizado */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Mejoras responsivas */
+        @media (max-width: 768px) {
+            .stats-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .content-wrapper {
+                padding: 1rem;
+            }
+        }
+
+        /* Hover effects mejorados */
+        .table-modern tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table-modern tbody tr:hover {
+            transform: translateX(8px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Badges mejorados */
+        .badge-category {
+            transition: transform 0.2s ease;
+        }
+
+        .badge-category:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <nav class="modern-header navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="dashboard.html">
+                <i class="fas fa-coins"></i> Centro de Costos
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="btnCerrarSesion">
+                            <i class="fas fa-sign-out-alt"></i> Salir
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="content-wrapper">
+        <!-- Page Header -->
+        <div class="mb-4">
+            <h1 class="page-title">
+                <i class="fas fa-chart-pie"></i> Centro de Costos
+            </h1>
+            <p class="page-subtitle">Gestión y control de costos operacionales</p>
+        </div>
+
+        <!-- Stats Cards - Comparación Facturación vs Costos -->
+        <div class="stats-cards mb-3" id="statsComparacion" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+            <!-- Tarjetas de comparación facturación/costos (2 filas × 3 columnas = 6 tarjetas) -->
+        </div>
+
+        <!-- Stats Cards - Categorías -->
+        <div class="stats-cards" id="statsCards">
+            <!-- Las tarjetas se generarán dinámicamente por cada categoría -->
+        </div>
+
+        <!-- Comparación Día por Día -->
+        <div class="content-card mb-3">
+            <div class="content-card-header">
+                <div>
+                    <h2 class="content-card-title">
+                        <i class="fas fa-calendar-alt"></i> Comparación Diaria: Facturación vs Compras
+                    </h2>
+                    <p class="text-muted mb-0" style="font-size: 0.875rem;" id="resumenDetalleDiario">
+                        <i class="fas fa-spinner fa-spin"></i> Cargando análisis diario...
+                    </p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-modern">
+                    <thead>
+                        <tr>
+                            <th style="width: 12%;">Fecha</th>
+                            <th style="width: 18%;">Total Facturado</th>
+                            <th style="width: 18%;">Total Comprado</th>
+                            <th style="width: 12%;">% Costos</th>
+                            <th style="width: 18%;">Diferencia (Utilidad)</th>
+                            <th style="width: 12%;">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaDetalleDiario">
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </div>
+                                <p><strong>Cargando detalle diario...</strong></p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="content-card mb-3">
+            <div class="row g-3 align-items-end mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Buscar</label>
+                    <input type="text" class="form-control" id="filtroBuscar" placeholder="Buscar en descripción, proveedor...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Categoría</label>
+                    <select class="form-select" id="filtroCategoria">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Fecha Desde</label>
+                    <input type="date" class="form-control" id="filtroFechaDesde">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Fecha Hasta</label>
+                    <input type="date" class="form-control" id="filtroFechaHasta">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn-modern w-100" id="btnFiltrar">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-sm btn-outline-secondary" onclick="setRangoFecha('hoy')">
+                    <i class="fas fa-calendar-day"></i> Hoy
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="setRangoFecha('semana')">
+                    <i class="fas fa-calendar-week"></i> Esta Semana
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="setRangoFecha('mes')">
+                    <i class="fas fa-calendar-alt"></i> Este Mes
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="setRangoFecha('trimestre')">
+                    <i class="fas fa-calendar"></i> Trimestre
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="setRangoFecha('anio')">
+                    <i class="fas fa-calendar"></i> Este Año
+                </button>
+                <button class="btn btn-sm btn-success ms-auto" id="btnExportar">
+                    <i class="fas fa-file-excel"></i> Exportar Excel
+                </button>
+                <button class="btn btn-sm btn-outline-primary" id="btnActualizar">
+                    <i class="fas fa-sync-alt"></i> Actualizar
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content Card -->
+        <div class="content-card">
+            <div class="content-card-header">
+                <div>
+                    <h2 class="content-card-title">
+                        <i class="fas fa-list"></i> Registros de Costos
+                    </h2>
+                    <p class="text-muted mb-0" id="resumenTabla" style="font-size: 0.875rem;">
+                        <i class="fas fa-spinner fa-spin"></i> Cargando...
+                    </p>
+                </div>
+                <button class="btn-modern" id="btnNuevoCosto">
+                    <i class="fas fa-plus"></i> Nuevo Costo
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-modern">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Categoría</th>
+                            <th>Descripción</th>
+                            <th>Monto</th>
+                            <th>Documento</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaCostos">
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-inbox"></i>
+                                </div>
+                                <p><strong>No hay registros de costos</strong></p>
+                                <p>Comienza agregando un nuevo costo</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo Costo -->
+    <div class="modal fade" id="modalNuevoCosto" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" style="border-radius: 16px; border: none;">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                    <h5 class="modal-title">
+                        <i class="fas fa-plus-circle"></i> Nuevo Registro de Costo
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding: 2rem;">
+                    <form id="formNuevoCosto">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Fecha <span style="color: red;">*</span></label>
+                                <input type="date" class="form-control" id="fecha" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Categoría <span style="color: red;">*</span></label>
+                                <div class="input-group">
+                                    <select class="form-select" id="categoria" required>
+                                        <option value="">Seleccionar...</option>
+                                    </select>
+                                    <button class="btn btn-outline-primary" type="button" id="btnNuevaCategoria" title="Agregar categoría">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                    <button class="btn btn-outline-secondary" type="button" id="btnGestionarCategorias" title="Gestionar categorías">
+                                        <i class="fas fa-cog"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Descripción <span style="color: red;">*</span></label>
+                                <input type="text" class="form-control" id="descripcion" 
+                                       placeholder="Ej: Factura compra insumos" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Monto <span style="color: red;">*</span></label>
+                                <input type="number" class="form-control" id="monto" 
+                                       placeholder="0" step="0.01" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Proveedor</label>
+                                <div class="input-group">
+                                    <select class="form-select" id="proveedor">
+                                        <option value="">Sin proveedor</option>
+                                    </select>
+                                    <button class="btn btn-outline-primary" type="button" id="btnNuevoProveedor" title="Agregar proveedor">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                    <button class="btn btn-outline-secondary" type="button" id="btnGestionarProveedores" title="Gestionar proveedores">
+                                        <i class="fas fa-cog"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Documento (PDF, Imagen) <span style="color: red;">*</span></label>
+                                <div class="upload-area" id="uploadArea">
+                                    <input type="file" class="form-control d-none" id="documento" 
+                                           accept=".pdf,.jpg,.jpeg,.png">
+                                    <div class="upload-placeholder">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+                                        <p style="margin: 0; font-weight: 600;">Arrastra el documento aquí</p>
+                                        <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary); font-size: 0.875rem;">
+                                            o haz clic para seleccionar
+                                        </p>
+                                        <small style="color: var(--text-muted);">PDF, JPG, PNG (máx. 10MB)</small>
+                                    </div>
+                                    <div class="file-preview d-none" id="filePreview">
+                                        <i class="fas fa-file-pdf" style="font-size: 2rem; color: var(--danger-color);"></i>
+                                        <div style="margin-left: 1rem; flex: 1;">
+                                            <p id="fileName" style="margin: 0; font-weight: 600;"></p>
+                                            <small id="fileSize" style="color: var(--text-secondary);"></small>
+                                        </div>
+                                        <button type="button" class="btn-icon" id="btnRemoveFile">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Notas adicionales</label>
+                                <textarea class="form-control" id="notas" rows="3" 
+                                          placeholder="Información adicional..."></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn-modern" id="btnGuardarCosto">
+                        <i class="fas fa-save"></i> Guardar Registro
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Documento -->
+    <div class="modal fade" id="modalVerDocumento" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content" style="border-radius: 16px; border: none;">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                    <h5 class="modal-title">
+                        <i class="fas fa-file-alt"></i> Documento
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding: 0; min-height: 600px;">
+                    <iframe id="documentoFrame" style="width: 100%; height: 600px; border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo Proveedor -->
+    <div class="modal fade" id="modalNuevoProveedor" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border: none;">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                    <h5 class="modal-title">
+                        <i class="fas fa-truck"></i> Nuevo Proveedor
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding: 2rem;">
+                    <form id="formNuevoProveedor">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre del proveedor <span style="color: red;">*</span></label>
+                            <input type="text" class="form-control" id="nombreProveedor" 
+                                   placeholder="Ej: Distribuidora XYZ" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">RUT</label>
+                            <input type="text" class="form-control" id="rutProveedor" 
+                                   placeholder="12.345.678-9">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Teléfono</label>
+                            <input type="tel" class="form-control" id="telefonoProveedor" 
+                                   placeholder="+56 9 1234 5678">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="emailProveedor" 
+                                   placeholder="contacto@proveedor.cl">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Dirección</label>
+                            <textarea class="form-control" id="direccionProveedor" rows="2" 
+                                      placeholder="Calle ejemplo 123, Comuna"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn-modern" id="btnGuardarProveedor">
+                        <i class="fas fa-save"></i> Crear Proveedor
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nueva Categoría -->
+    <div class="modal fade" id="modalNuevaCategoria" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border: none;">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                    <h5 class="modal-title">
+                        <i class="fas fa-tag"></i> Nueva Categoría
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding: 2rem;">
+                    <form id="formNuevaCategoria">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre <span style="color: red;">*</span></label>
+                            <input type="text" class="form-control" id="nombreCategoria" 
+                                   placeholder="Ej: Bebidas" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Icono (Emoji)</label>
+                            <input type="text" class="form-control" id="iconoCategoria" 
+                                   placeholder="🥤" maxlength="10">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Color</label>
+                            <select class="form-select" id="colorCategoria">
+                                <option value="alimentos">Verde (Alimentos)</option>
+                                <option value="aseo">Azul (Aseo)</option>
+                                <option value="embalaje">Naranja (Embalaje)</option>
+                                <option value="otros" selected>Gris (Otros)</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn-modern" id="btnGuardarCategoria">
+                        <i class="fas fa-save"></i> Crear Categoría
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Gestionar Categorías -->
+    <div class="modal fade" id="modalGestionarCategorias" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" style="border-radius: 16px; border: none;">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                    <h5 class="modal-title">
+                        <i class="fas fa-tags"></i> Gestionar Categorías
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding: 2rem;">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th>Color</th>
+                                    <th style="width: 150px;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaCategorias"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Gestionar Proveedores -->
+    <div class="modal fade" id="modalGestionarProveedores" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" style="border-radius: 16px; border: none;">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                    <h5 class="modal-title">
+                        <i class="fas fa-truck"></i> Gestionar Proveedores
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding: 2rem;">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Proveedor</th>
+                                    <th>RUT</th>
+                                    <th>Contacto</th>
+                                    <th style="width: 150px;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaProveedores"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        const API_URL = '../mixreporte/api/centro-costos.php';
+        let costos = [];
+        let categorias = [];
+        let proveedores = [];
+        let archivoSeleccionado = null;
+        const modalNuevoCosto = new bootstrap.Modal(document.getElementById('modalNuevoCosto'));
+        const modalVerDocumento = new bootstrap.Modal(document.getElementById('modalVerDocumento'));
+        const modalNuevoProveedor = new bootstrap.Modal(document.getElementById('modalNuevoProveedor'));
+        const modalNuevaCategoria = new bootstrap.Modal(document.getElementById('modalNuevaCategoria'));
+        const modalGestionarCategorias = new bootstrap.Modal(document.getElementById('modalGestionarCategorias'));
+        const modalGestionarProveedores = new bootstrap.Modal(document.getElementById('modalGestionarProveedores'));
+
+        // Inicialización
+        $(document).ready(function() {
+            // Validación de acceso
+            if (!_store().serial.isset()) {
+                window.location.href = "../index.html";
+                return;
+            }
+            
+            if (!_store().session.isset()) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            // Establecer fecha actual por defecto
+            $('#fecha').val(new Date().toISOString().split('T')[0]);
+            $('#filtroFechaHasta').val(new Date().toISOString().split('T')[0]);
+            
+            const primerDiaMes = new Date();
+            primerDiaMes.setDate(1);
+            $('#filtroFechaDesde').val(primerDiaMes.toISOString().split('T')[0]);
+
+            cargarDatos();
+            inicializarEventos();
+        });
+
+        function inicializarEventos() {
+            // Cerrar sesión
+            $('#btnCerrarSesion').on('click', function(e) {
+                e.preventDefault();
+                _store().session.delete();
+                _store().session.user().delete();
+                window.location.href = 'login.html';
+            });
+
+            // Abrir modal nuevo costo
+            $('#btnNuevoCosto').on('click', function() {
+                limpiarFormulario();
+                modalNuevoCosto.show();
+            });
+
+            // Upload area - Click
+            $('#uploadArea').on('click', function(e) {
+                e.stopPropagation();
+                if (!$(e.target).hasClass('btn-icon') && !$(e.target).closest('.btn-icon').length && e.target.id !== 'documento') {
+                    document.getElementById('documento').click();
+                }
+            });
+
+            // Upload area - Drag & Drop
+            const uploadArea = document.getElementById('uploadArea');
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileSelect(files[0]);
+                }
+            });
+
+            // File input change
+            $('#documento').on('change', function(e) {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+
+            // Remover archivo
+            $('#btnRemoveFile').on('click', function(e) {
+                e.stopPropagation();
+                limpiarArchivo();
+            });
+
+            // Guardar costo
+            $('#btnGuardarCosto').on('click', guardarCosto);
+
+            // Filtrar
+            $('#btnFiltrar').on('click', aplicarFiltros);
+
+            // Botones modales
+            $('#btnNuevoProveedor').on('click', function() {
+                $('#formNuevoProveedor')[0].reset();
+                modalNuevoProveedor.show();
+            });
+
+            $('#btnNuevaCategoria').on('click', function() {
+                $('#formNuevaCategoria')[0].reset();
+                modalNuevaCategoria.show();
+            });
+
+            $('#btnGuardarProveedor').on('click', guardarProveedor);
+            $('#btnGuardarCategoria').on('click', guardarCategoria);
+            
+            $('#btnGestionarCategorias').on('click', function() {
+                renderizarGestionCategorias();
+                modalGestionarCategorias.show();
+            });
+            
+            $('#btnGestionarProveedores').on('click', function() {
+                renderizarGestionProveedores();
+                modalGestionarProveedores.show();
+            });
+        }
+
+        function handleFileSelect(file) {
+            // Validar tamaño (10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Archivo muy grande',
+                    text: 'El archivo no debe superar los 10MB'
+                });
+                return;
+            }
+
+            // Validar tipo
+            const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+            if (!tiposPermitidos.includes(file.type)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Tipo de archivo no permitido',
+                    text: 'Solo se permiten archivos PDF, JPG o PNG'
+                });
+                return;
+            }
+
+            archivoSeleccionado = file;
+            console.log('✅ Archivo seleccionado:', file);
+            console.log('Nombre:', file.name, 'Tipo:', file.type, 'Tamaño:', file.size);
+            
+            // Asignar al input file usando DataTransfer
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            document.getElementById('documento').files = dataTransfer.files;
+            console.log('✅ Archivo asignado al input file');
+            
+            // Mostrar preview
+            $('#fileName').text(file.name);
+            $('#fileSize').text(formatearTamano(file.size));
+            $('.upload-placeholder').addClass('d-none');
+            $('#filePreview').removeClass('d-none');
+
+            // Cambiar icono según tipo
+            const icon = file.type === 'application/pdf' ? 
+                '<i class="fas fa-file-pdf" style="font-size: 2rem; color: var(--danger-color);"></i>' :
+                '<i class="fas fa-file-image" style="font-size: 2rem; color: var(--success-color);"></i>';
+            $('#filePreview i').replaceWith(icon);
+        }
+
+        function limpiarArchivo() {
+            archivoSeleccionado = null;
+            $('#documento').val('');
+            $('.upload-placeholder').removeClass('d-none');
+            $('#filePreview').addClass('d-none');
+        }
+
+        function limpiarFormulario() {
+            $('#formNuevoCosto')[0].reset();
+            $('#fecha').val(new Date().toISOString().split('T')[0]);
+            limpiarArchivo();
+            $('#formNuevoCosto').removeData('editId');
+            $('.modal-title', '#modalNuevoCosto').html('<i class="fas fa-plus-circle"></i> Nuevo Registro de Costo');
+        }
+
+        async function guardarCosto() {
+            const editId = $('#formNuevoCosto').data('editId');
+            const esEdicion = !!editId;
+            
+            // Validar formulario
+            if (!$('#formNuevoCosto')[0].checkValidity()) {
+                $('#formNuevoCosto')[0].reportValidity();
+                return;
+            }
+
+            const fileInput = document.getElementById('documento');
+            const hasFile = fileInput.files && fileInput.files.length > 0;
+            
+            if (!hasFile && !esEdicion) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Documento requerido',
+                    text: 'Debes subir un documento (factura, comprobante, etc.)'
+                });
+                return;
+            }
+
+            // Preparar FormData
+            const formData = new FormData();
+            formData.append('action', esEdicion ? 'editar_costo' : 'crear_costo');
+            if (esEdicion) formData.append('id', editId);
+            formData.append('fecha', $('#fecha').val());
+            formData.append('categoria', $('#categoria').val());
+            formData.append('descripcion', $('#descripcion').val());
+            formData.append('monto', $('#monto').val());
+            formData.append('proveedor', $('#proveedor').val());
+            formData.append('notas', $('#notas').val());
+            
+            // Debug completo del input file
+            console.log('fileInput:', fileInput);
+            console.log('fileInput.files:', fileInput.files);
+            console.log('fileInput.files.length:', fileInput.files ? fileInput.files.length : 'undefined');
+            console.log('archivoSeleccionado (variable global):', archivoSeleccionado);
+            
+            // Agregar archivo del input file
+            if (fileInput.files && fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                formData.append('documento', file);
+                console.log('✅ Documento agregado al FormData:', file.name, file.type, file.size);
+            } else if (archivoSeleccionado) {
+                // Fallback a variable global
+                formData.append('documento', archivoSeleccionado);
+                console.log('✅ Documento agregado desde variable global:', archivoSeleccionado.name);
+            } else {
+                console.log('❌ NO HAY ARCHIVO EN EL INPUT NI EN LA VARIABLE GLOBAL');
+            }
+            
+            // Debug FormData
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ': ', pair[1]);
+            }
+
+            // Mostrar loading
+            Swal.fire({
+                title: esEdicion ? 'Actualizando...' : 'Guardando...',
+                text: 'Procesando registro',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                console.log('Respuesta del servidor:', result);
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡' + (esEdicion ? 'Actualizado' : 'Guardado') + '!',
+                        text: 'El registro se guardó correctamente',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    modalNuevoCosto.hide();
+                    $('#formNuevoCosto').removeData('editId');
+                    await cargarDatos();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: result.error
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo guardar el registro: ' + error.message
+                });
+            }
+        }
+
+        async function cargarDatos() {
+            await cargarCategorias();
+            await cargarProveedores();
+            await cargarCostos();
+            await cargarEstadisticas();
+            await cargarComparacionVentas();
+            await cargarDetalleDiario();
+        }
+
+        async function cargarCostos() {
+            try {
+                const params = new URLSearchParams({
+                    action: 'listar_costos'
+                });
+                
+                const categoria = $('#filtroCategoria').val();
+                const fechaDesde = $('#filtroFechaDesde').val();
+                const fechaHasta = $('#filtroFechaHasta').val();
+                const buscar = $('#filtroBuscar').val();
+                
+                if (categoria) params.append('categoria', categoria);
+                if (fechaDesde) params.append('fecha_desde', fechaDesde);
+                if (fechaHasta) params.append('fecha_hasta', fechaHasta);
+                if (buscar) params.append('buscar', buscar);
+                
+                const response = await fetch(`${API_URL}?${params}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    costos = result.data.costos || result.data;
+                    renderizarTablaCostos();
+                }
+            } catch (error) {
+                console.error('Error cargando costos:', error);
+            }
+        }
+
+        async function cargarEstadisticas() {
+            try {
+                const fechaDesde = $('#filtroFechaDesde').val();
+                const fechaHasta = $('#filtroFechaHasta').val();
+                
+                const params = new URLSearchParams({
+                    action: 'estadisticas',
+                    fecha_desde: fechaDesde,
+                    fecha_hasta: fechaHasta
+                });
+                
+                const response = await fetch(`${API_URL}?${params}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderizarTarjetasCategorias(result.data.por_categoria || []);
+                }
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+            }
+        }
+
+        async function cargarComparacionVentas() {
+            try {
+                const fechaDesde = $('#filtroFechaDesde').val();
+                const fechaHasta = $('#filtroFechaHasta').val();
+                
+                const params = new URLSearchParams({
+                    action: 'comparacion_facturacion',
+                    fecha_desde: fechaDesde,
+                    fecha_hasta: fechaHasta
+                });
+                
+                // Obtener credenciales para pasar a la API externa
+                const creds = credentials();
+                
+                const response = await fetch(`${API_URL}?${params}`, {
+                    headers: {
+                        'app-key': creds['app-key'],
+                        'authorization': creds['authorization']
+                    }
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderizarComparacionVentas(result.data);
+                } else {
+                    console.error('Error en comparacion_facturacion:', result.error);
+                    // Mostrar mensaje de error en el contenedor
+                    $('#statsComparacion').html(`
+                        <div class="stat-card" style="grid-column: 1 / -1;">
+                            <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                                <p>${result.error || 'Error al cargar comparación de facturación'}</p>
+                            </div>
+                        </div>
+                    `);
+                }
+            } catch (error) {
+                console.error('Error cargando comparación facturación:', error);
+                $('#statsComparacion').html(`
+                    <div class="stat-card" style="grid-column: 1 / -1;">
+                        <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                            <p>Error al cargar datos de comparación</p>
+                        </div>
+                    </div>
+                `);
+            }
+        }
+
+        function renderizarComparacionVentas(data) {
+            const container = $('#statsComparacion');
+            
+            // Definir colores según estado
+            const estadoConfig = {
+                'excelente': { color: 'success', icon: 'fa-check-circle', mensaje: '¡Excelente!' },
+                'aceptable': { color: 'warning', icon: 'fa-exclamation-circle', mensaje: 'Aceptable' },
+                'alto': { color: 'warning', icon: 'fa-exclamation-triangle', mensaje: 'Alto' },
+                'critico': { color: 'danger', icon: 'fa-times-circle', mensaje: '¡Crítico!' }
+            };
+            
+            const estado = estadoConfig[data.estado] || estadoConfig['critico'];
+            
+            // Renderizar tarjetas de comparación (2 filas de 3 columnas)
+            container.html(`
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-title">💰 Total Facturación</span>
+                        <div class="stat-card-icon primary">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card-value">${formatearMontoChile(data.total_facturacion || 0)}</div>
+                    <div class="stat-card-description">
+                        ${data.total_facturas || 0} facturas • Total vendido en el período
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-title">🛒 Total Compras</span>
+                        <div class="stat-card-icon secondary">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card-value">${formatearMontoChile(data.total_costos || 0)}</div>
+                    <div class="stat-card-description">
+                        ${data.registros_costos || 0} registros • Total gastado en compras
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-title">📊 % Compras/Facturación</span>
+                        <div class="stat-card-icon ${estado.color}">
+                            <i class="fas ${estado.icon}"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card-value" style="color: var(--${estado.color}-color); font-size: 2.5rem; font-weight: 700;">
+                        ${data.porcentaje_costos || 0}%
+                    </div>
+                    <div class="stat-card-description">
+                        <span style="color: var(--${estado.color}-color);">
+                            <i class="fas ${estado.icon}"></i> ${data.mensaje || estado.mensaje}
+                        </span><br>
+                        Qué % de tus ventas se va en compras
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-title">💵 Utilidad Bruta</span>
+                        <div class="stat-card-icon ${data.utilidad_bruta >= 0 ? 'success' : 'danger'}">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card-value" style="color: var(--${data.utilidad_bruta >= 0 ? 'success' : 'danger'}-color);">
+                        ${formatearMontoChile(data.utilidad_bruta || 0)}
+                    </div>
+                    <div class="stat-card-description">
+                        Margen: ${data.margen_utilidad || 0}%<br>
+                        Lo que queda: Facturación - Compras
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-title">📈 Compras ÷ Facturación</span>
+                        <div class="stat-card-icon info">
+                            <i class="fas fa-divide"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card-value" style="font-size: 2rem;">
+                        ${(data.total_costos / data.total_facturacion).toFixed(4)}
+                    </div>
+                    <div class="stat-card-description">
+                        Paso 1: División sin multiplicar<br>
+                        ${formatearMontoChile(data.total_costos)} ÷ ${formatearMontoChile(data.total_facturacion)}
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-title">🎯 Porcentaje × 100</span>
+                        <div class="stat-card-icon ${estado.color}">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card-value" style="color: var(--${estado.color}-color); font-size: 2.5rem; font-weight: 700;">
+                        ${data.porcentaje_costos || 0}%
+                    </div>
+                    <div class="stat-card-description">
+                        Paso 2: Multiplicar por 100<br>
+                        ${(data.total_costos / data.total_facturacion).toFixed(4)} × 100 = ${data.porcentaje_costos}%
+                    </div>
+                </div>
+            `);
+        }
+
+        function renderizarTarjetasCategorias(statsCategoria) {
+            const container = $('#statsCards');
+            container.empty();
+
+            if (categorias.length === 0) {
+                container.html(`
+                    <div class="stat-card" style="grid-column: 1 / -1;">
+                        <div style="text-align: center; padding: 2rem;">
+                            <i class="fas fa-tag" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                            <p><strong>No hay categorías creadas</strong></p>
+                            <p style="color: var(--text-secondary);">Crea una categoría para comenzar a registrar costos</p>
+                        </div>
+                    </div>
+                `);
+                return;
+            }
+
+            categorias.forEach(cat => {
+                const stat = statsCategoria.find(s => s.categoria == cat.id) || { total: 0, cantidad: 0 };
+                
+                const colorMap = {
+                    'alimentos': 'success',
+                    'aseo': 'primary',
+                    'embalaje': 'warning',
+                    'otros': 'secondary'
+                };
+                const iconColor = colorMap[cat.color] || 'secondary';
+
+                container.append(`
+                    <div class="stat-card" style="cursor: pointer;" onclick="filtrarPorCategoria(${cat.id})">
+                        <div class="stat-card-header">
+                            <span class="stat-card-title">${cat.icono} ${cat.nombre}</span>
+                            <div class="stat-card-icon ${iconColor}">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">${formatearMontoChile(stat.total || 0)}</div>
+                        <div class="stat-card-description">${stat.cantidad || 0} registro${stat.cantidad !== 1 ? 's' : ''}</div>
+                    </div>
+                `);
+            });
+        }
+
+        function filtrarPorCategoria(categoriaId) {
+            $('#filtroCategoría').val(categoriaId);
+            aplicarFiltros();
+        }
+
+        async function cargarCategorias() {
+            try {
+                console.log('Cargando categorías desde:', `${API_URL}?action=listar_categorias`);
+                const response = await fetch(`${API_URL}?action=listar_categorias`);
+                console.log('Response status:', response.status);
+                const result = await response.json();
+                console.log('Categorías recibidas:', result);
+                
+                if (result.success) {
+                    categorias = result.data;
+                    
+                    // Llenar select del formulario
+                    const selectCategoria = $('#categoria');
+                    selectCategoria.html('<option value="">Seleccionar...</option>');
+                    categorias.forEach(cat => {
+                        selectCategoria.append(`<option value="${cat.id}">${cat.icono} ${cat.nombre}</option>`);
+                    });
+                    
+                    // Llenar select de filtros
+                    const filtroCategoria = $('#filtroCategoría');
+                    filtroCategoria.html('<option value="">Todas</option>');
+                    categorias.forEach(cat => {
+                        filtroCategoria.append(`<option value="${cat.id}">${cat.icono} ${cat.nombre}</option>`);
+                    });
+                    
+                    console.log('Categorías cargadas:', categorias.length);
+                } else {
+                    console.error('Error en respuesta:', result.error);
+                }
+            } catch (error) {
+                console.error('Error cargando categorías:', error);
+            }
+        }
+
+        async function cargarProveedores() {
+            try {
+                const response = await fetch(`${API_URL}?action=listar_proveedores`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    proveedores = result.data;
+                    const selectProveedor = $('#proveedor');
+                    selectProveedor.html('<option value="">Sin proveedor</option>');
+                    
+                    proveedores.forEach(prov => {
+                        selectProveedor.append(`<option value="${prov.id}">${prov.nombre}</option>`);
+                    });
+                }
+            } catch (error) {
+                console.error('Error cargando proveedores:', error);
+            }
+        }
+
+        async function guardarCategoria() {
+            if (!$('#formNuevaCategoria')[0].checkValidity()) {
+                $('#formNuevaCategoria')[0].reportValidity();
+                return;
+            }
+
+            const editId = $('#formNuevaCategoria').data('editId');
+            const categoria = {
+                action: editId ? 'editar_categoria' : 'crear_categoria',
+                nombre: $('#nombreCategoria').val().trim(),
+                icono: $('#iconoCategoria').val().trim() || '📋',
+                color: $('#colorCategoria').val()
+            };
+            
+            if (editId) categoria.id = editId;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(categoria)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: editId ? '¡Actualizada!' : '¡Creada!',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    modalNuevaCategoria.hide();
+                    $('#formNuevaCategoria').removeData('editId');
+                    $('.modal-title', '#modalNuevaCategoria').html('<i class="fas fa-tag"></i> Nueva Categoría');
+                    await cargarCategorias();
+                    if (!editId) $('#categoria').val(result.data.id);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: result.error
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo guardar la categoría'
+                });
+            }
+        }
+
+        async function guardarProveedor() {
+            if (!$('#formNuevoProveedor')[0].checkValidity()) {
+                $('#formNuevoProveedor')[0].reportValidity();
+                return;
+            }
+
+            const editId = $('#formNuevoProveedor').data('editId');
+            const proveedor = {
+                action: editId ? 'editar_proveedor' : 'crear_proveedor',
+                nombre: $('#nombreProveedor').val().trim(),
+                rut: $('#rutProveedor').val().trim(),
+                telefono: $('#telefonoProveedor').val().trim(),
+                email: $('#emailProveedor').val().trim(),
+                direccion: $('#direccionProveedor').val().trim()
+            };
+            
+            if (editId) proveedor.id = editId;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(proveedor)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: editId ? '¡Actualizado!' : '¡Creado!',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    modalNuevoProveedor.hide();
+                    $('#formNuevoProveedor').removeData('editId');
+                    $('.modal-title', '#modalNuevoProveedor').html('<i class="fas fa-truck"></i> Nuevo Proveedor');
+                    await cargarProveedores();
+                    if (!editId) $('#proveedor').val(result.data.id);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: result.error
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo guardar el proveedor'
+                });
+            }
+        }
+
+        function aplicarFiltros() {
+            cargarDatos();
+        }
+
+        function renderizarTablaCostos() {
+            const tbody = $('#tablaCostos');
+            
+            // Calcular totales
+            const totalMonto = costos.reduce((sum, c) => sum + parseFloat(c.monto || 0), 0);
+            const resumen = `Mostrando ${costos.length} registro${costos.length !== 1 ? 's' : ''} • Total: ${formatearMontoChile(totalMonto)}`;
+            $('#resumenTabla').html(`<i class="fas fa-receipt"></i> ${resumen}`);
+            
+            if (costos.length === 0) {
+                tbody.html(`
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-inbox"></i>
+                            </div>
+                            <p><strong>No hay registros de costos</strong></p>
+                            <p>Comienza agregando un nuevo costo</p>
+                        </td>
+                    </tr>
+                `);
+                return;
+            }
+
+            let html = '';
+            costos.forEach(costo => {
+                const categoria = categorias.find(c => c.id == costo.categoria);
+                const iconoCategoria = categoria ? categoria.icono : '📋';
+                const nombreCategoria = categoria ? categoria.nombre : costo.categoria;
+                const colorCategoria = categoria ? categoria.color : 'otros';
+
+                const proveedorNombre = costo.proveedor_nombre || '';
+
+                html += `
+                    <tr>
+                        <td>${formatearFecha(costo.fecha)}</td>
+                        <td>
+                            <span class="badge-category badge-${colorCategoria}">
+                                ${iconoCategoria} ${nombreCategoria}
+                            </span>
+                        </td>
+                        <td>
+                            <strong>${costo.descripcion}</strong>
+                            ${proveedorNombre ? `<br><small style="color: var(--text-secondary);">${proveedorNombre}</small>` : ''}
+                        </td>
+                        <td><strong>${formatearMontoChile(costo.monto)}</strong></td>
+                        <td>
+                            <a href="#" class="btn-link-document" onclick="verDocumento(${costo.id}); return false;">
+                                <i class="fas fa-file-pdf"></i> Ver documento
+                            </a>
+                        </td>
+                        <td>
+                            <button class="btn-icon" onclick="editarCosto(${costo.id})" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon" onclick="eliminarCosto(${costo.id})" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.html(html);
+        }
+
+        function verDocumento(id) {
+            const costo = costos.find(c => c.id === id);
+            if (!costo) {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Registro no encontrado' });
+                return;
+            }
+            
+            if (!costo.documento_ruta) {
+                Swal.fire({ icon: 'warning', title: 'Sin documento', text: 'Este registro no tiene documento adjunto' });
+                return;
+            }
+            
+            const url = `https://fagottoerp.cl/uploads/centro-costos/${costo.documento_ruta}`;
+            
+            // Mostrar loading
+            Swal.fire({
+                title: 'Cargando documento...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+            
+            // Verificar que el documento existe
+            fetch(url, { method: 'HEAD' })
+                .then(response => {
+                    Swal.close();
+                    if (response.ok) {
+                        $('#documentoFrame').attr('src', url);
+                        modalVerDocumento.show();
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'El documento no está disponible' });
+                    }
+                })
+                .catch(() => {
+                    Swal.close();
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cargar el documento' });
+                });
+        }
+
+        async function editarCosto(id) {
+            const costo = costos.find(c => c.id === id);
+            if (!costo) {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Registro no encontrado' });
+                return;
+            }
+            
+            // Limpiar formulario primero
+            limpiarFormulario();
+            
+            // Cargar datos en el modal
+            $('#fecha').val(costo.fecha);
+            $('#categoria').val(costo.categoria);
+            $('#descripcion').val(costo.descripcion);
+            $('#monto').val(costo.monto);
+            $('#proveedor').val(costo.proveedor_id || '');
+            $('#notas').val(costo.notas || '');
+            
+            // Cambiar título y guardar ID
+            $('.modal-title', '#modalNuevoCosto').html('<i class="fas fa-edit"></i> Editar Registro de Costo');
+            $('#formNuevoCosto').data('editId', id);
+            
+            // Mostrar info del documento actual
+            if (costo.documento_nombre) {
+                $('#fileName').text(costo.documento_nombre + ' (actual - opcional nuevo)');
+                $('#fileSize').text('Puedes subir un nuevo documento para reemplazarlo');
+                $('.upload-placeholder').addClass('d-none');
+                $('#filePreview').removeClass('d-none');
+            }
+            
+            modalNuevoCosto.show();
+        }
+
+        async function eliminarCosto(id) {
+            const result = await Swal.fire({
+                title: '¿Eliminar registro?',
+                text: 'Esta acción no se puede deshacer',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const formData = new FormData();
+                    formData.append('action', 'eliminar_costo');
+                    formData.append('id', id);
+
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Eliminado',
+                            text: 'El registro fue eliminado',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        await cargarDatos();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: result.error
+                        });
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo eliminar el registro'
+                    });
+                }
+            }
+        }
+
+        function formatearMontoChile(monto) {
+            return new Intl.NumberFormat('es-CL', {
+                style: 'currency',
+                currency: 'CLP'
+            }).format(monto);
+        }
+
+        function formatearFecha(fecha) {
+            return new Date(fecha + 'T00:00:00').toLocaleDateString('es-CL', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        function formatearTamano(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+
+        function setRangoFecha(tipo) {
+            const hoy = new Date();
+            let desde, hasta = hoy.toISOString().split('T')[0];
+            
+            if (tipo === 'hoy') {
+                desde = hasta;
+            } else if (tipo === 'semana') {
+                const primerDia = new Date(hoy);
+                primerDia.setDate(hoy.getDate() - hoy.getDay());
+                desde = primerDia.toISOString().split('T')[0];
+            } else if (tipo === 'mes') {
+                desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
+            } else if (tipo === 'trimestre') {
+                const mesActual = hoy.getMonth();
+                const primerMesTrimestre = Math.floor(mesActual / 3) * 3;
+                desde = new Date(hoy.getFullYear(), primerMesTrimestre, 1).toISOString().split('T')[0];
+            } else if (tipo === 'anio') {
+                desde = new Date(hoy.getFullYear(), 0, 1).toISOString().split('T')[0];
+            }
+            
+            $('#filtroFechaDesde').val(desde);
+            $('#filtroFechaHasta').val(hasta);
+            aplicarFiltros();
+        }
+
+        $('#btnExportar').click(function() {
+            const params = new URLSearchParams({
+                action: 'exportar_excel'
+            });
+            
+            const categoria = $('#filtroCategoria').val();
+            const fechaDesde = $('#filtroFechaDesde').val();
+            const fechaHasta = $('#filtroFechaHasta').val();
+            const buscar = $('#filtroBuscar').val();
+            
+            if (categoria) params.append('categoria', categoria);
+            if (fechaDesde) params.append('fecha_desde', fechaDesde);
+            if (fechaHasta) params.append('fecha_hasta', fechaHasta);
+            if (buscar) params.append('buscar', buscar);
+            
+            window.location.href = `${API_URL}?${params}`;
+        });
+
+        $('#btnActualizar').click(function() {
+            const btn = $(this);
+            const icon = btn.find('i');
+            icon.addClass('fa-spin');
+            
+            cargarDatos().then(() => {
+                icon.removeClass('fa-spin');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Actualizado',
+                    text: 'Datos actualizados correctamente',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            });
+        });
+
+        // Búsqueda con debounce
+        let searchTimeout;
+        $('#filtroBuscar').on('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                aplicarFiltros();
+            }, 500);
+        });
+
+        function renderizarGestionCategorias() {
+            const tbody = $('#tablaCategorias');
+            tbody.empty();
+            
+            if (categorias.length === 0) {
+                tbody.html('<tr><td colspan="3" class="text-center">No hay categorías</td></tr>');
+                return;
+            }
+            
+            categorias.forEach(cat => {
+                tbody.append(`
+                    <tr>
+                        <td>${cat.icono} ${cat.nombre}</td>
+                        <td><span class="badge bg-secondary">${cat.color}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="editarCategoriaModal(${cat.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="eliminarCategoriaConfirm(${cat.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        function renderizarGestionProveedores() {
+            const tbody = $('#tablaProveedores');
+            tbody.empty();
+            
+            if (proveedores.length === 0) {
+                tbody.html('<tr><td colspan="4" class="text-center">No hay proveedores</td></tr>');
+                return;
+            }
+            
+            proveedores.forEach(prov => {
+                tbody.append(`
+                    <tr>
+                        <td><strong>${prov.nombre}</strong></td>
+                        <td>${prov.rut || '-'}</td>
+                        <td>
+                            ${prov.telefono ? '<i class="fas fa-phone"></i> ' + prov.telefono : ''}
+                            ${prov.email ? '<br><i class="fas fa-envelope"></i> ' + prov.email : ''}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="editarProveedorModal(${prov.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="eliminarProveedorConfirm(${prov.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        async function editarCategoriaModal(id) {
+            const cat = categorias.find(c => c.id == id);
+            if (!cat) return;
+            
+            $('#nombreCategoria').val(cat.nombre);
+            $('#iconoCategoria').val(cat.icono);
+            $('#colorCategoria').val(cat.color);
+            $('#formNuevaCategoria').data('editId', id);
+            $('.modal-title', '#modalNuevaCategoria').html('<i class="fas fa-edit"></i> Editar Categoría');
+            
+            modalGestionarCategorias.hide();
+            modalNuevaCategoria.show();
+        }
+
+        async function eliminarCategoriaConfirm(id) {
+            const result = await Swal.fire({
+                title: '¿Eliminar categoría?',
+                text: 'Si tiene registros asociados no se podrá eliminar',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'eliminar_categoria', id })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Swal.fire({ icon: 'success', title: 'Eliminada', timer: 2000, showConfirmButton: false });
+                        await cargarCategorias();
+                        renderizarGestionCategorias();
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Error', text: result.error });
+                    }
+                } catch (error) {
+                    Swal.fire({ icon: 'error', title: 'Error', text: error.message });
+                }
+            }
+        }
+
+        async function editarProveedorModal(id) {
+            const prov = proveedores.find(p => p.id == id);
+            if (!prov) return;
+            
+            $('#nombreProveedor').val(prov.nombre);
+            $('#rutProveedor').val(prov.rut);
+            $('#telefonoProveedor').val(prov.telefono);
+            $('#emailProveedor').val(prov.email);
+            $('#direccionProveedor').val(prov.direccion);
+            $('#formNuevoProveedor').data('editId', id);
+            $('.modal-title', '#modalNuevoProveedor').html('<i class="fas fa-edit"></i> Editar Proveedor');
+            
+            modalGestionarProveedores.hide();
+            modalNuevoProveedor.show();
+        }
+
+        // Funciones de detalle diario removidas - API no proporciona fechas por factura
+        async function cargarDetalleDiario() {
+            try {
+                const fechaDesde = $('#filtroFechaDesde').val();
+                const fechaHasta = $('#filtroFechaHasta').val();
+                
+                const params = new URLSearchParams({
+                    action: 'detalle_diario_facturacion',
+                    fecha_desde: fechaDesde,
+                    fecha_hasta: fechaHasta
+                });
+                
+                // Obtener credenciales para pasar a la API externa
+                const creds = credentials();
+                
+                const response = await fetch(`${API_URL}?${params}`, {
+                    headers: {
+                        'app-key': creds['app-key'],
+                        'authorization': creds['authorization']
+                    }
+                });
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    renderizarDetalleDiario(result.data);
+                } else {
+                    console.error('Error cargando detalle diario:', result.error);
+                    $('#tablaDetalleDiario').html(`
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <p><strong>Error al cargar detalle diario</strong></p>
+                                <p>${result.error || 'Error desconocido'}</p>
+                            </td>
+                        </tr>
+                    `);
+                }
+            } catch (error) {
+                console.error('Error cargando detalle diario:', error);
+                $('#tablaDetalleDiario').html(`
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <p><strong>Error al cargar detalle diario</strong></p>
+                        </td>
+                    </tr>
+                `);
+            }
+        }
+
+        function renderizarDetalleDiario(datos) {
+            const tbody = $('#tablaDetalleDiario');
+            
+            if (!datos || datos.length === 0) {
+                tbody.html(`
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-inbox"></i>
+                            </div>
+                            <p><strong>No hay datos para el período seleccionado</strong></p>
+                        </td>
+                    </tr>
+                `);
+                $('#resumenDetalleDiario').html('<i class="fas fa-info-circle"></i> Sin datos');
+                return;
+            }
+
+            // Calcular totales
+            let totalFacturacion = 0;
+            let totalCompras = 0;
+            
+            let html = '';
+            datos.forEach(dia => {
+                const facturacion = parseFloat(dia.total_facturacion || 0);
+                const compras = parseFloat(dia.total_compras || 0);
+                const porcentaje = parseFloat(dia.porcentaje || 0);
+                const diferencia = facturacion - compras;
+                
+                totalFacturacion += facturacion;
+                totalCompras += compras;
+                
+                // Determinar estado y color
+                let estadoClass = 'success';
+                let estadoIcon = 'fa-check-circle';
+                let estadoTexto = 'Excelente';
+                
+                if (porcentaje > 30) {
+                    estadoClass = 'danger';
+                    estadoIcon = 'fa-times-circle';
+                    estadoTexto = 'Crítico';
+                } else if (porcentaje > 25) {
+                    estadoClass = 'warning';
+                    estadoIcon = 'fa-exclamation-triangle';
+                    estadoTexto = 'Alto';
+                } else if (porcentaje > 20) {
+                    estadoClass = 'warning';
+                    estadoIcon = 'fa-exclamation-circle';
+                    estadoTexto = 'Aceptable';
+                }
+                
+                html += `
+                    <tr>
+                        <td><strong>${formatearFecha(dia.fecha)}</strong></td>
+                        <td><strong style="font-size: 1.1rem;">${formatearMontoChile(facturacion)}</strong></td>
+                        <td><strong style="font-size: 1.1rem;">${formatearMontoChile(compras)}</strong></td>
+                        <td>
+                            <span class="badge-modern badge-${estadoClass}" style="font-size: 1.1rem; font-weight: 700;">
+                                ${porcentaje.toFixed(2)}%
+                            </span>
+                        </td>
+                        <td style="color: ${diferencia >= 0 ? 'var(--success-color)' : 'var(--danger-color)'};">
+                            <strong style="font-size: 1.1rem;">${formatearMontoChile(diferencia)}</strong>
+                        </td>
+                        <td>
+                            <span class="badge-modern badge-${estadoClass}">
+                                <i class="fas ${estadoIcon}"></i> ${estadoTexto}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            // Fila de totales
+            const porcentajeTotal = totalFacturacion > 0 ? (totalCompras / totalFacturacion) * 100 : 0;
+            const diferenciaTotal = totalFacturacion - totalCompras;
+            
+            html += `
+                <tr style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%); font-weight: 700;">
+                    <td><strong>TOTALES</strong></td>
+                    <td><strong>${formatearMontoChile(totalFacturacion)}</strong></td>
+                    <td><strong>${formatearMontoChile(totalCompras)}</strong></td>
+                    <td><strong style="font-size: 1.2rem;">${porcentajeTotal.toFixed(2)}%</strong></td>
+                    <td style="color: ${diferenciaTotal >= 0 ? 'var(--success-color)' : 'var(--danger-color)'};">
+                        <strong>${formatearMontoChile(diferenciaTotal)}</strong>
+                    </td>
+                    <td>
+                        <span class="badge-modern ${porcentajeTotal <= 20 ? 'badge-success' : porcentajeTotal <= 30 ? 'badge-warning' : 'badge-danger'}">
+                            ${porcentajeTotal <= 20 ? '✅ Óptimo' : porcentajeTotal <= 30 ? '⚠️ Alto' : '🔴 Crítico'}
+                        </span>
+                    </td>
+                </tr>
+            `;
+            
+            tbody.html(html);
+            $('#resumenDetalleDiario').html(`
+                <i class="fas fa-calendar-check"></i> ${datos.length} día${datos.length !== 1 ? 's' : ''} • 
+                Promedio: ${porcentajeTotal.toFixed(2)}%
+            `);
+        }
+
+        async function eliminarProveedorConfirm(id) {
+            const result = await Swal.fire({
+                title: '¿Eliminar proveedor?',
+                text: 'Si tiene registros asociados será desactivado',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'eliminar_proveedor', id })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Swal.fire({ icon: 'success', title: result.message, timer: 2000, showConfirmButton: false });
+                        await cargarProveedores();
+                        renderizarGestionProveedores();
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Error', text: result.error });
+                    }
+                } catch (error) {
+                    Swal.fire({ icon: 'error', title: 'Error', text: error.message });
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

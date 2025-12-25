@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FagottoERP - Contadores Financieros</title>
+    <link rel="icon" type="image/x-icon" href="../assets/css/negro.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+    
+    <!-- Styles -->
+    <link href="../assets/css/dashboard.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/global.css">
+    
+    <!-- Helpers -->
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+    <script src="../assets/helpers/helperFunctions.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --background-gradient: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+            --card-background: rgba(255, 255, 255, 0.9);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --border-radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--background-gradient);
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .modern-card {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            overflow: hidden;
+        }
+
+        .modern-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modern-card .card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);
+            color: white;
+            border: none;
+            padding: 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .btn-modern {
+            border-radius: 12px;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            transition: var(--transition);
+            border: none;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);
+            color: white;
+        }
+
+        .loading-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            color: var(--text-secondary);
+            padding: 2rem;
+        }
+
+        .loading-state i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(var(--primary-color), 0.05);
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(var(--primary-color), 0.25);
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="turnos-container">
+        <div class="container">
+            <!-- Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="text-white mb-2">
+                                <i class="fas fa-clock me-3"></i>Turnos Globales
+                            </h1>
+                            <p class="text-white-50 mb-0">Gestión y monitoreo de todos los turnos del sistema</p>
+                        </div>
+                        <a href="dashboard.html" class="btn btn-back">
+                            <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="turnos-card">
+                        <!-- Header de la tarjeta -->
+                        <div class="turnos-header">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h3 class="mb-0">
+                                        <i class="fas fa-users-cog me-2"></i>
+                                        Control de Turnos
+                                    </h3>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <button id="refreshBtn" class="btn btn-outline-light">
+                                        <i class="fas fa-sync-alt me-2"></i>Actualizar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contenido -->
+                        <div class="p-4">
+                            <!-- Estadísticas -->
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="text-center p-3 border rounded">
+                                        <h4 class="text-primary mb-1" id="totalTurnos">0</h4>
+                                        <small class="text-muted">Total Turnos</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center p-3 border rounded">
+                                        <h4 class="text-success mb-1" id="turnosAbiertos">0</h4>
+                                        <small class="text-muted">Turnos Abiertos</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center p-3 border rounded">
+                                        <h4 class="text-danger mb-1" id="turnosCerrados">0</h4>
+                                        <small class="text-muted">Turnos Cerrados</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center p-3 border rounded">
+                                        <h4 class="text-warning mb-1" id="totalVentas">$0</h4>
+                                        <small class="text-muted">Total Ventas</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Loading -->
+                            <div id="loadingContainer" class="text-center py-5">
+                                <div class="loading-spinner"></div>
+                                <p class="mt-3 text-muted">Cargando turnos...</p>
+                            </div>
+
+                            <!-- Lista de turnos -->
+                            <div id="turnosContainer" style="display: none;">
+                                <h5 class="mb-3">
+                                    <i class="fas fa-list-alt me-2"></i>
+                                    Lista de Turnos
+                                </h5>
+                                <div id="turnosList" class="row">
+                                    <!-- Los turnos se cargarán aquí via JavaScript -->
+                                </div>
+                            </div>
+
+                            <!-- Empty state -->
+                            <div id="emptyState" style="display: none;" class="text-center py-5">
+                                <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No hay turnos disponibles</h5>
+                                <p class="text-muted">Los turnos aparecerán aquí cuando se inicien</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let turnos = [];
+        const API_BASE = getApiUrl(); // Usar la función del helper
+
+        // Inicializar página
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Inicializando Turnos Globales...');
+            cargarTurnos();
+            
+            // Event listeners
+            document.getElementById('refreshBtn').addEventListener('click', cargarTurnos);
+        });
+
+        // Función principal para cargar turnos
+        async function cargarTurnos() {
+            console.log('📡 Cargando turnos desde API...');
+            mostrarLoading();
+            
+            try {
+                // TODO: Reemplazar con la API real cuando esté lista
+                // const response = await fetch(`${API_BASE}/api/local/turnos-globales`);
+                // const data = await response.json();
+                
+                // MOCK DATA - Datos de ejemplo hasta que esté la API
+                setTimeout(() => {
+                    const mockData = {
+                        success: true,
+                        turnos: [
+                            {
+                                id: 1,
+                                usuario_id: 1,
+                                usuario_nombre: 'Juan Pérez',
+                                fecha_inicio: '2025-09-21 08:00:00',
+                                fecha_fin: null,
+                                estado: 'abierto',
+                                monto_inicial: 50000,
+                                monto_final: null,
+                                total_ventas: 125000,
+                                app_id: 58
+                            },
+                            {
+                                id: 2,
+                                usuario_id: 2,
+                                usuario_nombre: 'María García',
+                                fecha_inicio: '2025-09-20 09:15:00',
+                                fecha_fin: '2025-09-20 18:30:00',
+                                estado: 'cerrado',
+                                monto_inicial: 30000,
+                                monto_final: 145000,
+                                total_ventas: 89000,
+                                app_id: 58
+                            }
+                        ]
+                    };
+                    
+                    procesarTurnos(mockData);
+                }, 1000);
+                
+            } catch (error) {
+                console.error('❌ Error cargando turnos:', error);
+                mostrarError('Error al cargar los turnos. Por favor, inténtalo de nuevo.');
+            }
+        }
+
+        // Procesar y mostrar turnos
+        function procesarTurnos(data) {
+            console.log('📊 Procesando turnos:', data);
+            
+            if (data.success && data.turnos) {
+                turnos = data.turnos;
+                actualizarEstadisticas();
+                mostrarTurnos();
+            } else {
+                mostrarEmptyState();
+            }
+        }
+
+        // Actualizar estadísticas
+        function actualizarEstadisticas() {
+            const total = turnos.length;
+            const abiertos = turnos.filter(t => t.estado === 'abierto').length;
+            const cerrados = turnos.filter(t => t.estado === 'cerrado').length;
+            const totalVentas = turnos.reduce((sum, t) => sum + (t.total_ventas || 0), 0);
+            
+            document.getElementById('totalTurnos').textContent = total;
+            document.getElementById('turnosAbiertos').textContent = abiertos;
+            document.getElementById('turnosCerrados').textContent = cerrados;
+            document.getElementById('totalVentas').textContent = `$${totalVentas.toLocaleString()}`;
+        }
+
+        // Mostrar lista de turnos
+        function mostrarTurnos() {
+            const container = document.getElementById('turnosList');
+            container.innerHTML = '';
+            
+            turnos.forEach(turno => {
+                const turnoHtml = `
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="turno-item p-3 h-100">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0">${turno.usuario_nombre}</h6>
+                                <span class="status-badge ${turno.estado === 'abierto' ? 'status-abierto' : 'status-cerrado'}">
+                                    ${turno.estado.toUpperCase()}
+                                </span>
+                            </div>
+                            <div class="small text-muted mb-2">
+                                <i class="fas fa-clock me-1"></i>
+                                Inicio: ${formatearFecha(turno.fecha_inicio)}
+                                ${turno.fecha_fin ? `<br><i class="fas fa-clock me-1"></i>Fin: ${formatearFecha(turno.fecha_fin)}` : ''}
+                            </div>
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Inicial</small>
+                                    <strong>$${turno.monto_inicial.toLocaleString()}</strong>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Ventas</small>
+                                    <strong class="text-success">$${turno.total_ventas.toLocaleString()}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += turnoHtml;
+            });
+            
+            ocultarLoading();
+            document.getElementById('turnosContainer').style.display = 'block';
+        }
+
+        // Mostrar estado vacío
+        function mostrarEmptyState() {
+            ocultarLoading();
+            document.getElementById('emptyState').style.display = 'block';
+        }
+
+        // Mostrar loading
+        function mostrarLoading() {
+            document.getElementById('loadingContainer').style.display = 'block';
+            document.getElementById('turnosContainer').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+        }
+
+        // Ocultar loading
+        function ocultarLoading() {
+            document.getElementById('loadingContainer').style.display = 'none';
+        }
+
+        // Mostrar error
+        function mostrarError(mensaje) {
+            ocultarLoading();
+            alert(mensaje); // TODO: Implementar mejor manejo de errores
+        }
+
+        // Formatear fecha
+        function formatearFecha(fecha) {
+            const date = new Date(fecha);
+            return date.toLocaleDateString('es-CL') + ' ' + date.toLocaleTimeString('es-CL', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    </script>
+</body>
+
+</html>

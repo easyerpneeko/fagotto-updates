@@ -158,6 +158,37 @@
             box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
             color: white;
         }
+
+        /* Estilos para comparación Sistema vs Cajera */
+        .alert-exacto {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border: 3px solid #10b981;
+            color: #065f46;
+        }
+
+        .alert-leve {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 3px solid #f59e0b;
+            color: #92400e;
+        }
+
+        .alert-grave {
+            background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+            border: 3px solid #f97316;
+            color: #7c2d12;
+        }
+
+        .alert-peligro {
+            background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+            border: 3px solid #ef4444;
+            color: #991b1b;
+            animation: pulse-danger 2s infinite;
+        }
+
+        @keyframes pulse-danger {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
     </style>
 </head>
 
@@ -450,45 +481,84 @@
                 </div>
             </div>
         </div>
+
+        <!-- COMPARACIÓN SISTEMA VS CAJERA -->
+        <div class="row" id="seccion-comparacion" style="display: none;">
+            <div class="col-12">
+                <div class="card modern-card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-balance-scale me-2"></i>
+                                    Comparación: Sistema vs Cajera
+                                </h5>
+                                <div class="text-light opacity-75 mt-1">
+                                    Verificación de diferencias
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="resultado-comparacion-wrapper" style="display: none;">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #3b82f6;">
+                                        <small class="text-muted d-block mb-1">Sistema</small>
+                                        <h5 class="mb-0 text-primary" id="comparacion-sistema">$0</h5>
+                                        <small class="text-muted">Balance después de gastos</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b;">
+                                        <small class="text-muted d-block mb-1">Cajera</small>
+                                        <h5 class="mb-0 text-warning" id="comparacion-cajera">$0</h5>
+                                        <small class="text-muted">Total registrado</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="resultado-comparacion-alert" class="alert" role="alert" style="display: none;">
+                                <div class="text-center">
+                                    <div style="font-size: 3rem;" id="icono-comparacion">✓</div>
+                                    <h5 id="titulo-comparacion">Calculando...</h5>
+                                    <p class="mb-0" id="mensaje-comparacion">Verificando diferencias</p>
+                                    <div class="mt-2 p-2 rounded" style="background: rgba(255,255,255,0.5);" id="detalle-comparacion"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
         // Variables globales
         let negocios = [];
         
-        // Función para obtener parámetros de la URL
-        function obtenerParametroURL(nombre) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(nombre);
-        }
-
-        // Función para actualizar la URL cuando cambia el negocio
+        // Función para actualizar la URL cuando cambia el negocio (DESHABILITADA)
         function actualizarURL(negocioId) {
-            const nuevaURL = `${window.location.pathname}?id=${negocioId}`;
-            window.history.replaceState({}, '', nuevaURL);
-            console.log('🌐 URL actualizada:', nuevaURL);
+            // ❌ DESHABILITADO: No modificar la URL, mantenerla limpia
+            // const nuevaURL = `${window.location.pathname}?id=${negocioId}`;
+            // window.history.replaceState({}, '', nuevaURL);
+            console.log('🌐 URL se mantiene limpia (sin parámetros)');
         }
         
         // Inicializar página
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Inicializando Contadores Financieros...');
+            
+            // 🧹 LIMPIAR URL: Remover parámetros automáticamente
+            if (window.location.search) {
+                const urlLimpia = window.location.pathname;
+                window.history.replaceState({}, '', urlLimpia);
+                console.log('🧹 URL limpiada de parámetros');
+            }
+            
             verificarAutenticacion();
             cargarNegocios();
             establecerFechaActual();
-            
-            // Verificar si hay un negocio en la URL
-            const negocioEnURL = obtenerParametroURL('id');
-            if (negocioEnURL) {
-                console.log('🔗 Negocio detectado en URL:', negocioEnURL);
-                // Seleccionar automáticamente cuando carguen los negocios
-                setTimeout(() => {
-                    const select = document.getElementById('select-negocio');
-                    if (select) {
-                        select.value = negocioEnURL;
-                        console.log('✅ Negocio seleccionado automáticamente:', negocioEnURL);
-                    }
-                }, 1000);
-            }
         });
 
         // Verificar autenticación
@@ -550,14 +620,29 @@
             
             console.log(`✅ ${negocios.length} negocios cargados en el select`);
             
-            // Agregar evento para actualizar URL cuando cambia el negocio
+            // Agregar evento para cuando cambia el negocio (sin actualizar URL)
             const selectNegocio = document.getElementById('select-negocio');
-            selectNegocio.addEventListener('change', function() {
-                if (this.value) {
-                    actualizarURL(this.value);
-                    console.log('🔄 Negocio cambiado a:', this.value);
-                }
-            });
+            if (selectNegocio) {
+                selectNegocio.addEventListener('change', function() {
+                    if (this.value) {
+                        console.log('🔄 Negocio seleccionado:', this.value);
+                        console.log('🔄 Nombre del negocio:', this.options[this.selectedIndex].text);
+                        
+                        // Encontrar el negocio seleccionado
+                        const negocioSeleccionado = negocios.find(n => n.id == this.value);
+                        if (negocioSeleccionado) {
+                            console.log('✅ Datos del negocio:', negocioSeleccionado);
+                            // Aquí puedes agregar lógica adicional si necesitas hacer algo cuando cambia el negocio
+                        }
+                    } else {
+                        console.log('❌ No hay negocio seleccionado');
+                    }
+                });
+                
+                console.log('✅ Event listener del selector agregado correctamente');
+            } else {
+                console.error('❌ No se encontró el elemento select-negocio');
+            }
         }
 
         // Consultar tanto contadores como arqueo
@@ -945,6 +1030,13 @@
                 
                 console.log('✅ Contadores mostrados correctamente');
                 
+                // Guardar datos del sistema globalmente para comparación
+                window.datosSistemaGlobal = counters;
+                
+                // Realizar comparación si hay datos del arqueo
+                realizarComparacion();
+                actualizarComparacionPrincipal();
+                
             } catch (error) {
                 console.error('❌ Error mostrando contadores:', error);
                 mostrarSinDatos();
@@ -983,7 +1075,19 @@
 
         // Actualizar header con información seleccionada
         function actualizarHeader(nombreNegocio, fecha) {
-            const fechaFormateada = new Date(fecha).toLocaleDateString('es-CL');
+            // Arreglo: Usar la fecha directamente sin conversión para evitar problemas de zona horaria
+            let fechaFormateada;
+            if (fecha.includes('-')) {
+                // Si viene en formato YYYY-MM-DD, reformatear a DD-MM-YYYY
+                const partes = fecha.split('-');
+                if (partes.length === 3) {
+                    fechaFormateada = `${partes[2]}-${partes[1]}-${partes[0]}`;
+                } else {
+                    fechaFormateada = fecha;
+                }
+            } else {
+                fechaFormateada = fecha;
+            }
             document.getElementById('negocio-seleccionado').textContent = 
                 `${nombreNegocio} - ${fechaFormateada}`;
         }
@@ -1042,8 +1146,8 @@
             document.getElementById('no-arqueo').style.display = 'none';
             
             try {
-                // 🎯 USAR LOCAL ARQUEOS PERO CON id= (igual que contadores)
-                const url = generarURLApi(`/local/arqueos?id=${selectNegocio.value}&fecha_inicio=${selectFecha.value}&fecha_fin=${selectFecha.value}`);
+                // 🎯 USAR NUEVA API LOCAL ARQUEOS-NEW CON id= (nueva API que maneja multi-database)
+                const url = generarURLApi(`/local/arqueos-new?id=${selectNegocio.value}&fecha_inicio=${selectFecha.value}&fecha_fin=${selectFecha.value}`);
                 console.log('🔗 URL arqueo (CON id= para cambiar conexión):', url);
                 console.log('📋 Parámetros enviados:', {
                     app_id: selectNegocio.value,
@@ -1057,7 +1161,7 @@
                     dev: true,
                     method: 'GET'
                 }, {}, function(response) {
-                    console.log('✅ RESPUESTA /local/arqueos con id=:', response);
+                    console.log('✅ RESPUESTA /local/arqueos-new con id=:', response);
                     procesarDatosArqueo(response, selectFecha.value);
                 }, function(error) {
                     console.error('❌ Error consultando arqueo dashboard:', error);
@@ -1076,7 +1180,7 @@
                 const selectNegocio = document.getElementById('select-negocio');
                 const selectFecha = document.getElementById('select-fecha');
                 
-                const response = await fetch(generarURLApi(`/local/arqueos?app_id=${selectNegocio.value}&fecha_inicio=${selectFecha.value}&fecha_fin=${selectFecha.value}`), {
+                const response = await fetch(generarURLApi(`/local/arqueos-new?app_id=${selectNegocio.value}&fecha_inicio=${selectFecha.value}&fecha_fin=${selectFecha.value}`), {
                     method: 'GET',
                     headers: credentials()
                 });
@@ -1084,7 +1188,7 @@
                 if (!response.ok) throw new Error(`Error ${response.status}`);
                 
                 const result = await response.json();
-                console.log('📊 Respuesta del endpoint original /local/arqueos:', result);
+                console.log('📊 Respuesta del endpoint nuevo /local/arqueos-new:', result);
                 
                 // Procesar datos con formato original
                 procesarDatosArqueo(result, selectFecha.value);
@@ -1252,8 +1356,30 @@
         // Mostrar datos del arqueo en la tabla
         function mostrarDatosArqueo(arqueo) {
             console.log('📊 Mostrando datos del arqueo:', arqueo);
+            console.log('🔍 monto_inicial específico:', arqueo.monto_inicial, 'tipo:', typeof arqueo.monto_inicial);
+            
             const tbody = document.getElementById('arqueo-tbody');
             tbody.innerHTML = '';
+            
+            // PRIMERO: Mostrar el monto inicial si existe
+            console.log('🔍 Verificando monto_inicial...');
+            console.log('- Valor:', arqueo.monto_inicial);
+            console.log('- parseFloat:', parseFloat(arqueo.monto_inicial));
+            console.log('- > 0:', parseFloat(arqueo.monto_inicial) > 0);
+            
+            if (arqueo.monto_inicial && parseFloat(arqueo.monto_inicial) > 0) {
+                console.log('✅ Agregando fila de monto inicial');
+                tbody.innerHTML += `
+                    <tr class="table-info">
+                        <td><strong><i class="fas fa-piggy-bank me-2"></i>Monto Inicial</strong></td>
+                        <td class="text-end"><strong>${formatearMontoChile(parseFloat(arqueo.monto_inicial))}</strong></td>
+                    </tr>
+                `;
+            } else {
+                console.log('❌ No se agregó fila de monto inicial porque:');
+                console.log('- monto_inicial existe:', !!arqueo.monto_inicial);
+                console.log('- parseFloat > 0:', parseFloat(arqueo.monto_inicial) > 0);
+            }
             
             // Construir filas de la tabla con lo que registró la cajera
             const filasArqueo = [];
@@ -1269,6 +1395,7 @@
                 total_uber_eats: arqueo.total_uber_eats,
                 total_otros_medios: arqueo.total_otros_medios,
                 total_general: arqueo.total_general,
+                detalle_efectivo: arqueo.detalle_efectivo,
                 detalle_medios_pago: arqueo.detalle_medios_pago
             });
             
@@ -1342,19 +1469,19 @@
                 }
             }
             
-            // Otros medios - usar total_otros_medios
-            if (arqueo.total_otros_medios) {
-                const otrosStr = typeof arqueo.total_otros_medios === 'string' ? arqueo.total_otros_medios : arqueo.total_otros_medios.toString();
-                const otros = parseFloat(otrosStr.replace(',', '.'));
-                if (otros > 0) {
-                    console.log(`� Otros Medios encontrado: ${otros}`);
-                    filasArqueo.push({
-                        concepto: '� Otros Medios',
-                        valor: otros
-                    });
-                    totalRegistrado += otros;
-                }
-            }
+            // COMENTADO: Métodos de pago diversos duplica información
+            // if (arqueo.total_otros_medios) {
+            //     const otrosStr = typeof arqueo.total_otros_medios === 'string' ? arqueo.total_otros_medios : arqueo.total_otros_medios.toString();
+            //     const otros = parseFloat(otrosStr.replace(',', '.'));
+            //     if (otros > 0) {
+            //         console.log(`💳 Métodos de Pago Diversos encontrado: ${otros}`);
+            //         filasArqueo.push({
+            //             concepto: '💳 Métodos de Pago Diversos',
+            //             valor: otros
+            //         });
+            //         totalRegistrado += otros;
+            //     }
+            // }
             
             // Si no hay datos específicos, mostrar total_general si existe
             if (totalRegistrado === 0 && arqueo.total_general) {
@@ -1433,25 +1560,27 @@
             } else {
                 // Mensaje específico para turnos abiertos vs realmente vacíos
                 if (arqueo.estado === 'abierto') {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="2" class="text-center text-warning py-4">
-                                <i class="fas fa-clock"></i><br>
-                                <strong>Turno Abierto</strong><br>
-                                <small>El arqueo aún no ha sido completado por la cajera</small><br>
-                                <small class="text-muted">Estado: ${arqueo.estado} | ID: ${arqueo.id}</small>
-                            </td>
-                        </tr>
+                    // NO usar innerHTML = porque sobrescribiría el monto inicial ya agregado
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td colspan="2" class="text-center text-warning py-4">
+                            <i class="fas fa-clock"></i><br>
+                            <strong>Turno Abierto</strong><br>
+                            <small>El arqueo aún no ha sido completado por la cajera</small><br>
+                            <small class="text-muted">Estado: ${arqueo.estado} | ID: ${arqueo.id}</small>
+                        </td>
                     `;
+                    tbody.appendChild(tr); // Agregar en lugar de sobrescribir
                 } else {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="2" class="text-center text-muted py-4">
-                                <i class="fas fa-cash-register opacity-50"></i><br>
-                                No hay medios de pago registrados en el arqueo
-                            </td>
-                        </tr>
+                    // NO usar innerHTML = porque sobrescribiría el monto inicial ya agregado
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td colspan="2" class="text-center text-muted py-4">
+                            <i class="fas fa-cash-register opacity-50"></i><br>
+                            No hay medios de pago registrados en el arqueo
+                        </td>
                     `;
+                    tbody.appendChild(tr); // Agregar en lugar de sobrescribir
                 }
             }
             
@@ -1462,6 +1591,14 @@
             document.getElementById('arqueo-tabla').style.display = 'block';
             
             console.log('✅ Datos del arqueo mostrados. Total registrado:', formatearMontoChile(totalRegistrado));
+            
+            // Guardar total del arqueo globalmente
+            window.totalArqueoGlobal = totalRegistrado;
+            window.datosArqueoGlobal = arqueo;
+            
+            // Realizar comparación si hay datos del sistema
+            realizarComparacion();
+            actualizarComparacionPrincipal();
         }
 
         // Mostrar error en arqueo
@@ -1708,6 +1845,258 @@
             if (contadoreSistema.length > 0) {
                 mostrarComparacion(contadoreSistema[0], null, '');
             }
+        }
+
+        // ==================== NUEVA FUNCIÓN DE COMPARACIÓN ====================
+        function realizarComparacion() {
+            console.log('🔍 Realizando comparación Sistema vs Cajera...');
+            
+            // Obtener totales
+            const totalSistemaText = document.getElementById('total-balance')?.textContent || '$0';
+            const totalCajeraText = document.getElementById('total-arqueo-registrado')?.textContent || '$0';
+            
+            // Convertir a números
+            const totalSistema = parseFloat(totalSistemaText.replace(/[$.]/g, '').replace(/,/g, '')) || 0;
+            const totalCajera = parseFloat(totalCajeraText.replace(/[$.]/g, '').replace(/,/g, '')) || 0;
+            
+            console.log('💰 Total Sistema:', totalSistema);
+            console.log('💰 Total Cajera:', totalCajera);
+            
+            // Si ambos son 0, no mostrar comparación
+            if (totalSistema === 0 && totalCajera === 0) {
+                document.getElementById('seccion-comparacion').style.display = 'none';
+                return;
+            }
+            
+            // Mostrar sección de comparación
+            document.getElementById('seccion-comparacion').style.display = 'block';
+            document.getElementById('resultado-comparacion-wrapper').style.display = 'block';
+            
+            // Actualizar totales en la comparación
+            document.getElementById('comparacion-sistema').textContent = formatearMontoChile(totalSistema);
+            document.getElementById('comparacion-cajera').textContent = formatearMontoChile(totalCajera);
+            
+            // Calcular diferencia (positivo = falta, negativo = sobra)
+            const diferencia = totalSistema - totalCajera;
+            const diferenciaAbs = Math.abs(diferencia);
+            
+            const alertDiv = document.getElementById('resultado-comparacion-alert');
+            const iconoDiv = document.getElementById('icono-comparacion');
+            const tituloDiv = document.getElementById('titulo-comparacion');
+            const mensajeDiv = document.getElementById('mensaje-comparacion');
+            const detalleDiv = document.getElementById('detalle-comparacion');
+            
+            // Determinar tipo de alerta según diferencia
+            let claseAlerta = '';
+            let icono = '';
+            let titulo = '';
+            let mensaje = '';
+            let detalle = '';
+            
+            if (diferencia === 0) {
+                // PERFECTO - Cuadra exactamente
+                claseAlerta = 'alert-exacto';
+                icono = '✓';
+                titulo = '¡PERFECTO! El arqueo cuadra exactamente';
+                mensaje = 'No hay diferencia entre el sistema y el conteo del cajero';
+                detalle = 'Todo está en orden';
+            } 
+            else if (diferencia > 0) {
+                // FALTA DINERO
+                if (diferenciaAbs <= 10000) {
+                    claseAlerta = 'alert-leve';
+                    icono = '⚠️';
+                    titulo = 'DIFERENCIA LEVE';
+                    mensaje = `Faltan ${formatearMontoChile(diferenciaAbs)}`;
+                    detalle = 'No es tan grave, puede ser error de conteo';
+                } 
+                else if (diferenciaAbs <= 20000) {
+                    claseAlerta = 'alert-grave';
+                    icono = '⚠️';
+                    titulo = 'DIFERENCIA GRAVE';
+                    mensaje = `Faltan ${formatearMontoChile(diferenciaAbs)}`;
+                    detalle = 'Revisar caja urgente, posible error o faltante';
+                } 
+                else {
+                    claseAlerta = 'alert-peligro';
+                    icono = '🚨';
+                    titulo = '¡PELIGRO! FALTANTE CRÍTICO';
+                    mensaje = `Faltan ${formatearMontoChile(diferenciaAbs)}`;
+                    detalle = 'REVISAR INMEDIATAMENTE - Posible robo o error grave';
+                }
+            } 
+            else {
+                // SOBRA DINERO
+                claseAlerta = 'alert-leve';
+                icono = '💰';
+                titulo = 'SOBRA DINERO';
+                mensaje = `Sobran ${formatearMontoChile(diferenciaAbs)}`;
+                detalle = 'Revisar si hay ventas sin registrar o error de conteo';
+            }
+            
+            // Aplicar estilos y contenido
+            alertDiv.className = `alert ${claseAlerta}`;
+            alertDiv.style.display = 'block';
+            iconoDiv.textContent = icono;
+            tituloDiv.textContent = titulo;
+            mensajeDiv.textContent = mensaje;
+            detalleDiv.textContent = detalle;
+            
+            console.log('✅ Comparación realizada:', {
+                sistema: totalSistema,
+                cajera: totalCajera,
+                diferencia: diferencia,
+                tipo: claseAlerta
+            });
+        }
+
+        // Función para actualizar la comparación principal (la primera sección)
+        function actualizarComparacionPrincipal() {
+            console.log('🔄 Actualizando comparación principal...');
+            
+            const sistemaDatos = window.datosSistemaGlobal;
+            const totalArqueo = window.totalArqueoGlobal || 0;
+            const datosArqueo = window.datosArqueoGlobal;
+            
+            if (!sistemaDatos) {
+                console.log('⚠️ No hay datos del sistema aún');
+                return;
+            }
+            
+            // Mostrar sección de comparación principal
+            const seccionComparacion = document.getElementById('seccion-comparacion');
+            if (seccionComparacion) {
+                seccionComparacion.style.display = 'block';
+            }
+            
+            // Llenar lado del sistema
+            const sistemaTbody = document.getElementById('sistema-datos');
+            if (sistemaTbody) {
+                sistemaTbody.innerHTML = '';
+                
+                const conceptosSistema = [
+                    { label: '💵 Efectivo', value: sistemaDatos.boleta || 0 },
+                    { label: '💳 Débito', value: sistemaDatos.debito || 0 },
+                    { label: '💳 Crédito', value: sistemaDatos.credito || 0 },
+                    { label: '🎫 Pluxee', value: sistemaDatos.pluxee || 0 },
+                    { label: '🏛️ Banco Chile 20%', value: sistemaDatos.banco_chile_20 || 0 }
+                ];
+                
+                conceptosSistema.forEach(concepto => {
+                    if (concepto.value > 0) {
+                        sistemaTbody.innerHTML += `
+                            <tr>
+                                <td>${concepto.label}</td>
+                                <td class="text-end"><strong>${formatearMontoChile(concepto.value)}</strong></td>
+                            </tr>
+                        `;
+                    }
+                });
+                
+                // Total del sistema
+                const totalSistema = sistemaDatos.totalToExpenses || sistemaDatos.balanceTotal || 0;
+                document.getElementById('total-sistema').textContent = formatearMontoChile(totalSistema);
+            }
+            
+            // Llenar lado del arqueo
+            const arqueoTbody = document.getElementById('arqueo-datos');
+            if (arqueoTbody && datosArqueo) {
+                arqueoTbody.innerHTML = '';
+                
+                // Monto inicial
+                if (datosArqueo.monto_inicial && parseFloat(datosArqueo.monto_inicial) > 0) {
+                    arqueoTbody.innerHTML += `
+                        <tr>
+                            <td>🏦 Monto Inicial</td>
+                            <td class="text-end"><strong>${formatearMontoChile(parseFloat(datosArqueo.monto_inicial))}</strong></td>
+                        </tr>
+                    `;
+                }
+                
+                // Medios de pago del arqueo
+                let detalleMediosPago = {};
+                if (datosArqueo.detalle_medios_pago) {
+                    try {
+                        detalleMediosPago = typeof datosArqueo.detalle_medios_pago === 'string' 
+                            ? JSON.parse(datosArqueo.detalle_medios_pago) 
+                            : datosArqueo.detalle_medios_pago;
+                    } catch (e) {
+                        console.warn('Error parseando detalle_medios_pago:', e);
+                    }
+                }
+                
+                const conceptosArqueo = [
+                    { key: 'efectivo', label: '💵 Efectivo', icono: '💵' },
+                    { key: 'debito', label: '💳 Débito', icono: '💳' },
+                    { key: 'credito', label: '💳 Crédito', icono: '💳' },
+                    { key: 'pluxee', label: '🎫 Pluxee', icono: '🎫' },
+                    { key: 'banco_chile_20', label: '🏛️ Banco Chile 20', icono: '🏛️' }
+                ];
+                
+                conceptosArqueo.forEach(concepto => {
+                    const valor = detalleMediosPago[concepto.key] || 0;
+                    if (valor > 0) {
+                        arqueoTbody.innerHTML += `
+                            <tr>
+                                <td>${concepto.label}</td>
+                                <td class="text-end"><strong>${formatearMontoChile(valor)}</strong></td>
+                            </tr>
+                        `;
+                    }
+                });
+                
+                document.getElementById('total-arqueo').textContent = formatearMontoChile(totalArqueo);
+            }
+            
+            // Actualizar resultado de comparación
+            const totalSistemaText = document.getElementById('total-balance')?.textContent || '$0';
+            const totalSistema = parseFloat(totalSistemaText.replace(/[$.]/g, '').replace(/,/g, '')) || 0;
+            const diferencia = totalSistema - totalArqueo;
+            const diferenciaAbs = Math.abs(diferencia);
+            
+            const resultadoDiv = document.getElementById('resultado-comparacion');
+            const estadoBadge = document.getElementById('estado-comparacion');
+            const textoDiferencia = document.getElementById('texto-diferencia');
+            
+            if (totalArqueo === 0) {
+                // Sin arqueo
+                resultadoDiv.className = 'alert alert-warning';
+                estadoBadge.className = 'badge bg-warning text-dark px-3 py-2';
+                estadoBadge.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> Sin Arqueo';
+                textoDiferencia.innerHTML = `<strong>⚠️ No hay arqueo registrado</strong><br><small>La cajera no cerró el turno</small>`;
+            } else if (diferencia === 0) {
+                // Exacto
+                resultadoDiv.className = 'alert alert-success';
+                estadoBadge.className = 'badge bg-success px-3 py-2';
+                estadoBadge.innerHTML = '<i class="fas fa-check me-1"></i> ✅ Exacto';
+                textoDiferencia.innerHTML = `<strong>✅ ¡PERFECTO! Cuadra exactamente</strong><br><small>No hay diferencia</small>`;
+            } else if (diferencia > 0) {
+                // Falta dinero
+                if (diferenciaAbs <= 10000) {
+                    resultadoDiv.className = 'alert alert-warning';
+                    estadoBadge.className = 'badge bg-warning text-dark px-3 py-2';
+                    estadoBadge.innerHTML = '<i class="fas fa-exclamation me-1"></i> Leve';
+                    textoDiferencia.innerHTML = `<strong>⚠️ DIFERENCIA LEVE</strong><br>Faltan ${formatearMontoChile(diferenciaAbs)}<br><small>Puede ser error de conteo</small>`;
+                } else if (diferenciaAbs <= 20000) {
+                    resultadoDiv.className = 'alert alert-danger';
+                    estadoBadge.className = 'badge bg-danger px-3 py-2';
+                    estadoBadge.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Grave';
+                    textoDiferencia.innerHTML = `<strong>⚠️ DIFERENCIA GRAVE</strong><br>Faltan ${formatearMontoChile(diferenciaAbs)}<br><small class="text-danger">Revisar caja urgente</small>`;
+                } else {
+                    resultadoDiv.className = 'alert alert-danger alert-peligro';
+                    estadoBadge.className = 'badge bg-danger px-3 py-2';
+                    estadoBadge.innerHTML = '<i class="fas fa-times-circle me-1"></i> 🚨 PELIGRO';
+                    textoDiferencia.innerHTML = `<strong>🚨 ¡FALTANTE CRÍTICO!</strong><br>Faltan ${formatearMontoChile(diferenciaAbs)}<br><small class="text-danger"><strong>REVISAR INMEDIATAMENTE</strong></small>`;
+                }
+            } else {
+                // Sobra dinero
+                resultadoDiv.className = 'alert alert-warning';
+                estadoBadge.className = 'badge bg-info px-3 py-2';
+                estadoBadge.innerHTML = '<i class="fas fa-plus-circle me-1"></i> Sobrante';
+                textoDiferencia.innerHTML = `<strong>💰 SOBRA DINERO</strong><br>Sobran ${formatearMontoChile(diferenciaAbs)}<br><small>Revisar ventas sin registrar</small>`;
+            }
+            
+            console.log('✅ Comparación principal actualizada');
         }
     </script>
 </body>

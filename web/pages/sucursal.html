@@ -463,7 +463,504 @@
             color: #ef4444 !important;
         }
 
-        /* ========== RESPONSIVE ========== */
+        /* ========== HEATMAP STYLES MEJORADOS ========== */
+        .heatmap-container {
+            padding: 1.5rem;
+            background: var(--card-background);
+        }
+
+        .heatmap-table {
+            font-size: 0.9rem;
+            margin-bottom: 0;
+            width: 100%;
+        }
+
+        .hour-header {
+            background: var(--primary-gradient);
+            color: white;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+            padding: 0.75rem 0.5rem !important;
+            min-width: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            writing-mode: horizontal-tb;
+            white-space: nowrap;
+        }
+
+        .day-header {
+            background: var(--primary-gradient);
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            padding: 0.75rem !important;
+            width: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            font-size: 0.9rem;
+        }
+
+        .day-label {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            padding: 0.75rem !important;
+            font-size: 0.85rem;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            width: 100px;
+        }
+
+        .heat-cell {
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 0.6rem 0.4rem !important;
+            min-width: 60px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef !important;
+            background-color: #f8f9fa;
+            color: #6c757d;
+            height: 50px;
+            vertical-align: middle;
+        }
+
+        .heat-cell:hover {
+            transform: scale(1.08);
+            z-index: 10;
+            position: relative;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+            border-radius: 6px;
+            border: 2px solid var(--primary-color) !important;
+            font-weight: 800;
+            background-color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        /* Mejoras para tooltips */
+        .tooltip {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .tooltip-inner {
+            background-color: rgba(33, 37, 41, 0.95);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        /* ========== ESTILOS MAPA DE CALOR DE SALSAS ========== */
+        .sauce-heatmap-table {
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .sauce-heatmap-table .sticky-col {
+            position: sticky;
+            left: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 700;
+            z-index: 10;
+            min-width: 180px;
+            max-width: 180px;
+            padding: 0.75rem !important;
+            border-right: 2px solid white !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sauce-heatmap-table .group-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
+            font-weight: bold !important;
+            text-align: center !important;
+            padding: 8px !important;
+            font-size: 0.9rem !important;
+            letter-spacing: 1px !important;
+            border: none !important;
+        }
+
+        .sauce-heatmap-table .group-spacer {
+            height: 10px !important;
+            background: transparent !important;
+            border: none !important;
+        }
+
+        .sauce-heatmap-table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            font-weight: 600;
+            padding: 0.5rem 0.3rem !important;
+            min-width: 45px;
+            font-size: 0.75rem;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+        }
+
+        .sauce-heatmap-table tbody td {
+            text-align: center;
+            font-weight: 700;
+            padding: 0.6rem 0.3rem !important;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #dee2e6 !important;
+            min-width: 45px;
+        }
+
+        .sauce-heatmap-table tbody tr:hover {
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+
+        .sauce-heatmap-table tbody td:not(.sticky-col):hover {
+            transform: scale(1.15);
+            z-index: 5;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 2px solid #667eea !important;
+        }
+
+        .sauce-cell-0 { background-color: #f8f9fa; color: #6c757d; }
+        .sauce-cell-1 { background-color: #e3f2fd; color: #1976d2; }
+        .sauce-cell-2 { background-color: #90caf9; color: #0d47a1; }
+        .sauce-cell-3 { background-color: #42a5f5; color: white; }
+        .sauce-cell-4 { background-color: #1e88e5; color: white; }
+        .sauce-cell-5 { background-color: #1565c0; color: white; font-size: 0.9rem; }
+
+        .sauce-legend .badge {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .sauce-stats {
+            padding: 1rem;
+            background: linear-gradient(135deg, #fff3cd 0%, #fff9e6 100%);
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+        }
+
+        /* ========== CENTRO ANALÍTICO STYLES ========== */
+        .analytics-kpi {
+            background: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem;
+            text-align: center;
+            transition: var(--transition);
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .analytics-kpi:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-color);
+        }
+
+        .analytics-kpi::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+            transition: var(--transition);
+        }
+
+        .analytics-kpi:hover::before {
+            height: 8px;
+        }
+
+        .kpi-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .kpi-icon.bg-primary { background: var(--primary-gradient); }
+        .kpi-icon.bg-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .kpi-icon.bg-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .kpi-icon.bg-info { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+        .kpi-icon.bg-purple { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+        .kpi-icon.bg-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+
+        .kpi-data h3 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin: 0 0 0.25rem 0;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .kpi-data span {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .trend-indicator {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        .trend-indicator.positive {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
+        .trend-indicator.negative {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        .trend-indicator.neutral {
+            background: rgba(107, 114, 128, 0.1);
+            color: #6b7280;
+        }
+
+        /* Contenedores de gráficos */
+        .analytics-chart-container {
+            background: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: 100%;
+            transition: var(--transition);
+        }
+
+        .analytics-chart-container:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        /* Lista de top productos */
+        .top-products-list {
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .product-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: rgba(var(--primary-rgb), 0.05);
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-color);
+            transition: var(--transition);
+        }
+
+        .product-item:hover {
+            background: rgba(var(--primary-rgb), 0.1);
+            transform: translateX(4px);
+        }
+
+        .product-info {
+            flex: 1;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .product-sales {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .product-revenue {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        /* Panel de alertas e insights */
+        .analytics-alerts {
+            background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.05) 0%, rgba(var(--primary-rgb), 0.02) 100%);
+            border: 1px solid rgba(var(--primary-rgb), 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .alerts-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .alerts-container {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        .alert-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .alert-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .alert-item.info {
+            border-left: 4px solid #06b6d4;
+        }
+
+        .alert-item.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .alert-item.warning {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .alert-item.danger {
+            border-left: 4px solid #ef4444;
+        }
+
+        .alert-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 0.75rem;
+            font-size: 0.875rem;
+            float: left;
+        }
+
+        .alert-content {
+            margin-left: 48px;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .alert-message {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        /* Escala de colores para el heatmap */
+        .heat-level-0 { background-color: #f8f9fa !important; color: #6c757d; }
+        .heat-level-1 { background-color: #e3f2fd !important; color: #1976d2; }
+        .heat-level-2 { background-color: #bbdefb !important; color: #1565c0; }
+        .heat-level-3 { background-color: #90caf9 !important; color: #1553c4; }
+        .heat-level-4 { background-color: #64b5f6 !important; color: #0d47a1; }
+        .heat-level-5 { background-color: #42a5f5 !important; color: #ffffff; }
+        .heat-level-6 { background-color: #2196f3 !important; color: #ffffff; }
+        .heat-level-7 { background-color: #1e88e5 !important; color: #ffffff; }
+        .heat-level-8 { background-color: #1976d2 !important; color: #ffffff; }
+        .heat-level-9 { background-color: #1565c0 !important; color: #ffffff; }
+        .heat-level-10 { background-color: #0d47a1 !important; color: #ffffff; }
+
+        .heatmap-legend {
+            text-align: center;
+            padding: 0.5rem;
+        }
+
+        /* Tooltip para mostrar información detallada */
+        .heat-cell[data-bs-toggle="tooltip"] {
+            position: relative;
+        }
+
+        /* ========== RESPONSIVE MEJORADO ========== */
+        @media (min-width: 1400px) {
+            .heat-cell {
+                min-width: 70px;
+                height: 55px;
+                font-size: 0.95rem;
+                padding: 0.7rem 0.5rem !important;
+            }
+            
+            .hour-header {
+                min-width: 70px;
+                font-size: 0.9rem;
+                padding: 0.8rem 0.5rem !important;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .hour-header {
+                font-size: 0.75rem;
+                padding: 0.6rem 0.3rem !important;
+                min-width: 50px;
+            }
+            
+            .heat-cell {
+                font-size: 0.8rem;
+                padding: 0.5rem 0.3rem !important;
+                min-width: 50px;
+                height: 45px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .heatmap-container {
+                padding: 1rem;
+            }
+            
+            .hour-header {
+                font-size: 0.7rem;
+                padding: 0.5rem 0.25rem !important;
+                min-width: 45px;
+            }
+            
+            .heat-cell {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.25rem !important;
+                min-width: 45px;
+                height: 40px;
+            }
+            
+            .day-label, .day-header {
+                width: 90px;
+                font-size: 0.8rem;
+            }
+        }
+
         @media (max-width: 768px) {
             .modern-header {
                 padding: 1rem;
@@ -481,6 +978,225 @@
                 padding: 0.5rem 1rem;
                 font-size: 0.875rem;
             }
+
+            .heatmap-table {
+                font-size: 0.7rem;
+            }
+
+            .hour-header {
+                font-size: 0.65rem;
+                padding: 0.4rem 0.2rem !important;
+                min-width: 35px;
+            }
+
+            .day-label, .day-header {
+                font-size: 0.7rem;
+                padding: 0.5rem !important;
+                width: 70px;
+            }
+
+            .heat-cell {
+                font-size: 0.65rem;
+                padding: 0.3rem 0.15rem !important;
+                min-width: 35px;
+                height: 35px;
+            }
+
+            .heatmap-container {
+                overflow-x: auto;
+                padding: 0.75rem;
+            }
+
+            .heatmap-table {
+                min-width: 900px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hour-header {
+                font-size: 0.6rem;
+                padding: 0.3rem 0.1rem !important;
+                min-width: 30px;
+            }
+            
+            .heat-cell {
+                font-size: 0.6rem;
+                padding: 0.25rem 0.1rem !important;
+                min-width: 30px;
+                height: 30px;
+            }
+            
+            .day-label, .day-header {
+                width: 60px;
+                font-size: 0.65rem;
+            }
+
+            .heatmap-table {
+                min-width: 800px;
+            }
+        }
+
+        /* ========== ESTILOS INFORME VENTAS ========== */
+        .informe-ventas-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .informe-venta-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            transition: all 0.2s ease;
+        }
+
+        .informe-venta-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .informe-venta-item:last-child {
+            border-bottom: none;
+        }
+
+        .informe-fecha {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .informe-monto {
+            font-weight: 600;
+            color: #059669;
+        }
+
+        /* ========== ESTILOS TABLAS INFORME ========== */
+        .tabla-informe {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 0.75rem;
+            height: 100%;
+            min-height: 200px;
+        }
+
+        .tabla-titulo {
+            text-align: center;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .tabla-contenido {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .dia-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.8rem;
+        }
+
+        .dia-item:last-child {
+            border-bottom: none;
+        }
+
+        .dia-fecha {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .dia-monto {
+            font-weight: 600;
+            color: #198754;
+        }
+
+        /* ========== ESTILOS DISPONIBILIDAD SALSAS ========== */
+        .sauces-availability-widget .sauce-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.9rem 1.2rem;
+            background: white;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .sauces-availability-widget .sauce-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .sauces-availability-widget .sauce-item.available {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        }
+
+        .sauces-availability-widget .sauce-item.low-stock {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        }
+
+        .sauces-availability-widget .sauce-item.unavailable {
+            border-color: #ef4444;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        }
+
+        .sauces-availability-widget .sauce-name {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .sauces-availability-widget .sauce-name i {
+            font-size: 1.3rem;
+        }
+
+        .sauces-availability-widget .sauce-stock {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.2rem;
+        }
+
+        .sauces-availability-widget .stock-badge {
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sauces-availability-widget .stock-badge.available {
+            background: #10b981;
+            color: white;
+        }
+
+        .sauces-availability-widget .stock-badge.low-stock {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .sauces-availability-widget .stock-badge.unavailable {
+            background: #ef4444;
+            color: white;
+        }
+
+        .sauces-availability-widget .stock-details {
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -533,6 +1249,18 @@
                                 Sucursal
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="link52semanas">
+                                <i class="fas fa-calendar-check"></i>
+                                52 Semanas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="./metas_diarias.html">
+                                <i class="fas fa-bullseye"></i>
+                                Metas Diarias
+                            </a>
+                        </li>
                       
                         <li class="nav-item">
                             <a class="nav-link" href="./cocina/cocina.html">
@@ -552,6 +1280,33 @@
             </div>
 
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <!-- WIDGET DE DISPONIBILIDAD DE SALSAS -->
+                <div class="sauces-availability-widget mb-4">
+                    <div class="card modern-card">
+                        <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 1rem 1.5rem;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-bottle-droplet me-2"></i>
+                                    Disponibilidad de Salsas
+                                </h5>
+                                <button class="btn btn-sm btn-light" onclick="refreshSaucesStatus()" title="Actualizar estado">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding: 1.5rem;">
+                            <div id="sauces-status-container" class="row g-3">
+                                <div class="col-12 text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Cargando...</span>
+                                    </div>
+                                    <p class="text-muted mt-2">Consultando disponibilidad...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- TOOLBAR MODERNO -->
                 <div class="modern-toolbar">
                     <div class="d-flex justify-content-between flex-wrap align-items-center">
@@ -680,19 +1435,19 @@
                             <div class="card-body text-center py-4">
                                 <div class="row align-items-center">
                                     <div class="col-md-3">
-                                        <div class="kpi-icon-wrapper mb-3" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                                            <i class="fas fa-chart-pie fa-2x text-white"></i>
+                                        <div class="kpi-icon-wrapper mb-3 mx-auto" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 20px;">
+                                            <i class="fas fa-cash-register fa-2x text-white"></i>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="kpi-label">Resumen Total</div>
+                                        <div class="kpi-label">Resumen Final en Caja</div>
                                         <div class="kpi-value trend-positive" id="resumen-total">$0</div>
-                                        <div class="kpi-subtitle" id="periodo-resumen">Período seleccionado</div>
+                                        <div class="kpi-subtitle text-muted small" id="periodo-resumen">Período seleccionado</div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="text-muted small">
-                                            <div><strong id="total-transacciones">0</strong> transacciones</div>
-                                            <div><strong id="metodos-activos">0</strong> métodos de pago</div>
+                                            <div class="mb-2"><i class="fas fa-receipt me-2"></i><strong id="total-transacciones">0</strong> transacciones</div>
+                                            <div><i class="fas fa-credit-card me-2"></i><strong id="metodos-activos">0</strong> métodos de pago</div>
                                         </div>
                                     </div>
                                 </div>
@@ -701,30 +1456,556 @@
                     </div>
                 </div>
 
-                <!-- GRÁFICOS PRINCIPALES -->
+                <!-- HEATMAP PRINCIPAL -->
                 <div class="row g-4 mb-4">
-                    <div class="col-md-6">
+                    <div class="col-12">
                         <div class="modern-card">
                             <div class="card-header">
                                 <i class="fas fa-clock me-2"></i>
-                                Ventas por Hora
+                                Mapa de Calor - Ventas por Día y Hora
                             </div>
                             <div class="card-body">
-                                <div class="chart-container">
-                                    <canvas id="sellsByHourChart"></canvas>
+                                <div class="heatmap-container">
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless heatmap-table" id="salesHeatmapTable">
+                                            <thead>
+                                                <tr>
+                                                    <th class="day-header">Día</th>
+                                                    <th class="hour-header">07:00 AM</th>
+                                                    <th class="hour-header">08:00 AM</th>
+                                                    <th class="hour-header">09:00 AM</th>
+                                                    <th class="hour-header">10:00 AM</th>
+                                                    <th class="hour-header">11:00 AM</th>
+                                                    <th class="hour-header">12:00 PM</th>
+                                                    <th class="hour-header">01:00 PM</th>
+                                                    <th class="hour-header">02:00 PM</th>
+                                                    <th class="hour-header">03:00 PM</th>
+                                                    <th class="hour-header">04:00 PM</th>
+                                                    <th class="hour-header">05:00 PM</th>
+                                                    <th class="hour-header">06:00 PM</th>
+                                                    <th class="hour-header">07:00 PM</th>
+                                                    <th class="hour-header">08:00 PM</th>
+                                                    <th class="hour-header">09:00 PM</th>
+                                                    <th class="hour-header">10:00 PM</th>
+                                                    <th class="hour-header">11:00 PM</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="heatmapTableBody">
+                                                <tr>
+                                                    <td class="day-label">Lunes</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="7">0</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="8">0</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="9">0</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="10">0</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="11">0</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="12">0</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="13">0</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="14">0</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="15">0</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="16">0</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="17">0</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="18">0</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="19">0</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="20">0</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="21">0</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="22">0</td>
+                                                    <td class="heat-cell" data-day="1" data-hour="23">0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="day-label">Martes</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="7">0</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="8">0</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="9">0</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="10">0</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="11">0</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="12">0</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="13">0</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="14">0</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="15">0</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="16">0</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="17">0</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="18">0</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="19">0</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="20">0</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="21">0</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="22">0</td>
+                                                    <td class="heat-cell" data-day="2" data-hour="23">0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="day-label">Miércoles</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="7">0</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="8">0</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="9">0</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="10">0</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="11">0</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="12">0</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="13">0</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="14">0</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="15">0</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="16">0</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="17">0</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="18">0</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="19">0</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="20">0</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="21">0</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="22">0</td>
+                                                    <td class="heat-cell" data-day="3" data-hour="23">0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="day-label">Jueves</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="7">0</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="8">0</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="9">0</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="10">0</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="11">0</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="12">0</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="13">0</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="14">0</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="15">0</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="16">0</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="17">0</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="18">0</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="19">0</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="20">0</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="21">0</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="22">0</td>
+                                                    <td class="heat-cell" data-day="4" data-hour="23">0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="day-label">Viernes</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="7">0</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="8">0</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="9">0</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="10">0</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="11">0</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="12">0</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="13">0</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="14">0</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="15">0</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="16">0</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="17">0</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="18">0</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="19">0</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="20">0</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="21">0</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="22">0</td>
+                                                    <td class="heat-cell" data-day="5" data-hour="23">0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="day-label">Sábado</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="7">0</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="8">0</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="9">0</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="10">0</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="11">0</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="12">0</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="13">0</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="14">0</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="15">0</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="16">0</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="17">0</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="18">0</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="19">0</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="20">0</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="21">0</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="22">0</td>
+                                                    <td class="heat-cell" data-day="6" data-hour="23">0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="day-label">Domingo</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="7">0</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="8">0</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="9">0</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="10">0</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="11">0</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="12">0</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="13">0</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="14">0</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="15">0</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="16">0</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="17">0</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="18">0</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="19">0</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="20">0</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="21">0</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="22">0</td>
+                                                    <td class="heat-cell" data-day="0" data-hour="23">0</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="heatmap-legend mt-3">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Intensidad de color indica mayor cantidad de ventas
+                                        </small>
+                                    </div>
+                                </div>
+                                <!-- BOTÓN DESCARGA VENTAS CON FOLIO -->
+                                <div class="card-footer bg-light">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                <i class="fas fa-file-excel text-success me-2"></i>
+                                                Exportar Ventas con Boleta Electrónica
+                                            </h6>
+                                            <small class="text-muted">Descarga un Excel con todas las ventas que tienen folio según el filtro de fechas actual</small>
+                                        </div>
+                                        <button class="btn btn-success" onclick="descargarVentasConFolio()" title="Descargar Excel con ventas que tienen folio">
+                                            <i class="fas fa-download me-2"></i>
+                                            Descargar Ventas (Folio)
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                </div>
+
+                <!-- MAPA DE CALOR DE SALSAS POR DÍA DEL MES -->
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
                         <div class="modern-card">
-                            <div class="card-header">
-                                <i class="fas fa-trophy me-2"></i>
-                                Top Ventas
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-utensils me-2"></i>
+                                    <span id="sauceHeatmapTitle">Mapa de Calor - Ventas de Salsas por Día del Mes</span>
+                                </div>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="sauce-view-month" onclick="setSauceView('month')">
+                                        <i class="fas fa-calendar-alt me-1"></i>Mes
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="sauce-view-week" onclick="setSauceView('week')">
+                                        <i class="fas fa-calendar-week me-1"></i>Semana
+                                    </button>
+                                </div>
                             </div>
                             <div class="card-body">
-                                <div class="chart-container">
-                                    <canvas id="topSellsChart"></canvas>
+                                <!-- KPIs de Totales -->
+                                <div class="row g-3 mb-4" id="sauceKpisContainer">
+                                    <div class="col-md-3">
+                                        <div class="p-3 rounded" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-bottle-droplet fa-2x text-white me-3"></i>
+                                                <div class="text-white">
+                                                    <div style="font-size: 0.75rem; opacity: 0.9;">Salsa Extra</div>
+                                                    <div style="font-size: 1.5rem; font-weight: bold;" id="sauceExtraTotal">0</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="p-3 rounded" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-bacon fa-2x text-white me-3"></i>
+                                                <div class="text-white">
+                                                    <div style="font-size: 0.75rem; opacity: 0.9;">Fettucine Total</div>
+                                                    <div style="font-size: 1.5rem; font-weight: bold;" id="fettucineTotal">0</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="p-3 rounded" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-bacon fa-2x text-white me-3"></i>
+                                                <div class="text-white">
+                                                    <div style="font-size: 0.75rem; opacity: 0.9;">Bigoli Total</div>
+                                                    <div style="font-size: 1.5rem; font-weight: bold;" id="bigoliTotal">0</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="p-3 rounded" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-cheese fa-2x text-white me-3"></i>
+                                                <div class="text-white">
+                                                    <div style="font-size: 0.75rem; opacity: 0.9;">Queso Extra</div>
+                                                    <div style="font-size: 1.5rem; font-weight: bold;" id="quesoExtraTotal">0</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered sauce-heatmap-table" id="sauceHeatmapTable">
+                                        <thead class="table-dark">
+                                            <tr id="sauceHeatmapHeader">
+                                                <th class="sticky-col">Salsa</th>
+                                                <!-- Los días se generarán dinámicamente -->
+                                            </tr>
+                                        </thead>
+                                        <tbody id="sauceHeatmapBody">
+                                            <tr>
+                                                <td colspan="100%" class="text-center text-muted py-4">
+                                                    <i class="fas fa-spinner fa-spin me-2"></i>
+                                                    Cargando datos de salsas...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="row mt-4">
+                                    <div class="col-md-6">
+                                        <div class="sauce-legend">
+                                            <h6 class="mb-2"><i class="fas fa-palette me-2"></i>Leyenda de Intensidad</h6>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="badge" style="background: #e3f2fd; color: #1976d2;">0-5</span>
+                                                <span class="badge" style="background: #90caf9; color: #0d47a1;">6-15</span>
+                                                <span class="badge" style="background: #42a5f5; color: white;">16-30</span>
+                                                <span class="badge" style="background: #1e88e5; color: white;">31-50</span>
+                                                <span class="badge" style="background: #1565c0; color: white;">51+</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="sauce-stats" id="sauceStats">
+                                            <h6 class="mb-2"><i class="fas fa-trophy me-2"></i>Salsa Más Vendida</h6>
+                                            <p class="mb-0 text-muted">Esperando datos...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CENTRO ANALÍTICO AVANZADO -->
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <div class="modern-card">
+                            <div class="card-header">
+                                <i class="fas fa-chart-pie me-2"></i>
+                                Centro Analítico - Dashboard Inteligente
+                            </div>
+                            <div class="card-body">
+                                <!-- Métricas KPI del Centro Analítico -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-lg-2 col-md-4 col-6">
+                                        <div class="analytics-kpi">
+                                            <div class="kpi-icon bg-primary">
+                                                <i class="fas fa-dollar-sign"></i>
+                                            </div>
+                                            <div class="kpi-data">
+                                                <h3 id="analytics-revenue">$0</h3>
+                                                <span>Ingresos Hoy</span>
+                                                <small id="analytics-revenue-change" class="trend-indicator">+0%</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2 col-md-4 col-6">
+                                        <div class="analytics-kpi">
+                                            <div class="kpi-icon bg-success">
+                                                <i class="fas fa-shopping-cart"></i>
+                                            </div>
+                                            <div class="kpi-data">
+                                                <h3 id="analytics-orders">0</h3>
+                                                <span>Órdenes</span>
+                                                <small id="analytics-orders-change" class="trend-indicator">+0%</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2 col-md-4 col-6">
+                                        <div class="analytics-kpi">
+                                            <div class="kpi-icon bg-warning">
+                                                <i class="fas fa-chart-line"></i>
+                                            </div>
+                                            <div class="kpi-data">
+                                                <h3 id="analytics-avg-ticket">$0</h3>
+                                                <span>Ticket Promedio</span>
+                                                <small id="analytics-avg-change" class="trend-indicator">+0%</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2 col-md-4 col-6">
+                                        <div class="analytics-kpi">
+                                            <div class="kpi-icon bg-info">
+                                                <i class="fas fa-clock"></i>
+                                            </div>
+                                            <div class="kpi-data">
+                                                <h3 id="analytics-peak-hour">--:--</h3>
+                                                <span>Hora Pico</span>
+                                                <small id="analytics-peak-sales" class="trend-indicator">0 ventas</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2 col-md-4 col-6">
+                                        <div class="analytics-kpi">
+                                            <div class="kpi-icon bg-purple">
+                                                <i class="fas fa-users"></i>
+                                            </div>
+                                            <div class="kpi-data">
+                                                <h3 id="analytics-customers">0</h3>
+                                                <span>Clientes</span>
+                                                <small id="analytics-customers-change" class="trend-indicator">+0%</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- KPI Conversión - OCULTO (no tiene sentido sin tracking de visitas) -->
+                                    <div class="col-lg-2 col-md-4 col-6" style="display: none;">
+                                        <div class="analytics-kpi">
+                                            <div class="kpi-icon bg-danger">
+                                                <i class="fas fa-percentage"></i>
+                                            </div>
+                                            <div class="kpi-data">
+                                                <h3 id="analytics-conversion">0%</h3>
+                                                <span>Conversión</span>
+                                                <small id="analytics-conversion-change" class="trend-indicator">+0%</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- CUADRO INFORME DE VENTAS DIARIAS - 4 TABLAS SIMPLES -->
+                                <div class="row g-4 mb-4">
+                                    <div class="col-12">
+                                        <div class="modern-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                            <div class="card-body">
+                                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                                    <h5 class="card-title mb-0 text-white">
+                                                        <i class="fas fa-chart-line me-2"></i>
+                                                        📊 Informe Diario
+                                                    </h5>
+                                                    <button class="btn btn-light btn-sm" onclick="generarInformeSimple()">
+                                                        <i class="fas fa-sync-alt"></i> Generar
+                                                    </button>
+                                                    <button class="btn btn-warning btn-sm ms-2" onclick="analizarDatosAPI()">
+                                                        <i class="fas fa-search"></i> Analizar API
+                                                    </button>
+                                                </div>
+                                                
+                                                <!-- Mensaje inicial -->
+                                                <div id="informeMensaje" class="text-center text-white-50 py-4">
+                                                    <i class="fas fa-calendar-check fa-2x mb-3 opacity-50"></i>
+                                                    <p class="mb-0">Selecciona fechas arriba y presiona <strong>"Generar"</strong> para ver el resumen diario</p>
+                                                </div>
+                                                
+                                                <!-- Contenedor del informe -->
+                                                <div id="informeContainer" style="display: none;">
+                                                    <div class="bg-white rounded p-3">
+                                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                                            <h6 class="text-dark mb-0">
+                                                                <i class="fas fa-calendar-alt me-1"></i>
+                                                                Período: <span id="informePeriodo" class="fw-bold">-</span>
+                                                            </h6>
+                                                            <span id="informeTotal" class="badge bg-success">Total: $0</span>
+                                                        </div>
+                                                        
+                                                        <!-- 4 Tablas en Grid -->
+                                                        <div class="row g-3">
+                                                            <!-- Tabla 1 -->
+                                                            <div class="col-lg-3 col-md-6">
+                                                                <div class="tabla-informe">
+                                                                    <h6 class="tabla-titulo">📅 Parte 1</h6>
+                                                                    <div id="tabla1-ventas" class="tabla-contenido">
+                                                                        <!-- Días -->
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <!-- Tabla 2 -->
+                                                            <div class="col-lg-3 col-md-6">
+                                                                <div class="tabla-informe">
+                                                                    <h6 class="tabla-titulo">📅 Parte 2</h6>
+                                                                    <div id="tabla2-ventas" class="tabla-contenido">
+                                                                        <!-- Días -->
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <!-- Tabla 3 -->
+                                                            <div class="col-lg-3 col-md-6">
+                                                                <div class="tabla-informe">
+                                                                    <h6 class="tabla-titulo">📅 Parte 3</h6>
+                                                                    <div id="tabla3-ventas" class="tabla-contenido">
+                                                                        <!-- Días -->
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <!-- Tabla 4 -->
+                                                            <div class="col-lg-3 col-md-6">
+                                                                <div class="tabla-informe">
+                                                                    <h6 class="tabla-titulo">📅 Parte 4</h6>
+                                                                    <div id="tabla4-ventas" class="tabla-contenido">
+                                                                        <!-- Días -->
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Gráficos del Centro Analítico -->
+                                <div class="row g-4">
+                                    <div class="col-lg-6">
+                                        <div class="analytics-chart-container">
+                                            <h5 class="chart-title">
+                                                <i class="fas fa-chart-area me-2"></i>
+                                                Tendencia de Ventas (7 días)
+                                            </h5>
+                                            <canvas id="trendChart" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="analytics-chart-container">
+                                            <h5 class="chart-title">
+                                                <i class="fas fa-chart-pie me-2"></i>
+                                                Distribución por Productos
+                                            </h5>
+                                            <canvas id="productsChart" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <div class="analytics-chart-container">
+                                            <h5 class="chart-title">
+                                                <i class="fas fa-chart-bar me-2"></i>
+                                                Todos los Productos
+                                            </h5>
+                                            <div id="topProductsList" class="top-products-list">
+                                                <!-- Se llena dinámicamente -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <div class="analytics-chart-container">
+                                            <h5 class="chart-title">
+                                                <i class="fas fa-clock me-2"></i>
+                                                Distribución Horaria
+                                            </h5>
+                                            <canvas id="hourlyChart" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <div class="analytics-chart-container">
+                                            <h5 class="chart-title">
+                                                <i class="fas fa-calendar-week me-2"></i>
+                                                Rendimiento Semanal
+                                            </h5>
+                                            <canvas id="weeklyChart" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Panel de Alertas y Recomendaciones -->
+                                <div class="row g-4 mt-2">
+                                    <div class="col-12">
+                                        <div class="analytics-alerts">
+                                            <h5 class="alerts-title">
+                                                <i class="fas fa-lightbulb me-2"></i>
+                                                Insights y Recomendaciones
+                                            </h5>
+                                            <div id="analyticsAlerts" class="alerts-container">
+                                                <!-- Se llena dinámicamente con insights -->
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -734,18 +2015,26 @@
                 <!-- CONTADORES Y MESAS -->
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
-                        <div class="modern-card">
-                            <div class="card-header">
-                                <i class="fas fa-calculator me-2"></i>
-                                Contadores Financieros
+                        <div class="modern-card" id="contadores-card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-calculator me-2"></i>
+                                    Contadores Financieros
+                                </div>
+                                <button class="btn btn-sm btn-success" onclick="exportarContadores()">
+                                    <i class="fas fa-file-excel me-1"></i>
+                                    Exportar
+                                </button>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body" style="background-color: white;">
                                 <div class="table-responsive">
-                                    <table class="table table-modern table-sm">
+                                    <table class="table table-modern" id="tabla-contadores" style="font-size: 16px;">
                                         <thead>
                                             <tr>
-                                                <th scope="col">Concepto</th>
+                                                <th scope="col">Método de Pago</th>
+                                                <th scope="col">Transacciones</th>
                                                 <th scope="col">Total</th>
+                                                <th scope="col">Promedio</th>
                                             </tr>
                                         </thead>
                                         <tbody id="counters-table">
@@ -776,6 +2065,50 @@
                                             </tr>
                                         </thead>
                                         <tbody id="waiters-table">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GASTOS DEL DÍA -->
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <div class="modern-card" id="gastos-card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-wallet me-2"></i>
+                                    Gastos del Día
+                                </div>
+                                <div>
+                                    <span class="badge bg-danger me-2" id="badge-total-gastos" style="font-size: 14px;">
+                                        Total: $0
+                                    </span>
+                                    <button class="btn btn-sm btn-success" onclick="exportarGastos()">
+                                        <i class="fas fa-file-excel me-1"></i>
+                                        Exportar
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body" style="background-color: white;">
+                                <div class="table-responsive">
+                                    <table class="table table-modern" id="tabla-gastos" style="font-size: 16px;">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Concepto</th>
+                                                <th scope="col">Monto</th>
+                                                <th scope="col">Fecha/Hora</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="gastos-table">
+                                            <tr>
+                                                <td colspan="3" class="text-center text-muted">
+                                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                                    No hay gastos registrados
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -853,7 +2186,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"
         integrity="sha384-zNy6FEbO50N+Cg5wap8IKA4M/ZnLJgzc6w2NqACZaK0u0FXfOWRRJOnQtpZun8ha"
         crossorigin="anonymous"></script>
-    <script src="../assets/js/sucursal.js"></script>
+    <!-- Plugin para mostrar valores en las barras -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <!-- Librería XLSX para exportar a Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="../assets/js/sucursal.js?v=2.5"></script>
     <script>
         (!_store().serial.isset()) ? window.location.href = "../index.html" : "";
 
@@ -906,6 +2243,47 @@
 
         // Las funciones de Excel están ahora en sucursal.js para mejor organización
         
+        // Link a 52 Semanas con el ID de la sucursal
+        const link52semanas = document.getElementById('link52semanas');
+        if (link52semanas) {
+            link52semanas.addEventListener('click', function(e) {
+                e.preventDefault();
+                const urlParams = new URLSearchParams(window.location.search);
+                const id = urlParams.get('id');
+                if (id) {
+                    window.location.href = `./52semanas.html?id=${id}`;
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'ID no encontrado',
+                        text: 'No se pudo obtener el ID de la sucursal'
+                    });
+                }
+            });
+        }
+        
+        // Exportar gastos a Excel
+        function exportarGastos() {
+            const tbody = document.getElementById('gastos-table');
+            const rows = tbody.querySelectorAll('tr');
+            
+            if (rows.length === 1 && rows[0].querySelector('td[colspan]')) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Sin datos',
+                    text: 'No hay gastos para exportar'
+                });
+                return;
+            }
+            
+            Swal.fire({
+                icon: 'success',
+                title: '✅ Exportación lista',
+                text: 'Los datos de gastos están listos para copiar a Excel',
+                confirmButtonText: 'Entendido'
+            });
+        }
+
         // Función para obtener fecha actual (helper)
         function getNowDate() {
             const currentDate = new Date();
@@ -914,7 +2292,635 @@
             const day = String(currentDate.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
+
+        // 📊 FUNCIÓN GENERAR INFORME DE VENTAS DIARIAS
+        async function generarInforme() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate || !endDate) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '¡Atención!',
+                    text: 'Debes seleccionar las fechas de inicio y fin arriba',
+                    confirmButtonText: 'Entendido'
+                });
+                return;
+            }
+            
+            // Mostrar período seleccionado
+            const fechaInicio = new Date(startDate).toLocaleDateString('es-CL');
+            const fechaFin = new Date(endDate).toLocaleDateString('es-CL');
+            document.getElementById('informePeriodo').textContent = `${fechaInicio} - ${fechaFin}`;
+            
+            // Mostrar el contenedor
+            document.getElementById('informeMensaje').style.display = 'none';
+            document.getElementById('informeContainer').style.display = 'block';
+            
+            // Mostrar loading
+            document.getElementById('informeVentas').innerHTML = `
+                <div class="text-center py-3">
+                    <i class="fas fa-spinner fa-spin me-2"></i>
+                    Cargando datos...
+                </div>
+            `;
+            
+            try {
+                // Obtener ventas directamente
+                await obtenerVentasParaInforme(startDate, endDate + ' 23:59:59');
+            } catch (error) {
+                console.error('Error al generar informe:', error);
+                document.getElementById('informeVentas').innerHTML = `
+                    <div class="text-center text-danger py-3">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        Error al cargar datos
+                    </div>
+                `;
+            }
+        }
+        
+        // Obtener ventas específicamente para el informe
+        async function obtenerVentasParaInforme(startDate, endDate) {
+            // Usar la misma lógica que sucursal.js
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            
+            if (!id) {
+                throw new Error('ID de sucursal no encontrado');
+            }
+            
+            // Parámetros de métodos de pago (igual que en sucursal.js)
+            const paymentParams = [
+                'fastSell=true', 'boleta=true', 'factura=true', 'noSii=true',
+                'amipass=true', 'rappi=true', 'uber=true', 'junaeb=true',
+                'multicaja=true', 'edenred=true', 'sodexo=true', 'convenio_empresa=true',
+                'debito=true', 'credito=true', 'transferencia=true', 'cheque=true',
+                'banco=true', 'pluxee=true', 'pedidos_ya=true', 'guia_despacho=true',
+                'banco_chile_20=true', 'nota_de_credito=true', 'efectivo=true'
+            ].join('&');
+            
+            const sellsUrl = generarURLApi(`/web/getAppSells?id=${id}&startDate=${startDate}&endDate=${endDate}&${paymentParams}&per_page=10000`);
+            
+            // Usar la función __conection que ya existe
+            await __conection({
+                url: sellsUrl,
+                header: credentials(),
+                dev: true,
+                method: 'GET'
+            }, {}, function (sellsRequest) {
+                console.log('📦 Respuesta ventas para informe:', sellsRequest);
+                
+                // Extraer ventas del response (igual que en sucursal.js)
+                const sells = [];
+                if (Array.isArray(sellsRequest)) {
+                    sells.push(...sellsRequest);
+                } else {
+                    for (const app in sellsRequest) {
+                        if (sellsRequest[app] && sellsRequest[app].original && Array.isArray(sellsRequest[app].original)) {
+                            sells.push(...sellsRequest[app].original);
+                        }
+                    }
+                }
+                
+                procesarDatosInforme(sells);
+            });
+        }
+        
+        // 📊 FUNCIÓN SIMPLE PARA EL INFORME
+        async function generarInformeSimple() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate || !endDate) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '¡Atención!',
+                    text: 'Debes seleccionar las fechas de inicio y fin arriba',
+                    confirmButtonText: 'Entendido'
+                });
+                return;
+            }
+            
+            // Mostrar período - CORREGIDO
+            const fechaInicio = new Date(startDate + 'T00:00:00').toLocaleDateString('es-CL');
+            const fechaFin = new Date(endDate + 'T00:00:00').toLocaleDateString('es-CL');
+            document.getElementById('informePeriodo').textContent = `${fechaInicio} - ${fechaFin}`;
+            
+            // Mostrar contenedor
+            document.getElementById('informeMensaje').style.display = 'none';
+            document.getElementById('informeContainer').style.display = 'block';
+            
+            // Loading
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`tabla${i}-ventas`).innerHTML = `
+                    <div class="text-center py-2">
+                        <i class="fas fa-spinner fa-spin"></i> Cargando...
+                    </div>
+                `;
+            }
+            
+            try {
+                await obtenerVentasParaInformeSimple(startDate, endDate + ' 23:59:59');
+            } catch (error) {
+                console.error('Error:', error);
+                for (let i = 1; i <= 4; i++) {
+                    document.getElementById(`tabla${i}-ventas`).innerHTML = `
+                        <div class="text-center text-danger py-2">
+                            <i class="fas fa-exclamation-triangle"></i> Error
+                        </div>
+                    `;
+                }
+            }
+        }
+        
+        // Obtener ventas para informe simple
+        async function obtenerVentasParaInformeSimple(startDate, endDate) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            
+            if (!id) {
+                throw new Error('ID de sucursal no encontrado');
+            }
+            
+            const paymentParams = [
+                'fastSell=true', 'boleta=true', 'factura=true', 'noSii=true',
+                'amipass=true', 'rappi=true', 'uber=true', 'junaeb=true',
+                'multicaja=true', 'edenred=true', 'sodexo=true', 'convenio_empresa=true',
+                'debito=true', 'credito=true', 'transferencia=true', 'cheque=true',
+                'banco=true', 'pluxee=true', 'pedidos_ya=true', 'guia_despacho=true',
+                'banco_chile_20=true', 'nota_de_credito=true', 'efectivo=true'
+            ].join('&');
+            
+            const sellsUrl = generarURLApi(`/web/getAppSells?id=${id}&startDate=${startDate}&endDate=${endDate}&${paymentParams}&per_page=10000`);
+            
+            await __conection({
+                url: sellsUrl,
+                header: credentials(),
+                dev: true,
+                method: 'GET'
+            }, {}, function (sellsRequest) {
+                console.log('📦 Respuesta ventas:', sellsRequest);
+                
+                const sells = [];
+                if (Array.isArray(sellsRequest)) {
+                    sells.push(...sellsRequest);
+                } else {
+                    for (const app in sellsRequest) {
+                        if (sellsRequest[app] && sellsRequest[app].original && Array.isArray(sellsRequest[app].original)) {
+                            sells.push(...sellsRequest[app].original);
+                        }
+                    }
+                }
+                
+                procesarDatosInformeSimple(sells);
+            });
+        }
+        
+        // Procesar datos de forma simple
+        function procesarDatosInformeSimple(sells) {
+            console.log('� Procesando', sells.length, 'ventas');
+            
+            if (!sells || sells.length === 0) {
+                for (let i = 1; i <= 4; i++) {
+                    document.getElementById(`tabla${i}-ventas`).innerHTML = `
+                        <div class="text-center text-muted py-3">
+                            <small>Sin datos</small>
+                        </div>
+                    `;
+                }
+                document.getElementById('informeTotal').textContent = 'Total: $0';
+                return;
+            }
+            
+            // Obtener fechas seleccionadas para crear TODOS los días
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate || !endDate) {
+                for (let i = 1; i <= 4; i++) {
+                    document.getElementById(`tabla${i}-ventas`).innerHTML = `
+                        <div class="text-center text-muted py-3">
+                            <small>Selecciona fechas</small>
+                        </div>
+                    `;
+                }
+                return;
+            }
+            
+            // Generar TODOS los días del período (no solo los que tienen ventas)
+            const fechaInicio = new Date(startDate);
+            const fechaFin = new Date(endDate);
+            const todosDias = [];
+            
+            for (let fecha = new Date(fechaInicio); fecha <= fechaFin; fecha.setDate(fecha.getDate() + 1)) {
+                todosDias.push(fecha.toISOString().split('T')[0]); // YYYY-MM-DD
+            }
+            
+            console.log('📅 Período completo:', todosDias.length, 'días del', startDate, 'al', endDate);
+            
+            // Inicializar todos los días con $0
+            const ventasPorFecha = {};
+            todosDias.forEach(dia => {
+                ventasPorFecha[dia] = 0;
+            });
+            
+            let totalGeneral = 0;
+            
+            // Sumar ventas reales solo para los días que tienen datos
+            if (sells && sells.length > 0) {
+                sells.forEach(venta => {
+                    let fecha = venta.fecha || venta.created_at?.split(' ')[0] || venta.date;
+                    if (fecha && fecha.includes(' ')) {
+                        fecha = fecha.split(' ')[0];
+                    }
+                    
+                    if (fecha && ventasPorFecha.hasOwnProperty(fecha)) {
+                        const monto = parseFloat(
+                            venta.precio_total || 
+                            venta.total || 
+                            venta.amount || 
+                            venta.price_total || 
+                            0
+                        );
+                        
+                        ventasPorFecha[fecha] += monto;
+                        totalGeneral += monto;
+                    }
+                });
+            }
+            
+            // Convertir a array ordenado (ya están en orden)
+            const ventasOrdenadas = todosDias.map(dia => [dia, ventasPorFecha[dia]]);
+            
+            console.log('📈 Informe completo:', ventasOrdenadas.length, 'días con ventas y sin ventas');
+            
+            // Dividir en 4 partes iguales
+            const totalDias = ventasOrdenadas.length;
+            const diasPorTabla = Math.ceil(totalDias / 4);
+            
+            for (let tabla = 1; tabla <= 4; tabla++) {
+                const inicio = (tabla - 1) * diasPorTabla;
+                const fin = Math.min(inicio + diasPorTabla, totalDias);
+                const diasTabla = ventasOrdenadas.slice(inicio, fin);
+                
+                let html = '';
+                
+                if (diasTabla.length === 0) {
+                    html = `<div class="text-center text-muted py-3"><small>Sin datos</small></div>`;
+                } else {
+                    diasTabla.forEach(([fecha, total]) => {
+                        const fechaFormateada = new Date(fecha + 'T00:00:00').toLocaleDateString('es-CL');
+                        const totalFormateado = '$' + Math.round(total).toLocaleString('es-CL');
+                        
+                        // Resaltar días sin ventas en gris
+                        const claseExtra = total === 0 ? 'text-muted' : '';
+                        
+                        html += `
+                            <div class="dia-item ${claseExtra}">
+                                <span class="dia-fecha">${fechaFormateada}</span>
+                                <span class="dia-monto">${totalFormateado}</span>
+                            </div>
+                        `;
+                    });
+                }
+                
+                document.getElementById(`tabla${tabla}-ventas`).innerHTML = html;
+            }
+            
+            document.getElementById('informeTotal').textContent = 'Total: $' + Math.round(totalGeneral).toLocaleString('es-CL');
+        }
+
+        // 🔍 FUNCIÓN SIMPLIFICADA PARA ANALIZAR DATOS (USANDO CÓDIGO QUE YA FUNCIONA)
+        async function analizarDatosAPI() {
+            console.log('🔍 Iniciando análisis de datos...');
+            
+            // Usar exactamente la misma lógica que generarInformeSimple() que ya funciona
+            try {
+                await obtenerVentasParaAnalisis();
+            } catch (error) {
+                console.error('❌ Error en análisis:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Copia exacta de obtenerVentasParaInformeSimple pero para análisis
+        async function obtenerVentasParaAnalisis() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate || !endDate) {
+                alert('⚠️ Selecciona fechas primero');
+                return;
+            }
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            
+            if (!id) {
+                throw new Error('ID de sucursal no encontrado');
+            }
+            
+            const paymentParams = [
+                'fastSell=true', 'boleta=true', 'factura=true', 'noSii=true',
+                'amipass=true', 'rappi=true', 'uber=true', 'junaeb=true',
+                'multicaja=true', 'edenred=true', 'sodexo=true', 'convenio_empresa=true',
+                'debito=true', 'credito=true', 'transferencia=true', 'cheque=true',
+                'banco=true', 'pluxee=true', 'pedidos_ya=true', 'guia_despacho=true',
+                'banco_chile_20=true', 'nota_de_credito=true', 'efectivo=true'
+            ].join('&');
+            
+            const sellsUrl = generarURLApi(`/web/getAppSells?id=${id}&startDate=${startDate}&endDate=${endDate}&${paymentParams}&per_page=10000`);
+            
+            await __conection({
+                url: sellsUrl,
+                header: credentials(),
+                dev: true,
+                method: 'GET'
+            }, {}, function (sellsRequest) {
+                console.log('� Respuesta API completa:', sellsRequest);
+                
+                const sells = [];
+                if (Array.isArray(sellsRequest)) {
+                    sells.push(...sellsRequest);
+                } else {
+                    for (const app in sellsRequest) {
+                        if (sellsRequest[app] && sellsRequest[app].original && Array.isArray(sellsRequest[app].original)) {
+                            sells.push(...sellsRequest[app].original);
+                        }
+                    }
+                }
+                
+                console.log('📊 Total ventas procesadas:', sells.length);
+                
+                if (sells.length > 0) {
+                    // Analizar estructura de la primera venta
+                    console.log('� ESTRUCTURA DE DATOS:');
+                    console.log('Primera venta completa:', sells[0]);
+                    console.log('Campos disponibles:', Object.keys(sells[0]));
+                    
+                    // Buscar diferentes tipos de folio/boleta
+                    const camposPosibles = [
+                        'sell_folio', 'folio', 'numero_folio', 'invoice_number', 
+                        'document_number', 'boleta', 'factura', 'tipo_documento',
+                        'document_type', 'receipt_number', 'bill_number'
+                    ];
+                    
+                    console.log('� ANÁLISIS DE FOLIOS:');
+                    camposPosibles.forEach(campo => {
+                        const ventasConCampo = sells.filter(v => v[campo] && v[campo] !== null && v[campo] !== '');
+                        if (ventasConCampo.length > 0) {
+                            console.log(`✅ Campo "${campo}": ${ventasConCampo.length} ventas`);
+                            console.log(`   Ejemplo valor:`, ventasConCampo[0][campo]);
+                        }
+                    });
+                    
+                    // Analizar tipos de documento si existe
+                    if (sells[0].hasOwnProperty('tipo_documento') || sells[0].hasOwnProperty('document_type')) {
+                        const tipos = {};
+                        sells.forEach(v => {
+                            const tipo = v.tipo_documento || v.document_type || 'sin_tipo';
+                            tipos[tipo] = (tipos[tipo] || 0) + 1;
+                        });
+                        console.log('📋 TIPOS DE DOCUMENTO:', tipos);
+                    }
+                    
+                    alert(`✅ ANÁLISIS COMPLETADO!\n\n📊 Total: ${sells.length} ventas\n🔍 Revisa la CONSOLA (F12) para ver:\n- Estructura completa de datos\n- Campos disponibles\n- Análisis de folios\n- Tipos de documento`);
+                } else {
+                    alert('❌ No hay ventas en el período seleccionado');
+                }
+            });
+        }
     </script>
+
+    <!-- ========== MODAL DESGLOSE DE VENTAS POR MÉTODO DE PAGO ========== -->
+    <div class="modal fade" id="modalDesglosePago" tabindex="-1" aria-labelledby="modalDesglosePagoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header" style="background: var(--primary-gradient); color: white;">
+                    <h5 class="modal-title" id="modalDesglosePagoLabel">
+                        <i class="fas fa-list-alt me-2"></i>
+                        <span id="modal-metodo-nombre">Desglose de Ventas</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Resumen del método de pago -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="card" style="border-left: 4px solid var(--primary-color);">
+                                <div class="card-body">
+                                    <h6 class="text-muted small mb-1">TRANSACCIONES</h6>
+                                    <h3 class="mb-0" id="modal-total-transacciones">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card" style="border-left: 4px solid var(--success-color);">
+                                <div class="card-body">
+                                    <h6 class="text-muted small mb-1">TOTAL</h6>
+                                    <h3 class="mb-0 text-success" id="modal-total-monto">$0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card" style="border-left: 4px solid var(--warning-color);">
+                                <div class="card-body">
+                                    <h6 class="text-muted small mb-1">PROMEDIO</h6>
+                                    <h3 class="mb-0 text-warning" id="modal-promedio">$0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card" style="border-left: 4px solid var(--danger-color);">
+                                <div class="card-body">
+                                    <h6 class="text-muted small mb-1">PERÍODO</h6>
+                                    <h3 class="mb-0 small" id="modal-periodo" style="font-size: 1rem;">-</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de ventas -->
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped" id="tabla-desglose-ventas">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th scope="col" style="width: 10%;">#</th>
+                                    <th scope="col" style="width: 15%;">ID Venta</th>
+                                    <th scope="col" style="width: 20%;">Fecha/Hora</th>
+                                    <th scope="col" style="width: 15%;">Monto</th>
+                                    <th scope="col" style="width: 15%;">Método</th>
+                                    <th scope="col" style="width: 25%;">Detalles</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-desglose-ventas-body">
+                                <tr>
+                                    <td colspan="6" class="text-center">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Cargando...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>
+                        Cerrar
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="exportarDesglosePago()">
+                        <i class="fas fa-file-excel me-1"></i>
+                        Exportar Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== SISTEMA DE DISPONIBILIDAD DE SALSAS ==========
+        
+        // Función para obtener icono de salsa (igual que en stock.js)
+        function getSauceIcon(productName) {
+            const name = productName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Normaliza y quita tildes
+            
+            if (name.includes('pesto')) return '<i class="fas fa-leaf text-success"></i>';
+            if (name.includes('tomate') || name.includes('pomodoro')) return '<i class="fas fa-tomato text-danger"></i>';
+            if (name.includes('alfredo')) return '<i class="fas fa-cheese text-warning"></i>';
+            if (name.includes('bolognesa') || name.includes('bolonesa') || name.includes('carne')) return '<i class="fas fa-drumstick-bite text-danger"></i>';
+            if (name.includes('carbonara')) return '<i class="fas fa-bacon text-warning"></i>';
+            if (name.includes('arrabiata') || name.includes('picante')) return '<i class="fas fa-fire text-danger"></i>';
+            if (name.includes('aglio') || name.includes('ajo')) return '<i class="fas fa-garlic text-warning"></i>';
+            if (name.includes('champinon') || name.includes('champi') || name.includes('funghi') || name.includes('hongo')) return '<i class="fas fa-seedling text-warning"></i>';
+            if (name.includes('pollo') || name.includes('chicken')) return '<i class="fas fa-drumstick-bite text-warning"></i>';
+            if (name.includes('crema') && !name.includes('pollo')) return '<i class="fas fa-cheese text-warning"></i>';
+            if (name.includes('quattro') || name.includes('queso')) return '<i class="fas fa-cheese text-warning"></i>';
+            if (name.includes('marinara') || name.includes('marisco')) return '<i class="fas fa-fish text-info"></i>';
+            if (name.includes('camaron') || name.includes('gamba')) return '<i class="fas fa-shrimp text-danger"></i>';
+            if (name.includes('rosada') || name.includes('rosa')) return '<i class="fas fa-heart text-danger"></i>';
+            if (name.includes('napolitana')) return '<i class="fas fa-pizza-slice text-danger"></i>';
+            if (name.includes('puttanesca')) return '<i class="fas fa-olive text-success"></i>';
+            if (name.includes('vongole') || name.includes('almeja')) return '<i class="fas fa-fish text-info"></i>';
+            if (name.includes('amatriciana')) return '<i class="fas fa-bacon text-danger"></i>';
+            
+            return '<i class="fas fa-pepper-hot text-danger"></i>';
+        }
+
+        // Función para cargar estado de salsas
+        async function loadSaucesAvailability() {
+            const url = generarURLApi(`/local/products/index`);
+            
+            try {
+                await __conection({
+                    url: url,
+                    header: credentials(),
+                    dev: true,
+                    method: 'GET'
+                }, {}, function (request) {
+                    let products = request;
+                    const container = document.getElementById('sauces-status-container');
+                    container.innerHTML = "";
+                    
+                    // Filtrar solo salsas (categoría 2)
+                    const sauces = products.filter(p => p.category == 2);
+                    
+                    if (sauces.length > 0) {
+                        sauces.forEach(sauce => {
+                            const isPesto = sauce.name.toLowerCase().includes('pesto');
+                            const vasosPerBag = isPesto ? 27 : 13.5;
+                            const totalVasos = vasosPerBag * sauce.stock;
+                            const kgPerBag = sauce.min_quantity || 2.079;
+                            const totalKg = (sauce.stock * kgPerBag).toFixed(2);
+                            
+                            // Determinar estado: verde (>=2 bolsas), amarillo (1 bolsa), rojo (0 bolsas)
+                            let statusClass = '';
+                            let statusBadge = '';
+                            let statusIcon = '';
+                            
+                            if (sauce.stock >= 2) {
+                                statusClass = 'available';
+                                statusBadge = 'Disponible';
+                                statusIcon = '<i class="fas fa-check-circle"></i>';
+                            } else if (sauce.stock === 1) {
+                                statusClass = 'low-stock';
+                                statusBadge = 'Stock Bajo';
+                                statusIcon = '<i class="fas fa-exclamation-triangle"></i>';
+                            } else {
+                                statusClass = 'unavailable';
+                                statusBadge = 'Sin Stock';
+                                statusIcon = '<i class="fas fa-times-circle"></i>';
+                            }
+                            
+                            const sauceIcon = getSauceIcon(sauce.name);
+                            
+                            const card = `
+                                <div class="col-lg-4 col-md-6">
+                                    <div class="sauce-item ${statusClass}">
+                                        <div class="sauce-name">
+                                            ${sauceIcon}
+                                            <span>${sauce.name}</span>
+                                        </div>
+                                        <div class="sauce-stock">
+                                            <div class="stock-badge ${statusClass}">
+                                                ${statusIcon} ${statusBadge}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            container.innerHTML += card;
+                        });
+                    } else {
+                        container.innerHTML = `
+                            <div class="col-12 text-center">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    No hay salsas registradas en el sistema
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            } catch (error) {
+                console.error('Error cargando disponibilidad de salsas:', error);
+                const container = document.getElementById('sauces-status-container');
+                container.innerHTML = `
+                    <div class="col-12 text-center">
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Error al cargar la disponibilidad de salsas
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Función para refrescar estado
+        function refreshSaucesStatus() {
+            const container = document.getElementById('sauces-status-container');
+            container.innerHTML = `
+                <div class="col-12 text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Actualizando...</span>
+                    </div>
+                    <p class="text-muted mt-2">Actualizando disponibilidad...</p>
+                </div>
+            `;
+            loadSaucesAvailability();
+        }
+
+        // Cargar al iniciar la página
+        $(document).ready(function() {
+            loadSaucesAvailability();
+            
+            // Auto-refresh cada 2 minutos
+            setInterval(loadSaucesAvailability, 120000);
+        });
+    </script>
+
 </body>
 
 </html>

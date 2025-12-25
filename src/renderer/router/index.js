@@ -172,6 +172,11 @@ const router = new Router({
           meta: { requiresTurno: true }
         },
         {
+          path: 'totem',
+          component: require('@/views/totem.vue').default,
+          meta: { requiresTurno: false }
+        },
+        {
           path: 'uber-eats',
           component: require('@/components/pages/UberEatsDashboard.vue').default,
           meta: { requiresTurno: true }

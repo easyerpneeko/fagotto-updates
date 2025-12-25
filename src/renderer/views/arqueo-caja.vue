@@ -17,8 +17,7 @@
             <i class="fas fa-cash-register"></i>
           </div>
           <div class="title-text">
-            <h1>Arqueo de Caja</h1>
-            <p>Control inteligente de efectivo</p>
+            <h1>Arqueo de Cajaaaaaaaaaaaaaaa</h1>
           </div>
         </div>
         <div class="header-status">
@@ -111,6 +110,35 @@
             <span class="card-amount total-highlight">${{ formatMoney(totalGeneralContado) }}</span>
             <small style="color: #64748b; font-size: 10px; display: block; margin-top: 4px;">
               Efectivo + todos los medios de pago
+            </small>
+          </div>
+        </div>
+
+        <!-- Tarjeta de Gastos del Día -->
+        <div class="summary-card expense-card" @click="mostrarModalGastos" style="cursor: pointer;">
+          <div class="card-icon expense-icon">
+            <i class="fas fa-minus-circle"></i>
+          </div>
+          <div class="card-info">
+            <span class="card-title">Gastos del Día</span>
+            <span class="card-amount expense-amount">-${{ formatMoney(totalGastosDia) }}</span>
+            <small style="color: #ef4444; font-size: 10px; display: block; margin-top: 4px;">
+              {{ gastosDia.length }} gasto{{ gastosDia.length !== 1 ? 's' : '' }} registrado{{ gastosDia.length !== 1 ? 's' : '' }}
+              <i class="fas fa-eye ms-1"></i> Click para ver detalle
+            </small>
+          </div>
+        </div>
+
+        <!-- Tarjeta de Resumen Final (después de gastos) -->
+        <div class="summary-card final-card">
+          <div class="card-icon final-icon">
+            <i class="fas fa-calculator"></i>
+          </div>
+          <div class="card-info">
+            <span class="card-title">Resumen Final</span>
+            <span class="card-amount final-highlight">${{ formatMoney(resumenFinalCaja) }}</span>
+            <small style="color: #10b981; font-size: 10px; display: block; margin-top: 4px;">
+              Monto Inicial + Total - Gastos
             </small>
           </div>
         </div>
@@ -441,6 +469,60 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Listado de Gastos -->
+    <div v-if="mostrandoModalGastos" class="modal-overlay" @click="cerrarModalGastos">
+      <div class="modal-container gastos-modal" @click.stop>
+        <div class="modal-header">
+          <div class="modal-icon expense-modal-icon">
+            <i class="fas fa-wallet"></i>
+          </div>
+          <h2 class="modal-title">Gastos del Día</h2>
+          <button @click="cerrarModalGastos" class="btn-close-modal">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="modal-body gastos-body">
+          <div v-if="gastosDia.length === 0" class="empty-state">
+            <i class="fas fa-check-circle"></i>
+            <p>No hay gastos registrados para hoy</p>
+            <small>El resumen final no incluye deducciones</small>
+          </div>
+          
+          <div v-else class="gastos-list">
+            <div class="gastos-header">
+              <span class="header-item">Concepto</span>
+              <span class="header-item">Monto</span>
+            </div>
+            <div 
+              v-for="(gasto, index) in gastosDia" 
+              :key="gasto.id || index"
+              class="gasto-item"
+            >
+              <div class="gasto-concepto">
+                <i class="fas fa-receipt"></i>
+                <span>{{ gasto.name || 'Sin descripción' }}</span>
+              </div>
+              <div class="gasto-monto">
+                <span class="monto-value">-${{ formatMoney(gasto.balance) }}</span>
+              </div>
+            </div>
+            
+            <div class="gastos-total">
+              <span class="total-label">Total Gastos:</span>
+              <span class="total-value">-${{ formatMoney(totalGastosDia) }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button @click="cerrarModalGastos" class="btn-primary">
+            <i class="fas fa-check me-1"></i>Entendido
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -500,6 +582,10 @@ export default {
       
       // Ventas del sistema por método de pago (dinámico)
       ventasPorMedio: {},
+      
+      // Gastos del día
+      gastosDia: [],
+      mostrandoModalGastos: false,
       
       // Datos del día - SE REVELAN DESPUÉS (legacy para compatibilidad)
       totalContado: 0,
@@ -631,6 +717,16 @@ export default {
       }
       return total;
     },
+
+    // Total de gastos del día
+    totalGastosDia() {
+      return this.gastosDia.reduce((sum, gasto) => sum + parseFloat(gasto.balance || 0), 0);
+    },
+
+    // Resumen Final de Caja: Monto Inicial + Total Contado - Gastos
+    resumenFinalCaja() {
+      return this.montoInicialTurno + this.totalGeneralContado - this.totalGastosDia;
+    },
     
     // Diferencias por cada medio de pago
     diferenciaTarjetaDebito() {
@@ -657,9 +753,15 @@ export default {
       return (this.mediosPago.otro || 0) - this.ventasOtro;
     },
     
-    // ✅ CORREGIDO: Diferencia general - total arqueo vs total ventas (sin monto inicial)
+    // ✅ CORREGIDO: Diferencia general - todo lo que hay en caja vs lo que debería haber
     diferenciaGeneral() {
-      return this.totalGeneralContado - this.totalVentasSistema;
+      // Lo que hay en caja: Monto Inicial + Total Contado - Gastos
+      const totalEnCaja = this.resumenFinalCaja;
+      
+      // Lo que debería haber: Monto Inicial + Ventas del Sistema - Gastos
+      const totalEsperado = this.montoInicialTurno + this.totalVentasSistema - this.totalGastosDia;
+      
+      return totalEnCaja - totalEsperado;
     }
   },
   
@@ -673,6 +775,7 @@ export default {
     this.horaInicio = new Date().toISOString(); // Marcar inicio del turno
     this.initializePaymentMethods();
     this.inicializarFecha();
+    this.cargarGastosDia(); // Cargar gastos del día
     this.cargarInfoUsuario();
     this.cargarInfoNegocio();
     this.cargarHistorial(); // ✅ Solo de BD, no localStorage
@@ -1081,9 +1184,10 @@ export default {
       return this.ventasPorMedio[methodKey] || 0;
     },
 
-    // ✅ NUEVO: Método para determinar estado del arqueo correctamente
+    // ✅ NUEVO: Método para determinar estado del arqueo correctamente CONSIDERANDO TODO
     getEstadoArqueo() {
-      const diferenciaTotal = (this.totalContado + this.totalOtrosMedios) - this.totalVentasSistema;
+      // Usar la diferencia general que ya considera monto inicial, ventas y gastos
+      const diferenciaTotal = this.diferenciaGeneral;
       
       if (Math.abs(diferenciaTotal) <= 1) { // Tolerancia de $1 para redondeos
         return 'perfecto';
@@ -1176,6 +1280,40 @@ export default {
       this.totalVentas = 0;
       this.calcularDiferencia();
     },
+
+    // Mostrar modal con listado de gastos
+    mostrarModalGastos() {
+      this.mostrandoModalGastos = true;
+    },
+
+    cerrarModalGastos() {
+      this.mostrandoModalGastos = false;
+    },
+
+    // Cargar gastos del día desde el backend
+    async cargarGastosDia() {
+      try {
+        console.log('💸 Cargando gastos del día...');
+        
+        // Construir parámetros de fecha para hoy
+        const fechaHoy = new Date().toISOString().split('T')[0];
+        var params = `?params=true&startDate=${fechaHoy}&endDate=${fechaHoy}`;
+        
+        // Llamar a la acción del store para obtener gastos
+        var request = await this.$store.dispatch("expenses/getExpenses", params);
+        
+        if (request && request.success && request.data && request.data.items) {
+          this.gastosDia = request.data.items;
+          console.log('✅ Gastos cargados:', this.gastosDia.length, 'gastos por un total de $' + this.totalGastosDia);
+        } else {
+          this.gastosDia = [];
+          console.log('ℹ️ No hay gastos registrados para hoy');
+        }
+      } catch (error) {
+        console.error('❌ Error cargando gastos:', error);
+        this.gastosDia = [];
+      }
+    },
     
     async cargarHistorial() {
       try {
@@ -1209,6 +1347,31 @@ export default {
       }
     },
     
+    // Cargar gastos del día desde el backend
+    async cargarGastosDia() {
+      try {
+        console.log('💸 Cargando gastos del día...');
+        
+        // Construir parámetros de fecha para hoy
+        const fechaHoy = new Date().toISOString().split('T')[0];
+        var params = `?params=true&startDate=${fechaHoy}&endDate=${fechaHoy}`;
+        
+        // Llamar a la acción del store para obtener gastos
+        var request = await this.$store.dispatch("expenses/getExpenses", params);
+        
+        if (request && request.success && request.data && request.data.items) {
+          this.gastosDia = request.data.items;
+          console.log('✅ Gastos cargados:', this.gastosDia.length, 'gastos por un total de $' + this.totalGastosDia);
+        } else {
+          this.gastosDia = [];
+          console.log('ℹ️ No hay gastos registrados para hoy');
+        }
+      } catch (error) {
+        console.error('❌ Error cargando gastos:', error);
+        this.gastosDia = [];
+      }
+    },
+
     async cargarVentasDelSistema() {
       try {
         console.log('📊 Cargando ventas del sistema para comparación...');
@@ -2278,6 +2441,24 @@ ${arqueo.observaciones || 'Sin observaciones'}
   background: linear-gradient(135deg, #f59e0b, #d97706);
 }
 
+.summary-card.expense-card .card-icon.expense-icon {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.summary-card.final-card .card-icon.final-icon {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.expense-amount {
+  color: #ef4444 !important;
+  font-weight: 700;
+}
+
+.final-highlight {
+  color: #10b981 !important;
+  font-weight: 700;
+}
+
 .card-icon {
   width: 56px;
   height: 56px;
@@ -3080,9 +3261,8 @@ ${arqueo.observaciones || 'Sin observaciones'}
   transform: translateY(-2px);
   /* Removemos la animación bounce que también causaba movimiento */
 }
-</style>
 
-<style scoped>
+/* Continuación de estilos - sin cerrar/abrir style tag */
 .arqueo-caja-container {
   padding: 20px;
   background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
@@ -4047,5 +4227,169 @@ ${arqueo.observaciones || 'Sin observaciones'}
   .audit-icon i {
     font-size: 1.5rem;
   }
+}
+
+/* Modal de Gastos */
+.gastos-modal {
+  max-width: 600px;
+  width: 90%;
+}
+
+.expense-modal-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 28px;
+  margin: 0 auto 15px;
+}
+
+.btn-close-modal {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #64748b;
+}
+
+.btn-close-modal:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  transform: rotate(90deg);
+}
+
+.gastos-body {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.gastos-modal .empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #64748b;
+}
+
+.gastos-modal .empty-state i {
+  font-size: 48px;
+  color: #10b981;
+  margin-bottom: 15px;
+}
+
+.gastos-modal .empty-state p {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.gastos-modal .empty-state small {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.gastos-list {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.gastos-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 8px;
+}
+
+.gasto-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  padding: 14px 16px;
+  background: white;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.gasto-item:hover {
+  border-color: #ef4444;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
+  transform: translateX(2px);
+}
+
+.gasto-concepto {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #1e293b;
+}
+
+.gasto-concepto i {
+  color: #ef4444;
+  font-size: 16px;
+}
+
+.gasto-concepto span {
+  font-weight: 500;
+}
+
+.gasto-monto {
+  display: flex;
+  align-items: center;
+}
+
+.monto-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ef4444;
+}
+
+.gastos-total {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  padding: 16px;
+  margin-top: 12px;
+  background: linear-gradient(135deg, #fef2f2, #fee2e2);
+  border-radius: 10px;
+  border: 2px solid #ef4444;
+}
+
+.total-label {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1e293b;
+}
+
+.total-value {
+  font-weight: 800;
+  font-size: 18px;
+  color: #ef4444;
+}
+
+/* Hover en tarjeta de gastos */
+.expense-card:hover {
+  border-color: #ef4444;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.15);
 }
 </style>

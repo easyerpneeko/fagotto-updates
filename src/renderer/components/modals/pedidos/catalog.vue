@@ -686,6 +686,10 @@ export default {
       for (var key in this.opcionalPedido) {
         this.salsasPedido.push(this.opcionalPedido[key]);
       }
+      
+      // 🔥 AÑADIR PRODUCTOS AUTOMÁTICOS (Vaso, Huevos, Queso, Harina)
+      this.addAutomaticProducts();
+      
       this.productoSend = this.salsasPedido
       // console.log('Pedido: ', this.salsasPedido);
 
@@ -714,6 +718,119 @@ export default {
       this.salsasPedido = [];
       this.opcionalPedido = [];
       this.totalPrice = 0;
+    },
+    addAutomaticProducts() {
+      // 🔥 CALCULAR PRODUCTOS AUTOMÁTICOS BASADOS EN VASOS DE SALSAS
+      
+      if (this.vasosSalsas === 0) return; // No hay salsas, no añadir productos
+      
+      // 1. Calcular precio promedio de las salsas
+      let totalCostoSalsas = 0;
+      this.salsasPedido.forEach(salsa => {
+        if (salsa.category === 2) { // Solo salsas
+          totalCostoSalsas += salsa.costo;
+        }
+      });
+      
+      const precioPromedioVaso = totalCostoSalsas / this.vasosSalsas;
+      
+      console.log('🔥 Total vasos:', this.vasosSalsas);
+      console.log('🔥 Total costo salsas:', totalCostoSalsas);
+      console.log('🔥 Precio promedio por vaso:', precioPromedioVaso);
+      
+      // 2. Buscar los productos en productosFijos (que puede ser array u objeto)
+      const productosArray = Array.isArray(this.productosFijos) ? this.productosFijos : Object.values(this.productosFijos);
+      
+      const vasoProduct = productosArray.find(p => p.name === 'Vaso');
+      const huevosProduct = productosArray.find(p => p.name === 'Botella de Huevos 1L');
+      const quesoProduct = productosArray.find(p => p.name === 'Queso');
+      const harinaProduct = productosArray.find(p => p.name === 'Harina');
+      
+      if (!vasoProduct || !huevosProduct || !quesoProduct || !harinaProduct) {
+        console.error('❌ No se encontraron todos los productos automáticos en la DB');
+        return;
+      }
+      
+      // 3. Calcular cantidades
+      const cantidadVasos = this.vasosSalsas;
+      const cantidadHuevos = this.vasosSalsas / 27;
+      const cantidadQueso = this.vasosSalsas * 0.010; // 10g por vaso
+      const cantidadHarina = this.vasosSalsas / 27;
+      
+      // 4. Calcular costos
+      const costoVasos = cantidadVasos * precioPromedioVaso; // Usa precio promedio
+      const costoHuevos = cantidadHuevos * parseFloat(huevosProduct.compra);
+      const costoQueso = cantidadQueso * parseFloat(quesoProduct.compra);
+      const costoHarina = cantidadHarina * parseFloat(harinaProduct.compra);
+      
+      // 5. Crear objetos de productos automáticos
+      const productoVaso = {
+        id: vasoProduct.id,
+        name: vasoProduct.name,
+        quantity: cantidadVasos,
+        vasos: 1,
+        costo: Math.round(costoVasos),
+        category: vasoProduct.category,
+        compra: vasoProduct.compra,
+        price: vasoProduct.price,
+        stock: vasoProduct.stock,
+        min_stock: vasoProduct.min_stock,
+        discount_percentage: "0.00"
+      };
+      
+      const productoHuevos = {
+        id: huevosProduct.id,
+        name: huevosProduct.name,
+        quantity: cantidadHuevos,
+        vasos: 1,
+        costo: Math.round(costoHuevos),
+        category: huevosProduct.category,
+        compra: huevosProduct.compra,
+        price: huevosProduct.price,
+        stock: huevosProduct.stock,
+        discount_percentage: "0.00"
+      };
+      
+      const productoQueso = {
+        id: quesoProduct.id,
+        name: quesoProduct.name,
+        quantity: parseFloat(cantidadQueso.toFixed(2)),
+        vasos: 1,
+        costo: Math.round(costoQueso),
+        category: quesoProduct.category,
+        compra: quesoProduct.compra,
+        price: quesoProduct.price,
+        stock: quesoProduct.stock,
+        ganancia: quesoProduct.ganancia,
+        discount_percentage: "0.00"
+      };
+      
+      const productoHarina = {
+        id: harinaProduct.id,
+        name: harinaProduct.name,
+        quantity: cantidadHarina,
+        vasos: 1,
+        costo: Math.round(costoHarina),
+        category: harinaProduct.category,
+        compra: harinaProduct.compra,
+        price: harinaProduct.price,
+        stock: harinaProduct.stock,
+        ganancia: harinaProduct.ganancia,
+        discount_percentage: "0.00"
+      };
+      
+      // 6. Añadir productos a la lista
+      this.salsasPedido.push(productoVaso);
+      this.salsasPedido.push(productoHuevos);
+      this.salsasPedido.push(productoQueso);
+      this.salsasPedido.push(productoHarina);
+      
+      console.log('✅ Productos automáticos añadidos:', {
+        vaso: productoVaso,
+        huevos: productoHuevos,
+        queso: productoQueso,
+        harina: productoHarina
+      });
     },
     async getProducts() {
       // Iniciando peticion

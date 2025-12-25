@@ -1,0 +1,1975 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FagottoERP - Metas Diarias</title>
+    <link rel="icon" type="image/x-icon" href="../assets/css/negro.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!--helpers-->
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+    <script src="../assets/helpers/helperFunctions.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --background-gradient: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+            --card-background: rgba(255, 255, 255, 0.9);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --border-radius: 16px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background-gradient);
+            color: var(--text-primary);
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .modern-header {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .modern-header .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+
+
+        .modern-card {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            overflow: hidden;
+        }
+
+        .modern-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .meta-card {
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        /* Barra de Progreso Mejorada */
+        .progress-container {
+            position: relative;
+            height: 60px;
+            background: linear-gradient(145deg, #f0f4f8, #e2e8f0);
+            border-radius: 30px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar-animated {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+            background-size: 200% 100%;
+            border-radius: 30px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            animation: shimmer 2s linear infinite;
+        }
+
+        .progress-bar-animated.completed {
+            background: linear-gradient(90deg, #10b981 0%, #34d399 50%, #10b981 100%);
+            background-size: 200% 100%;
+            animation: shimmer 2s linear infinite, celebrate 0.6s ease-in-out;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.02); }
+            50% { transform: scale(0.98); }
+            75% { transform: scale(1.01); }
+        }
+
+        .progress-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: #1e293b;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Mensaje de Felicitaciones */
+        .congratulations-banner {
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+            animation: bounceIn 0.6s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .congratulations-banner i {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            animation: rotate 2s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .congratulations-banner h3 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+
+        /* Calendario de Días del Mes */
+        .month-calendar {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: linear-gradient(145deg, #ffffff, #f8fafc);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .calendar-header {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+            gap: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .days-grid {
+                grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+                gap: 0.4rem;
+            }
+        }
+
+        .day-item {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .day-item.completed {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+        }
+
+        .day-item.completed::after {
+            content: '✓';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .day-item.today {
+            border: 2px solid var(--primary-color);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 700;
+        }
+
+        .day-item.pending {
+            background: #e2e8f0;
+            color: var(--text-secondary);
+        }
+
+        .day-item:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .meta-card.cumplida {
+            border-left-color: var(--success-color);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .meta-card.no-cumplida {
+            border-left-color: var(--danger-color);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .sucursal-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .meta-input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            padding: 1.5rem;
+        }
+
+        .meta-input-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .meta-input-wrapper label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .meta-input-wrapper input {
+            padding: 0.5rem 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .meta-input-wrapper input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .sucursal-dashboard-card {
+            background: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .sucursal-dashboard-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            border-color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .sucursal-dashboard-card:hover {
+                transform: translateY(-4px) scale(1.01);
+            }
+        }
+
+        .sucursal-dashboard-header {
+            padding: 1.25rem;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .sucursal-dashboard-header.cumplida {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .sucursal-dashboard-header.no-cumplida {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .sucursal-dashboard-body {
+            padding: 1.5rem;
+        }
+
+        .meta-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .meta-stat:hover {
+            transform: translateX(8px);
+            padding-left: 0.5rem;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .meta-stat:hover {
+                transform: translateX(4px);
+            }
+        }
+
+        .meta-stat:last-child {
+            border-bottom: none;
+        }
+
+        .meta-stat-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .meta-stat-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .progress-bar-custom {
+            height: 12px;
+            border-radius: 6px;
+            background: var(--border-color);
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-fill.success {
+            background: var(--success-color);
+        }
+
+        .progress-fill.danger {
+            background: var(--danger-color);
+        }
+
+        .btn-primary-custom {
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary-custom.active {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+        }
+
+        .local-meta-item {
+            background: var(--card-background);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s;
+        }
+
+        .local-meta-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow);
+        }
+
+        .local-nombre {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .meta-input-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .meta-input-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .meta-input {
+            width: 200px;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .meta-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-guardar {
+            background: var(--success-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-guardar:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .modern-header {
+                padding: 0.75rem 1rem;
+            }
+
+            .modern-header .navbar-brand {
+                font-size: 1.2rem;
+            }
+
+            .btn-primary-custom {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .btn-primary-custom span {
+                display: none;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .sucursal-dashboard-body {
+                padding: 1rem;
+            }
+
+            .month-calendar {
+                padding: 1rem;
+            }
+
+            .congratulations-banner {
+                padding: 1rem;
+            }
+
+            .congratulations-banner i {
+                font-size: 2rem;
+            }
+
+            .congratulations-banner h3 {
+                font-size: 1.25rem;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+            background: var(--card-background);
+            border-radius: var(--border-radius);
+            border: 2px dashed var(--border-color);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.3;
+            color: var(--primary-color);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.5; }
+        }
+
+        /* Corazones flotantes estilo Facebook Live */
+        .hearts-celebration-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        .floating-heart-live {
+            position: absolute;
+            bottom: -50px;
+            font-size: 30px;
+            animation: floatUpLive 4s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes floatUpLive {
+            0% {
+                bottom: -50px;
+                opacity: 1;
+                transform: translateX(0) scale(0.8) rotate(0deg);
+            }
+            25% {
+                opacity: 1;
+                transform: translateX(-20px) scale(1) rotate(-10deg);
+            }
+            50% {
+                opacity: 1;
+                transform: translateX(20px) scale(1.2) rotate(10deg);
+            }
+            75% {
+                opacity: 0.8;
+                transform: translateX(-10px) scale(1) rotate(-5deg);
+            }
+            100% {
+                bottom: 110%;
+                opacity: 0;
+                transform: translateX(10px) scale(0.5) rotate(5deg);
+            }
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-state .btn {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header class="navbar navbar-expand-lg modern-header">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="./dashboard.html">
+                <i class="fas fa-chart-line"></i>
+                FagottoERP - Metas Semanales
+            </a>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary-custom active" onclick="cambiarVista('configuracion')">
+                    <i class="fas fa-cog"></i>
+                    <span>Configurar</span>
+                </button>
+                <button class="btn btn-primary-custom" onclick="cambiarVista('dashboard')">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Ver Progreso</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid">
+        <!-- MAIN CONTENT -->
+        <main class="px-md-4 py-4">
+            <!-- CONFIGURACIÓN POR SEMANAS -->
+            <div id="configSection">
+                <div class="section-title">
+                    <i class="fas fa-calendar-week"></i>
+                    Configurar Metas por Semana
+                </div>
+                
+                <!-- Selector de Mes/Año y Local -->
+                <div class="modern-card mb-4">
+                    <div class="card-body p-3">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <label class="form-label mb-0 fw-bold">
+                                    <i class="fas fa-calendar"></i> Mes:
+                                </label>
+                            </div>
+                            <div class="col-auto">
+                                <select class="form-control" id="mesMeta" onchange="cargarSemanasDelMes()">
+                                    <option value="1">Enero</option>
+                                    <option value="2">Febrero</option>
+                                    <option value="3">Marzo</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Mayo</option>
+                                    <option value="6">Junio</option>
+                                    <option value="7">Julio</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Septiembre</option>
+                                    <option value="10">Octubre</option>
+                                    <option value="11">Noviembre</option>
+                                    <option value="12">Diciembre</option>
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <select class="form-control" id="anioMeta" onchange="cargarSemanasDelMes()">
+                                    <!-- Se llena dinámicamente -->
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label mb-0 fw-bold">
+                                    <i class="fas fa-store"></i> Local:
+                                </label>
+                            </div>
+                            <div class="col-auto">
+                                <select class="form-control" id="localSelect" onchange="cargarSemanasDelMes()">
+                                    <!-- Se llena dinámicamente -->
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="semanasContainer">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Cargando...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DASHBOARD DE PROGRESO -->
+            <div id="dashboardSection" style="display: none;">
+                <div class="section-title">
+                    <i class="fas fa-chart-bar"></i>
+                    Progreso del Día - <span id="fechaActualDashboard" style="font-weight: 600; color: var(--primary-color);"></span>
+                </div>
+                
+                <div id="dashboardContainer" class="dashboard-grid">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let locales = [];
+        let currentView = 'configuracion';
+        let localSeleccionado = null;
+
+        $(document).ready(function() {
+            inicializarMesAnio();
+            actualizarFechaActual();
+            cargarLocales();
+        });
+
+        function cambiarVista(vista) {
+            currentView = vista;
+            
+            // Ocultar todas las secciones
+            $('#configSection').hide();
+            $('#dashboardSection').hide();
+            
+            // Remover active de todos los botones
+            $('.btn-primary-custom').removeClass('active');
+            
+            // Mostrar sección y activar botón
+            if (vista === 'configuracion') {
+                $('#configSection').show();
+                $("button[onclick*='configuracion']").addClass('active');
+            } else if (vista === 'dashboard') {
+                $('#dashboardSection').show();
+                $("button[onclick*='dashboard']").addClass('active');
+                cargarDashboardSimple();
+            }
+            
+            console.log('Vista cambiada a:', vista);
+        }
+
+        function inicializarMesAnio() {
+            const hoy = new Date();
+            const mesActual = hoy.getMonth() + 1;
+            const anioActual = hoy.getFullYear();
+            
+            // Llenar selector de años (año actual - 1 hasta año actual + 1)
+            let opcionesAnio = '';
+            for (let i = anioActual - 1; i <= anioActual + 1; i++) {
+                opcionesAnio += `<option value="${i}" ${i === anioActual ? 'selected' : ''}>${i}</option>`;
+            }
+            $('#anioMeta').html(opcionesAnio);
+            
+            // Seleccionar mes actual
+            $('#mesMeta').val(mesActual);
+        }
+
+        function actualizarFechaActual() {
+            const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+            const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            const hoy = new Date();
+            const nombreDia = dias[hoy.getDay()];
+            const nombreMes = meses[hoy.getMonth()];
+            const fechaFormateada = `${nombreDia} ${hoy.getDate()} de ${nombreMes} ${hoy.getFullYear()}`;
+            $('#fechaActualDashboard').text(fechaFormateada);
+        }
+
+        function cargarLocales() {
+            console.log('🏪 cargarLocales - INICIO');
+            __conection(
+                {
+                    url: generarURLApi(`/getApps`),
+                    header: credentials(),
+                    method: 'POST'
+                },
+                {},
+                function (response) {
+                    console.log('✅ Locales cargados:', response);
+                    locales = response;
+                    
+                    // Llenar select de locales
+                    $('#localSelect').empty();
+                    locales.forEach(local => {
+                        $('#localSelect').append(`<option value="${local.id}">${local.name}</option>`);
+                        console.log(`  📍 Local agregado: ${local.name} (ID: ${local.id})`);
+                    });
+                    
+                    if (locales.length > 0) {
+                        localSeleccionado = locales[0].id;
+                        console.log(`🎯 Local seleccionado por defecto: ${locales[0].name}`);
+                        cargarSemanasDelMes();
+                    } else {
+                        console.warn('⚠️ No hay locales disponibles');
+                    }
+                },
+                function(error) {
+                    console.error('❌ Error al cargar locales:', error);
+                }
+            );
+        }
+
+        function cargarSemanasDelMes() {
+            console.log('🔧 cargarSemanasDelMes - INICIO');
+            const mes = parseInt($('#mesMeta').val());
+            const anio = parseInt($('#anioMeta').val());
+            localSeleccionado = parseInt($('#localSelect').val());
+            
+            console.log(`📅 Cargando semanas para: Mes=${mes}, Año=${anio}, Local=${localSeleccionado}`);
+            
+            const diasEnMes = new Date(anio, mes, 0).getDate();
+            console.log(`📆 Días en el mes: ${diasEnMes}`);
+            
+            // Dividir el mes en semanas (grupos de 7 días)
+            const semanas = [];
+            let diaInicio = 1;
+            let semanaNum = 1;
+            
+            while (diaInicio <= diasEnMes) {
+                const diaFin = Math.min(diaInicio + 6, diasEnMes);
+                semanas.push({
+                    numero: semanaNum,
+                    inicio: diaInicio,
+                    fin: diaFin,
+                    dias: []
+                });
+                
+                for (let dia = diaInicio; dia <= diaFin; dia++) {
+                    semanas[semanaNum - 1].dias.push(dia);
+                }
+                
+                diaInicio = diaFin + 1;
+                semanaNum++;
+            }
+            
+            console.log(`📊 Semanas generadas:`, semanas);
+            renderizarSemanas(semanas, mes, anio);
+        }
+
+        function renderizarSemanas(semanas, mes, anio) {
+            console.log('🎨 renderizarSemanas - INICIO', {semanas, mes, anio});
+            let html = '';
+            
+            semanas.forEach(semana => {
+                html += `
+                    <div class="modern-card mb-4">
+                        <div class="sucursal-header" style="background: var(--primary-gradient); color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <i class="fas fa-calendar-week"></i>
+                                Semana ${semana.numero} - Días ${semana.inicio} al ${semana.fin}
+                            </div>
+                            <div style="font-size: 1.2rem; font-weight: 700;">
+                                Total: $<span id="total_semana_${semana.numero}">0</span>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row g-3">
+                `;
+                
+                semana.dias.forEach(dia => {
+                    const fecha = new Date(anio, mes - 1, dia);
+                    const nombreDia = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][fecha.getDay()];
+                    
+                    html += `
+                        <div class="col-md-6 col-lg-4 col-xl-3">
+                            <div style="background: white; border: 2px solid var(--border-color); border-radius: 12px; padding: 1rem; transition: all 0.3s;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                    <span style="font-weight: 600; color: var(--primary-color);">${nombreDia}</span>
+                                    <span style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary);">${dia}</span>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" 
+                                           class="form-control meta-dia-input" 
+                                           id="meta_${dia}" 
+                                           data-semana="${semana.numero}"
+                                           placeholder="Meta del día"
+                                           value=""
+                                           min="0"
+                                           oninput="calcularTotalSemana(${semana.numero})">
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                            </div>
+                            <div class="mt-3 text-end">
+                                <button class="btn btn-guardar" onclick="guardarMetasSemana(${semana.numero}, [${semana.dias.join(',')}], ${mes}, ${anio})">
+                                    <i class="fas fa-save"></i>
+                                    Guardar Semana ${semana.numero}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            $('#semanasContainer').html(html);
+            
+            // Cargar metas existentes
+            cargarMetasExistentes(mes, anio);
+        }
+
+        function cargarMetasExistentes(mes, anio) {
+            __conection(
+                {
+                    url: generarURLApi(`/web/metas-locales?mes=${mes}&anio=${anio}`),
+                    header: credentials(),
+                    dev: true,
+                    method: 'GET'
+                },
+                {},
+                function(response) {
+                    const metas = response.data || response;
+                    const semanasConDatos = new Set();
+                    
+                    metas.forEach(meta => {
+                        if (meta.aplication_id === localSeleccionado && meta.dia) {
+                            $(`#meta_${meta.dia}`).val(meta.meta_diaria);
+                            const semana = $(`#meta_${meta.dia}`).data('semana');
+                            if (semana) semanasConDatos.add(semana);
+                        }
+                    });
+                    
+                    // Calcular totales de las semanas que tienen datos
+                    semanasConDatos.forEach(semana => calcularTotalSemana(semana));
+                },
+                function(error) {
+                    console.log('No hay metas guardadas aún');
+                }
+            );
+        }
+
+        function calcularTotalSemana(semanaNum) {
+            let total = 0;
+            $(`.meta-dia-input[data-semana="${semanaNum}"]`).each(function() {
+                const valor = parseFloat($(this).val()) || 0;
+                total += valor;
+            });
+            
+            // Formatear con separadores de miles
+            const totalFormateado = total.toLocaleString('es-MX', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            });
+            
+            $(`#total_semana_${semanaNum}`).text(totalFormateado);
+        }
+
+        async function guardarMetasSemana(semanaNum, dias, mes, anio) {
+            let metasGuardadas = 0;
+            
+            for (const dia of dias) {
+                const metaValue = $(`#meta_${dia}`).val();
+                
+                if (metaValue && parseFloat(metaValue) > 0) {
+                    await guardarMetaDia(dia, metaValue, mes, anio);
+                    metasGuardadas++;
+                }
+            }
+            
+            if (metasGuardadas > 0) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Guardado!',
+                    text: `Se guardaron ${metasGuardadas} metas de la Semana ${semanaNum}`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sin cambios',
+                    text: 'No hay metas para guardar'
+                });
+            }
+        }
+
+        function guardarMetaDia(dia, metaValue, mes, anio) {
+            return new Promise((resolve, reject) => {
+                __conection(
+                    {
+                        url: generarURLApi('/web/metas-locales/store'),
+                        header: credentials(),
+                        dev: true,
+                        method: 'POST'
+                    },
+                    {
+                        aplication_id: localSeleccionado,
+                        mes: mes,
+                        anio: anio,
+                        dia: dia,
+                        meta_diaria: metaValue
+                    },
+                    function(response) {
+                        resolve(response);
+                    },
+                    function(error) {
+                        reject(error);
+                    }
+                );
+            });
+        }
+
+        function renderizarLocales() {
+            if (!locales || locales.length === 0) {
+                $('#metasContainer').html(`
+                    <div class="empty-state">
+                        <i class="fas fa-store-slash"></i>
+                        <p>No hay locales disponibles</p>
+                    </div>
+                `);
+                return;
+            }
+
+            let html = '';
+            locales.forEach(local => {
+                html += `
+                    <div class="local-meta-item">
+                        <div class="local-nombre">
+                            <i class="fas fa-store"></i>
+                            ${local.name}
+                        </div>
+                        <div class="meta-input-container">
+                            <span class="meta-input-label">Meta Diaria:</span>
+                            <input 
+                                type="number" 
+                                class="meta-input" 
+                                id="meta-${local.id}" 
+                                placeholder="$0" 
+                                min="0" 
+                                step="1000"
+                                value="0">
+                            <button class="btn-guardar" onclick="guardarMeta(${local.id}, '${local.name.replace(/'/g, "\\'")}')">
+                                <i class="fas fa-save"></i> Guardar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            $('#metasContainer').html(html);
+            
+            // Cargar metas existentes del mes seleccionado
+            cargarMetasDelMes();
+        }
+
+        async function cargarMetasDelMes() {
+            const mes = $('#mesMeta').val();
+            const anio = $('#anioMeta').val();
+            
+            console.log(`📅 Cargando metas para ${obtenerNombreMes(mes)} ${anio}`);
+            
+            // Recargar el formulario con las metas del mes seleccionado
+            __conection(
+                {
+                    url: generarURLApi(`/web/metas-locales?mes=${mes}&anio=${anio}`),
+                    header: credentials(),
+                    dev: true,
+                    method: 'GET'
+                },
+                {},
+                function(response) {
+                    const metasDelMes = response.data || response;
+                    
+                    // Actualizar los inputs con las metas cargadas
+                    locales.forEach(local => {
+                        const metaExistente = metasDelMes.find(m => m.aplication_id === local.id);
+                        const inputElement = $(`#meta-${local.id}`);
+                        
+                        if (metaExistente && inputElement.length) {
+                            inputElement.val(metaExistente.meta_diaria);
+                        } else if (inputElement.length) {
+                            inputElement.val('');
+                        }
+                    });
+                    
+                    console.log(`✅ Metas cargadas para ${obtenerNombreMes(mes)} ${anio}`);
+                },
+                function(error) {
+                    console.error('Error al cargar metas:', error);
+                }
+            );
+        }
+
+        function obtenerNombreMes(mes) {
+            const meses = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            return meses[parseInt(mes)];
+        }
+
+        function guardarMeta(localId, localNombre) {
+            const metaValue = parseFloat($(`#meta-${localId}`).val()) || 0;
+            const mes = $('#mesMeta').val();
+            const anio = $('#anioMeta').val();
+            
+            if (!metaValue || metaValue <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atención',
+                    text: 'Por favor ingresa una meta válida'
+                });
+                return;
+            }
+
+            // Guardar en base de datos
+            __conection(
+                {
+                    url: generarURLApi('/web/metas-locales/store'),
+                    header: credentials(),
+                    dev: true,
+                    method: 'POST'
+                },
+                {
+                    aplication_id: localId,
+                    mes: mes,
+                    anio: anio,
+                    meta_diaria: metaValue
+                },
+                function(response) {
+                    if (response.success || response.meta) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Meta guardada',
+                            text: `Meta de $${formatNumber(metaValue)} guardada para ${localNombre} - ${obtenerNombreMes(mes)} ${anio}`,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        throw new Error(response.message || 'Error al guardar');
+                    }
+                },
+                function(error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || 'No se pudo guardar la meta'
+                    });
+                }
+            );
+        }
+
+        // Función para calcular el inicio de la semana (lunes)
+        function getInicioSemana(fecha) {
+            const d = new Date(fecha);
+            const day = d.getDay(); // 0 = domingo, 1 = lunes, ...
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Ajustar al lunes
+            return new Date(d.setDate(diff));
+        }
+
+        // Función para calcular el fin de la semana (domingo)
+        function getFinSemana(fecha) {
+            const inicio = getInicioSemana(fecha);
+            const fin = new Date(inicio);
+            fin.setDate(inicio.getDate() + 6);
+            return fin;
+        }
+
+        // Función para formatear fecha como YYYY-MM-DD
+        function formatearFecha(fecha) {
+            return fecha.getFullYear() + '-' + 
+                   String(fecha.getMonth() + 1).padStart(2, '0') + '-' + 
+                   String(fecha.getDate()).padStart(2, '0');
+        }
+
+        async function cargarDashboard() {
+            $('#dashboardContainer').html(`
+                <div class="loading" style="grid-column: 1 / -1;">
+                    <div class="spinner"></div>
+                    <p>Cargando metas del día...</p>
+                </div>
+            `);
+
+            const today = new Date();
+            const mesActual = today.getMonth() + 1;
+            const anioActual = today.getFullYear();
+            const diaActual = today.getDate();
+            
+            // Primero verificar si hay metas configuradas para el día de hoy
+            __conection(
+                {
+                    url: generarURLApi(`/web/metas-locales?mes=${mesActual}&anio=${anioActual}&dia=${diaActual}`),
+                    header: credentials(),
+                    dev: true,
+                    method: 'GET'
+                },
+                {},
+                function(metasDelDia) {
+                    console.log('📊 Respuesta de metas:', metasDelDia);
+                    
+                    let metasData = metasDelDia.data || metasDelDia;
+                    
+                    // FILTRAR SOLO LAS METAS DEL DÍA ACTUAL
+                    if (Array.isArray(metasData)) {
+                        metasData = metasData.filter(meta => parseInt(meta.dia) === diaActual);
+                        console.log(`🔍 Metas filtradas para el día ${diaActual}:`, metasData);
+                    }
+                    
+                    // Verificar si hay metas configuradas para hoy
+                    if (!metasData || metasData.length === 0) {
+                        $('#dashboardContainer').html(`
+                            <div class="empty-state" style="grid-column: 1 / -1;">
+                                <i class="fas fa-calendar-times"></i>
+                                <h3>No hay metas configuradas para el día ${diaActual}</h3>
+                                <p>Debes configurar la meta para el día de hoy (${diaActual}) en la sección "Configurar Metas por Semana"</p>
+                                <button class="btn btn-primary-custom mt-3" onclick="cambiarVista('semanas')">
+                                    <i class="fas fa-calendar-week"></i>
+                                    Configurar Metas
+                                </button>
+                            </div>
+                        `);
+                        return;
+                    }
+                    
+                    console.log(`✅ Hay ${metasData.length} meta(s) para el día ${diaActual}`);
+                    
+                    // Hay metas configuradas para hoy, cargar ventas
+                    cargarVentasYCompararConMetas(metasData);
+                },
+                function(error) {
+                    console.error('Error al cargar metas:', error);
+                    $('#dashboardContainer').html(`
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Error al cargar metas</h3>
+                            <p>No se pudieron obtener las metas configuradas</p>
+                        </div>
+                    `);
+                }
+            );
+        }
+
+        function cargarVentasYCompararConMetas(metasDelDia) {
+            const today = new Date();
+            const startDate = formatearFecha(today) + ' 00:00:00';
+            const endDate = formatearFecha(today) + ' 23:59:59';
+
+            console.log(`📅 Cargando ventas del día: ${formatearFecha(today)}`);
+
+            // Obtener ventas del día
+            __conection(
+                {
+                    url: generarURLApi(`/getAppCounters?startDate=${startDate}&endDate=${endDate}`),
+                    header: credentials(),
+                    dev: true,
+                    method: 'GET'
+                },
+                {},
+                function (ventasDelDia) {
+                    console.log('📊 Ventas del día:', ventasDelDia);
+                    procesarDashboardConMetasConfiguradas(ventasDelDia, metasDelDia);
+                },
+                function(error) {
+                    console.error('Error al cargar ventas del día:', error);
+                    $('#dashboardContainer').html(`
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Error al cargar datos</h3>
+                            <p>No se pudieron obtener las ventas</p>
+                        </div>
+                    `);
+                }
+            );
+
+            // Auto-refresh cada 5 minutos (300000 ms)
+            setTimeout(() => {
+                if (currentView === 'dashboard') {
+                    cargarDashboard();
+                }
+            }, 300000);
+        }
+
+        function procesarDashboardConMetasConfiguradas(ventasDelDia, metasDelDia) {
+            const dashboardData = [];
+
+            console.log('🔍 Procesando metas configuradas...');
+
+            // Función auxiliar para extraer balance total
+            function extraerBalanceTotal(counters, localId) {
+                let balance = 0;
+                
+                for (const appKey in counters) {
+                    const appIdName = appKey.split(',', 2);
+                    const appId = parseInt(appIdName[0]);
+                    
+                    if (appId === localId) {
+                        if (counters[appKey]?.original?.counters?.balanceTotal) {
+                            balance = parseFloat(counters[appKey].original.counters.balanceTotal);
+                        } else if (counters[appKey]?.counters?.balanceTotal) {
+                            balance = parseFloat(counters[appKey].counters.balanceTotal);
+                        } else if (counters[appKey]?.balanceTotal) {
+                            balance = parseFloat(counters[appKey].balanceTotal);
+                        }
+                        break;
+                    }
+                }
+                
+                return balance;
+            }
+
+            // Recorrer cada meta configurada
+            metasDelDia.forEach(meta => {
+                // Buscar el local
+                const local = locales.find(l => l.id === meta.aplication_id);
+                if (!local) return;
+
+                // Obtener ventas del día para este local
+                const ventasHoy = extraerBalanceTotal(ventasDelDia, local.id);
+                const metaDiaria = parseFloat(meta.meta_diaria);
+                
+                // Calcular diferencia y porcentaje
+                const diferencia = ventasHoy - metaDiaria;
+                const porcentaje = metaDiaria > 0 ? Math.round((ventasHoy / metaDiaria) * 100) : 0;
+                const cumplida = ventasHoy >= metaDiaria;
+
+                dashboardData.push({
+                    sucursal_id: local.id,
+                    sucursal_nombre: local.name,
+                    meta_diaria: metaDiaria,
+                    ventas_hoy: ventasHoy,
+                    diferencia: diferencia,
+                    porcentaje: porcentaje,
+                    cumplida: cumplida
+                });
+
+                console.log(`📊 ${local.name}:`);
+                console.log(`   Meta diaria: $${metaDiaria.toFixed(0)}`);
+                console.log(`   Ventas hoy: $${ventasHoy.toFixed(0)}`);
+                console.log(`   Progreso: ${porcentaje}%`);
+            });
+
+            // Ordenar por porcentaje de cumplimiento
+            dashboardData.sort((a, b) => b.porcentaje - a.porcentaje);
+
+            console.log('📈 Dashboard final:', dashboardData);
+
+            renderizarDashboardConMetas(dashboardData);
+        }
+
+        function renderizarDashboardConMetas(data) {
+            if (!data || data.length === 0) {
+                $('#dashboardContainer').html(`
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <i class="fas fa-calendar-times"></i>
+                        <h3>No hay metas configuradas para hoy</h3>
+                        <p>Configura las metas para empezar a hacer seguimiento</p>
+                    </div>
+                `);
+                return;
+            }
+
+            let html = '';
+            data.forEach(sucursal => {
+                const cumplida = sucursal.cumplida;
+                const porcentaje = Math.min(sucursal.porcentaje, 100);
+                const estadoClass = cumplida ? 'cumplida' : 'no-cumplida';
+                
+                html += `
+                    <div class="sucursal-dashboard-card">
+                        <div class="sucursal-dashboard-header ${estadoClass}">
+                            <i class="fas fa-${cumplida ? 'check-circle' : 'chart-line'}"></i>
+                            ${sucursal.sucursal_nombre}
+                        </div>
+                        <div class="sucursal-dashboard-body">
+                            ${cumplida ? `
+                                <div class="congratulations-banner">
+                                    <i class="fas fa-trophy"></i>
+                                    <h3>¡Meta Superada!</h3>
+                                    <p style="margin: 0; font-size: 1rem;">¡Excelente trabajo! 🎉</p>
+                                </div>
+                            ` : `
+                                <div style="background: rgba(239, 68, 68, 0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; text-align: center;">
+                                    <i class="fas fa-bell" style="color: var(--danger-color); font-size: 2rem;"></i>
+                                    <p style="margin: 0.5rem 0 0 0; font-weight: 600; color: var(--danger-color);">¡Urgente! Necesitan más ventas hoy</p>
+                                </div>
+                            `}
+                            
+                            <!-- Stats Grid -->
+                            <div class="meta-stat">
+                                <span class="meta-stat-label">
+                                    <i class="fas fa-bullseye"></i> Meta del Día
+                                </span>
+                                <span class="meta-stat-value" style="color: var(--text-primary);">
+                                    $${formatNumber(sucursal.meta_diaria)}
+                                </span>
+                            </div>
+                            
+                            <div class="meta-stat">
+                                <span class="meta-stat-label">
+                                    <i class="fas fa-cash-register"></i> Ventas Actuales
+                                </span>
+                                <span class="meta-stat-value" style="color: ${cumplida ? 'var(--success-color)' : 'var(--danger-color)'}">
+                                    $${formatNumber(sucursal.ventas_hoy)}
+                                </span>
+                            </div>
+
+                            <!-- Diferencia -->
+                            <div style="background: ${cumplida ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'}; 
+                                        padding: 0.75rem; 
+                                        border-radius: 8px; 
+                                        margin: 1rem 0;
+                                        text-align: center;">
+                                <span style="font-size: 0.9rem; color: var(--text-secondary);">Diferencia:</span>
+                                <span style="font-size: 1.5rem; 
+                                             font-weight: 700; 
+                                             display: block;
+                                             margin-top: 0.25rem;
+                                             color: ${cumplida ? 'var(--success-color)' : 'var(--danger-color)'};">
+                                    ${sucursal.diferencia >= 0 ? '+' : '-'}$${formatNumber(Math.abs(sucursal.diferencia))}
+                                </span>
+                            </div>
+
+                            <!-- Barra de Progreso -->
+                            <div class="progress-container">
+                                <div class="progress-label">
+                                    ${cumplida ? '<i class="fas fa-check-circle"></i>' : ''}
+                                    <span>${porcentaje}%</span>
+                                </div>
+                                <div class="progress-bar-animated ${cumplida ? 'completed' : ''}" 
+                                     style="width: ${Math.min(porcentaje, 100)}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            $('#dashboardContainer').html(html);
+        }
+
+        // Función antigua para compatibilidad (NO SE USA)
+        function procesarDashboardConMetas(countersData, metasDelMes) {
+            const dashboardData = [];
+
+            console.log('🔍 Analizando counters:', countersData);
+
+            // DEBUG: Ver la estructura del primer elemento
+            const firstKey = Object.keys(countersData)[0];
+            console.log('🔑 Primera key:', firstKey);
+            console.log('📦 Estructura completa:', JSON.stringify(countersData[firstKey], null, 2));
+
+            // Recorrer cada local y comparar con su meta
+            locales.forEach(local => {
+                // Buscar este local en los contadores
+                // La key tiene formato "id,nombre"
+                let ventasHoy = 0;
+                let encontrado = false;
+
+                for (const appKey in countersData) {
+                    const appIdName = appKey.split(',', 2);
+                    const appId = parseInt(appIdName[0]);
+                    const appName = appIdName[1] || appKey;
+
+                    // Comparar por ID
+                    if (appId === local.id) {
+                        encontrado = true;
+                        
+                        console.log(`🔍 Encontrado ${local.name}, estructura:`, countersData[appKey]);
+                        
+                        // Obtener ventas desde la estructura correcta
+                        if (countersData[appKey] && 
+                            countersData[appKey].original && 
+                            countersData[appKey].original.counters) {
+                            ventasHoy = parseFloat(countersData[appKey].original.counters.balanceTotal || 0);
+                            console.log(`💰 ${local.name}: $${ventasHoy} (desde balanceTotal)`);
+                        } else {
+                            // Intentar otras rutas
+                            console.log('⚠️ No encontré original.counters, probando otras rutas...');
+                            if (countersData[appKey].counters) {
+                                ventasHoy = parseFloat(countersData[appKey].counters.balanceTotal || 0);
+                                console.log(`💰 ${local.name}: $${ventasHoy} (desde counters directo)`);
+                            } else if (countersData[appKey].balanceTotal) {
+                                ventasHoy = parseFloat(countersData[appKey].balanceTotal || 0);
+                                console.log(`💰 ${local.name}: $${ventasHoy} (desde balanceTotal directo)`);
+                            }
+                        }
+                        break;
+                    }
+                }
+
+                // Obtener meta desde la base de datos del mes actual
+                const metaData = metasDelMes.find(m => m.aplication_id === local.id);
+                const metaDiaria = metaData ? parseFloat(metaData.meta_diaria) : 0;
+
+                if (metaDiaria > 0) {
+                    // Calcular diferencia y porcentaje
+                    const diferencia = ventasHoy - metaDiaria;
+                    const porcentaje = metaDiaria > 0 ? Math.round((ventasHoy / metaDiaria) * 100) : 0;
+                    const cumplida = ventasHoy >= metaDiaria;
+
+                    // Obtener días del mes actual
+                    const hoy = new Date();
+                    const diaActual = hoy.getDate();
+                    const diasDelMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+
+                    dashboardData.push({
+                        sucursal_id: local.id,
+                        sucursal_nombre: local.name,
+                        meta_dia: metaDiaria,
+                        ventas_hoy: ventasHoy,
+                        diferencia: diferencia,
+                        porcentaje: porcentaje,
+                        cumplida: cumplida,
+                        dia_actual: diaActual,
+                        dias_del_mes: diasDelMes
+                    });
+
+                    console.log(`📊 ${local.name}: Meta=$${metaDiaria}, Ventas=$${ventasHoy}, %=${porcentaje}%`);
+                }
+            });
+
+            // Ordenar por porcentaje de cumplimiento (mayor a menor)
+            dashboardData.sort((a, b) => b.porcentaje - a.porcentaje);
+
+            console.log('📈 Dashboard final:', dashboardData);
+
+            renderizarDashboard(dashboardData);
+        }
+
+        function renderizarDashboard(data) {
+            if (!data || data.length === 0) {
+                $('#dashboardContainer').html(`
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <i class="fas fa-bullseye"></i>
+                        <h3>No hay metas configuradas</h3>
+                        <p>Configure las metas mensuales para ver el seguimiento en tiempo real</p>
+                        <button class="btn btn-primary-custom" onclick="cambiarVista('configuracion')">
+                            <i class="fas fa-cog"></i>
+                            Ir a Configuración
+                        </button>
+                    </div>
+                `);
+                return;
+            }
+
+            let html = '';
+            data.forEach(sucursal => {
+                const cumplida = sucursal.cumplida;
+                const porcentaje = Math.min(sucursal.porcentaje, 100);
+                const estadoClass = cumplida ? 'cumplida' : 'no-cumplida';
+                
+                // Generar calendario de días
+                let calendarioHTML = '<div class="days-grid">';
+                for (let dia = 1; dia <= sucursal.dias_del_mes; dia++) {
+                    let dayClass = 'pending';
+                    if (dia < sucursal.dia_actual) {
+                        // Días pasados se marcan como completados si la meta se cumplió
+                        dayClass = cumplida ? 'completed' : 'pending';
+                    } else if (dia === sucursal.dia_actual) {
+                        dayClass = 'today';
+                    }
+                    calendarioHTML += `<div class="day-item ${dayClass}">${dia}</div>`;
+                }
+                calendarioHTML += '</div>';
+
+                html += `
+                    <div class="sucursal-dashboard-card">
+                        <div class="sucursal-dashboard-header ${estadoClass}">
+                            <i class="fas fa-${cumplida ? 'check-circle' : 'exclamation-circle'}"></i>
+                            ${sucursal.sucursal_nombre}
+                        </div>
+                        <div class="sucursal-dashboard-body">
+                            ${cumplida ? `
+                                <div class="congratulations-banner">
+                                    <i class="fas fa-trophy"></i>
+                                    <h3>¡Felicitaciones!</h3>
+                                    <p style="margin: 0; font-size: 1rem;">Meta del día cumplida 🎉</p>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="stats-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                <div class="meta-stat">
+                                    <span class="meta-stat-label">Meta del día</span>
+                                    <span class="meta-stat-value">$${formatNumber(sucursal.meta_dia)}</span>
+                                </div>
+                                <div class="meta-stat">
+                                    <span class="meta-stat-label">Ventas Hoy</span>
+                                    <span class="meta-stat-value" style="color: ${cumplida ? 'var(--success-color)' : 'var(--danger-color)'}">
+                                        $${formatNumber(sucursal.ventas_hoy)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Barra de Progreso Animada -->
+                            <div class="progress-container">
+                                <div class="progress-label">
+                                    ${cumplida ? '<i class="fas fa-check-circle"></i>' : ''}
+                                    <span>${porcentaje}%</span>
+                                </div>
+                                <div class="progress-bar-animated ${cumplida ? 'completed' : ''}" style="width: ${porcentaje}%"></div>
+                            </div>
+
+                            <!-- Calendario del Mes -->
+                            <div class="month-calendar">
+                                <div class="calendar-header">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Progreso del Mes (Día ${sucursal.dia_actual} de ${sucursal.dias_del_mes})
+                                </div>
+                                ${calendarioHTML}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            $('#dashboardContainer').html(html);
+        }
+
+        // Dashboard simple del día actual
+        function cargarDashboardSimple() {
+            $('#dashboardContainer').html(`
+                <div class="loading" style="grid-column: 1 / -1;">
+                    <div class="spinner"></div>
+                    <p>Cargando progreso del día...</p>
+                </div>
+            `);
+
+            const today = new Date();
+            const mes = today.getMonth() + 1;
+            const anio = today.getFullYear();
+            const dia = today.getDate();
+            const startDate = formatearFecha(today);
+            const endDate = startDate + ' 23:59:59';
+
+            // Obtener ventas del día
+            __conection(
+                {
+                    url: generarURLApi(`/getAppCounters?startDate=${startDate}&endDate=${endDate}`),
+                    header: credentials(),
+                    dev: true,
+                    method: 'GET'
+                },
+                {},
+                function (ventasHoy) {
+                    // Obtener metas del día
+                    __conection(
+                        {
+                            url: generarURLApi(`/web/metas-locales?mes=${mes}&anio=${anio}`),
+                            header: credentials(),
+                            dev: true,
+                            method: 'GET'
+                        },
+                        {},
+                        function(metasResponse) {
+                            const metas = metasResponse.data || metasResponse;
+                            renderizarDashboardDelDia(ventasHoy, metas, dia);
+                        },
+                        function(error) {
+                            console.error('Error al cargar metas:', error);
+                            renderizarDashboardDelDia(ventasHoy, [], dia);
+                        }
+                    );
+                }
+            );
+        }
+
+        function renderizarDashboardDelDia(ventasData, metas, diaActual) {
+            console.log('📊 Renderizando dashboard del día:', diaActual);
+            console.log('📋 Metas recibidas:', metas);
+            console.log('💰 Ventas data:', ventasData);
+            
+            if (!locales || locales.length === 0) {
+                $('#dashboardContainer').html(`
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <i class="fas fa-store-slash"></i>
+                        <h3>Sin datos</h3>
+                        <p>No hay locales configurados</p>
+                    </div>
+                `);
+                return;
+            }
+
+            let html = '';
+            
+            locales.forEach(local => {
+                console.log('🏪 Procesando local:', local.name, 'ID:', local.id);
+                
+                // Obtener ventas del local
+                let ventasHoy = 0;
+                for (const appKey in ventasData) {
+                    const appId = parseInt(appKey.split(',')[0]);
+                    if (appId === local.id) {
+                        if (ventasData[appKey]?.original?.counters?.balanceTotal) {
+                            ventasHoy = parseFloat(ventasData[appKey].original.counters.balanceTotal);
+                        }
+                        break;
+                    }
+                }
+                
+                console.log('💵 Ventas hoy:', ventasHoy);
+                
+                // Obtener meta del día - buscar con dia igual o sin dia (legacy)
+                const metaDelDia = metas.find(m => {
+                    const matchLocal = m.aplication_id === local.id;
+                    const matchDia = m.dia === diaActual || m.dia === null || m.dia === undefined;
+                    console.log('🎯 Comparando meta:', {
+                        meta_id: m.id,
+                        aplication_id: m.aplication_id,
+                        dia: m.dia,
+                        matchLocal,
+                        matchDia,
+                        diaActual
+                    });
+                    return matchLocal && matchDia;
+                });
+                
+                console.log('✅ Meta encontrada:', metaDelDia);
+                
+                const metaDiaria = metaDelDia ? parseFloat(metaDelDia.meta_diaria) : 0;
+                
+                if (metaDiaria > 0) {
+                    const porcentajeReal = Math.round((ventasHoy / metaDiaria) * 100);
+                    const porcentaje = Math.min(porcentajeReal, 100); // Limitar a 100%
+                    const cumplida = ventasHoy >= metaDiaria;
+                    const diferencia = ventasHoy - metaDiaria;
+                    
+                    // Mensajes motivadores según el porcentaje
+                    let mensajeMotivador = '';
+                    let iconoMensaje = '';
+                    let colorMensaje = '';
+                    
+                    if (cumplida) {
+                        const mensajesExito = [
+                            { icon: '🎉', text: '¡Increíble! Meta superada con éxito', color: '#28a745' },
+                            { icon: '🏆', text: '¡Excelente trabajo equipo! Meta alcanzada', color: '#28a745' },
+                            { icon: '⭐', text: '¡Felicidades! Siguen brillando', color: '#28a745' },
+                            { icon: '💪', text: '¡Imparables! Meta completada', color: '#28a745' },
+                            { icon: '🎯', text: '¡Diana perfecta! Meta cumplida', color: '#28a745' }
+                        ];
+                        const mensaje = mensajesExito[Math.floor(Math.random() * mensajesExito.length)];
+                        mensajeMotivador = mensaje.text;
+                        iconoMensaje = mensaje.icon;
+                        colorMensaje = mensaje.color;
+                    } else if (porcentaje >= 75) {
+                        const mensajesAlto = [
+                            { icon: '💪', text: '¡Casi allá! Solo un empujón más', color: '#ffc107' },
+                            { icon: '🔥', text: '¡Están ardiendo! No bajen el ritmo', color: '#ffc107' },
+                            { icon: '⚡', text: '¡A toda máquina! Ya casi llegan', color: '#ffc107' },
+                            { icon: '🚀', text: '¡Van volando! La meta está cerca', color: '#ffc107' }
+                        ];
+                        const mensaje = mensajesAlto[Math.floor(Math.random() * mensajesAlto.length)];
+                        mensajeMotivador = mensaje.text;
+                        iconoMensaje = mensaje.icon;
+                        colorMensaje = mensaje.color;
+                    } else if (porcentaje >= 50) {
+                        const mensajesMedio = [
+                            { icon: '💫', text: 'Buen ritmo, ¡sigan así!', color: '#17a2b8' },
+                            { icon: '🎵', text: '¡A medio camino! No aflojen', color: '#17a2b8' },
+                            { icon: '✨', text: 'Van bien, ¡con todo equipo!', color: '#17a2b8' },
+                            { icon: '⚡', text: '¡Ritmo constante! Sigan adelante', color: '#17a2b8' }
+                        ];
+                        const mensaje = mensajesMedio[Math.floor(Math.random() * mensajesMedio.length)];
+                        mensajeMotivador = mensaje.text;
+                        iconoMensaje = mensaje.icon;
+                        colorMensaje = mensaje.color;
+                    } else if (porcentaje >= 25) {
+                        const mensajesBajo = [
+                            { icon: '🔋', text: '¡Arriba el ánimo! Todavía hay tiempo', color: '#dc3545' },
+                            { icon: '💪', text: '¡No se rindan! Dense con todo', color: '#dc3545' },
+                            { icon: '🎯', text: '¡Concentración! Pueden lograrlo', color: '#dc3545' },
+                            { icon: '⏰', text: '¡Aceleren el paso! Aún hay chance', color: '#dc3545' }
+                        ];
+                        const mensaje = mensajesBajo[Math.floor(Math.random() * mensajesBajo.length)];
+                        mensajeMotivador = mensaje.text;
+                        iconoMensaje = mensaje.icon;
+                        colorMensaje = mensaje.color;
+                    } else {
+                        const mensajesMuyBajo = [
+                            { icon: '🚨', text: '¡Urgente! Necesitan más ventas hoy', color: '#dc3545' },
+                            { icon: '⚠️', text: '¡Atención! Dense con todo ahora', color: '#dc3545' },
+                            { icon: '🔴', text: '¡Código rojo! A trabajar en equipo', color: '#dc3545' },
+                            { icon: '💥', text: '¡Activarse ya! La meta los necesita', color: '#dc3545' }
+                        ];
+                        const mensaje = mensajesMuyBajo[Math.floor(Math.random() * mensajesMuyBajo.length)];
+                        mensajeMotivador = mensaje.text;
+                        iconoMensaje = mensaje.icon;
+                        colorMensaje = mensaje.color;
+                    }
+                    
+                    const cardId = `card-${local.id}`;
+                    
+                    html += `
+                        <div class="sucursal-dashboard-card" id="${cardId}" style="position: relative; overflow: hidden;">
+                            ${cumplida ? '<div class="hearts-celebration-container"></div>' : ''}
+                            <div class="sucursal-dashboard-header ${cumplida ? 'cumplida' : 'no-cumplida'}">
+                                <i class="fas fa-${cumplida ? 'check-circle' : 'clock'}"></i>
+                                ${local.name}
+                            </div>
+                            <div class="sucursal-dashboard-body">
+                                <div class="mensaje-motivador" style="
+                                    background: linear-gradient(135deg, ${colorMensaje}15 0%, ${colorMensaje}25 100%);
+                                    border-left: 4px solid ${colorMensaje};
+                                    padding: 15px;
+                                    border-radius: 8px;
+                                    margin-bottom: 1rem;
+                                    text-align: center;
+                                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                                ">
+                                    <div style="font-size: 32px; margin-bottom: 8px;">${iconoMensaje}</div>
+                                    <div style="
+                                        font-weight: 700;
+                                        font-size: 16px;
+                                        color: ${colorMensaje};
+                                        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+                                    ">${mensajeMotivador}</div>
+                                </div>
+                                
+                                <div class="meta-stat">
+                                    <span class="meta-stat-label">Meta del Día</span>
+                                    <span class="meta-stat-value">$${formatNumber(metaDiaria)}</span>
+                                </div>
+                                <div class="meta-stat">
+                                    <span class="meta-stat-label">Ventas Actuales</span>
+                                    <span class="meta-stat-value" style="color: ${cumplida ? 'var(--success-color)' : 'var(--danger-color)'}">
+                                        $${formatNumber(ventasHoy)}
+                                    </span>
+                                </div>
+                                <div class="meta-stat">
+                                    <span class="meta-stat-label">Diferencia</span>
+                                    <span class="meta-stat-value" style="color: ${cumplida ? 'var(--success-color)' : 'var(--danger-color)'}">
+                                        ${cumplida ? '+' : ''}$${formatNumber(diferencia)}
+                                    </span>
+                                </div>
+                                
+                                <div class="progress-container" style="margin-top: 1rem;">
+                                    <div class="progress-label">
+                                        ${cumplida ? '<i class="fas fa-check-circle"></i>' : ''}
+                                        <span>${porcentaje}%</span>
+                                    </div>
+                                    <div class="progress-bar-animated ${cumplida ? 'completed' : ''}" 
+                                         style="width: ${Math.min(porcentaje, 100)}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            if (!html) {
+                html = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <i class="fas fa-bullseye"></i>
+                        <h3>No hay metas para hoy</h3>
+                        <p>Configura las metas del día ${diaActual} para ver el progreso</p>
+                        <button class="btn btn-primary-custom" onclick="cambiarVista('configuracion')">
+                            <i class="fas fa-cog"></i>
+                            Ir a Configuración
+                        </button>
+                    </div>
+                `;
+            }
+            
+            $('#dashboardContainer').html(html);
+            
+            // Iniciar animación de corazones para locales con meta cumplida
+            locales.forEach(local => {
+                const metaDelDia = metas.find(m => {
+                    const matchLocal = m.aplication_id === local.id;
+                    const matchDia = m.dia === diaActual || m.dia === null || m.dia === undefined;
+                    return matchLocal && matchDia;
+                });
+                
+                if (metaDelDia) {
+                    const metaDiaria = parseFloat(metaDelDia.meta_diaria);
+                    let ventasHoy = 0;
+                    for (const appKey in ventasData) {
+                        const appId = parseInt(appKey.split(',')[0]);
+                        if (appId === local.id) {
+                            if (ventasData[appKey]?.original?.counters?.balanceTotal) {
+                                ventasHoy = parseFloat(ventasData[appKey].original.counters.balanceTotal);
+                            }
+                            break;
+                        }
+                    }
+                    
+                    if (ventasHoy >= metaDiaria) {
+                        const cardId = `card-${local.id}`;
+                        lanzarCorazonesLive(cardId);
+                    }
+                }
+            });
+        }
+        
+        // Función para lanzar corazones continuamente estilo Facebook Live
+        function lanzarCorazonesLive(cardId) {
+            const container = $(`#${cardId} .hearts-celebration-container`);
+            if (container.length === 0) return;
+            
+            setInterval(() => {
+                const heart = $('<div class="floating-heart-live">❤️</div>');
+                heart.css({
+                    left: Math.random() * 80 + 10 + '%',
+                    animationDelay: Math.random() * 0.5 + 's',
+                    fontSize: Math.random() * 15 + 25 + 'px'
+                });
+                
+                container.append(heart);
+                
+                // Remover corazón después de la animación
+                setTimeout(() => {
+                    heart.remove();
+                }, 4000);
+            }, 800); // Crear nuevo corazón cada 800ms
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('es-CL').format(Math.round(num));
+        }
+    </script>
+</body>
+</html>

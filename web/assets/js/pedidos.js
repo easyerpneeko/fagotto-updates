@@ -2,6 +2,9 @@ $(document).ready(function () {
     // _name.text(_store().session.user().get("username")) //obtenemos el nombre del usuario
     getPedidos();
     loadSucursalesList();
+    if (id) {
+        getApp(); // Obtener información de la franquicia si hay un id en la URL
+    }
 })
 
 const app_name = document.getElementById('app-name');
@@ -10,6 +13,7 @@ var endDateValue;
 const urlParams = new URLSearchParams(window.location.search);
 const id = urlParams.get('id');
 const waiters = [];
+window.currentFranquiciaName = 'N/A'; // Variable global para almacenar el nombre de la franquicia
 
 
 async function getData(startDate, endDate) {
@@ -40,7 +44,12 @@ function getApp() {
         dev: true,
         method: 'GET'
     }, {}, function (request) {
-        app_name.innerHTML = request[0].name;
+        if (request && request[0] && request[0].name) {
+            window.currentFranquiciaName = request[0].name;
+            if (app_name) {
+                app_name.innerHTML = request[0].name;
+            }
+        }
     });
 }
 
@@ -742,5 +751,88 @@ async function verFacturaPDF(pedidoId) {
         console.error("Error al obtener PDF de factura:", error);
         alert('❌ Error de conexión al obtener la factura.');
     }
+}
+
+// Función para exportar pedidos a Excel
+function exportarExcel() {
+    if (!id) {
+        alert('❌ Error: No se ha seleccionado una sucursal.');
+        return;
+    }
+
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    
+    // Construir la URL con parámetros
+    let url = generarURLApi(`/web/exportAppRequestsExcel?id=${id}`);
+    
+    if (startDate && endDate) {
+        url += `&startDate=${startDate}&endDate=${endDate}`;
+    } else if (startDate) {
+        url += `&startDate=${startDate}`;
+    } else if (endDate) {
+        url += `&endDate=${endDate}`;
+    }
+
+    // Mostrar mensaje de carga
+    const originalText = document.querySelector('button[onclick="exportarExcel()"]').innerHTML;
+    document.querySelector('button[onclick="exportarExcel()"]').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+    document.querySelector('button[onclick="exportarExcel()"]').disabled = true;
+
+    // Agregar headers de autenticación y descargar
+    fetch(url, {
+        method: 'GET',
+        headers: credentials()
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error al generar el archivo Excel');
+        }
+        
+        // Obtener nombre del archivo de los headers
+        const disposition = response.headers.get('Content-Disposition');
+        let filename = 'pedidos_export.xlsx';
+        if (disposition && disposition.includes('filename=')) {
+            filename = disposition.split('filename=')[1].replace(/"/g, '');
+        }
+        
+        return response.blob().then(blob => ({ blob, filename }));
+    })
+    .then(({ blob, filename }) => {
+        // Crear URL del blob y descargar
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+        
+        // Mostrar mensaje de éxito
+        console.log('✅ Archivo Excel generado correctamente:', filename);
+        
+        // Mostrar toast de éxito si está disponible
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: 'Archivo Excel generado y descargado correctamente.',
+                timer: 3000,
+                showConfirmButton: false
+            });
+        } else {
+            alert('✅ Archivo Excel generado y descargado correctamente.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('❌ Error al generar el archivo Excel: ' + error.message);
+    })
+    .finally(() => {
+        // Restaurar botón
+        document.querySelector('button[onclick="exportarExcel()"]').innerHTML = originalText;
+        document.querySelector('button[onclick="exportarExcel()"]').disabled = false;
+    });
 }
 

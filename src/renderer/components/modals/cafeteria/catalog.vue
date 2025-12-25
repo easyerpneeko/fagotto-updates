@@ -1,8 +1,10 @@
 <template>
-  <div class="modal fade catalog-modal" id="modalCatalog" tabindex="-1" role="dialog" aria-labelledby="modalCatalog"
-    aria-hidden="true" data-backdrop="false">
-    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-      <div class="modal-content modern-modal">
+  <div class="catalog-wrapper">
+    <!-- Modal principal de catálogo -->
+    <div class="modal fade catalog-modal" id="modalCatalog" tabindex="-1" role="dialog" aria-labelledby="modalCatalog"
+      aria-hidden="true" data-backdrop="false">
+      <div class="modal-dialog modal-fullscreen" role="document">
+        <div class="modal-content modern-modal">
         <!-- Header moderno con glassmorphism -->
         <div class="modal-header">
           <div class="header-content">
@@ -39,202 +41,172 @@
               <i class="fas fa-ticket-alt"></i>
               <span>Cupón</span>
             </button>
-            <button type="button" class="btn-close" @click="closeModal(false)" aria-label="Close">
-              <i class="fas fa-times"></i>
-            </button>
           </div>
         </div>
 
-        <!-- Body con grid moderno -->
-        <div class="modal-body">
-          <div class="catalog-container">
+        <!-- Body con diseño McDonald's -->
+        <div class="modal-body p-0">
+          <div class="kiosko-layout">
             
-            <!-- Sidebar de categorías con animaciones -->
-            <div v-if="(categoriesInstalled && Allcategories && Allcategories.length > 0)"
-              class="categories-sidebar">
+            <!-- COLUMNA 1: CARRITO (lateral izquierdo) -->
+            <aside class="mcd-cart-panel cart-left">
+
+              <!-- Campos de cliente y descripción -->
+              <div class="ticket-header">
+                <div v-if="ticket_sell_client" class="ticket-field">
+                  <label><i class="fas fa-user"></i> Cliente</label>
+                  <input v-model="clientTicket" type="text" placeholder="Nombre del cliente..." />
+                </div>
+                <div v-if="ticket_description" class="ticket-field">
+                  <label><i class="fas fa-file-text"></i> Descripción</label>
+                  <input v-model="ticketDescription" type="text" placeholder="Descripción del pedido..." />
+                </div>
+              </div>
+
+              <!-- Lista de productos estilo ticket -->
+              <div class="ticket-items">
+                <div v-if="jsonTable.items.length === 0" class="ticket-empty-state">
+                  <i class="fas fa-receipt"></i>
+                  <p>Agrega productos al ticket</p>
+                </div>
+                <div v-else v-for="(item, index) in jsonTable.items" :key="index" class="ticket-item">
+                  <div class="ticket-item-header">
+                    <span class="ticket-qty">{{ item.quantity }}</span>
+                    <span class="ticket-name">{{ item.name }}</span>
+                    <span class="ticket-price">${{ formatNumber(item.price) }}</span>
+                  </div>
+                  <div class="ticket-item-actions">
+                    <button @click="openCommentProduct(item)" class="ticket-btn ticket-btn-comment">
+                      <i class="far fa-comment"></i>
+                    </button>
+                    <button @click="removeProduct(item)" class="ticket-btn ticket-btn-remove">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <div v-if="item.comment" class="ticket-comment">
+                    <i class="fas fa-quote-left"></i> {{ item.comment }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Total del ticket -->
+              <div v-if="jsonTable.items.length > 0" class="ticket-total">
+                <div class="ticket-total-row">
+                  <span>TOTAL</span>
+                  <span class="ticket-total-amount">${{ formatNumber(total) }}</span>
+                </div>
+              </div>
+
+              <!-- Campo de comentario activo -->
+              <div v-if="product_comentario" class="ticket-comment-input">
+                <label><i class="fas fa-comment"></i> Comentario</label>
+                <textarea 
+                  v-model="product_comentario_text" 
+                  @keyup.enter="addCommentProduct(productComment)"
+                  placeholder="Agregar comentario..."></textarea>
+              </div>
+            </aside>
+
+            <!-- COLUMNA 2: CATEGORÍAS (columna central) -->
+            <aside v-if="categoriesInstalled && Allcategories && Allcategories.length > 0" class="categories-column">
               
-              <!-- Buscador de productos -->
-              <div class="search-box-sidebar">
-                <i class="fas fa-search search-icon"></i>
+              <!-- Buscador integrado arriba -->
+              <div class="ticket-search-box">
+                <i class="fas fa-search"></i>
                 <input 
                   v-model="productSearch" 
                   type="text" 
-                  class="search-input" 
                   :placeholder="searchPlaceholder"
                   @keyup.enter="search(productSearch)"
                   @focus="stopPlaceholderRotation"
                   @blur="startPlaceholderRotation"
                 />
-                <button v-if="productSearch" @click="productSearch = ''" class="clear-search" title="Limpiar búsqueda">
-                  <i class="fas fa-times"></i>
+              </div>
+
+              <!-- Banner de ayuda amarillo -->
+              <div class="search-help-banner">
+                <i class="fas fa-lightbulb"></i>
+                ¡Ahora puedes buscar productos! 🔍
+              </div>
+<br>
+              <div class="categories-header">
+                <i class="fas fa-th-large"></i>
+                <h3>Categorías</h3>
+              </div>
+              
+              <div class="categories-list">
+                <button 
+                  v-for="(categorie, index) in Allcategories"
+                  :key="index"
+                  v-if="categorie.status === 0"
+                  @click="changeCategorie(categorie.id)"
+                  class="category-btn"
+                  :class="{ active: categorieNow === categorie.id }">
+                  <div class="category-icon">
+                    <i :class="getCategoryIcon(categorie.name)"></i>
+                  </div>
+                  <span class="category-name">{{ categorie.name }}</span>
+                </button>
+                
+                <button
+                  v-if="gelateriaInstalled"
+                  @click="openGelateria"
+                  class="category-btn category-btn-special">
+                  <div class="category-icon">
+                    <i class="fas fa-ice-cream"></i>
+                  </div>
+                  <span class="category-name">Gelateria</span>
                 </button>
               </div>
-              
-              <!-- Mensaje informativo animado -->
-              <div class="search-info-banner">
-                <i class="fas fa-lightbulb"></i>
-                <span>¡Ahora puedes buscar productos! 🔍</span>
-              </div>
-              
-              <div class="categories-section">
-                <div class="categories-header">
-                  <h6 class="categories-title">
-                    <i class="fas fa-tags"></i>
-                    Categorías
-                  </h6>
-                  <div class="categories-count">{{ Allcategories.length }}</div>
-                </div>
-                
-                <div class="categories-list">
-                  <button 
-                    @click="changeCategorie(categorie.id)"
-                    :class="['category-btn', (categorieNow == categorie.id) ? 'category-btn-active' : '']"
-                    v-for="(categorie, index) in Allcategories" 
-                    :key="index">
-                    <div class="category-icon">
-                      <i :class="getCategoryIcon(categorie.name)"></i>
-                    </div>
-                    <span class="category-name">{{ categorie.name }}</span>
-                    <div class="category-arrow">
-                      <i class="fas fa-chevron-right"></i>
-                    </div>
-                    <div class="category-glow"></div>
-                  </button>
-                  
-                  <!-- Botón especial Gelateria -->
-                  <button
-                    v-if="gelateriaInstalled"
-                    @click="openGelateria"
-                    class="category-btn category-btn-special">
-                    <div class="category-icon">
-                      <i class="fas fa-ice-cream"></i>
-                    </div>
-                    <span class="category-name">Gelateria</span>
-                    <div class="category-arrow">
-                      <i class="fas fa-chevron-right"></i>
-                    </div>
-                    <div class="category-glow"></div>
-                  </button>
-                </div>
-              </div>
-            </div>
+            </aside>
 
-            <!-- Área principal de productos -->
-            <div class="products-area">
-              <!-- Grid de productos -->
-              <div class="products-grid">
+            <!-- COLUMNA 3: ÁREA DE PRODUCTOS (derecha) -->
+            <main class="mcd-main">
+              
+              <!-- Pantalla de Bienvenida -->
+              <div v-if="categorieNow === null && !productSearch" class="mcd-welcome">
+                <div class="mcd-welcome-content">
+                  <i class="fas fa-utensils mcd-welcome-icon"></i>
+                  <h2>¡Hora del antojo!</h2>
+                  <p>Selecciona una categoría del menú para comenzar</p>
+                  <div class="mcd-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                    <span>Explora el menú</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Grid de productos estilo McDonald's -->
+              <div v-else class="mcd-products-grid">
                 <div v-for="(product, index) in filteredList" :key="index"
                   v-if="(products && products.length > 0 && (!cecinaInstalled || (cecinaInstalled && product.cecina)))"
-                  class="product-item">
+                  class="mcd-product-card">
                   <card-product-orders :product="product" @clickEmit="AddProduct" />
                 </div>
-                <div v-if="!products || products.length === 0" class="no-results">
-                  <div class="no-results-content">
-                    <i class="fas fa-search-minus no-results-icon"></i>
-                    <h3>Sin resultados</h3>
-                    <p>No se encontraron productos que coincidan con tu búsqueda</p>
-                  </div>
+                <div v-if="!products || products.length === 0" class="mcd-no-results">
+                  <i class="fas fa-search-minus"></i>
+                  <h3>Sin resultados</h3>
+                  <p>No se encontraron productos</p>
                 </div>
               </div>
-            </div>
-
-            <!-- Panel lateral del carrito con glassmorphism -->
-            <div v-if="jsonTable.items.length > 0" class="cart-panel">
-   
-
-              <div class="cart-content">
-                <!-- Campo de cliente si está habilitado -->
-                <div v-if="ticket_sell_client" class="client-section">
-                  <label class="form-label">
-                    <i class="fas fa-user me-2"></i>
-                    Nombre del cliente
-                  </label>
-                  <input v-model="clientTicket" class="form-control modern-input" 
-                    type="text" placeholder="Ingresa el nombre del cliente..." />
-                </div>
-
-                <!-- Campo de descripción si está habilitado -->
-                <div v-if="ticket_description" class="description-section">
-                  <label class="form-label">
-                    <i class="fas fa-file-text me-2"></i>
-                    Descripción del pedido
-                  </label>
-                  <input v-model="ticketDescription" class="form-control modern-input"
-                    type="text" placeholder="Agregar descripción del pedido..." />
-                </div>
-
-                <!-- Tabla de productos en el carrito -->
-                <div class="cart-table-container">
-                  <div class="table-scroll">
-                    <custom-table v-model="jsonTable" v-slot="props" v-on:onBlur="FunctionBlurInputEditable">
-                      <div class="action-buttons">
-                        <button class="btn-comment" @click="openCommentProduct(props.item)" 
-                          :title="'Agregar comentario'">
-                          <i class="far fa-comment"></i>
-                        </button>
-                        <button class="btn-remove" @click="removeProduct(props.item)" 
-                          :title="'Eliminar producto'">
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </div>
-                    </custom-table>
-                  </div>
-                </div>
-
-                <!-- Total del pedido -->
-                <div class="cart-total">
-                  <div class="total-row">
-                    <span class="total-label">TOTAL</span>
-                    <span class="total-amount">${{ formatNumber(total) }}</span>
-                  </div>
-                </div>
-
-                <!-- Campo de comentario si está activo -->
-                <div v-if="product_comentario" class="comment-section">
-                  <label class="form-label">
-                    <i class="fas fa-comment me-2"></i>
-                    Comentario del producto
-                  </label>
-                  <textarea 
-                    v-model="product_comentario_text" 
-                    @keyup.enter="addCommentProduct(productComment)"
-                    class="form-control modern-textarea"
-                    placeholder="Agregar comentario especial..."></textarea>
-                </div>
-              </div>
-            </div>
-
-            <!-- Estado vacío del carrito con animación -->
-            <div v-else class="empty-cart">
-              <div class="empty-cart-content">
-                <div class="empty-cart-animation">
-                  <i class="fas fa-shopping-cart empty-cart-icon"></i>
-                  <div class="floating-dots">
-                    <div class="dot dot-1"></div>
-                    <div class="dot dot-2"></div>
-                    <div class="dot dot-3"></div>
-                  </div>
-                </div>
-                <h4 class="empty-cart-title">Tu carrito está vacío</h4>
-                <p class="empty-cart-description">Agrega productos seleccionándolos del catálogo</p>
-                <div class="empty-cart-cta">
-                  <i class="fas fa-hand-point-left"></i>
-                  <span>Explora nuestros productos</span>
-                </div>
-              </div>
-            </div>
+            </main>
 
           </div>
         </div>
 
         <div class="modal-footer">
-
-          <button type="button" class="btn bg-dark text-white" @click="closeModal(false)">
-            {{ (board && board.order == null || !board) ? 'Cerrar' : 'Volver' }}
+          <!-- Botón único de Pagar -->
+          <button 
+            v-if="jsonTable.items.length > 0"
+            type="button" 
+            class="btn-pagar-main"
+            @click="openPaymentModal">
+            <i class="fas fa-credit-card"></i>
+            <span>Pagar - ${{ formatNumber(total) }}</span>
           </button>
-
-          <!-- Si hay una mesa seleccionada... -->
-          <template>
+          
+          <!-- Guardado para referencia: métodos ocultos -->
+          <template v-if="false">
             <span v-if="!ver_ticket && !solo_crear_ticket" class="m-0 p-0">
               <button v-if="ticket_sell && settingBoletaLocal" type="button" class="btn bg-primario text-white"
                 @click="viewTicket('boleta_local')">
@@ -315,6 +287,16 @@
                 </small>
               </button>
               
+              <!-- Botón Mercado Pago -->
+              <button v-if="jsonTable.items.length > 0" @click="procesarPagoMercadoPago" type="button"
+                class="btn text-white" style="background: linear-gradient(135deg, #009ee3 0%, #0078a8 100%); font-weight: bold; box-shadow: 0 4px 15px rgba(0, 158, 227, 0.4);">
+                <i class="fas fa-credit-card me-2"></i>
+                Pagar con Mercado Pago
+                <small class="d-block" style="font-size: 0.75em;">
+                  Total: ${{ formatNumber(total) }}
+                </small>
+              </button>
+              
               <!-- Botón exclusivo Fagotto 10% de descuento -->
               <button v-if="settingFagotto10" @click="viewTicket('fagotto_10')" type="button"
                 class="btn text-white" style="background-color: #dc3545; font-weight: bold;">
@@ -348,18 +330,156 @@
               Ver ticket
             </button>
           </template>
-
-          <!-- Si hay un mesero seleccionado y solo eso... (Deshabilitado)-->
-          <!-- <template v-if="onlyWaiter && false">
-          <button v-if="ticket_sell && settingBoletaLocal" type="button" class="btn bg-primario text-white" @click="viewTicket('boleta_local')">
-            Boleta local
-          </button>
-        </template> -->
-
         </div>
 
       </div>
     </div>
+  </div>
+    
+    <!-- Modal de Métodos de Pago -->
+    <div class="modal fade" id="modalPaymentMethods" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="false">
+      <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 600px;">
+        <div class="modal-content payment-methods-modal">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="fas fa-wallet"></i> Métodos de Pago</h5>
+            <button type="button" class="close" @click="closePaymentModal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="payment-methods-grid">
+              <!-- Efectivo -->
+              <button v-if="ticket_sell && settingBoletaLocal" class="payment-method-btn" @click="selectPaymentMethod('boleta_local')">
+                <i class="fas fa-money-bill-wave"></i>
+                <span>Efectivo</span>
+              </button>
+              
+              <!-- Boleta SII -->
+              <button v-if="ticket_sell && settingBoleta" class="payment-method-btn" @click="selectPaymentMethod('boleta')">
+                <i class="fas fa-receipt"></i>
+                <span>Boleta SII</span>
+              </button>
+              
+              <!-- Débito -->
+              <button v-if="settingDebito" class="payment-method-btn" @click="selectPaymentMethod('debito')">
+                <i class="fas fa-credit-card"></i>
+                <span>Débito</span>
+              </button>
+              
+              <!-- Transferencia -->
+              <button v-if="settingTransferencia" class="payment-method-btn" @click="selectPaymentMethod('transferencia')">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transferencia</span>
+              </button>
+              
+              <!-- Rappi -->
+              <button v-if="settingRappi" class="payment-method-btn" @click="selectPaymentMethod('rappi')">
+                <i class="fas fa-motorcycle"></i>
+                <span>Rappi</span>
+              </button>
+              
+              <!-- Uber Eats -->
+              <button v-if="settingUber" class="payment-method-btn" @click="selectPaymentMethod('uber')">
+                <i class="fas fa-car"></i>
+                <span>Uber Eats</span>
+              </button>
+              
+              <!-- Pedidos Ya -->
+              <button v-if="settingPedidosYa" class="payment-method-btn" @click="selectPaymentMethod('pedidos_ya')">
+                <i class="fas fa-pizza-slice"></i>
+                <span>Pedidos Ya</span>
+              </button>
+              
+              <!-- Mercado Pago -->
+              <button class="payment-method-btn" @click="procesarPagoMercadoPago">
+                <i class="fas fa-mobile-alt"></i>
+                <span>Mercado Pago</span>
+              </button>
+              
+              <!-- Banco de Chile 20% -->
+              <button v-if="settingBancoChile20 && isSpecialPaymentDay" class="payment-method-btn special" @click="selectPaymentMethod('banco_chile_20')">
+                <i class="fas fa-percentage"></i>
+                <span>Banco Chile -20%</span>
+              </button>
+              
+              <!-- Fagotto 10% -->
+              <button v-if="settingFagotto10" class="payment-method-btn special" @click="selectPaymentMethod('fagotto_10')">
+                <i class="fas fa-star"></i>
+                <span>Fagotto -10%</span>
+              </button>
+              
+              <!-- Junaeb -->
+              <button v-if="settingJunaeb" class="payment-method-btn" @click="selectPaymentMethod('Junaeb')">
+                <i class="fas fa-graduation-cap"></i>
+                <span>Junaeb</span>
+              </button>
+              
+              <!-- Sodexo -->
+              <button v-if="settingSodexo" class="payment-method-btn" @click="selectPaymentMethod('sodexo')">
+                <i class="fas fa-utensils"></i>
+                <span>Sodexo</span>
+              </button>
+              
+              <!-- Amipass -->
+              <button v-if="settingAmipass" class="payment-method-btn" @click="selectPaymentMethod('amipass')">
+                <i class="fas fa-id-card"></i>
+                <span>Amipass</span>
+              </button>
+              
+              <!-- Edenred -->
+              <button v-if="settingEdenred" class="payment-method-btn" @click="selectPaymentMethod('edenred')">
+                <i class="fas fa-ticket-alt"></i>
+                <span>Edenred</span>
+              </button>
+              
+              <!-- Pluxee -->
+              <button v-if="settingPluxee" class="payment-method-btn" @click="selectPaymentMethod('pluxee')">
+                <i class="fas fa-gift"></i>
+                <span>Pluxee</span>
+              </button>
+              
+              <!-- Multicaja -->
+              <button v-if="settingMulticaja" class="payment-method-btn" @click="selectPaymentMethod('multicaja')">
+                <i class="fas fa-wallet"></i>
+                <span>Multicaja</span>
+              </button>
+              
+              <!-- Cheque -->
+              <button v-if="settingCheque" class="payment-method-btn" @click="selectPaymentMethod('cheque')">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>Cheque</span>
+              </button>
+              
+              <!-- Crédito -->
+              <button v-if="settingCredito" class="payment-method-btn" @click="selectPaymentMethod('credito')">
+                <i class="fas fa-credit-card"></i>
+                <span>Crédito</span>
+              </button>
+              
+              <!-- Nota de Crédito -->
+              <button v-if="settingNotaCredito" class="payment-method-btn" @click="selectPaymentMethod('nota_de_credito')">
+                <i class="fas fa-file-alt"></i>
+                <span>Nota Crédito</span>
+              </button>
+              
+              <!-- Convenio -->
+              <button v-if="settingConvenio" class="payment-method-btn" @click="selectPaymentMethod('convenio_empresa')">
+                <i class="fas fa-handshake"></i>
+                <span>Convenio</span>
+              </button>
+              
+              <!-- Factura -->
+              <button v-if="settingFactura" class="payment-method-btn" @click="selectPaymentMethod('factura')">
+                <i class="fas fa-file-invoice"></i>
+                <span>Factura</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modales adicionales -->
     <modalVerify :propVerify="propVerify" @refreshData="refreshData" />
     <ticket :typeCreateTicket="typeCreateTicket" v-model="ticketData" @changeValue="changeValue"
       @closeModal="closeModal" />
@@ -383,6 +503,8 @@ import modalSeleccionCupon from '@/components/modals/cafeteria/modalSeleccionCup
 import ConfigHelper from '@/helpers/ConfigHelper.js';
 import FormatNumber from '@/helpers/FormatNumber.js';
 import Loader from '@/helpers/Loader';
+import BaseUrl from '@/helpers/baseUrl.js';
+import Connection from '@/helpers/Connection.js';
 
 export default {
   data() {
@@ -487,6 +609,26 @@ export default {
     agregarProductoCupon(producto) {
       console.log('✅ Producto con cupón:', producto);
       this.quantityAdd(producto);
+    },
+
+    // Abrir modal de métodos de pago
+    openPaymentModal() {
+      if (this.productoSend.length == 0) {
+        this.$awn.alert("Es necesario agregar algún producto");
+        return false;
+      }
+      $('#modalPaymentMethods').modal('show');
+    },
+
+    // Cerrar modal de métodos de pago
+    closePaymentModal() {
+      $('#modalPaymentMethods').modal('hide');
+    },
+
+    // Seleccionar método de pago
+    selectPaymentMethod(method) {
+      $('#modalPaymentMethods').modal('hide');
+      this.viewTicket(method);
     },
 
     // Métodos para placeholder rotativo
@@ -756,6 +898,72 @@ export default {
       }
 
     },
+
+    async procesarPagoMercadoPago() {
+      if (!this.total || this.total <= 0) {
+        this.$awn.alert("Agrega productos antes de procesar el pago");
+        return;
+      }
+
+      try {
+        // Mostrar loading
+        this.$awn.info("Procesando pago con Mercado Pago...", {
+          durations: { info: 0 }
+        });
+
+        // Preparar datos del pedido
+        const orderData = {
+          monto: Math.round(this.total), // Monto total en pesos
+          productos: this.jsonTable.items.map(item => ({
+            nombre: item.name,
+            cantidad: item.quantity,
+            precio: item.price,
+            subtotal: item.subtotal
+          })),
+          cliente: this.clientTicket || 'Cliente Totem',
+          descripcion: this.ticketDescription || 'Pedido desde Totem'
+        };
+
+        console.log('📤 Enviando pago a Mercado Pago:', orderData);
+
+        // Enviar pago a Mercado Pago - usando subdominio dedicado con API JSON
+        const apiUrl = 'https://apimercado.posfagotto.cl/api-pago.php';
+        console.log('🌐 URL del API:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams(orderData)
+        });
+
+        const result = await response.json();
+        console.log('📥 Respuesta de Mercado Pago:', result);
+
+        if (result.success && result.orderId) {
+          // Pago enviado exitosamente al terminal
+          this.$awn.success(
+            `¡Pago enviado! Monto: $${this.formatNumber(this.total)} | Order ID: ${result.orderId}. Por favor, completa el pago en el terminal Point Smart.`,
+            {
+              durations: { success: 8000 }
+            }
+          );
+
+          // Opcional: Limpiar carrito después del pago exitoso
+          // this.productoSend = [];
+          // this.jsonTable.items = [];
+          // this.total = 0;
+          
+        } else {
+          throw new Error(result.message || 'Error al procesar el pago');
+        }
+
+      } catch (error) {
+        console.error('❌ Error al procesar pago:', error);
+        this.$awn.alert(error.message || 'No se pudo conectar con Mercado Pago. Verifica la conexión.');
+      }
+    },
     changeValue(values) {
       this.productoSend = values.products;
       this.total = values.total;
@@ -824,7 +1032,8 @@ export default {
         if (!loaderTrue) Loader.hide();
         // Verificando respuesta
         if (request.success) {
-          this.products = (request.data.length == 0) ? false : request.data;
+          // Inicialmente no mostrar productos (pantalla de bienvenida)
+          this.products = [];
           this.productsRequest = request.data;
         }
         else this.$awn.alert('Error al obtener los productos');
@@ -855,12 +1064,14 @@ export default {
 
         this.products = productsFind;
       } else {
-        this.products = this.productsRequest;
+        // Cuando deselecciona, volver a la pantalla de bienvenida
+        this.products = [];
       }
 
-      if(promo){
+      // Lógica de promo_active basada en el parámetro promo O si estamos en categoría promociones
+      if(promo || this.categorieNow === this.promoCategorieId){
         this.promo_active = true;
-      }else{
+      } else {
         this.promo_active = false;
       }
     },
@@ -869,7 +1080,8 @@ export default {
     openGelateria() {
       $('#modalVentaCopas').modal('show');
     },
-
+    
+    // Manejar orden confirmada del wizard de promociones
     // Manejar adición de copa desde modal ventaCopas
     handleAddCopa(copaData) {
       console.log('🍦 Datos recibidos de ventaCopas:', copaData);
@@ -962,9 +1174,9 @@ export default {
     //Agregar producto
     addProductQuantity(i, data) {
       // El subtotal es la cantidad actual por el nuevo precio que le envio (#subtotal)
-      if(this.promo_active){
+      if(this.promo_active && data.promo_price && data.promo_price > 0){
         data.subtotal = parseFloat(data.quantity) * parseFloat(data.promo_price);
-        data.price = parseFloat(data.quantity) * parseFloat(data.promo_price);
+        data.price = parseFloat(data.promo_price);
         data.product_promo = true;
       }else{
         data.subtotal = parseFloat(data.quantity) * parseFloat(data.price);
@@ -1010,7 +1222,7 @@ export default {
             }
 
             // El subtotal es la cantidad actual por el nuevo precio que le envio (#subtotal)
-            if(this.promo_active){
+            if(this.promo_active && data.promo_price && data.promo_price > 0){
               this.productoSend[i].subtotal = this.productoSend[i].quantity * parseFloat(data.promo_price);
             }else{
               this.productoSend[i].subtotal = this.productoSend[i].quantity * parseFloat(data.price);
@@ -1045,23 +1257,26 @@ export default {
     AddProduct(data) {
       console.log(data);
       let price = 0;
-      if (data.prices) {
-        if (data.prices.length) {
-          var precios = data.prices;
-          for (var i = 0; i < precios.length; i++) {
-            if (precios[i + 1]) {
-              if (1 >= parseFloat(precios[i].cantidad) && 1 < parseFloat(precios[i + 1].cantidad)) {
-                price = precios[i].precio;
-                break;
-              }
-            } else {
+      
+      // Verificar si tiene precios especiales válidos
+      if (data.prices && Array.isArray(data.prices) && data.prices.length > 0) {
+        var precios = data.prices;
+        for (var i = 0; i < precios.length; i++) {
+          if (precios[i + 1]) {
+            if (1 >= parseFloat(precios[i].cantidad) && 1 < parseFloat(precios[i + 1].cantidad)) {
               price = precios[i].precio;
+              break;
             }
+          } else {
+            price = precios[i].precio;
           }
-        } else {
+        }
+        // Si no se encontró precio en el array, usar el precio normal
+        if (!price || price === 0) {
           price = data.price;
         }
       } else {
+        // No tiene precios especiales, usar precio normal
         price = data.price;
       }
 
@@ -1069,7 +1284,8 @@ export default {
         id: data.id,
         name: data.name,
         price: price,
-        promo_price:data.promo_price,
+        promo_price: data.promo_price,
+        promo_active: data.promo_active,
         quantity: 1,
         prices: data.prices,
         cecina: (data.cecina) ? true : false,
@@ -1160,21 +1376,27 @@ export default {
 
     // Calculate plus //#fere-warp1
     calculatePlus(index, data, unitary_price = false) {
-      // Obtengo el producto
-      var productActual = Object.assign({}, this.products.find(element => element.id == data.id));
-      console.log(this.promo_active);
-      
-      if(this.promo_active){
-        var precioDeEntrada = this.productoSend[index].promo_price;
-      }else{
-        var precioDeEntrada = this.productoSend[index].price;
+      // Obtengo el producto (si existe) y defino un precio de entrada a partir del item agregado
+      var productFound = this.products.find(element => element.id == data.id);
+      var productActual = productFound ? Object.assign({}, productFound) : null;
+      console.log(this.promo_active, 'productFound:', !!productFound);
+
+      // Solo usar promo_price si this.promo_active es true
+      var precioDeEntrada;
+      if(this.promo_active && this.productoSend[index].promo_price != null && this.productoSend[index].promo_price !== '') {
+        precioDeEntrada = parseFloat(this.productoSend[index].promo_price);
+      } else {
+        precioDeEntrada = parseFloat(this.productoSend[index].price || 0);
       }
+
       var precioVarianteDiferenteDeUnitario = false;
 
-      if(this.promo_active){
-        if (unitary_price) productActual.price = this.productoSend[index].promo_price;
-      }else{
-        if (unitary_price) productActual.price = this.productoSend[index].price;
+      if (productActual) {
+        if (this.promo_active) {
+          if (unitary_price) productActual.price = this.productoSend[index].promo_price;
+        } else {
+          if (unitary_price) productActual.price = this.productoSend[index].price;
+        }
       }
       
 
@@ -1186,8 +1408,8 @@ export default {
           precioVarianteDiferenteDeUnitario = true;
         }
 
-      // Si tiene precios variantes
-      if (productActual.prices && productActual.prices.length) {
+      // Si tiene precios variantes (asegurarse que productActual exista)
+      if (productActual && productActual.prices && productActual.prices.length) {
 
         var precios = productActual.prices;
         // <INICIO DE RECORRIDO DE LOS PRECIOS VARIANTES>
@@ -1243,13 +1465,13 @@ export default {
 
         }
         // <FINALIZACION DE RECORRIDO DE LOS PRECIOS VARIANTES>
-      } else { // No recorro los precios variantes si no que uso un solo precio...
-        if(this.promo_active){
-          this.addGainSubTotalVariantPrice(index, data.cecina, productActual.promo_price, cantidad, productActual.ganancia);
-        }else{
-          this.addGainSubTotalVariantPrice(index, data.cecina, productActual.price, cantidad, productActual.ganancia);
-        }
-        
+      } else { // No recorro los precios variantes: usar precio de entrada (fallback al item si no existe el producto)
+        var precioFallback = precioDeEntrada;
+        var gananciaFallback = (productActual && productActual.ganancia) ? productActual.ganancia : 0;
+        this.addGainSubTotalVariantPrice(index, data.cecina, precioFallback, cantidad, gananciaFallback);
+        this.productoSend[index].price = precioFallback;
+        // Registrar LastVariantPrice para consistencia
+        this.productoSend[index].LastVariantPrice = precioFallback;
       }
       
       if(this.promo_active){
@@ -1593,5 +1815,754 @@ export default {
 
 <style>
 @import '../../../css/catalog-modal.css';
+
+/* ===== ESTILOS MCDONALD'S KIOSKO ===== */
+.kiosko-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr 2fr;
+  grid-template-rows: 1fr;
+  grid-column-gap: 0px;
+  grid-row-gap: 0px;
+  height: 80vh;
+  overflow: hidden;
+}
+
+/* COLUMNA 1: CARRITO - 40% del ancho */
+.mcd-cart-panel {
+  grid-area: 1 / 1 / 2 / 2;
+  background: #fff;
+  border-right: none;
+  overflow-y: auto;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Carrito vacío ocupa menos espacio (columna 1) */
+.mcd-cart-panel.empty-cart {
+  grid-area: 1 / 1 / 2 / 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* COLUMNA 2: CATEGORÍAS - 20% del ancho */
+.categories-column {
+  grid-area: 1 / 2 / 2 / 3;
+  background: #f8f9fa;
+  border-left: 1px solid #e9ecef;
+  border-right: 1px solid #e9ecef;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.categories-header {
+  padding: 1rem;
+  background: white;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+}
+
+.categories-header i {
+  font-size: 1.25rem;
+  color: #495057;
+}
+
+.categories-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2c2c2c;
+}
+
+.categories-list {
+  flex: 1;
+  padding: 0;
+  overflow-y: auto;
+  background: white;
+}
+
+/* Buscador en el carrito */
+.ticket-search-box {
+  padding: 1rem;
+  position: relative;
+  border-bottom: none;
+  background: white;
+}
+
+.ticket-search-box i {
+  position: absolute;
+  left: 1.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  font-size: 1rem;
+}
+
+.ticket-search-box input {
+  width: 100%;
+  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.ticket-search-box input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  background: white;
+}
+
+/* Banner de ayuda amarillo */
+.search-help-banner {
+  padding: 14px 15px;
+  background: #ffc107;
+  color: #000;
+  font-weight: 500;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 2px solid #e0a800;
+  margin-bottom: 0;
+}
+
+.search-help-banner i {
+  font-size: 16px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.category-btn {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  margin: 0;
+  background: white;
+  border: none;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.category-btn:hover {
+  background: #f8f9fa;
+}
+
+.category-btn.active {
+  background: #e7f3ff;
+  border-left: 4px solid #007bff;
+  padding-left: calc(1rem - 4px);
+}
+
+.category-btn.active::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #007bff;
+}
+
+.category-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #495057;
+  flex-shrink: 0;
+}
+
+.category-btn.active .category-icon {
+  color: #007bff;
+}
+
+.category-name {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #2c2c2c;
+  text-align: left;
+}
+
+.category-btn.active .category-name {
+  font-weight: 600;
+  color: #007bff;
+}
+
+.category-btn::after {
+  content: '\276F';
+  font-size: 1rem;
+  color: #adb5bd;
+  margin-left: auto;
+}
+
+.category-btn.active::after {
+  color: #007bff;
+}
+
+.category-btn-special {
+  background: #fff3cd;
+}
+
+.category-btn-special:hover {
+  background: #ffecb5;
+}
+
+.category-btn-special .category-icon {
+  color: #856404;
+}
+
+.category-btn-special .category-name {
+  color: #856404;
+  font-weight: 600;
+}
+
+/* COLUMNA 3: ÁREA DE PRODUCTOS - 40% del ancho */
+.mcd-main {
+  grid-area: 1 / 3 / 2 / 4;
+  background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+.ticket-header {
+  padding: 1rem;
+  border-bottom: 2px dashed #ddd;
+}
+
+.ticket-field {
+  margin-bottom: 0.75rem;
+}
+
+.ticket-field:last-child {
+  margin-bottom: 0;
+}
+
+.ticket-field label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.25rem;
+}
+
+.ticket-field label i {
+  margin-right: 0.25rem;
+  color: #6c757d;
+}
+
+.ticket-field input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  font-size: 0.9rem;
+}
+
+.ticket-field input:focus {
+  outline: none;
+  border-color: #ffbc0d;
+  box-shadow: 0 0 0 2px rgba(255, 188, 13, 0.1);
+}
+
+.ticket-items {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.ticket-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: #adb5bd;
+  text-align: center;
+}
+
+.ticket-empty-state i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.ticket-empty-state p {
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.ticket-item {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.ticket-item:last-child {
+  border-bottom: none;
+}
+
+.ticket-item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-family: 'Courier New', monospace;
+}
+
+.ticket-qty {
+  background: #dc3545;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 5px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  min-width: 30px;
+  text-align: center;
+}
+
+.ticket-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #2c2c2c;
+}
+
+.ticket-price {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #dc3545;
+}
+
+.ticket-item-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.ticket-btn {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ticket-btn:hover {
+  background: #e9ecef;
+}
+
+.ticket-btn-comment {
+  color: #007bff;
+}
+
+.ticket-btn-remove {
+  color: #dc3545;
+}
+
+.ticket-comment {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-left: 3px solid #6c757d;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: #495057;
+}
+
+.ticket-comment i {
+  font-size: 0.7rem;
+  margin-right: 0.25rem;
+  color: #6c757d;
+}
+
+.ticket-total {
+  padding: 1rem;
+  border-top: 3px double #2c2c2c;
+  background: #f8f9fa;
+}
+
+.ticket-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Courier New', monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.ticket-total-amount {
+  color: #dc3545;
+  font-size: 1.5rem;
+}
+
+.ticket-comment-input {
+  padding: 1rem;
+  border-top: 2px dashed #ddd;
+  background: #fffbf0;
+}
+
+.ticket-comment-input label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.ticket-comment-input textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.ticket-comment-input textarea:focus {
+  outline: none;
+  border-color: #ffbc0d;
+  box-shadow: 0 0 0 2px rgba(255, 188, 13, 0.1);
+}
+
+/* ===== ESTILOS RESTANTES ===== */
+
+.mcd-welcome {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mcd-welcome-content {
+  text-align: center;
+  max-width: 500px;
+}
+
+.mcd-welcome-icon {
+  font-size: 6rem;
+  color: #ffbc0d;
+  margin-bottom: 2rem;
+  animation: bounce 2s infinite;
+}
+
+.mcd-welcome-content h2 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #2c2c2c;
+  margin-bottom: 1rem;
+}
+
+.mcd-welcome-content p {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.mcd-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ffbc0d;
+  font-weight: 600;
+  animation: slideRight 1.5s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes slideRight {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(10px); }
+}
+
+.mcd-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.mcd-product-card {
+  transition: transform 0.3s;
+}
+
+.mcd-product-card:hover {
+  transform: translateY(-8px);
+}
+
+.mcd-no-results {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #999;
+}
+
+.mcd-no-results i {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.3;
+}
+
+.mcd-no-results h3 {
+  margin-bottom: 0.5rem;
+}
+
+/* Estado vacío del carrito */
+.empty-cart-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.empty-cart-animation {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.empty-cart-icon {
+  font-size: 5rem;
+  color: #dee2e6;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.floating-dots {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: #ffbc0d;
+  border-radius: 50%;
+  position: absolute;
+  animation: floating 2s ease-in-out infinite;
+}
+
+.dot-1 {
+  top: -30px;
+  left: -20px;
+  animation-delay: 0s;
+}
+
+.dot-2 {
+  top: -30px;
+  right: -20px;
+  animation-delay: 0.3s;
+}
+
+.dot-3 {
+  bottom: -30px;
+  left: 0;
+  animation-delay: 0.6s;
+}
+
+@keyframes floating {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-10px) scale(1.2);
+    opacity: 1;
+  }
+}
+
+.empty-cart-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.empty-cart-description {
+  font-size: 1rem;
+  color: #6c757d;
+  margin-bottom: 1.5rem;
+}
+
+.empty-cart-cta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ffbc0d;
+  font-weight: 600;
+  animation: pulseArrow 1.5s infinite;
+}
+
+@keyframes pulseArrow {
+  0%, 100% {
+    transform: translateX(0);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateX(10px);
+    opacity: 1;
+  }
+}
+
+/* Scrollbar personalizado */
+.mcd-main::-webkit-scrollbar,
+.mcd-cart-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mcd-main::-webkit-scrollbar-thumb,
+.mcd-cart-panel::-webkit-scrollbar-thumb {
+  background: #ffbc0d;
+  border-radius: 4px;
+}
+
+/* ===== BOTÓN PAGAR PRINCIPAL ===== */
+.btn-pagar-main {
+  width: 100%;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #ffbc0d 0%, #ff9500 100%);
+  border: none;
+  border-radius: 12px;
+  color: #2c2c2c;
+  font-size: 1.5rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(255, 188, 13, 0.4);
+}
+
+.btn-pagar-main:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(255, 188, 13, 0.6);
+  background: linear-gradient(135deg, #ff9500 0%, #ffbc0d 100%);
+}
+
+.btn-pagar-main:active {
+  transform: translateY(0);
+}
+
+.btn-pagar-main i {
+  font-size: 2rem;
+}
+
+/* ===== MODAL DE MÉTODOS DE PAGO ===== */
+.payment-methods-modal .modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom: none;
+  padding: 1.5rem;
+}
+
+.payment-methods-modal .modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.payment-methods-modal .modal-body {
+  padding: 2rem;
+}
+
+.payment-methods-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.payment-method-btn {
+  padding: 1.5rem;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c2c2c;
+}
+
+.payment-method-btn:hover {
+  background: #f8f9fa;
+  border-color: #ffbc0d;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.payment-method-btn i {
+  font-size: 2.5rem;
+  color: #667eea;
+}
+
+.payment-method-btn.special {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #764ba2;
+  color: white;
+}
+
+.payment-method-btn.special i {
+  color: white;
+}
+
+.payment-method-btn.special:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-6px);
+  box-shadow: 0 10px 30px rgba(118, 75, 162, 0.4);
+}
+
+/* Fullscreen modal */
+.modal-fullscreen {
+  max-width: 100%;
+  margin: 0;
+}
+
+.modal-fullscreen .modal-content {
+  height: 100vh;
+  border: none;
+  border-radius: 0;
+}
+
+.modal-fullscreen .kiosko-layout {
+  height: calc(100vh - 180px);
+}
 </style>
 

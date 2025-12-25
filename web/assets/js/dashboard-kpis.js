@@ -3,81 +3,77 @@ class DashboardKPIs {
     // Inicializar elementos KPI
     constructor() {
         this.kpiElements = {
-            ventasTotales: document.getElementById('kpi-ventas-totales'),
-            sucursalTop: document.getElementById('kpi-sucursal-top'),
-            peorNegocio: document.getElementById('kpi-peor-negocio'),
-            facturasTotales: document.getElementById('kpi-facturas-totales')
+            ventasFranquicias: document.getElementById('kpi-ventas-franquicias'),
+            ventasSucursales: document.getElementById('kpi-ventas-sucursales'),
+            ventasTrai: document.getElementById('kpi-ventas-trai'),
+            ventasTotalGeneral: document.getElementById('kpi-ventas-total-general')
         };
     }
 
-    // Actualizar KPIs copiando exactamente la lógica de cargarCounterEnTabla
+    // Actualizar KPIs con la nueva lógica
     updateFromCounterData(request) {
         console.log('=== ACTUALIZANDO KPIs ===');
         console.log('Request data:', request);
         
-        // Copiar exactamente la lógica de cargarCounterEnTabla para Fagotto Franquicias
-        let totalSucursales = 0;
-        let mejorSucursal = { name: '-', monto: 0 };
-        let peorSucursal = { name: '-', monto: Infinity };
-        let totalFacturas = 0; // Esto será el monto total, no el conteo
+        let ventasFranquicias = 0;
+        let ventasSucursales = 0;
+        let ventasTrai = 0;
+        
+        // IDs de sucursales oficiales: Fagotto Ahumada (86) y Fagotto Manuel Montt (98)
+        const idsSucursalesOficiales = [86, 98];
+        // IDs de Trai i Pasti: 109 y 106
+        const idsTraiIPasti = [109, 106];
+        // ID a excluir: Facturación (79)
+        const idsExcluir = [79];
 
         for (const app in request) {
             let appIdName = app.split(',', 2);
-            let sucursalNombre = appIdName[1];
+            let appId = parseInt(appIdName[0]);
+            let sucursalNombre = appIdName[1] || app;
+            let balance = parseFloat(request[app].original.counters.balanceTotal) || 0;
             
-            console.log(`Procesando: ${sucursalNombre} (ID: ${appIdName[0]})`);
+            console.log(`Procesando: ${sucursalNombre} (ID: ${appId}) - Balance: ${balance}`);
             
-            // EXACTAMENTE la misma condición que en cargarCounterEnTabla
-            if(appIdName[0] != 79 && appIdName[0] != 86 && appIdName[0] != 98 && appIdName[0] != 109 && appIdName[0] != 106) {
-                let balance = request[app].original.counters.balanceTotal;
-                totalSucursales += balance;
-                console.log(`Sumando ${balance} de ${sucursalNombre}. Total: ${totalSucursales}`);
-                
-                // Mejor sucursal
-                if (balance > mejorSucursal.monto) {
-                    mejorSucursal = { name: sucursalNombre, monto: balance };
-                }
-                
-                // Peor sucursal (que tenga ventas > 0)
-                if (balance < peorSucursal.monto && balance > 0) {
-                    peorSucursal = { name: sucursalNombre, monto: balance };
-                }
+            // Excluir Facturación
+            if(idsExcluir.includes(appId)) {
+                console.log(`❌ Excluido (Facturación): ${sucursalNombre}`);
+                continue;
             }
             
-            // Sumar facturas de TODAS las sucursales (tanto franquicias como oficiales)
-            // Usar el balanceTotal como "monto de facturas"
-            let balance = request[app].original.counters.balanceTotal;
-            totalFacturas += balance;
-            console.log(`Monto facturas de ${sucursalNombre}: ${balance}, Total acumulado: ${totalFacturas}`);
+            // Clasificar por tipo
+            if (idsTraiIPasti.includes(appId)) {
+                ventasTrai += balance;
+                console.log(`🍝 Trai i Pasti: ${sucursalNombre} = ${balance}, Total: ${ventasTrai}`);
+            } else if (idsSucursalesOficiales.includes(appId)) {
+                ventasSucursales += balance;
+                console.log(`🏢 Sucursal Oficial: ${sucursalNombre} = ${balance}, Total: ${ventasSucursales}`);
+            } else {
+                ventasFranquicias += balance;
+                console.log(`🤝 Franquicia: ${sucursalNombre} = ${balance}, Total: ${ventasFranquicias}`);
+            }
         }
+        
+        // Calcular ventas totales (Franquicias + Sucursales Oficiales, sin Trai)
+        let ventasTotalGeneral = ventasFranquicias + ventasSucursales;
 
-        console.log('=== RESULTADOS FINALES ===');
-        console.log('Total ventas (mismo que tabla):', totalSucursales);
-        console.log('Total facturas:', totalFacturas);
-        console.log('Mejor sucursal:', mejorSucursal);
-        console.log('Peor sucursal:', peorSucursal);
-
-        // Si no hay peor sucursal válida
-        if (peorSucursal.monto === Infinity) {
-            peorSucursal = { name: '-', monto: 0 };
-        }
+        console.log('=== RESULTADOS FINALES KPIs ===');
+        console.log('💰 Ventas Franquicias:', ventasFranquicias);
+        console.log('🏢 Ventas Sucursales Oficiales:', ventasSucursales);
+        console.log('🍝 Ventas Trai i Pasti:', ventasTrai);
+        console.log('📊 Ventas Total General (Franq+Sucurs):', ventasTotalGeneral);
 
         // Actualizar los elementos con animaciones
-        if (this.kpiElements.ventasTotales) {
-            this.animateUpdate(this.kpiElements.ventasTotales, formatearMontoChile(totalSucursales));
-            console.log('Actualizado ventas totales:', formatearMontoChile(totalSucursales));
+        if (this.kpiElements.ventasFranquicias) {
+            this.animateUpdate(this.kpiElements.ventasFranquicias, formatearMontoChile(ventasFranquicias));
         }
-        if (this.kpiElements.sucursalTop) {
-            this.animateUpdate(this.kpiElements.sucursalTop, mejorSucursal.name);
-            console.log('Actualizada mejor sucursal:', mejorSucursal.name);
+        if (this.kpiElements.ventasSucursales) {
+            this.animateUpdate(this.kpiElements.ventasSucursales, formatearMontoChile(ventasSucursales));
         }
-        if (this.kpiElements.peorNegocio) {
-            this.animateUpdate(this.kpiElements.peorNegocio, peorSucursal.name);
-            console.log('Actualizado peor negocio:', peorSucursal.name);
+        if (this.kpiElements.ventasTrai) {
+            this.animateUpdate(this.kpiElements.ventasTrai, formatearMontoChile(ventasTrai));
         }
-        if (this.kpiElements.facturasTotales) {
-            this.animateUpdate(this.kpiElements.facturasTotales, formatearMontoChile(totalFacturas));
-            console.log('Actualizado facturas totales:', formatearMontoChile(totalFacturas));
+        if (this.kpiElements.ventasTotalGeneral) {
+            this.animateUpdate(this.kpiElements.ventasTotalGeneral, formatearMontoChile(ventasTotalGeneral));
         }
     }
 

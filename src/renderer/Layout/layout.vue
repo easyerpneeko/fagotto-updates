@@ -198,6 +198,28 @@ export default {
   },
 
   methods: {
+    // Verificar si el usuario actual es administrador
+    isUserAdmin() {
+      try {
+        const userRoleID = this.$store.state.main.user.role;
+        const config = ConfigHelper.Config(true);
+        if (!config || !config.TypeUsers) return false;
+        
+        const userRole = config.TypeUsers.find((type) => type.id === userRoleID);
+        if (!userRole) return false;
+        
+        const permissions = (typeof userRole.permission === 'string' && userRole.permission !== null) 
+          ? JSON.parse(userRole.permission) 
+          : userRole.permission;
+        
+        // Si permissions es null, el usuario tiene todos los permisos (es administrador)
+        return permissions === null || permissions === 'null';
+      } catch (error) {
+        console.error('Error verificando rol admin:', error);
+        return false;
+      }
+    },
+
     // Verificar conexion a internet
     initIntervalConnected(isRefresh = false) {
       if (!window.navigator.onLine) {
@@ -458,15 +480,15 @@ export default {
             });
           }
           console.log('kitchen kitchenMode kitchenMode', kitchenMode);
-          // Modo cocina
-          if (kitchenMode) {
-            menu.push({
-              label: 'Cocina',
-              route: '/inicio/cafeteria/kitchen-mode/kitchen',
-              icon: 'fa-sticky-note',
-              requiresTurno: true
-            });
-          }
+          // Modo cocina - OCULTO
+          // if (kitchenMode) {
+          //   menu.push({
+          //     label: 'Cocina',
+          //     route: '/inicio/cafeteria/kitchen-mode/kitchen',
+          //     icon: 'fa-sticky-note',
+          //     requiresTurno: true
+          //   });
+          // }
         }
 
         // Client Orders
@@ -493,13 +515,14 @@ export default {
         }
 
         if (sii) {
-          menu.push({
-            label: 'Cargar Folios',
-            // label: this.envs.name_panel_tickets.value,
-            route: '/inicio/folios',
-            icon: 'fa-file-upload',
-            requiresTurno: true
-          });
+          // ❌ OCULTO - Cargar Folios
+          // menu.push({
+          //   label: 'Cargar Folios',
+          //   // label: this.envs.name_panel_tickets.value,
+          //   route: '/inicio/folios',
+          //   icon: 'fa-file-upload',
+          //   requiresTurno: true
+          // });
 
           // ❌ DESHABILITADO - Franquiciados
           // menu.push({
@@ -516,6 +539,18 @@ export default {
             route: '/inicio/pedidos',
             icon: 'fas fa-truck-loading',
             requiresTurno: true
+          });
+        }
+        
+        // Módulo Totem (Kiosko) - Solo administradores
+        const isAdmin = this.isUserAdmin();
+        if (isAdmin) {
+          menu.push({
+            label: 'Totem',
+            route: '/inicio/totem',
+            icon: 'fas fa-desktop',
+            requiresTurno: false,
+            badge: 'NEW'
           });
         }
         

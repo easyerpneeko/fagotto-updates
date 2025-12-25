@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FagottoERP - 52 Semanas</title>
+    <link rel="icon" type="image/x-icon" href="../assets/css/negro.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!--styles-->
+    <link href="../assets/css/dashboard.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/global.css">
+    <!--helpers-->
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+    <script src="../assets/helpers/helperFunctions.js"></script>
+    <!-- Librería XLSX para exportar a Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <!-- OVERLAY DE CARGA MODERNO -->
+    <div id="loadingOverlay" class="loading-overlay hide">
+        <div class="loading-content">
+            <div class="loading-spinner">
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+            </div>
+            <h3 class="loading-title">Cargando datos...</h3>
+            <p class="loading-subtitle" id="loadingMessage">Conectando con el servidor</p>
+            <div class="loading-progress">
+                <div class="progress-bar" id="loadingProgressBar"></div>
+            </div>
+            <p class="loading-detail" id="loadingDetail">Preparando consulta...</p>
+        </div>
+    </div>
+
+    <style>
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-overlay.hide {
+            display: none;
+            opacity: 0;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+            max-width: 500px;
+            padding: 40px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .loading-spinner {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 30px;
+        }
+
+        .spinner-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 4px solid transparent;
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+        }
+
+        .spinner-ring:nth-child(2) {
+            width: 80%;
+            height: 80%;
+            top: 10%;
+            left: 10%;
+            border-top-color: rgba(255, 255, 255, 0.7);
+            animation-duration: 2s;
+        }
+
+        .spinner-ring:nth-child(3) {
+            width: 60%;
+            height: 60%;
+            top: 20%;
+            left: 20%;
+            border-top-color: rgba(255, 255, 255, 0.4);
+            animation-duration: 2.5s;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .loading-subtitle {
+            font-size: 18px;
+            margin-bottom: 25px;
+            opacity: 0.9;
+        }
+
+        .loading-progress {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80, #22c55e);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+        }
+
+        .loading-detail {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+
+        /* ========== DISEÑO MODERNO PROFESIONAL ========== */
+        
+        body {
+            background: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Contenedor principal centrado */
+        .container-fluid {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        main {
+            padding: 0 20px;
+        }
+
+        /* Header Premium */
+        .modern-header {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            padding: 15px 30px;
+            margin-bottom: 10px;
+            border-bottom: 3px solid #3b82f6;
+        }
+
+        .navbar-brand {
+            font-size: 26px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn-modern {
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Sidebar Premium */
+        .modern-sidebar {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-right: 20px;
+            height: fit-content;
+        }
+
+        .nav-link {
+            border-radius: 12px;
+            padding: 10px 15px;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Cards Premium */
+        .modern-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: none;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .modern-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .modern-card .card-header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            padding: 20px 30px;
+            font-weight: 600;
+            font-size: 18px;
+            border: none;
+        }
+
+        .modern-card .card-body {
+            padding: 30px;
+        }
+
+        /* Formularios Premium */
+        .form-control-modern {
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            padding: 12px 18px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control-modern:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-label {
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        /* Botones de Vista */
+        .btn-group .btn-check:checked + label {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .btn-outline-primary {
+            border-color: #e2e8f0;
+            color: #4a5568;
+            font-weight: 500;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .btn-outline-success:hover {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-color: #10b981;
+        }
+
+        /* KPIs Premium */
+        .analytics-kpi {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .analytics-kpi:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .analytics-kpi .kpi-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .analytics-kpi .kpi-data h3 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .analytics-kpi .kpi-data span {
+            color: #718096;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Tabla Premium */
+        .table-modern {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table-modern thead {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+        }
+
+        .table-modern thead th {
+            padding: 18px;
+            font-weight: 600;
+            border: none;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        .table-modern tbody tr {
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .table-modern tbody tr:hover {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            transform: scale(1.01);
+        }
+
+        .table-modern tbody td {
+            padding: 16px 18px;
+            vertical-align: middle;
+            color: #2d3748;
+        }
+
+        .table-modern tfoot {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: white;
+            font-weight: 700;
+        }
+
+        .table-modern tfoot td {
+            padding: 18px;
+        }
+
+        /* Badges Premium */
+        .badge {
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.bg-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .badge.bg-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .badge.bg-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .badge.bg-info {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .badge.bg-secondary {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
+        }
+
+        /* Alertas Premium */
+        .alert {
+            border-radius: 16px;
+            border: none;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%);
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+
+        /* Colores de filas */
+        .table-danger {
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.08) 100%) !important;
+        }
+
+        .table-warning {
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.08) 0%, rgba(217, 119, 6, 0.08) 100%) !important;
+        }
+
+        /* Animaciones sutiles */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modern-card,
+        .analytics-kpi {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Scrollbar Premium */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        }
+    </style>
+    
+    <div id="loader" class="loading hide">
+        <div class="spin"></div>
+    </div>
+    
+    <!-- HEADER MODERNO -->
+    <header class="modern-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <button class="navbar-toggler d-md-none me-3" type="button" data-bs-toggle="collapse"
+                data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="navbar-brand">
+                <i class="fas fa-calendar-check"></i>
+                52 Semanas - Reporte Anual
+            </div>
+        </div>
+        
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-modern btn-outline-secondary" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i>
+                <span class="d-none d-md-inline">Actualizar</span>
+            </button>
+            <button class="btn btn-modern" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white;" id="btn-restore">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="d-none d-md-inline">Cerrar Sesión</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="container-fluid">
+            <main class="px-4" style="padding-top: 0 !important; max-width: 1400px; margin: 0 auto;">
+                <!-- FILTROS DINÁMICOS -->
+                <div class="row g-3 mb-3" style="margin-top: 0;">
+                    <div class="col-12">
+                        <div class="modern-card">
+                            <div class="card-header">
+                                <i class="fas fa-filter me-2"></i>
+                                Filtros de Búsqueda Inteligente
+                            </div>
+                            <div class="card-body">
+                                <!-- Tipo de vista -->
+                                <div class="row g-3 mb-3">
+                                    <div class="col-12">
+                                        <label class="form-label fw-bold">
+                                            <i class="fas fa-eye me-2"></i>
+                                            Selecciona el tipo de vista
+                                        </label>
+                                        <div class="btn-group w-100" role="group" style="flex-wrap: wrap;">
+                                            <input type="radio" class="btn-check" name="tipoVista" id="vistaAnual" value="anual" checked>
+                                            <label class="btn btn-outline-primary" for="vistaAnual" style="flex: 1 1 18%;">
+                                                <i class="fas fa-calendar-alt me-1"></i>Todo el Año
+                                            </label>
+
+                                            <input type="radio" class="btn-check" name="tipoVista" id="vistaMensual" value="mensual">
+                                            <label class="btn btn-outline-primary" for="vistaMensual" style="flex: 1 1 18%;">
+                                                <i class="fas fa-calendar me-1"></i>Por Mes
+                                            </label>
+
+                                            <input type="radio" class="btn-check" name="tipoVista" id="vistaSemanal" value="semanal">
+                                            <label class="btn btn-outline-primary" for="vistaSemanal" style="flex: 1 1 18%;">
+                                                <i class="fas fa-calendar-week me-1"></i>Semanas
+                                            </label>
+
+                                            <input type="radio" class="btn-check" name="tipoVista" id="vistaPersonalizada" value="personalizada">
+                                            <label class="btn btn-outline-primary" for="vistaPersonalizada" style="flex: 1 1 18%;">
+                                                <i class="fas fa-calendar-day me-1"></i>Rango
+                                            </label>
+
+                                            <input type="radio" class="btn-check" name="tipoVista" id="vistaComparacion" value="comparacion">
+                                            <label class="btn btn-outline-success" for="vistaComparacion" style="flex: 1 1 18%;">
+                                                <i class="fas fa-exchange-alt me-1"></i>VS Año
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Filtros específicos -->
+                                <div class="row g-3">
+                                    <!-- Selector de Año (para vistas normales, se oculta en comparación) -->
+                                    <div class="col-md-3" id="filtroAnio">
+                                        <label for="yearSelect" class="form-label fw-bold">Año</label>
+                                        <select id="yearSelect" class="form-control form-control-modern">
+                                            <option value="2025">2025</option>
+                                            <option value="2024">2024</option>
+                                            <option value="2023">2023</option>
+                                            <option value="2022">2022</option>
+                                            <option value="2021">2021</option>
+                                            <option value="2020">2020</option>
+                                            <option value="2019">2019</option>
+                                            <option value="2018">2018</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Selector de Mes (para vista mensual y semanal) -->
+                                    <div class="col-md-3" id="filtroMes" style="display: none;">
+                                        <label for="mesSelect" class="form-label fw-bold">Mes</label>
+                                        <select id="mesSelect" class="form-control form-control-modern">
+                                            <option value="1">Enero</option>
+                                            <option value="2">Febrero</option>
+                                            <option value="3">Marzo</option>
+                                            <option value="4">Abril</option>
+                                            <option value="5">Mayo</option>
+                                            <option value="6">Junio</option>
+                                            <option value="7">Julio</option>
+                                            <option value="8">Agosto</option>
+                                            <option value="9">Septiembre</option>
+                                            <option value="10">Octubre</option>
+                                            <option value="11">Noviembre</option>
+                                            <option value="12">Diciembre</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Selector de Semana (solo para vista semanal) -->
+                                    <div class="col-md-3" id="filtroSemana" style="display: none;">
+                                        <label for="semanaSelect" class="form-label fw-bold">Semana del Mes</label>
+                                        <select id="semanaSelect" class="form-control form-control-modern">
+                                            <option value="todas">Todas las semanas</option>
+                                            <option value="1">Semana 1 (Días 1-7)</option>
+                                            <option value="2">Semana 2 (Días 8-14)</option>
+                                            <option value="3">Semana 3 (Días 15-21)</option>
+                                            <option value="4">Semana 4 (Días 22-28)</option>
+                                            <option value="5">Semana 5 (Días 29+)</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Rango personalizado -->
+                                    <div class="col-md-3" id="filtroFechaInicio" style="display: none;">
+                                        <label for="fechaInicio" class="form-label fw-bold">Fecha Inicio</label>
+                                        <input type="date" id="fechaInicio" class="form-control form-control-modern">
+                                    </div>
+
+                                    <div class="col-md-3" id="filtroFechaFin" style="display: none;">
+                                        <label for="fechaFin" class="form-label fw-bold">Fecha Fin</label>
+                                        <input type="date" id="fechaFin" class="form-control form-control-modern">
+                                    </div>
+
+                                    <!-- Comparación Año vs Año -->
+                                    <div class="col-md-3" id="filtroAnio1" style="display: none;">
+                                        <label for="anio1Select" class="form-label fw-bold">Año 1</label>
+                                        <select id="anio1Select" class="form-control form-control-modern">
+                                            <option value="2024">2024</option>
+                                            <option value="2023">2023</option>
+                                            <option value="2022">2022</option>
+                                            <option value="2021">2021</option>
+                                            <option value="2020">2020</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-3" id="filtroAnio2" style="display: none;">
+                                        <label for="anio2Select" class="form-label fw-bold">Año 2</label>
+                                        <select id="anio2Select" class="form-control form-control-modern">
+                                            <option value="2025">2025</option>
+                                            <option value="2024">2024</option>
+                                            <option value="2023">2023</option>
+                                            <option value="2022">2022</option>
+                                            <option value="2021">2021</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-3" id="filtroPeriodoComparacion" style="display: none;">
+                                        <label for="periodoComparacionSelect" class="form-label fw-bold">Período</label>
+                                        <select id="periodoComparacionSelect" class="form-control form-control-modern">
+                                            <option value="anual">Año Completo</option>
+                                            <option value="1">Enero</option>
+                                            <option value="2">Febrero</option>
+                                            <option value="3">Marzo</option>
+                                            <option value="4">Abril</option>
+                                            <option value="5">Mayo</option>
+                                            <option value="6">Junio</option>
+                                            <option value="7">Julio</option>
+                                            <option value="8">Agosto</option>
+                                            <option value="9">Septiembre</option>
+                                            <option value="10">Octubre</option>
+                                            <option value="11">Noviembre</option>
+                                            <option value="12">Diciembre</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Botones de acción -->
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">&nbsp;</label>
+                                        <button class="btn btn-modern btn-primary w-100" onclick="cargarDatosAnuales()">
+                                            <i class="fas fa-search me-2"></i>
+                                            Buscar
+                                        </button>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">&nbsp;</label>
+                                        <button class="btn btn-modern btn-success w-100" onclick="exportarExcel()">
+                                            <i class="fas fa-file-excel me-2"></i>
+                                            Exportar Excel
+                                        </button>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">&nbsp;</label>
+                                        <button class="btn btn-modern btn-outline-secondary w-100" onclick="navegarConId('./sucursal.html')">
+                                            <i class="fas fa-arrow-left me-2"></i>
+                                            Volver
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de Resultados -->
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <div class="modern-card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-table me-2"></i>
+                                    Reporte: <span id="yearDisplay">2025</span>
+                                </div>
+                                <div class="text-white-50 small">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Formato: DD-MM-YY
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- Resumen de totales -->
+                                <div class="row g-3 mb-4" id="resumenTotales" style="display: none;">
+                                    <div class="col-md-4">
+                                        <div class="analytics-kpi">
+                                            <div class="kpi-icon bg-success">
+                                                <i class="fas fa-dollar-sign"></i>
+                                            </div>
+                                            <div class="kpi-data">
+                                                <h3 id="totalVentas">$0</h3>
+                                                <span>Total Ventas</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="analytics-kpi">
+                                            <div class="kpi-icon bg-info">
+                                                <i class="fas fa-receipt"></i>
+                                            </div>
+                                            <div class="kpi-data">
+                                                <h3 id="totalTransacciones">0</h3>
+                                                <span>Total Transacciones</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="analytics-kpi">
+                                            <div class="kpi-icon bg-primary">
+                                                <i class="fas fa-chart-line"></i>
+                                            </div>
+                                            <div class="kpi-data">
+                                                <h3 id="promedioVentas">$0</h3>
+                                                <span>Promedio por Transacción</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tabla de datos -->
+                                <div class="table-responsive">
+                                    <table class="table table-modern table-hover table-sm" id="tablaDatos">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 15%;">FECHA</th>
+                                                <th style="width: 8%;" class="text-center">DÍA</th>
+                                                <th style="width: 25%;" class="text-end">VENTA</th>
+                                                <th style="width: 15%;" class="text-center">TRAN</th>
+                                                <th style="width: 20%;" class="text-end">PROMEDIO</th>
+                                                <th style="width: 17%;" class="text-center">ESTADO</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbodyDatos">
+                                            <tr>
+                                                <td colspan="6" class="text-center text-muted py-5">
+                                                    <i class="fas fa-info-circle fa-3x mb-3 d-block"></i>
+                                                    Selecciona los filtros y haz clic en "Buscar" para comenzar
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                        <tfoot id="tfootTotales" style="display: none;">
+                                            <tr class="table-dark fw-bold">
+                                                <td colspan="2" class="text-center">TOTALES</td>
+                                                <td class="text-end" id="footerVentaTotal">$0</td>
+                                                <td class="text-center" id="footerTransTotal">0</td>
+                                                <td class="text-end" id="footerPromedioTotal">$0</td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+    </div>
+
+    <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Verificar autenticación
+        (!_store().serial.isset()) ? window.location.href = "../index.html" : "";
+
+        // Obtener ID de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+
+        // Si no hay ID en la URL, obtenerlo del store o usar valor por defecto
+        const appId = id || _store().session.user().get("id_app") || '1';
+
+        console.log('🆔 App ID detectado:', appId);
+        console.log('🔗 URL actual:', window.location.href);
+        
+        // Verificar que tenemos un ID válido
+        if (!appId || appId === '1') {
+            console.warn('⚠️ ATENCIÓN: No se detectó un ID válido en la URL. Usando ID por defecto.');
+            console.warn('💡 Asegúrate de acceder a esta página desde el menú de Sucursal o con ?id=TU_ID en la URL');
+        }
+
+        // Botón de cerrar sesión
+        const _btn_restart = $("#btn-restore");
+        _btn_restart.click(function () {
+            _store().serial.delete();
+            _store().session.delete()
+            _store().session.user().delete()
+            window.location.href = "../index.html"
+        });
+
+        // ========== FUNCIONES DE OVERLAY DE CARGA ==========
+        
+        function showLoading(message = 'Conectando con el servidor') {
+            const overlay = document.getElementById('loadingOverlay');
+            const messageEl = document.getElementById('loadingMessage');
+            const detailEl = document.getElementById('loadingDetail');
+            const progressBar = document.getElementById('loadingProgressBar');
+            
+            messageEl.textContent = message;
+            detailEl.textContent = 'Preparando consulta...';
+            progressBar.style.width = '0%';
+            overlay.classList.remove('hide');
+        }
+
+        function updateLoading(progress, message, detail = '') {
+            const messageEl = document.getElementById('loadingMessage');
+            const detailEl = document.getElementById('loadingDetail');
+            const progressBar = document.getElementById('loadingProgressBar');
+            
+            if (message) messageEl.textContent = message;
+            if (detail) detailEl.textContent = detail;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.add('hide');
+        }
+
+        // ========== MANEJO DE NAVEGACIÓN CON ID ==========
+        
+        // Función helper para navegar con ID
+        function navegarConId(url) {
+            if (id) {
+                window.location.href = `${url}?id=${id}`;
+            } else {
+                window.location.href = url;
+            }
+        }
+
+        // Links del sidebar
+        document.getElementById('linkDashboard')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            navegarConId('./dashboard.html');
+        });
+
+        document.getElementById('linkSucursal')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            navegarConId('./sucursal.html');
+        });
+
+        document.getElementById('link52semanas')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            navegarConId('./52semanas.html');
+        });
+
+        document.getElementById('linkCocina')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            navegarConId('./cocina/cocina.html');
+        });
+
+        document.getElementById('linkOrdenes')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            navegarConId('./cocina/cocina2.html');
+        });
+
+        // Botón volver a sucursal
+        document.getElementById('btnVolverSucursal')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            navegarConId('./sucursal.html');
+        });
+
+        // ========== MANEJO DE FILTROS ==========
+
+        // Escuchar cambios en el tipo de vista
+        document.querySelectorAll('input[name="tipoVista"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                actualizarFiltros(this.value);
+            });
+        });
+
+        // Actualizar filtros según el tipo de vista seleccionado
+        function actualizarFiltros(tipoVista) {
+            // Ocultar todos los filtros opcionales
+            document.getElementById('filtroMes').style.display = 'none';
+            document.getElementById('filtroSemana').style.display = 'none';
+            document.getElementById('filtroFechaInicio').style.display = 'none';
+            document.getElementById('filtroFechaFin').style.display = 'none';
+            document.getElementById('filtroAnio1').style.display = 'none';
+            document.getElementById('filtroAnio2').style.display = 'none';
+            document.getElementById('filtroPeriodoComparacion').style.display = 'none';
+
+            // Mostrar/ocultar el filtro de Año según el modo
+            if (tipoVista === 'comparacion') {
+                // En modo comparación, ocultar "Año" y mostrar "Año 1", "Año 2", "Período"
+                document.getElementById('filtroAnio').style.display = 'none';
+                document.getElementById('filtroAnio1').style.display = 'block';
+                document.getElementById('filtroAnio2').style.display = 'block';
+                document.getElementById('filtroPeriodoComparacion').style.display = 'block';
+            } else {
+                // En otros modos, mostrar "Año" normal
+                document.getElementById('filtroAnio').style.display = 'block';
+                
+                if (tipoVista === 'mensual') {
+                    document.getElementById('filtroMes').style.display = 'block';
+                } else if (tipoVista === 'semanal') {
+                    document.getElementById('filtroMes').style.display = 'block';
+                    document.getElementById('filtroSemana').style.display = 'block';
+                } else if (tipoVista === 'personalizada') {
+                    document.getElementById('filtroFechaInicio').style.display = 'block';
+                    document.getElementById('filtroFechaFin').style.display = 'block';
+                }
+            }
+        }
+
+        // ========== FUNCIONES PRINCIPALES ==========
+
+        // Cargar datos según los filtros seleccionados
+        async function cargarDatosAnuales() {
+            const tipoVista = document.querySelector('input[name="tipoVista"]:checked').value;
+            
+            // Si es comparación, usar función especial
+            if (tipoVista === 'comparacion') {
+                cargarComparacionAnios();
+                return;
+            }
+            
+            const year = document.getElementById('yearSelect').value;
+            document.getElementById('yearDisplay').textContent = year;
+            showLoading(`Cargando datos de ${year}`);
+            
+            try {
+                let diasACargar = [];
+                let textoFiltro = '';
+
+                // Generar días según el tipo de vista
+                if (tipoVista === 'anual') {
+                    diasACargar = generarDiasDelAnio(year);
+                    textoFiltro = `Todo el año ${year}`;
+                    updateLoading(10, `Cargando ${year}`, `Generando 365 días del año...`);
+                    
+                } else if (tipoVista === 'mensual') {
+                    const mes = document.getElementById('mesSelect').value;
+                    diasACargar = generarDiasDelMes(year, mes);
+                    textoFiltro = `${getNombreMes(mes)} ${year}`;
+                    
+                } else if (tipoVista === 'semanal') {
+                    const mes = document.getElementById('mesSelect').value;
+                    const semana = document.getElementById('semanaSelect').value;
+                    diasACargar = generarDiasDeSemanaDelMes(year, mes, semana);
+                    
+                    if (semana === 'todas') {
+                        textoFiltro = `Todas las semanas de ${getNombreMes(mes)} ${year}`;
+                    } else {
+                        textoFiltro = `Semana ${semana} de ${getNombreMes(mes)} ${year}`;
+                    }
+                    
+                } else if (tipoVista === 'personalizada') {
+                    const fechaInicio = document.getElementById('fechaInicio').value;
+                    const fechaFin = document.getElementById('fechaFin').value;
+                    
+                    if (!fechaInicio || !fechaFin) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Fechas incompletas',
+                            text: 'Debes seleccionar fecha de inicio y fin'
+                        });
+                        document.getElementById('loader').classList.add('hide');
+                        return;
+                    }
+                    
+                    diasACargar = generarDiasEnRango(fechaInicio, fechaFin);
+                    textoFiltro = `Del ${fechaInicio} al ${fechaFin}`;
+                }
+
+                // Actualizar texto del filtro activo
+                // document.getElementById('filtroActivo').textContent = textoFiltro;
+                updateLoading(20, `Cargando ${year}`, `Consultando ${diasACargar.length} días...`);
+
+                // Mostrar mensaje de carga
+                const tbody = document.getElementById('tbodyDatos');
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center">
+                    <i class="fas fa-spinner fa-spin me-2"></i>
+                    Cargando ${diasACargar.length} días...
+                </td></tr>`;
+
+                // Consultar datos del servidor
+                const datosCompletos = [];
+                let diasProcesados = 0;
+                const totalDias = diasACargar.length;
+
+                for (let i = 0; i < diasACargar.length; i++) {
+                    const dia = diasACargar[i];
+                    
+                    try {
+                        const ventasDelDia = await obtenerVentasDelDia(dia.fechaServidor);
+                        
+                        datosCompletos.push({
+                            fecha: dia.fechaFormato,
+                            diaSemana: dia.diaSemana,
+                            ventaTotal: ventasDelDia.total || 0,
+                            transacciones: ventasDelDia.transacciones || 0,
+                            promedio: ventasDelDia.transacciones > 0 ? (ventasDelDia.total / ventasDelDia.transacciones) : 0
+                        });
+                        
+                        diasProcesados++;
+                        
+                        // Calcular progreso (20% inicial + 70% de carga de datos)
+                        const progress = 20 + Math.floor((diasProcesados / totalDias) * 70);
+                        
+                        // Actualizar progreso cada día
+                        updateLoading(
+                            progress, 
+                            `Procesando ${year}`,
+                            `Día ${diasProcesados}/${totalDias} - ${dia.fechaFormato}`
+                        );
+                        
+                        // Actualizar tabla cada 5 días
+                        if (diasProcesados % 5 === 0) {
+                            tbody.innerHTML = `<tr><td colspan="6" class="text-center">
+                                <i class="fas fa-spinner fa-spin me-2"></i>
+                                Procesando... ${diasProcesados}/${totalDias} días
+                            </td></tr>`;
+                        }
+                        
+                    } catch (error) {
+                        console.error(`Error al obtener datos del día ${dia.fechaFormato}:`, error);
+                        datosCompletos.push({
+                            fecha: dia.fechaFormato,
+                            diaSemana: dia.diaSemana,
+                            ventaTotal: 0,
+                            transacciones: 0,
+                            promedio: 0
+                        });
+                    }
+                }
+
+                // Mostrar datos en la tabla
+                updateLoading(95, 'Finalizando...', 'Generando tabla de resultados...');
+                mostrarDatosEnTabla(datosCompletos);
+                // document.getElementById('totalDiasDisplay').textContent = datosCompletos.length;
+                
+                updateLoading(100, '¡Completado!', `${datosCompletos.length} días cargados exitosamente`);
+                
+                setTimeout(() => {
+                    hideLoading();
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Datos cargados!',
+                        text: `Se cargaron ${datosCompletos.length} días con éxito`,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }, 500);
+
+            } catch (error) {
+                console.error('Error al cargar datos:', error);
+                hideLoading();
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudieron cargar los datos. Intenta nuevamente.'
+                });
+            }
+        }
+
+        // Generar días de un mes específico
+        function generarDiasDelMes(year, mes) {
+            const dias = [];
+            const diasSemana = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+            
+            const fecha = new Date(year, mes - 1, 1); // Primer día del mes
+            const ultimoDia = new Date(year, mes, 0).getDate(); // Último día del mes
+            
+            for (let dia = 1; dia <= ultimoDia; dia++) {
+                const fechaActual = new Date(year, mes - 1, dia);
+                dias.push({
+                    fechaFormato: formatearFechaDDMMYY(fechaActual),
+                    fechaServidor: formatearFechaServidor(fechaActual),
+                    diaSemana: diasSemana[fechaActual.getDay()],
+                    fecha: new Date(fechaActual)
+                });
+            }
+            
+            return dias;
+        }
+
+        // Generar días de una semana específica del mes
+        function generarDiasDeSemanaDelMes(year, mes, semana) {
+            if (semana === 'todas') {
+                return generarDiasDelMes(year, mes);
+            }
+            
+            const dias = [];
+            const diasSemana = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+            
+            // Calcular rango de días según la semana
+            const diaInicio = ((semana - 1) * 7) + 1;
+            const diaFin = Math.min(semana * 7, new Date(year, mes, 0).getDate());
+            
+            for (let dia = diaInicio; dia <= diaFin; dia++) {
+                const fechaActual = new Date(year, mes - 1, dia);
+                dias.push({
+                    fechaFormato: formatearFechaDDMMYY(fechaActual),
+                    fechaServidor: formatearFechaServidor(fechaActual),
+                    diaSemana: diasSemana[fechaActual.getDay()],
+                    fecha: new Date(fechaActual)
+                });
+            }
+            
+            return dias;
+        }
+
+        // Generar días en un rango personalizado
+        function generarDiasEnRango(fechaInicio, fechaFin) {
+            const dias = [];
+            const diasSemana = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+            
+            const inicio = new Date(fechaInicio);
+            const fin = new Date(fechaFin);
+            const fechaActual = new Date(inicio);
+            
+            while (fechaActual <= fin) {
+                dias.push({
+                    fechaFormato: formatearFechaDDMMYY(new Date(fechaActual)),
+                    fechaServidor: formatearFechaServidor(new Date(fechaActual)),
+                    diaSemana: diasSemana[fechaActual.getDay()],
+                    fecha: new Date(fechaActual)
+                });
+                
+                fechaActual.setDate(fechaActual.getDate() + 1);
+            }
+            
+            return dias;
+        }
+
+        // Obtener nombre del mes
+        function getNombreMes(mes) {
+            const meses = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            return meses[parseInt(mes)];
+        }
+
+        // Obtener ventas de un día específico del servidor
+        async function obtenerVentasDelDia(fecha) {
+            return new Promise((resolve, reject) => {
+                try {
+                    console.log('📅 Consultando ventas para fecha:', fecha);
+                    
+                    // Construir la URL con los parámetros necesarios
+                    const fechaInicio = fecha + ' 00:00:00';
+                    const fechaFin = fecha + ' 23:59:59';
+                    
+                    const paymentParams = [
+                        'fastSell=true',
+                        'boleta=true', 
+                        'factura=true',
+                        'noSii=true',
+                        'amipass=true',
+                        'rappi=true',
+                        'uber=true',
+                        'junaeb=true',
+                        'multicaja=true',
+                        'edenred=true',
+                        'sodexo=true',
+                        'convenio_empresa=true',
+                        'debito=true',
+                        'credito=true',
+                        'transferencia=true',
+                        'cheque=true',
+                        'banco=true',
+                        'pluxee=true',
+                        'pedidos_ya=true',
+                        'guia_despacho=true',
+                        'banco_chile_20=true',
+                        'nota_de_credito=true',
+                        'efectivo=true'
+                    ].join('&');
+                    
+                    // 🎯 Obtener las ventas individuales (contiene tanto el total como las transacciones)
+                    const sellsUrl = generarURLApi(`/web/getAppSells?id=${appId}&startDate=${fechaInicio}&endDate=${fechaFin}&${paymentParams}&per_page=10000`);
+                    
+                    console.log(`🔗 URL para ${fecha}:`, sellsUrl);
+                    console.log(`   ID: ${appId}, Rango: ${fechaInicio} - ${fechaFin}`);
+                    
+                    __conection({
+                        url: sellsUrl,
+                        header: credentials(),
+                        dev: true,
+                        method: 'GET'
+                    }, {}, function (sellsResponse) {
+                        console.log('� Respuesta de sells para', fecha, ':', sellsResponse);
+                        
+                        // Extraer ventas del response
+                        const sells = [];
+                        if (Array.isArray(sellsResponse)) {
+                            sells.push(...sellsResponse);
+                        } else {
+                            for (const app in sellsResponse) {
+                                if (sellsResponse[app] && sellsResponse[app].original && Array.isArray(sellsResponse[app].original)) {
+                                    sells.push(...sellsResponse[app].original);
+                                } else if (sellsResponse[app] && Array.isArray(sellsResponse[app])) {
+                                    sells.push(...sellsResponse[app]);
+                                }
+                            }
+                        }
+                        
+                        // Calcular el total sumando venta.total de cada venta
+                        let total = 0;
+                        sells.forEach(venta => {
+                            const ventaTotal = parseFloat(venta.total || 0);
+                            total += ventaTotal;
+                        });
+                        
+                        const transacciones = sells.length;
+                        
+                        console.log(`✅ Día ${fecha}: Total=$${total.toFixed(2)}, Transacciones=${transacciones}`);
+                        
+                        resolve({
+                            total: total,
+                            transacciones: transacciones
+                        });
+                    });
+                    
+                } catch (error) {
+                    console.error('❌ Error al obtener ventas del día:', error);
+                    resolve({ total: 0, transacciones: 0 });
+                }
+            });
+        }
+
+        // ========== COMPARACIÓN AÑO VS AÑO ==========
+        
+        async function cargarComparacionAnios() {
+            const anio1 = document.getElementById('anio1Select').value;
+            const anio2 = document.getElementById('anio2Select').value;
+            const periodo = document.getElementById('periodoComparacionSelect').value;
+            
+            document.getElementById('yearDisplay').textContent = `${anio1} vs ${anio2}`;
+            showLoading(`Comparando ${anio1} vs ${anio2}`);
+            
+            try {
+                let diasAnio1 = [];
+                let diasAnio2 = [];
+                let textoFiltro = '';
+
+                if (periodo === 'anual') {
+                    diasAnio1 = generarDiasDelAnio(anio1);
+                    diasAnio2 = generarDiasDelAnio(anio2);
+                    textoFiltro = `Año completo ${anio1} vs ${anio2}`;
+                } else {
+                    // Un mes específico
+                    diasAnio1 = generarDiasDelMes(anio1, periodo);
+                    diasAnio2 = generarDiasDelMes(anio2, periodo);
+                    textoFiltro = `${getNombreMes(periodo)} ${anio1} vs ${anio2}`;
+                }
+
+                // document.getElementById('filtroActivo').textContent = textoFiltro;
+                updateLoading(10, `Comparando ${anio1} vs ${anio2}`, `Preparando ${diasAnio1.length} días...`);
+
+                // Cargar datos de ambos años
+                const tbody = document.getElementById('tbodyDatos');
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center">
+                    <i class="fas fa-spinner fa-spin me-2"></i>
+                    Cargando comparación...
+                </td></tr>`;
+
+                // Obtener datos del año 1
+                console.log(`🔍 Cargando datos de ${anio1}...`);
+                updateLoading(15, `Cargando datos de ${anio1}`, 'Consultando servidor...');
+                const datosAnio1 = [];
+                const totalDias = diasAnio1.length;
+                
+                for (let i = 0; i < diasAnio1.length; i++) {
+                    const dia = diasAnio1[i];
+                    if (i === 0) console.log(`📅 Primera fecha de ${anio1}: ${dia.fechaServidor}`);
+                    const ventasDelDia = await obtenerVentasDelDia(dia.fechaServidor);
+                    if (i === 0) console.log(`💰 Resultado primera fecha ${anio1}:`, ventasDelDia);
+                    
+                    // Progreso del año 1: 15% a 50%
+                    const progress = 15 + Math.floor((i / totalDias) * 35);
+                    updateLoading(progress, `Cargando ${anio1}`, `Día ${i+1}/${totalDias} - ${dia.fechaFormato}`);
+                    
+                    datosAnio1.push({
+                        fecha: dia.fechaFormato,
+                        diaSemana: dia.diaSemana,
+                        ventaTotal: ventasDelDia.total || 0,
+                        transacciones: ventasDelDia.transacciones || 0
+                    });
+                }
+
+                // Obtener datos del año 2
+                console.log(`🔍 Cargando datos de ${anio2}...`);
+                updateLoading(50, `Cargando datos de ${anio2}`, 'Consultando servidor...');
+                const datosAnio2 = [];
+                const totalDias2 = diasAnio2.length;
+                
+                for (let i = 0; i < diasAnio2.length; i++) {
+                    const dia = diasAnio2[i];
+                    if (i === 0) console.log(`📅 Primera fecha de ${anio2}: ${dia.fechaServidor}`);
+                    const ventasDelDia = await obtenerVentasDelDia(dia.fechaServidor);
+                    if (i === 0) console.log(`💰 Resultado primera fecha ${anio2}:`, ventasDelDia);
+                    
+                    // Progreso del año 2: 50% a 90%
+                    const progress = 50 + Math.floor((i / totalDias2) * 40);
+                    updateLoading(progress, `Cargando ${anio2}`, `Día ${i+1}/${totalDias2} - ${dia.fechaFormato}`);
+                    
+                    datosAnio2.push({
+                        fecha: dia.fechaFormato,
+                        diaSemana: dia.diaSemana,
+                        ventaTotal: ventasDelDia.total || 0,
+                        transacciones: ventasDelDia.transacciones || 0
+                    });
+                }
+
+                // Mostrar comparación
+                updateLoading(95, 'Generando comparación', 'Calculando diferencias...');
+                mostrarComparacion(datosAnio1, datosAnio2, anio1, anio2);
+                // document.getElementById('totalDiasDisplay').textContent = Math.max(datosAnio1.length, datosAnio2.length);
+                
+                updateLoading(100, '¡Completado!', `Comparación de ${anio1} vs ${anio2} lista`);
+                
+                setTimeout(() => {
+                    hideLoading();
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Comparación lista!',
+                        text: `${anio1} vs ${anio2} - ${Math.max(datosAnio1.length, datosAnio2.length)} días`,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }, 500);
+
+            } catch (error) {
+                console.error('Error al cargar comparación:', error);
+                hideLoading();
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo cargar la comparación'
+                });
+            }
+        }
+
+        function mostrarComparacion(datosAnio1, datosAnio2, anio1, anio2) {
+            const tbody = document.getElementById('tbodyDatos');
+            tbody.innerHTML = '';
+            
+            // Calcular totales
+            let totalVentas1 = 0, totalTrans1 = 0;
+            let totalVentas2 = 0, totalTrans2 = 0;
+            
+            // Asegurarse de tener el mismo número de días (año bisiesto)
+            const maxDias = Math.max(datosAnio1.length, datosAnio2.length);
+            
+            for (let i = 0; i < maxDias; i++) {
+                const dato1 = datosAnio1[i] || { fecha: '-', diaSemana: '-', ventaTotal: 0, transacciones: 0 };
+                const dato2 = datosAnio2[i] || { fecha: '-', diaSemana: '-', ventaTotal: 0, transacciones: 0 };
+                
+                totalVentas1 += dato1.ventaTotal;
+                totalTrans1 += dato1.transacciones;
+                totalVentas2 += dato2.ventaTotal;
+                totalTrans2 += dato2.transacciones;
+                
+                // Calcular diferencia y variación %
+                const difVenta = dato2.ventaTotal - dato1.ventaTotal;
+                const difTrans = dato2.transacciones - dato1.transacciones;
+                const varPorcentaje = dato1.ventaTotal > 0 ? ((difVenta / dato1.ventaTotal) * 100) : 0;
+                
+                // Determinar color según variación
+                let colorVariacion = '';
+                let iconoVariacion = '';
+                if (varPorcentaje > 5) {
+                    colorVariacion = 'text-success';
+                    iconoVariacion = '<i class="fas fa-arrow-up"></i>';
+                } else if (varPorcentaje < -5) {
+                    colorVariacion = 'text-danger';
+                    iconoVariacion = '<i class="fas fa-arrow-down"></i>';
+                } else {
+                    colorVariacion = 'text-muted';
+                    iconoVariacion = '<i class="fas fa-equals"></i>';
+                }
+                
+                // Resaltar fines de semana
+                let rowClass = '';
+                if (dato1.diaSemana === 'D' || dato2.diaSemana === 'D') {
+                    rowClass = 'table-danger';
+                } else if (dato1.diaSemana === 'S' || dato2.diaSemana === 'S') {
+                    rowClass = 'table-warning';
+                }
+                
+                const fila = `<tr class="${rowClass}">
+                    <td class="fw-bold">${dato1.fecha.substring(0, 5)}</td>
+                    <td class="text-center">
+                        <span class="badge bg-secondary">${dato1.diaSemana}</span>
+                    </td>
+                    <td class="text-end">${formatearMoneda(dato1.ventaTotal)}</td>
+                    <td class="text-center">${dato1.transacciones}</td>
+                    <td class="text-center">
+                        <span class="badge bg-secondary">${dato2.diaSemana}</span>
+                    </td>
+                    <td class="text-end fw-bold">${formatearMoneda(dato2.ventaTotal)}</td>
+                    <td class="text-center fw-bold">${dato2.transacciones}</td>
+                    <td class="text-end ${colorVariacion}">
+                        ${iconoVariacion} ${formatearMoneda(Math.abs(difVenta))}
+                    </td>
+                    <td class="text-center">
+                        <span class="badge ${varPorcentaje >= 0 ? 'bg-success' : 'bg-danger'}">
+                            ${varPorcentaje >= 0 ? '+' : ''}${varPorcentaje.toFixed(1)}%
+                        </span>
+                    </td>
+                </tr>`;
+                tbody.innerHTML += fila;
+            }
+
+            // Actualizar encabezado de la tabla para comparación
+            document.querySelector('#tablaDatos thead').innerHTML = `
+                <tr>
+                    <th rowspan="2" style="width: 8%;">FECHA</th>
+                    <th colspan="3" class="text-center bg-primary text-white">${anio1}</th>
+                    <th colspan="3" class="text-center bg-success text-white">${anio2}</th>
+                    <th colspan="2" class="text-center bg-warning">COMPARACIÓN</th>
+                </tr>
+                <tr>
+                    <th style="width: 5%;" class="text-center">DÍA</th>
+                    <th style="width: 12%;" class="text-end">VENTA</th>
+                    <th style="width: 8%;" class="text-center">TRAN</th>
+                    <th style="width: 5%;" class="text-center">DÍA</th>
+                    <th style="width: 12%;" class="text-end">VENTA</th>
+                    <th style="width: 8%;" class="text-center">TRAN</th>
+                    <th style="width: 12%;" class="text-end">DIF $</th>
+                    <th style="width: 10%;" class="text-center">VAR %</th>
+                </tr>
+            `;
+
+            // Mostrar KPIs comparativos
+            const difTotalVentas = totalVentas2 - totalVentas1;
+            const varTotalPorcentaje = totalVentas1 > 0 ? ((difTotalVentas / totalVentas1) * 100) : 0;
+            
+            document.getElementById('totalVentas').innerHTML = `
+                <div>${formatearMoneda(totalVentas1)}</div>
+                <div class="small ${difTotalVentas >= 0 ? 'text-success' : 'text-danger'}">
+                    ${difTotalVentas >= 0 ? '+' : ''}${formatearMoneda(difTotalVentas)} (${varTotalPorcentaje.toFixed(1)}%)
+                </div>
+            `;
+            document.getElementById('totalTransacciones').innerHTML = `
+                <div>${totalTrans1.toLocaleString('es-CL')}</div>
+                <div class="small ${(totalTrans2 - totalTrans1) >= 0 ? 'text-success' : 'text-danger'}">
+                    ${(totalTrans2 - totalTrans1) >= 0 ? '+' : ''}${(totalTrans2 - totalTrans1).toLocaleString('es-CL')}
+                </div>
+            `;
+            
+            const prom1 = totalTrans1 > 0 ? totalVentas1 / totalTrans1 : 0;
+            const prom2 = totalTrans2 > 0 ? totalVentas2 / totalTrans2 : 0;
+            document.getElementById('promedioVentas').innerHTML = `
+                <div>${formatearMoneda(prom1)}</div>
+                <div class="small ${(prom2 - prom1) >= 0 ? 'text-success' : 'text-danger'}">
+                    ${formatearMoneda(prom2)} (${anio2})
+                </div>
+            `;
+            
+            document.getElementById('resumenTotales').style.display = 'flex';
+            document.getElementById('tfootTotales').style.display = 'none';
+        }
+
+        // Mostrar datos en la tabla
+        function mostrarDatosEnTabla(datos) {
+            const tbody = document.getElementById('tbodyDatos');
+            tbody.innerHTML = '';
+            
+            // Restaurar encabezado original de la tabla
+            document.querySelector('#tablaDatos thead').innerHTML = `
+                <tr>
+                    <th style="width: 15%;">FECHA</th>
+                    <th style="width: 8%;" class="text-center">DÍA</th>
+                    <th style="width: 25%;" class="text-end">VENTA</th>
+                    <th style="width: 15%;" class="text-center">TRAN</th>
+                    <th style="width: 20%;" class="text-end">PROMEDIO</th>
+                    <th style="width: 17%;" class="text-center">ESTADO</th>
+                </tr>
+            `;
+            
+            // Calcular totales
+            let totalVentas = 0;
+            let totalTransacciones = 0;
+            
+            datos.forEach(dia => {
+                totalVentas += dia.ventaTotal;
+                totalTransacciones += dia.transacciones;
+                
+                const ventaFormateada = formatearMoneda(dia.ventaTotal);
+                const promedioFormateado = formatearMoneda(dia.promedio);
+                
+                // Determinar estado y color
+                let estadoBadge = '';
+                if (dia.ventaTotal === 0) {
+                    estadoBadge = '<span class="badge bg-secondary">Sin ventas</span>';
+                } else if (dia.ventaTotal < 500000) {
+                    estadoBadge = '<span class="badge bg-warning">Bajo</span>';
+                } else if (dia.ventaTotal < 1000000) {
+                    estadoBadge = '<span class="badge bg-info">Normal</span>';
+                } else if (dia.ventaTotal < 1500000) {
+                    estadoBadge = '<span class="badge bg-primary">Bueno</span>';
+                } else {
+                    estadoBadge = '<span class="badge bg-success">Excelente</span>';
+                }
+                
+                // Color de fondo según día de la semana
+                let rowClass = '';
+                if (dia.diaSemana === 'D') {
+                    rowClass = 'table-danger'; // Domingo en rojo claro
+                } else if (dia.diaSemana === 'S') {
+                    rowClass = 'table-warning'; // Sábado en amarillo claro
+                }
+                
+                const row = `
+                    <tr class="${rowClass}">
+                        <td><strong>${dia.fecha}</strong></td>
+                        <td class="text-center"><span class="badge bg-dark">${dia.diaSemana}</span></td>
+                        <td class="text-end text-success fw-bold">${ventaFormateada}</td>
+                        <td class="text-center">${dia.transacciones}</td>
+                        <td class="text-end">${promedioFormateado}</td>
+                        <td class="text-center">${estadoBadge}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+
+            // Calcular promedios
+            const promedioGeneral = totalTransacciones > 0 ? (totalVentas / totalTransacciones) : 0;
+
+            // Mostrar KPIs de resumen
+            document.getElementById('totalVentas').textContent = formatearMoneda(totalVentas);
+            document.getElementById('totalTransacciones').textContent = totalTransacciones.toLocaleString('es-CL');
+            document.getElementById('promedioVentas').textContent = formatearMoneda(promedioGeneral);
+            document.getElementById('resumenTotales').style.display = 'flex';
+
+            // Mostrar totales en el footer de la tabla
+            document.getElementById('footerVentaTotal').textContent = formatearMoneda(totalVentas);
+            document.getElementById('footerTransTotal').textContent = totalTransacciones.toLocaleString('es-CL');
+            document.getElementById('footerPromedioTotal').textContent = formatearMoneda(promedioGeneral);
+            document.getElementById('tfootTotales').style.display = 'table-footer-group';
+        }
+
+        // Generar todos los días del año
+        function generarDiasDelAnio(year) {
+            const dias = [];
+            const diasSemana = ['D', 'L', 'M', 'M', 'J', 'V', 'S']; // Domingo = 0
+            
+            // Comenzar desde el 1 de enero
+            const fecha = new Date(year, 0, 1);
+            
+            // Generar todos los días hasta el 31 de diciembre
+            while (fecha.getFullYear() == year) {
+                dias.push({
+                    fechaFormato: formatearFechaDDMMYY(fecha),
+                    fechaServidor: formatearFechaServidor(new Date(fecha)),
+                    diaSemana: diasSemana[fecha.getDay()],
+                    fecha: new Date(fecha)
+                });
+                
+                // Siguiente día
+                fecha.setDate(fecha.getDate() + 1);
+            }
+            
+            return dias;
+        }
+
+        // Formatear fecha a formato DD-MM-YY
+        function formatearFechaDDMMYY(fecha) {
+            const dia = String(fecha.getDate()).padStart(2, '0');
+            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+            const anio = String(fecha.getFullYear()).slice(-2); // Últimos 2 dígitos del año
+            return `${dia}-${mes}-${anio}`;
+        }
+
+        // Formatear moneda (pesos chilenos)
+        function formatearMoneda(valor) {
+            return '$ ' + Math.round(valor).toLocaleString('es-CL');
+        }
+
+        // Formatear fecha para el servidor (YYYY-MM-DD)
+        function formatearFechaServidor(fecha) {
+            const dia = String(fecha.getDate()).padStart(2, '0');
+            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+            const anio = fecha.getFullYear();
+            return `${anio}-${mes}-${dia}`;
+        }
+
+        // Exportar a Excel
+        function exportarExcel() {
+            const tabla = document.getElementById('tablaDatos');
+            const year = document.getElementById('yearSelect').value;
+            
+            if (!tabla.querySelector('tbody tr td:not([colspan])')) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sin datos',
+                    text: 'Primero debes cargar los datos haciendo clic en "Cargar 365 Días"'
+                });
+                return;
+            }
+            
+            // Crear datos para Excel (sin columnas HTML como badges)
+            const tbody = document.getElementById('tbodyDatos');
+            const filas = tbody.querySelectorAll('tr');
+            
+            const datosExcel = [];
+            datosExcel.push(['FECHA', 'DÍA', 'VENTA', 'TRAN', 'PROMEDIO', 'ESTADO']);
+            
+            filas.forEach(fila => {
+                const celdas = fila.querySelectorAll('td');
+                if (celdas.length > 1) {
+                    const fecha = celdas[0].textContent.trim();
+                    const dia = celdas[1].textContent.trim();
+                    const venta = celdas[2].textContent.trim();
+                    const tran = celdas[3].textContent.trim();
+                    const promedio = celdas[4].textContent.trim();
+                    const estado = celdas[5].textContent.trim();
+                    
+                    datosExcel.push([fecha, dia, venta, tran, promedio, estado]);
+                }
+            });
+            
+            // Crear workbook
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(datosExcel);
+            
+            // Ajustar ancho de columnas
+            ws['!cols'] = [
+                { wch: 12 },  // FECHA
+                { wch: 6 },   // DÍA
+                { wch: 18 },  // VENTA
+                { wch: 8 },   // TRAN
+                { wch: 18 },  // PROMEDIO
+                { wch: 15 }   // ESTADO
+            ];
+            
+            // Agregar la hoja al libro
+            XLSX.utils.book_append_sheet(wb, ws, `Reporte ${year}`);
+            
+            // Convertir a base64 y descargar
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+            
+            // Crear link de descarga
+            const a = document.createElement('a');
+            a.href = 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,' + wbout;
+            a.download = `52_Semanas_${year}_Sucursal.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            Swal.fire({
+                icon: 'success',
+                title: '¡Exportado!',
+                text: 'El archivo Excel se ha descargado correctamente',
+                timer: 2000
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -125,12 +125,19 @@ async function getSells(startDate = null, endDate = null, page) {
             for (const app in apps) {
                 // console.log(apps[app].original);
                 let ventas = apps[app].original.items;
+                
+                // 🔍 DEBUG: Ver TODOS los campos de la primera venta
+                if (ventas.length > 0) {
+                    console.log("📋 Campos de una venta:", ventas[0]);
+                    console.log("📋 Todas las propiedades:", Object.keys(ventas[0]));
+                }
                 if (ventas.length > 0) {
                     let fila = `<div class="table-responsive">
                                     <table class="table table-striped table-sm">
                                             <thead>
                                                 <tr>
                                                     <th scope="col">#</th>
+                                                    <th scope="col">Folio</th>
                                                     <th scope="col">Fecha</th>
                                                     <th scope="col">Usuario</th>
                                                     <th scope="col">Cliente</th>
@@ -142,9 +149,18 @@ async function getSells(startDate = null, endDate = null, page) {
                                             <tbody> `;
 
                     for (const index in ventas) {
+                        // Obtener el folio (solo viene en ventas con boleta)
+                        const folio = ventas[index].sell_folio || null;
+                        
+                        // Destacar visualmente si tiene folio (es boleta electrónica)
+                        const tieneFolio = folio !== null && folio !== undefined && folio !== '';
+                        const folioHTML = tieneFolio 
+                            ? `<span class="badge bg-success" title="Boleta Electrónica">📄 ${folio}</span>` 
+                            : `<span class="text-muted">-</span>`;
                  
-                        fila += `<tr>
+                        fila += `<tr ${tieneFolio ? 'class="table-success"' : ''}>
                                     <td><b>${ventas[index].id}</b></td>
+                                    <td>${folioHTML}</td>
                                     <td>${ventas[index].created_at}</td>
                                     <td>${ventas[index].fullname}</td>
                                     <td>${ventas[index].client}</td>

@@ -33,6 +33,24 @@ Route::get('/getAppByIdAlt/{id}', 'AplicationController@getAppById');
 Route::get('/cobros', 'Controllers_local\PaymentsController@getPayment');
 Route::post('/cobros', 'Controllers_local\PaymentsController@notifyPago');
 
+// Cupones de descuento (sin autenticación para validar desde el POS)
+Route::post('/cupones/validar', 'CuponController@validar');
+Route::post('/cupones/aplicar', 'CuponController@aplicar');
+
+// Metas Locales (acceso público desde web dashboard)
+Route::get('/web/metas-locales', 'MetaLocalController@index');
+Route::post('/web/metas-locales/store', 'MetaLocalController@store');
+Route::get('/web/metas-locales/dashboard', 'MetaLocalController@getDashboard');
+Route::get('/metas-locales/current', 'MetaLocalController@getCurrentLocalMeta');
+
+// Totem - Rutas públicas sin autenticación
+Route::get('/totem/categorias', 'Controllers_local\TotemController@getCategorias');
+Route::get('/totem/productos', 'Controllers_local\TotemController@getProductos');
+Route::get('/totem/data', 'Controllers_local\TotemController@getTotemData');
+Route::post('/totem/productos', 'Controllers_local\TotemController@crearProducto');
+Route::put('/totem/productos/{id}', 'Controllers_local\TotemController@actualizarProducto');
+Route::delete('/totem/productos/{id}', 'Controllers_local\TotemController@eliminarProducto');
+
 /*Route::get('/codeTest', function() {
   session(['app-current' => Aplication::find(1)]);
   session(['app-config' => CurrentApp::App()->getApp()]);
@@ -203,6 +221,7 @@ Route::group(['middleware' => ['AppSecurity']], function () {
   // Administración de Salsas - EasyERP
   Route::get('/web/productos-salsas-easyerp', 'ReportAplicationController@getSalsasEasyERP');
   Route::post('/web/actualizar-producto-easyerp', 'ReportAplicationController@actualizarProductoEasyERP');
+  
   //Cobros
   Route::get('/web/getDenominaciones', 'CobrosController@getDenominaciones');
   Route::get('/web/getCobros', 'CobrosController@getCobros');
@@ -214,10 +233,6 @@ Route::group(['middleware' => ['AppSecurity']], function () {
   Route::get('/getEnvs', 'AplicationController@getEnvs');
 
   Route::post('/local/login', 'Controllers_local\LoginLocal@login');
-
-  // Cupones de descuento (sin autenticación para validar desde el POS)
-  Route::post('/cupones/validar', 'CuponController@validar');
-  Route::post('/cupones/aplicar', 'CuponController@aplicar');
 
   Route::group(['middleware' => ['JwtMiddleware']], function () {
 
@@ -280,6 +295,7 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::get('/local/products/index', 'ProductController@getProductsOfSell');
 
           Route::post('/local/products/updateStock/{id}', 'ProductController@updateStock'); 
+          Route::get('/local/products/stockHistory', 'ProductController@getStockHistory'); 
           
           Route::get('/local/products/fagotto', 'Controllers_local\ProductsController@getProductsOfFagotto');
 //JC - 

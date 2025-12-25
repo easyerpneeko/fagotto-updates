@@ -4,7 +4,7 @@
         <div class="modal-dialog lg-modal modal-dialog-centered" role="document" style="max-width: 1000px; margin: auto;">
             <div class="modal-content">
                 <div class="modal-header bg-gradient">
-                    <h5 class="modal-title fw-bold">🚨 Preparar pedido urgente</h5>
+                    <h5 class="modal-title fw-bold">� Preparar pedido Individual</h5>
                     <button type="button" class="close text-white" @click="closeModal(false)" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -25,7 +25,7 @@
                                             <button v-if="(producto.name != 'Despacho' && producto.name != 'Queso')" type="button"
                                                 @click="addProduct(producto)"
                                                 class="btn btn-outline-primary btn-sm rounded-pill product-btn"
-                                                title="Click para añadir al pedido urgente">
+                                                title="Click para añadir al pedido Individual">
                                                 🛒 {{ producto.name }} <i class="fa fa-plus ms-1"></i>
                                             </button>
                                         </template>
@@ -35,7 +35,7 @@
                         </div>
 
                         <div class="col-md-7 p-3">
-                            <h5 class="modal-title mb-3 fw-bold">📋 Detalle del pedido urgente</h5>
+                            <h5 class="modal-title mb-3 fw-bold">📋 Detalle del pedido Individual</h5>
                             
                             <table class="table table-sm table-striped table-hover">
                                 <thead class="table-dark">
@@ -124,7 +124,7 @@
                             <!-- Resumen de montos en card -->
                             <div class="card shadow-sm">
                                 <div class="card-body p-3">
-                                    <h6 class="card-title text-muted mb-2 fw-bold">💰 Resumen de costos urgente</h6>
+                                    <h6 class="card-title text-muted mb-2 fw-bold">💰 Resumen de costos</h6>
                                     <table class="table table-sm mb-0">
                                         <thead class="table-dark">
                                             <tr>
@@ -142,17 +142,8 @@
                                                 <td class="text-end fw-bold text-success">-${{ formatNumber(totalDiscountAmount) }}</td>
                                             </tr>
                                             <tr>
-                                                <td v-if="emergency">Despacho urgente</td>
-                                                <td v-else>Despacho {{ this.despacho * 100 }}%</td>
-                                                <td class="text-end">${{ formatNumber(this.montoDespacho) }}</td>
-                                            </tr>
-                                            <tr>
                                                 <td>IVA {{ this.iva * 100 }}%</td>
                                                 <td class="text-end">${{ formatNumber(this.montoIva) }}</td>
-                                            </tr>
-                                            <tr v-if="this.emergency" class="table-warning">
-                                                <td class="fw-bold">🚨 Cargo de emergencia (+{{this.emergencia * 100}}%)</td>
-                                                <td class="text-end fw-bold">${{ formatNumber(this.montoEmergencia) }}</td>
                                             </tr>
                                             <tr class="table-danger">
                                                 <td class="fw-bold">Total</td>
@@ -171,8 +162,8 @@
                         <button type="button" class="btn btn-outline-dark btn-lg" @click="closeModal()" title="Cerrar sin guardar cambios">
                             <i class="fa fa-times-circle me-2"></i>Cerrar
                         </button>
-                        <button type="button" @click="addProducts()" class="btn btn-danger btn-lg" title="Confirmar pedido urgente">
-                            <i class="fa fa-exclamation-triangle me-2"></i>Agregar productos urgente
+                        <button type="button" @click="addProducts()" class="btn btn-primary btn-lg" title="Confirmar pedido Individual">
+                            <i class="fa fa-check-circle me-2"></i>Agregar productos al pedido
                         </button>
                     </div>
                 </div>
@@ -292,15 +283,9 @@ export default {
             }
             
             this.montoIva = Math.ceil(this.iva * this.montoNeto);
-            //Si el check emergency is active            
-            if(this.emergency){
-                //sumamos el 10% y 5000 fijos de despacho
-                this.montoEmergencia = Math.ceil(this.emergencia * this.montoNeto);
-                this.montoDespacho = 5000;
-            }else{
-                this.montoDespacho = Math.ceil(this.despacho * this.montoNeto);
-                this.montoEmergencia = 0;
-            }
+            //🔥 SIN CARGO DE EMERGENCIA NI DESPACHO - Pedido libre manteniendo x27
+            this.montoEmergencia = 0;
+            this.montoDespacho = 0;
 
             // 🎯 Calcular el total final restando el descuento
             const discountAmount = this.totalDiscountAmount;
@@ -414,9 +399,9 @@ export default {
 </script>
 
 <style scoped media="screen">
-/* Estilos personalizados para el modal de pedido urgente */
+/* Estilos personalizados para el modal de pedido Individual */
 .bg-gradient {
-    background: linear-gradient(to right, #dc3545, #fd7e14);
+    background: linear-gradient(to right, #0d6efd, #0dcaf0);
     color: white;
 }
 
@@ -521,7 +506,7 @@ export default {
     margin-top: 1.5rem;
 }
 
-/* Estilos específicos para pedido urgente */
+/* Estilos específicos para pedido Individual */
 .table-warning {
     background-color: rgba(255, 193, 7, 0.1);
 }

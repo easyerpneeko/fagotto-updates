@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FagottoERP - REPORTES</title>
+    <title>FagottoERP - Control de Stock</title>
     <link rel="icon" type="image/x-icon" href="../assets/css/negro.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
         integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
@@ -17,7 +17,6 @@
     <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
     <!--styles-->
     <link href="../assets/css/dashboard.css" rel="stylesheet">
-    <!-- <link rel="stylesheet" href="../assets/css/garzon.css"> -->
     <link rel="stylesheet" href="../assets/css/global.css">
     <!--helpers-->
     <script src="../assets/helpers/helperURL.js"></script>
@@ -27,38 +26,384 @@
     <script src="../assets/helpers/helperRequest.js"></script>
     <script src="../assets/helpers/helperFunctions.js"></script>
     <style>
-        canvas {
-            -moz-user-select: none;
-            -webkit-user-select: none;
-            -ms-user-select: none;
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --danger-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --warning-gradient: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            --hover-shadow: 0 15px 40px rgba(0,0,0,0.15);
         }
 
-        #chartjs-tooltip {
-            opacity: 1;
-            position: absolute;
-            background: rgba(0, 0, 0, .7);
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .modern-header {
+            background: var(--primary-gradient);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            padding: 1rem 0;
+        }
+
+        .modern-header h1 {
             color: white;
-            border-radius: 3px;
-            -webkit-transition: all .1s ease;
-            transition: all .1s ease;
-            pointer-events: none;
-            -webkit-transform: translate(-50%, 0);
-            transform: translate(-50%, 0);
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.8rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
 
-        .chartjs-tooltip-key {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
+        .modern-sidebar {
+            background: white;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.08);
+            height: calc(100vh - 70px);
+            overflow-y: auto;
+        }
+
+        .modern-sidebar .nav-link {
+            color: #4a5568;
+            padding: 0.9rem 1.2rem;
+            border-radius: 10px;
+            margin: 0.3rem 0.8rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .modern-sidebar .nav-link:hover {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .modern-sidebar .nav-link.active {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .modern-sidebar .nav-link i {
             margin-right: 10px;
+            width: 20px;
+            text-align: center;
         }
 
-        .loader-active .spinner-border {
-            display: none;
+        .stock-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            border: none;
+            overflow: hidden;
+            transition: all 0.3s ease;
         }
 
-        .loader-active .visually-hidden {
-            display: none;
+        .stock-card:hover {
+            box-shadow: var(--hover-shadow);
+            transform: translateY(-5px);
+        }
+
+        .stock-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 1.5rem;
+            border: none;
+        }
+
+        .stock-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stock-table {
+            margin: 0;
+        }
+
+        .stock-table thead {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        }
+
+        .stock-table thead th {
+            border: none;
+            color: #667eea;
+            font-weight: 700;
+            padding: 1.2rem 1rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stock-table tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .stock-table tbody tr:hover {
+            background: linear-gradient(135deg, #667eea08 0%, #764ba208 100%);
+            transform: scale(1.01);
+        }
+
+        .stock-table td {
+            padding: 1.2rem 1rem;
+            vertical-align: middle;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1.05rem;
+        }
+
+        .stock-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .stock-badge.bags {
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            color: #667eea;
+        }
+
+        .stock-badge.cups {
+            background: linear-gradient(135deg, #11998e20 0%, #38ef7d20 100%);
+            color: #11998e;
+        }
+
+        .btn-edit-stock {
+            background: var(--success-gradient);
+            border: none;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+        }
+
+        .btn-edit-stock:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(17, 153, 142, 0.4);
+            color: white;
+        }
+
+        .modal-modern .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .modal-modern .modal-header {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 1.5rem 2rem;
+        }
+
+        .modal-modern .modal-header h5 {
+            font-weight: 700;
+            font-size: 1.4rem;
+            margin: 0;
+        }
+
+        .modal-modern .modal-body {
+            padding: 2rem;
+        }
+
+        .form-control-modern {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control-modern:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .form-label-modern {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.8rem;
+            font-size: 1rem;
+        }
+
+        .btn-save-stock {
+            background: var(--success-gradient);
+            border: none;
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.05rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-save-stock:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(17, 153, 142, 0.4);
+            color: white;
+        }
+
+        .btn-cancel-stock {
+            background: #e2e8f0;
+            border: none;
+            color: #4a5568;
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.05rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel-stock:hover {
+            background: #cbd5e0;
+            color: #2d3748;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #a0aec0;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toolbar-modern {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .toolbar-modern h1 {
+            color: #2d3748;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .toolbar-modern h1 i {
+            color: #667eea;
+        }
+
+        .nav-pills .nav-link {
+            border-radius: 10px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-pills .nav-link.active {
+            background: var(--primary-gradient);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .history-table {
+            margin: 0;
+        }
+
+        .history-table thead {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        }
+
+        .history-table thead th {
+            border: none;
+            color: #667eea;
+            font-weight: 700;
+            padding: 1rem;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .history-table tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .history-table tbody tr:hover {
+            background: linear-gradient(135deg, #667eea05 0%, #764ba205 100%);
+        }
+
+        .history-table td {
+            padding: 0.9rem 1rem;
+            vertical-align: middle;
+            font-size: 0.9rem;
+        }
+
+        .change-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .change-badge.increase {
+            background: linear-gradient(135deg, #11998e20 0%, #38ef7d20 100%);
+            color: #11998e;
+        }
+
+        .change-badge.decrease {
+            background: linear-gradient(135deg, #f093fb20 0%, #f5576c20 100%);
+            color: #f5576c;
+        }
+
+        .change-badge.set {
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            color: #667eea;
+        }
+
+        .user-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            background: #f7fafc;
+            color: #4a5568;
+            font-weight: 500;
+            font-size: 0.85rem;
         }
          
     </style>
@@ -67,69 +412,33 @@
 <body>
     <div id="loader" class="loading hide">
         <div class="spin"></div>
-        <p id="loaderMessage" class="loader-message">Puede tardar en cargar hasta 5 minutos, espere un momento por favor.</p>
+        <p id="loaderMessage" class="loader-message">Cargando stock...</p>
     </div>
-    <header class="navbar navbar-dark sticky-top bg-primary flex-md-nowrap p-0 shadow"
-        style="display: flex; justify-content: center; height: 50px;">
-        <div class="nav-item text-nowrap">
-            <span id="divConteo"></span>
+
+    <!-- Header moderno -->
+    <header class="modern-header">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1><i class="fas fa-boxes"></i> Control de Stock - Salsas</h1>
+                <button class="btn btn-light" id="btn-restore">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
         </div>
     </header>
 
-
-
-
-    <div class="navbar-nav">
-        <div class="nav-item text-nowrap">
-            <a class="nav-link px-5 mx-5" href="#" id="btn-restore">
-                <i class="fas fa-sign-out-alt"></i> Cerrar Sesion
-            </a>
-        </div>
-
-    </div>
-    <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse"
-        data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
-
-    </header>
     <div class="container-fluid">
         <div class="row">
-            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
-                <div class="position-sticky pt-3" style="overflow-y: scroll; height:800px;">
+            <!-- Sidebar moderno -->
+            <nav class="col-md-3 col-lg-2 d-md-block modern-sidebar">
+                <div class="position-sticky pt-3">
                     <ul class="nav nav-pills flex-column mb-auto">
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="./dashboard.html">
-                                <span data-feather="home"></span>
+                            <a class="nav-link" href="./dashboard.html">
                                 <i class="fa fa-home"></i>
                                 Tablero
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="./garzones.html">
-                                <i class="fas fa-user"></i>
-                                Garzones
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="./cocinafagotto.html">
-                                <i class="fas fa-utensils"></i>
-                                Cocina
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="./cocina/cocina2.html">
-                                <i class="fa-solid fa-ticket"></i>
-                                Ordenes
-                            </a>
-                        </li>
-                        <!-- <li class="nav-item">
-                            <a class="nav-link" href="./cocinafagotto.html">
-                                <i class="fas fa-truck-loading"></i>
-                                Pedidos Fagotto
-                            </a>
-                        </li> -->
                         <li class="nav-item">
                             <a class="nav-link" href="./pedidos.html">
                                 <i class="fas fa-box"></i>
@@ -137,87 +446,151 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="./pedidos_reposteria.html">
-                                <i class="fas fa-birthday-cake"></i>
-                                Pedidos Reposteria
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="./cobros.html">
+                            <a class="nav-link" href="./sells.html">
                                 <i class="fa-solid fa-file-invoice-dollar"></i>
-                                Cobros
+                                Ventas Globales
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="./danielys/index.php">
-                                <i class="fa-solid fa-registered"></i>
-                                Registro Empresas
+                            <a class="nav-link" href="./turnos_globales_new.html">
+                                <i class="fas fa-clock"></i>
+                                Turnos Globales
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="./stock.html">
-                                <i class="fa-solid fa-bottle-droplet"></i>
-                                Stock Salsas
+                            <a class="nav-link" href="./centro-costos.html">
+                                <i class="fas fa-coins"></i>
+                                Centro De Costos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="./stock.html">
+                                <i class="fas fa-boxes"></i>
+                                Control de Stock
                             </a>
                         </li>
                     </ul>
                 </div>
             </nav>
 
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <!-- TOOLBAR -->
-                <div
-                    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Stock</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-
-                    </div>
+            <!-- Contenido principal -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <!-- Toolbar moderno -->
+                <div class="toolbar-modern">
+                    <h1>
+                        <i class="fas fa-bottle-droplet"></i>
+                        Inventario de Salsas
+                    </h1>
+                    <p class="text-muted mb-0">Gestión y control de stock en bolsas y vasos</p>
                 </div>
-                <div class="col-12 card p-0">
-                    <div class="card-header text-white bg-primary">
-                        <h5>Productos</h5>
+
+                <!-- Card de stock -->
+                <div class="stock-card">
+                    <div class="stock-header">
+                        <h2>
+                            <i class="fas fa-list"></i>
+                            Productos en Stock
+                        </h2>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-0">
                         <div id="tablas-container">
-                            
-                        </div>
-                        <!-- <div class="card-footer" id="footer-container">
-                            <nav aria-label="pagination">
-                                <ul class="pagination" id="pagination">
-                                    <li class="page-item"><a class="page-link" href="#">Previa</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">Siguiente</a></li>
-                                </ul>
-                            </nav>
-                        </div> -->
-                    </div>
-
-                </div>
-
-                <div class="modal fade" id="addStock" tabindex="-1" aria-labelledby="addStockLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="addStockLabel">Agregar Stock</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <label for="stock_added">Stock a agregar:</label>
-                                <input type="number" id="stock_added" class="form-control" value="">
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                <button type="button" class="btn btn-primary" onclick="addStock()">Guardar</button>
+                            <div class="loading-spinner">
+                                <div class="spinner"></div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-
-
+                <!-- Card de historial -->
+                <div class="stock-card mt-4">
+                    <div class="stock-header">
+                        <h2>
+                            <i class="fas fa-history"></i>
+                            Historial de Cambios
+                        </h2>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="history-container">
+                            <div class="loading-spinner">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </main>
+        </div>
+    </div>
+
+    <!-- Modal moderno para agregar/editar stock -->
+    <div class="modal fade modal-modern" id="addStock" tabindex="-1" aria-labelledby="addStockLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addStockLabel">
+                        <i class="fas fa-edit"></i> <span id="modal-title-text">Gestionar Stock</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Tabs para elegir modo -->
+                    <ul class="nav nav-pills mb-3" id="stockTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="add-tab" data-bs-toggle="pill" data-bs-target="#add-mode" type="button" role="tab">
+                                <i class="fas fa-plus"></i> Agregar
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="edit-tab" data-bs-toggle="pill" data-bs-target="#edit-mode" type="button" role="tab">
+                                <i class="fas fa-edit"></i> Establecer
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="stockTabContent">
+                        <!-- Modo Agregar -->
+                        <div class="tab-pane fade show active" id="add-mode" role="tabpanel">
+                            <div class="mb-3">
+                                <label for="stock_added" class="form-label-modern">
+                                    <i class="fas fa-boxes"></i> Bolsas a agregar:
+                                </label>
+                                <input type="number" id="stock_added" class="form-control form-control-modern" 
+                                       placeholder="Cantidad a sumar" min="1">
+                                <small class="text-muted">Se sumará al stock actual</small>
+                            </div>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> 
+                                <strong>Stock actual:</strong> <span id="current-stock-display">0</span> bolsas
+                            </div>
+                        </div>
+
+                        <!-- Modo Editar -->
+                        <div class="tab-pane fade" id="edit-mode" role="tabpanel">
+                            <div class="mb-3">
+                                <label for="stock_set" class="form-label-modern">
+                                    <i class="fas fa-layer-group"></i> Establecer stock en:
+                                </label>
+                                <input type="number" id="stock_set" class="form-control form-control-modern" 
+                                       placeholder="Nuevo valor total" min="0">
+                                <small class="text-muted">Reemplazará el stock actual completamente</small>
+                            </div>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                <strong>Stock actual:</strong> <span id="current-stock-display2">0</span> bolsas
+                                <br>
+                                <small>Este valor será reemplazado por el nuevo</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel-stock" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-save-stock" onclick="saveStock()">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
     <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>

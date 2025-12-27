@@ -210,19 +210,26 @@ export default {
       let appId = 'AGU001';
       let localNombre = 'Local';
       
+      console.log('🔍 cargarConfiguracionLocal() - Iniciando...');
+      
       try {
         // Leer el archivo aplication.json del directorio raíz de la app
         const aplData = fs.readFileSync('aplication.json', 'utf-8');
+        console.log('📄 Archivo leído exitosamente');
         const config = JSON.parse(aplData);
+        console.log('✅ JSON parseado:', config);
         
         // El appId es el Serial del local
         appId = config.Serial || appId;
         localNombre = config.Name || config.name_public || localNombre;
         
+        console.log('🏢 Local configurado desde aplication.json:', { appId, localNombre });
+        console.log('   Serial leído:', config.Serial);
+        console.log('   AppId final:', appId);
+        
         // Actualizar título de la ventana
         document.title = 'Fagotto ' + localNombre;
         
-        console.log('🏢 Local configurado desde aplication.json:', { appId, localNombre });
         return { appId, localNombre, config };
       } catch (error) {
         console.error('❌ Error leyendo aplication.json:', error);
@@ -281,14 +288,23 @@ export default {
       let localLat = -33.4372;
       let localLng = -70.6506;
       
+      console.log('🔍 generarQRValidacion() - Iniciando...');
+      
       try {
         const aplData = fs.readFileSync('aplication.json', 'utf-8');
+        console.log('📄 Archivo leído exitosamente');
         const config = JSON.parse(aplData);
+        console.log('✅ JSON parseado:', config);
+        
         appId = config.Serial || appId;
         localNombre = config.Name || config.name_public || localNombre;
+        
         console.log('📍 Generando QR de validación para:', { appId, localNombre });
+        console.log('   Serial leído:', config.Serial);
+        console.log('   AppId final:', appId);
       } catch (error) {
-        console.warn('⚠️ Error leyendo aplication.json, usando AGU001 por defecto');
+        console.error('❌ Error leyendo aplication.json:', error);
+        console.warn('⚠️ Usando AGU001 por defecto');
       }
       
       // Generar sesión única
@@ -448,14 +464,23 @@ export default {
       let appId = 'AGU001';
       let localNombre = 'Local';
       
+      console.log('🔍 Intentando leer aplication.json...');
+      
       try {
         const aplData = fs.readFileSync('aplication.json', 'utf-8');
+        console.log('📄 Archivo leído, parseando JSON...');
         const config = JSON.parse(aplData);
+        console.log('✅ JSON parseado:', config);
+        
         appId = config.Serial || appId;
         localNombre = config.Name || config.name_public || localNombre;
+        
         console.log('📍 Generando QR de registro para:', { appId, localNombre });
+        console.log('   Serial leído:', config.Serial);
+        console.log('   AppId final:', appId);
       } catch (error) {
-        console.warn('⚠️ Error leyendo aplication.json, usando AGU001 por defecto');
+        console.error('❌ Error leyendo aplication.json:', error);
+        console.warn('⚠️ Usando AGU001 por defecto');
       }
       
       // Generar sesión única de registro
@@ -489,6 +514,10 @@ export default {
       
       // URL para registro de empleado
       const registerUrl = `https://asistencia.fagottoerp.cl/register-employee.php?session=${sessionId}&appid=${appId}`;
+      
+      console.log('🔗 URL generada:', registerUrl);
+      console.log('   Session:', sessionId);
+      console.log('   AppId usado en URL:', appId);
       
       this.qrValidacionData = registerUrl;
       this.sessionId = sessionId;

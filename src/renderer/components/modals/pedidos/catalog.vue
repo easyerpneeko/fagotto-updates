@@ -105,7 +105,8 @@
             <div class="col-md-6 p-3">
               <h5 class="modal-title mb-3 fw-bold">📋 Detalle del pedido</h5>
               
-              <table class="table table-sm table-striped table-hover">
+              <!-- Solo mostrar tabla de productos fijos si hay salsas -->
+              <table v-if="salsasPedido.length > 0 && vasosSalsas > 0" class="table table-sm table-striped table-hover">
                 <thead class="table-dark">
                   <tr>
                     <th scope="col">Producto</th>
@@ -670,25 +671,38 @@ export default {
       console.log('multiplo:', this.isMultiplo);
       console.log('vasos:', this.vasosSalsas);
 
-      if (this.vasosSalsas < this.vasosMinimos) {
+      // ✅ Si hay salsas, SIEMPRE validar vasos mínimos (con o sin opcionales)
+      const hayOpcionales = this.opcionalPedido.length > 0;
+      const haySalsas = this.salsasPedido.length > 0;
+
+      // Si hay salsas, validar que cumplan el mínimo de 189 vasos
+      if (haySalsas && this.vasosSalsas < this.vasosMinimos) {
         this.$awn.info("El pedido debe ser de minimo " + this.vasosMinimos + " vasos de salsa");
         return false;
       }
 
-      if (!this.isMultiplo) {
+      // Solo validar múltiplo si hay salsas
+      if (haySalsas && !this.isMultiplo) {
         this.$awn.info("El pedido debe ser multiplo de la cantidad de vasos de la Botella de Huevos");
         return false;
       }
 
-      for (var key in this.productosPedido) {
-        this.salsasPedido.push(this.productosPedido[key]);
+      // Solo añadir productos automáticos si hay salsas
+      if (haySalsas && this.vasosSalsas > 0) {
+        for (var key in this.productosPedido) {
+          this.salsasPedido.push(this.productosPedido[key]);
+        }
       }
+      
+      // Añadir productos opcionales
       for (var key in this.opcionalPedido) {
         this.salsasPedido.push(this.opcionalPedido[key]);
       }
       
-      // 🔥 AÑADIR PRODUCTOS AUTOMÁTICOS (Vaso, Huevos, Queso, Harina)
-      this.addAutomaticProducts();
+      // 🔥 AÑADIR PRODUCTOS AUTOMÁTICOS (Vaso, Huevos, Queso, Harina) - Solo si hay salsas
+      if (haySalsas && this.vasosSalsas > 0) {
+        this.addAutomaticProducts();
+      }
       
       this.productoSend = this.salsasPedido
       // console.log('Pedido: ', this.salsasPedido);

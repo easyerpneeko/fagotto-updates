@@ -619,7 +619,7 @@ async function requestLoadCounters(startDate, endDate) {
     });
 }
 
-function cargarCounterEnTabla(request) {
+async function cargarCounterEnTabla(request) {
     const tbody = document.getElementById('tabla-counters-tbody');
     tbody.innerHTML = '';
     let totalVentaBruta = 0;
@@ -629,12 +629,21 @@ function cargarCounterEnTabla(request) {
     let totalTicketsRappi = 0;
     let totalTicketsPedidosYa = 0;
 
+    // Cargar metas del día actual
+    const hoy = new Date();
+    const mes = hoy.getMonth() + 1;
+    const anio = hoy.getFullYear();
+    const dia = hoy.getDate();
+    
+    const metasPorLocal = await cargarMetasDiarias(mes, anio, dia);
+
     for (const app in request) {
         let appIdName = app.split(',',2);
 
         if(appIdName[0] != 79 && appIdName[0] != 86 && appIdName[0] != 98 && appIdName[0] != 109 && appIdName[0] != 106){    // quiero omitir 109 y 106 
 
             const counters = request[app].original.counters;
+            const localId = parseInt(appIdName[0]);
             
             // Calcular Venta Bruta (total de todas las ventas)
             const ventaBruta = parseFloat(counters.balanceTotal) || 0;
@@ -671,9 +680,38 @@ function cargarCounterEnTabla(request) {
             // Calcular porcentaje delivery
             const porcentajeDelivery = ventaBruta > 0 ? ((ventaDelivery / ventaBruta) * 100) : 0;
 
+            // 🎯 Obtener meta del local y calcular estado
+            const metaLocal = metasPorLocal[localId];
+            let metaHTML = '<span class="text-muted">Sin meta</span>';
+            
+            if (metaLocal) {
+                const metaValor = parseInt(metaLocal.meta_diaria) || 0;
+                const diferencia = ventaBruta - metaValor;
+                const cumplida = diferencia >= 0;
+                
+                if (cumplida) {
+                    metaHTML = `<div>
+                                    <div class="fw-bold text-success">✅ Meta superada</div>
+                                    <div style="font-size: 0.85rem; color: #10b981;">
+                                        Meta: ${formatearMontoChile(metaValor)} 
+                                        <span class="badge bg-success">+${formatearMontoChile(Math.abs(diferencia))}</span>
+                                    </div>
+                                </div>`;
+                } else {
+                    metaHTML = `<div>
+                                    <div class="fw-bold text-danger">❌ Meta fallida</div>
+                                    <div style="font-size: 0.85rem; color: #ef4444;">
+                                        Meta: ${formatearMontoChile(metaValor)}
+                                        <span class="badge bg-danger">Faltó ${formatearMontoChile(Math.abs(diferencia))}</span>
+                                    </div>
+                                </div>`;
+                }
+            }
+
             const fila = `<tr>
                               <td>${appIdName[1]}</td>
                               <td>${formatearMontoChile(ventaBruta.toFixed(0))}</td>
+                              <td>${metaHTML}</td>
                               <td><span class="fw-bold text-info">${ordenes.toLocaleString('es-CL')}</span></td>
                               <td>${formatearMontoChile(ventaDelivery.toFixed(0))}</td>
                               <td>${ticketsDesglose}</td>
@@ -706,6 +744,7 @@ function cargarCounterEnTabla(request) {
     const ultimaFila = `<tr class="table-dark">
                             <td><strong>🏪 TOTALES</strong></td>
                             <td><strong>${formatearMontoChile(totalVentaBruta.toFixed(0))}</strong></td>
+                            <td><strong>-</strong></td>
                             <td><strong><span class="text-warning">${totalTransacciones.toLocaleString('es-CL')}</span></strong></td>
                             <td><strong>${formatearMontoChile(totalVentaDelivery.toFixed(0))}</strong></td>
                             <td><strong>${ticketsDesgloseTotales}</strong></td>
@@ -730,6 +769,7 @@ function cargarCounterEnTabla(request) {
         if(appIdName[0] === '86' || appIdName[0] === '106' || appIdName[0] === '109' || appIdName[0] === '98'){
             
             const counters = request[app].original.counters;
+            const localId = parseInt(appIdName[0]);
             
             // Calcular Venta Bruta (total de todas las ventas)
             const ventaBruta = parseFloat(counters.balanceTotal) || 0;
@@ -765,9 +805,38 @@ function cargarCounterEnTabla(request) {
             // Calcular porcentaje delivery
             const porcentajeDelivery = ventaBruta > 0 ? ((ventaDelivery / ventaBruta) * 100) : 0;
 
+            // 🎯 Obtener meta del local y calcular estado
+            const metaLocal = metasPorLocal[localId];
+            let metaHTML = '<span class="text-muted">Sin meta</span>';
+            
+            if (metaLocal) {
+                const metaValor = parseInt(metaLocal.meta_diaria) || 0;
+                const diferencia = ventaBruta - metaValor;
+                const cumplida = diferencia >= 0;
+                
+                if (cumplida) {
+                    metaHTML = `<div>
+                                    <div class="fw-bold text-success">✅ Meta superada</div>
+                                    <div style="font-size: 0.85rem; color: #10b981;">
+                                        Meta: ${formatearMontoChile(metaValor)} 
+                                        <span class="badge bg-success">+${formatearMontoChile(Math.abs(diferencia))}</span>
+                                    </div>
+                                </div>`;
+                } else {
+                    metaHTML = `<div>
+                                    <div class="fw-bold text-danger">❌ Meta fallida</div>
+                                    <div style="font-size: 0.85rem; color: #ef4444;">
+                                        Meta: ${formatearMontoChile(metaValor)}
+                                        <span class="badge bg-danger">Faltó ${formatearMontoChile(Math.abs(diferencia))}</span>
+                                    </div>
+                                </div>`;
+                }
+            }
+
             const filaF = `<tr>
                               <td>${appIdName[1]}</td>
                               <td>${formatearMontoChile(ventaBruta.toFixed(0))}</td>
+                              <td>${metaHTML}</td>
                               <td><span class="fw-bold text-info">${ordenes.toLocaleString('es-CL')}</span></td>
                               <td>${formatearMontoChile(ventaDelivery.toFixed(0))}</td>
                               <td>${ticketsDesglose}</td>
@@ -799,6 +868,7 @@ function cargarCounterEnTabla(request) {
     const ultimaFilaF = `<tr class="table-dark">
                             <td><strong>🏪 TOTALES FAGOTTO</strong></td>
                             <td><strong>${formatearMontoChile(totalVentaBrutaF.toFixed(0))}</strong></td>
+                            <td><strong>-</strong></td>
                             <td><strong><span class="text-warning">${totalTransaccionesF.toLocaleString('es-CL')}</span></strong></td>
                             <td><strong>${formatearMontoChile(totalVentaDeliveryF.toFixed(0))}</strong></td>
                             <td><strong>${ticketsDesgloseTotalesF}</strong></td>
@@ -979,6 +1049,13 @@ async function getProducts() {
       console.log("Apps products:", request);
 
       const tablasContainer = document.getElementById('tablas-container-salsas');
+      
+      // Si el contenedor no existe, salir sin error
+      if (!tablasContainer) {
+          console.log('⚠️ Elemento tablas-container-salsas no encontrado, omitiendo...');
+          return;
+      }
+      
       tablasContainer.innerHTML = "";
       let i = 1;
       let products = request;
@@ -1273,10 +1350,12 @@ function calculateGlobalSauceKPIs(productos) {
         
         if (nombreLower.includes('fettucine')) {
             fettucine += cantidad;
+            console.log('✅ Fettucine encontrado:', producto.name, 'cantidad:', cantidad, 'total acumulado:', fettucine);
         }
         
         if (nombreLower.includes('bigoli')) {
             bigoli += cantidad;
+            console.log('✅ Bigoli encontrado:', producto.name, 'cantidad:', cantidad, 'total acumulado:', bigoli);
         }
         
         if (nombreLower === 'queso extra' || nombreLower.includes('queso extra')) {
@@ -1284,10 +1363,26 @@ function calculateGlobalSauceKPIs(productos) {
         }
     });
     
+    console.log('📊 TOTALES FINALES - Fettucine:', fettucine, 'Bigoli:', bigoli);
+    
     document.getElementById('globalSauceExtraTotal').textContent = salsaExtra;
     document.getElementById('globalFettucineTotal').textContent = fettucine;
     document.getElementById('globalBigoliTotal').textContent = bigoli;
     document.getElementById('globalQuesoExtraTotal').textContent = quesoExtra;
+    
+    // Actualizar TOTAL VENDIDO (Fettucine + Bigoli)
+    const totalVendido = fettucine + bigoli;
+    const elementoTotal = document.getElementById('globalTotalVendido');
+    
+    console.log('🍝 TOTAL VENDIDO calculado:', totalVendido);
+    console.log('🎯 Elemento globalTotalVendido:', elementoTotal);
+    
+    if (elementoTotal) {
+        elementoTotal.textContent = totalVendido;
+        console.log('✅ TOTAL VENDIDO actualizado en DOM:', elementoTotal.textContent);
+    } else {
+        console.error('❌ No se encontró el elemento globalTotalVendido');
+    }
 }
 
 // Procesar datos por día
@@ -1316,12 +1411,24 @@ function processGlobalSauceDataByDay(productos, startDate, endDate) {
         });
     });
     
+    // Calcular totales de Fettucine y Bigoli
+    let totalFettucine = 0;
+    let totalBigoli = 0;
+    
     // Procesar productos
     productos.forEach(producto => {
         const nombreProducto = (producto.name || '').toLowerCase();
         const fechaVenta = new Date(producto.created_at);
         const diaVenta = fechaVenta.getDate();
         const cantidad = parseInt(producto.quantity) || 1;
+        
+        // Contar Fettucine y Bigoli
+        if (nombreProducto.includes('fettucine')) {
+            totalFettucine += cantidad;
+        }
+        if (nombreProducto.includes('bigoli')) {
+            totalBigoli += cantidad;
+        }
         
         GLOBAL_SALSAS_CONFIG.forEach(salsa => {
             const coincide = salsa.keywords.some(keyword => 
@@ -1334,11 +1441,13 @@ function processGlobalSauceDataByDay(productos, startDate, endDate) {
         });
     });
     
+    console.log('🍝 Total Fettucine:', totalFettucine, 'Total Bigoli:', totalBigoli, 'SUMA:', totalFettucine + totalBigoli);
+    
     // Actualizar título
     updateGlobalSauceTitle(startDate, endDate);
     
-    // Renderizar
-    renderGlobalSauceHeatmap(ventasPorSalsa, dias);
+    // Renderizar con los totales
+    renderGlobalSauceHeatmap(ventasPorSalsa, dias, totalFettucine, totalBigoli);
 }
 
 // Actualizar título
@@ -1364,11 +1473,13 @@ function updateGlobalSauceTitle(startDate, endDate) {
 }
 
 // Renderizar tabla
-function renderGlobalSauceHeatmap(ventasPorSalsa, dias) {
+function renderGlobalSauceHeatmap(ventasPorSalsa, dias, totalFettucine, totalBigoli) {
     const header = document.getElementById('globalSauceHeatmapHeader');
     const tbody = document.getElementById('globalSauceHeatmapBody');
     
     if (!header || !tbody) return;
+    
+    console.log('📊 Renderizando heatmap con totales - Fettucine:', totalFettucine, 'Bigoli:', totalBigoli);
     
     // Limpiar
     header.innerHTML = '<th class="sticky-col">Salsa</th>';
@@ -1393,11 +1504,10 @@ function renderGlobalSauceHeatmap(ventasPorSalsa, dias) {
     
     let mejorSalsa = { nombre: '', total: 0 };
     
-    GLOBAL_SALSAS_CONFIG.forEach(salsa => {
+    // Primero calcular totales para cada salsa
+    const salsasConTotales = GLOBAL_SALSAS_CONFIG.map(salsa => {
         let totalSalsa = 0;
         let totalGramos = 0;
-        let html = `<tr>`;
-        html += `<td class="sticky-col">${salsa.emoji} ${salsa.nombre} <span style="opacity: 0.7; font-size: 0.85rem;">(${salsa.gramaje}g)</span></td>`;
         
         dias.forEach(dia => {
             const diaMes = dia.getDate();
@@ -1405,6 +1515,31 @@ function renderGlobalSauceHeatmap(ventasPorSalsa, dias) {
             const gramos = cantidad * salsa.gramaje;
             totalSalsa += cantidad;
             totalGramos += gramos;
+        });
+        
+        if (totalSalsa > mejorSalsa.total) {
+            mejorSalsa = { nombre: salsa.nombre, total: totalSalsa, emoji: salsa.emoji };
+        }
+        
+        return {
+            salsa,
+            totalSalsa,
+            totalGramos
+        };
+    });
+    
+    // Ordenar de mayor a menor por total de ventas
+    salsasConTotales.sort((a, b) => b.totalSalsa - a.totalSalsa);
+    
+    // Ahora renderizar las filas ordenadas
+    salsasConTotales.forEach(({ salsa, totalSalsa, totalGramos }) => {
+        let html = `<tr>`;
+        html += `<td class="sticky-col">${salsa.emoji} ${salsa.nombre} <span style="opacity: 0.7; font-size: 0.85rem;">(${salsa.gramaje}g)</span></td>`;
+        
+        dias.forEach(dia => {
+            const diaMes = dia.getDate();
+            const cantidad = ventasPorSalsa[salsa.nombre][diaMes] || 0;
+            const gramos = cantidad * salsa.gramaje;
             
             const colorClass = getGlobalColorClass(cantidad, maxVentas);
             const pesoTexto = gramos >= 1000 ? `${(gramos / 1000).toFixed(1)}kg` : `${gramos}g`;
@@ -1421,16 +1556,26 @@ function renderGlobalSauceHeatmap(ventasPorSalsa, dias) {
         html += `</tr>`;
         
         tbody.innerHTML += html;
-        
-        if (totalSalsa > mejorSalsa.total) {
-            mejorSalsa = { nombre: salsa.nombre, total: totalSalsa, emoji: salsa.emoji };
-        }
     });
     
     // Actualizar mejor salsa
     const topSauceElement = document.getElementById('globalTopSauce');
     if (topSauceElement && mejorSalsa.total > 0) {
         topSauceElement.innerHTML = `${mejorSalsa.emoji} <strong>${mejorSalsa.nombre}</strong>: ${mejorSalsa.total} unidades`;
+    }
+    
+    // Actualizar TOTAL VENDIDO (Fettucine + Bigoli)
+    const totalVendido = totalFettucine + totalBigoli;
+    const elementoTotal = document.getElementById('globalTotalVendido');
+    
+    console.log('🍝 TOTAL VENDIDO calculado:', totalVendido, '(Fettucine:', totalFettucine, '+ Bigoli:', totalBigoli, ')');
+    console.log('🎯 Elemento globalTotalVendido:', elementoTotal);
+    
+    if (elementoTotal) {
+        elementoTotal.textContent = totalVendido;
+        console.log('✅ TOTAL VENDIDO actualizado en DOM:', elementoTotal.textContent);
+    } else {
+        console.error('❌ No se encontró el elemento globalTotalVendido');
     }
 }
 
@@ -1441,4 +1586,32 @@ function getGlobalColorClass(cantidad, maxVentas) {
     if (cantidad <= 30) return 'sauce-cell-3';
     if (cantidad <= 50) return 'sauce-cell-4';
     return 'sauce-cell-5';
+}
+
+// ========== FUNCIÓN PARA CARGAR METAS DIARIAS ==========
+async function cargarMetasDiarias(mes, anio, dia) {
+    return new Promise((resolve, reject) => {
+        __conection({
+            url: generarURLApi(`/web/metas-locales?mes=${mes}&anio=${anio}&dia=${dia}`),
+            header: credentials(),
+            dev: true,
+            method: 'GET'
+        }, {}, function(response) {
+            const metas = response.data || response || [];
+            const metasPorLocal = {};
+            
+            // Crear mapa de metas por aplication_id
+            metas.forEach(meta => {
+                if (meta.aplication_id) {
+                    metasPorLocal[meta.aplication_id] = meta;
+                }
+            });
+            
+            console.log('📊 Metas cargadas:', metasPorLocal);
+            resolve(metasPorLocal);
+        }, function(error) {
+            console.error('❌ Error al cargar metas:', error);
+            resolve({}); // Retornar objeto vacío en caso de error
+        });
+    });
 }

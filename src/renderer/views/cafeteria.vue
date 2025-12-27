@@ -9,6 +9,12 @@
         <i class="fas fa-sync-alt"></i>
         Refrescar
       </button>
+      <button :disabled="offOn" @click="toggleKeepModalOpen()" type="button" 
+        :class="['m-1 btn-width btn text-white text-capitalize', keepModalOpen ? 'bg-success' : 'bg-dark']">
+        <i :class="keepModalOpen ? 'fas fa-lock' : 'fas fa-lock-open'"></i>
+        {{ keepModalOpen ? 'Modal Fijo' : 'Modal Normal' }}
+      </button>
+      </button>
       <button :disabled="offOn" v-if="notification" @click="openNotifyList = !openNotifyList" type="button" class="m-1 btn-width btn bg-light text-white text-capitalize">
         <small class="notification-counter"></small>
         <i class="fas fa-bell"></i>
@@ -89,7 +95,8 @@ export default {
       notification: false,
       openNotifyList: false,
       tiempo_minutos: null,
-      tiempo_uso_class : 'tiempo-uso-flag-0'
+      tiempo_uso_class : 'tiempo-uso-flag-0',
+      keepModalOpen: false
     }
   },
 
@@ -119,6 +126,19 @@ export default {
     }
   },
   methods:{
+    toggleKeepModalOpen() {
+      this.keepModalOpen = !this.keepModalOpen;
+      this.$store.commit('cafeteria/setKeepModalOpen', this.keepModalOpen);
+      if (this.keepModalOpen) {
+        this.$awn.success('🔒 MODAL FIJO ACTIVADO\n\n✅ El catálogo permanecerá ABIERTO después de cada venta\n✅ Podrás agregar productos inmediatamente sin volver a pinchar la mesa\n✅ Ahorra tiempo procesando múltiples ventas seguidas\n\n💡 El carrito se limpiará automáticamente después de cada venta', {
+          durations: { success: 6000 }
+        });
+      } else {
+        this.$awn.info('🔓 MODAL NORMAL ACTIVADO\n\n➡️ El catálogo se CERRARÁ después de cada venta\n➡️ Deberás pinchar la mesa nuevamente para la siguiente venta\n➡️ Comportamiento tradicional del sistema', {
+          durations: { info: 5000 }
+        });
+      }
+    },
     notificationsBoards(){
       var board_time = 0;
       for (let cafeteria in this.cafeteria) {

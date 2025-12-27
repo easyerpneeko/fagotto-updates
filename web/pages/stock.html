@@ -405,11 +405,190 @@
             font-weight: 500;
             font-size: 0.85rem;
         }
+
+        /* Modal de autenticación */
+        #authModal {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.3s ease;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 80px rgba(0,0,0,0.3);
+            max-width: 450px;
+            width: 90%;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header i {
+            font-size: 4rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .auth-header h2 {
+            color: #2d3748;
+            font-weight: 700;
+            margin: 1rem 0 0.5rem;
+        }
+
+        .auth-header p {
+            color: #718096;
+            font-size: 0.95rem;
+        }
+
+        .auth-form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-form-group label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .auth-form-group input {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .auth-form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .auth-error {
+            background: #fee;
+            color: #c53030;
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .auth-error.show {
+            display: block;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
          
     </style>
 </head>
 
 <body>
+    <!-- Modal de Autenticación -->
+    <div id="authModal">
+        <div class="auth-container">
+            <div class="auth-header">
+                <i class="fas fa-lock"></i>
+                <h2>Acceso al Stock</h2>
+                <p>Ingresa tus credenciales para continuar</p>
+            </div>
+            
+            <div id="authError" class="auth-error">
+                Usuario o contraseña incorrectos
+            </div>
+
+            <form id="authForm" onsubmit="return checkAuth(event)">
+                <div class="auth-form-group">
+                    <label for="authUsername">
+                        <i class="fas fa-user me-2"></i>Usuario
+                    </label>
+                    <input 
+                        type="text" 
+                        id="authUsername" 
+                        name="username" 
+                        placeholder="Ingresa tu usuario"
+                        autocomplete="off"
+                        required
+                    >
+                </div>
+
+                <div class="auth-form-group">
+                    <label for="authPassword">
+                        <i class="fas fa-key me-2"></i>Contraseña
+                    </label>
+                    <input 
+                        type="password" 
+                        id="authPassword" 
+                        name="password" 
+                        placeholder="Ingresa tu contraseña"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="auth-btn">
+                    <i class="fas fa-sign-in-alt me-2"></i>Ingresar
+                </button>
+                
+                <button type="button" class="auth-btn" style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); margin-top: 0.8rem;" onclick="window.location.href='dashboard.html'">
+                    <i class="fas fa-home me-2"></i>Tablero
+                </button>
+            </form>
+        </div>
+    </div>
+
     <div id="loader" class="loading hide">
         <div class="spin"></div>
         <p id="loaderMessage" class="loader-message">Cargando stock...</p>
@@ -420,9 +599,14 @@
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center">
                 <h1><i class="fas fa-boxes"></i> Control de Stock - Salsas</h1>
-                <button class="btn btn-light" id="btn-restore">
-                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                </button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light" onclick="window.location.href='dashboard.html'">
+                        <i class="fas fa-home"></i> Tablero
+                    </button>
+                    <button class="btn btn-light" id="btn-restore">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </button>
+                </div>
             </div>
         </div>
     </header>
@@ -601,8 +785,79 @@
         integrity="sha384-zNy6FEbO50N+Cg5wap8IKA4M/ZnLJgzc6w2NqACZaK0u0FXfOWRRJOnQtpZun8ha"
         crossorigin="anonymous"></script>
     <!-- <script src="../assets/js/sucursales_charts.js"></script> -->
-    <script src="../assets/js/stock.js"></script>
+    <script src="../assets/js/stock.js?v=2.0"></script>
     <script>
+        // ========== SISTEMA DE AUTENTICACIÓN ==========
+        
+        // Verificar si ya está autenticado
+        const STOCK_AUTH_KEY = 'stock_authenticated';
+        const STOCK_AUTH_EXPIRY = 'stock_auth_expiry';
+        
+        function checkStockAuth() {
+            const isAuth = sessionStorage.getItem(STOCK_AUTH_KEY);
+            const expiry = sessionStorage.getItem(STOCK_AUTH_EXPIRY);
+            
+            if (isAuth === 'true' && expiry && new Date().getTime() < parseInt(expiry)) {
+                // Ya está autenticado y no ha expirado
+                document.getElementById('authModal').style.display = 'none';
+                return true;
+            } else {
+                // No autenticado o expiró
+                sessionStorage.removeItem(STOCK_AUTH_KEY);
+                sessionStorage.removeItem(STOCK_AUTH_EXPIRY);
+                document.getElementById('authModal').style.display = 'flex';
+                return false;
+            }
+        }
+        
+        function checkAuth(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('authUsername').value.trim();
+            const password = document.getElementById('authPassword').value;
+            
+            // Credenciales correctas
+            const VALID_USERNAME = 'operaciones';
+            const VALID_PASSWORD = '12345678';
+            
+            if (username === VALID_USERNAME && password === VALID_PASSWORD) {
+                // Autenticación exitosa
+                const expiryTime = new Date().getTime() + (8 * 60 * 60 * 1000); // 8 horas
+                sessionStorage.setItem(STOCK_AUTH_KEY, 'true');
+                sessionStorage.setItem(STOCK_AUTH_EXPIRY, expiryTime.toString());
+                
+                // Ocultar modal con animación
+                document.getElementById('authModal').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('authModal').style.display = 'none';
+                }, 300);
+                
+                return false;
+            } else {
+                // Credenciales incorrectas
+                const errorDiv = document.getElementById('authError');
+                errorDiv.classList.add('show');
+                
+                // Limpiar campos
+                document.getElementById('authPassword').value = '';
+                document.getElementById('authUsername').select();
+                
+                // Ocultar error después de 3 segundos
+                setTimeout(() => {
+                    errorDiv.classList.remove('show');
+                }, 3000);
+                
+                return false;
+            }
+        }
+        
+        // Verificar autenticación al cargar la página
+        window.addEventListener('DOMContentLoaded', function() {
+            checkStockAuth();
+        });
+        
+        // ========== CÓDIGO ORIGINAL ==========
+        
         (!_store().serial.isset()) ? window.location.href = "../index.html" : "";
 
         if (_store().session.user().get("role") != 100) {

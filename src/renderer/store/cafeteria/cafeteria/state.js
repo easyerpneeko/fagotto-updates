@@ -3,5 +3,6 @@ export default {
   board:          null,
   order:          null,
   onlyWaiter:     null,
-  ordersActives:  null
+  ordersActives:  null,
+  keepModalOpen:  false
 }

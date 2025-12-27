@@ -196,7 +196,23 @@ const router = new Router({
           component: require('@/views/ingredients.vue').default,
           meta: { requiresTurno: true }
         },
+        {
+          path: 'registro-asistencia',
+          component: require('@/views/registrohora.vue').default,
+          meta: { requiresTurno: false }
+        },
+        {
+          path: 'admin-carnets',
+          component: require('@/views/admin-carnets.vue').default,
+          meta: { requiresTurno: false }
+        },
       ]
+    },
+    // Ruta pública para mobile check-in (NO requiere autenticación)
+    {
+      path: '/mobile-checkin/:sessionId',
+      component: require('@/views/mobile-checkin.vue').default,
+      meta: { requiresAuth: false, requiresTurno: false }
     },
     {
       path: '*',

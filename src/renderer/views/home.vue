@@ -1,11 +1,44 @@
 <template>
-  <div class="bg-home-gradient">
+  <div class="bg-home-gradient christmas-dark-home">
+    <!-- ❄️ Snow animations with accumulation -->
+    <div class="christmas-snow">
+      <div class="snow-flake" v-for="n in 50" :key="n" :style="{
+        left: (n * 2) + '%',
+        animationDelay: (n * 0.2) + 's',
+        animationDuration: (4 + Math.random() * 4) + 's'
+      }">❄</div>
+    </div>
+
+    <!-- Snow accumulation at bottom -->
+    <div class="snow-accumulation"></div>
+
+    <!-- Windshield wiper animation -->
+    <div class="wiper-container">
+      <div class="wiper"></div>
+    </div>
+
+    <!-- Christmas Message -->
+    <div class="christmas-message-float">
+      <div class="christmas-card">
+        <div class="card-ornament">🎄</div>
+        <h2 class="christmas-greeting-text">¡Feliz Navidad!</h2>
+        <p class="christmas-wish">Que esta época navideña llene tu hogar de amor, paz y felicidad. 
+          ¡Felices fiestas desde Fagotto ERP! 🎅✨</p>
+        <div class="card-ornament bottom">🎁</div>
+      </div>
+    </div>
+
     <div class="bg-full-height-gradient">
       <div class="welcome-overlay d-flex flex-column justify-content-center align-items-center py-5">
         
         <!-- Mensaje de Turno Requerido -->
         <div v-if="!turnoActivo" class="turno-required-overlay">
           <div class="turno-required-card text-center p-5">
+            <!-- Christmas Title Header -->
+            <div class="christmas-header mb-4">
+              <h1 class="christmas-main-title">Merry Christmas</h1>
+            </div>
+
             <div class="turno-icon-container mb-4">
               <i class="fas fa-clock-o turno-icon"></i>
             </div>
@@ -61,39 +94,90 @@
             <img class="home_logo" src="../assets/logo.png" alt="fagotto-erp">
           </div>
           
-          <!-- 📋 MENSAJE INFORMATIVO SOBRE BOLETAS DELIVERY -->
-          <div class="delivery-info-message">
-            <div class="info-icon-container">
-              <i class="fas fa-file-invoice"></i>
-            </div>
-            <h3 class="info-title">Actualización del Sistema de Facturación</h3>
-            <p class="info-description">
-              A partir de ahora, <strong>todas las boletas generadas con métodos de pago de plataformas de delivery</strong> 
-              (Uber Eats, Rappi, Pedidos Ya) serán <strong>informadas automáticamente al Servicio de Impuestos Internos (SII)</strong>.
-            </p>
-            <div class="info-benefits">
-              <div class="benefit-item">
-                <i class="fas fa-check-circle"></i>
-                <span>Cumplimiento tributario automático</span>
-              </div>
-              <div class="benefit-item">
-                <i class="fas fa-chart-line"></i>
-                <span>Reportes independientes por plataforma</span>
-              </div>
-              <div class="benefit-item">
-                <i class="fas fa-shield-alt"></i>
-                <span>Mayor transparencia y control</span>
-              </div>
-            </div>
-            <p class="info-footer">
-              Sistema actualizado para mayor eficiencia y cumplimiento normativo.
-            </p>
-          </div>
-          
           <div class="welcome-content">
-            
             <!-- Badge de turno activo -->
-           
+          </div>
+
+          <!-- Sección de Noticias del Sistema -->
+          <div class="news-section mt-5">
+            <h2 class="news-title mb-4">
+              <i class="fas fa-newspaper me-2"></i>
+              Novedades del Sistema
+            </h2>
+            
+            <div class="news-container">
+              
+              <!-- Noticia 1: Sistema de Ventas Optimizado -->
+              <div class="news-panel news-panel-success">
+                <div class="news-panel-header">
+                  <i class="fas fa-rocket me-2"></i>
+                  <strong>Sistema de Ventas Optimizado</strong>
+                  <span class="news-panel-badge">NUEVO</span>
+                </div>
+                <div class="news-panel-body">
+                  <p class="news-panel-text">
+                    <strong>Modal Fijo:</strong> El catálogo permanece abierto entre ventas • 
+                    <strong>Ahorro de tiempo:</strong> Reduce hasta 1 minuto por venta • 
+                    <strong>Proceso continuo:</strong> Atiende múltiples clientes sin interrupciones • 
+                    <strong>Carrito inteligente:</strong> Se limpia automáticamente • 
+                    <strong>Métodos de pago centralizados:</strong> Modal elegante con todas las opciones
+                  </p>
+                </div>
+                <div class="news-panel-footer">
+                  <i class="far fa-calendar-alt me-2"></i>26 de Diciembre, 2025 • 
+                  <i class="far fa-clock ms-2 me-2"></i>12:00 PM
+                </div>
+              </div>
+
+              <!-- Noticia 2: Registro Biométrico -->
+              <div class="news-panel news-panel-info">
+                <div class="news-panel-header">
+                  <i class="fas fa-fingerprint me-2"></i>
+                  <strong>Registro Biométrico de Asistencia</strong>
+                  <span class="news-panel-badge">FUNCIONALIDAD</span>
+                </div>
+                <div class="news-panel-body">
+                  <p class="news-panel-text">
+                    Control de asistencia biométrico que registra automáticamente la hora de llegada y salida de cada empleado. 
+                    <strong>Registro automático</strong> con captura precisa de horarios • 
+                    <strong>Control de personal</strong> con reportes detallados • 
+                    <strong>Seguridad</strong> mediante autenticación biométrica confiable • 
+                    <strong>Integración total</strong> con nómina y RRHH
+                  </p>
+                </div>
+                <div class="news-panel-footer">
+                  <i class="far fa-calendar-alt me-2"></i>26 de Diciembre, 2025 • 
+                  <i class="far fa-clock ms-2 me-2"></i>10:30 AM
+                </div>
+              </div>
+
+              <!-- Noticia 3: Frase Inspiradora -->
+              <div class="news-panel news-panel-quote">
+                <div class="news-panel-header">
+                  <i class="fas fa-quote-left me-2"></i>
+                  <strong>Filosofía del Desarrollo</strong>
+                  <span class="news-panel-badge">INSPIRACIÓN</span>
+                </div>
+                <div class="news-panel-body">
+                  <blockquote class="news-quote-text">
+                    "La programación es el arte de forjar ideas para colmar necesidades"
+                  </blockquote>
+                  <p class="news-quote-author">
+                    <i class="fas fa-user-tie me-2"></i>
+                    <strong>Jimmy Arriagada</strong> - Desarrollador Principal • Fagotto ERP
+                  </p>
+                  <p class="news-panel-text">
+                    Cada línea de código que escribimos tiene un propósito: mejorar la vida de quienes usan nuestro sistema. 
+                    Desarrollamos con pasión, pensando siempre en las necesidades reales de nuestros usuarios.
+                  </p>
+                </div>
+                <div class="news-panel-footer">
+                  <i class="far fa-calendar-alt me-2"></i>26 de Diciembre, 2025 • 
+                  <i class="far fa-clock ms-2 me-2"></i>09:00 AM
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
 
@@ -863,4 +947,459 @@ export default {
   }
 }
 
+/* 🎄 ESTILOS NAVIDEÑOS - Dark Christmas Theme (Bedimcode Style) */
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@400;500;600&display=swap');
+
+.christmas-dark-home {
+  position: relative;
+  overflow: hidden;
+  background: hsl(210, 32%, 4%) !important;
+  background-image: url('https://github.com/bedimcode/responsive-christmas-website-2/blob/main/preview.png?raw=true');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Snow animation */
+.christmas-snow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.snow-flake {
+  position: absolute;
+  top: -10%;
+  color: #fff;
+  font-size: 1.2rem;
+  opacity: 0.8;
+  animation: snow-fall linear infinite;
+}
+
+@keyframes snow-fall {
+  0% {
+    transform: translateY(0) scale(0.5);
+  }
+  50% {
+    transform: translateY(50vh) scale(1);
+  }
+  100% {
+    transform: translateY(100vh) scale(0.5);
+  }
+}
+
+/* Christmas Header */
+.christmas-header {
+  margin-bottom: 30px;
+}
+
+.christmas-main-title {
+  font-family: 'Dancing Script', cursive;
+  font-size: 4rem;
+  font-weight: 700;
+  color: hsl(210, 80%, 54%);
+  text-shadow: 0 4px 12px rgba(74, 144, 226, 0.5);
+  margin: 0;
+  animation: title-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes title-glow {
+  from {
+    text-shadow: 0 4px 12px rgba(74, 144, 226, 0.5);
+  }
+  to {
+    text-shadow: 0 6px 20px rgba(74, 144, 226, 0.8), 0 0 30px rgba(74, 144, 226, 0.4);
+  }
+}
+
+/* Update turno card for dark theme */
+.turno-required-card {
+  background: linear-gradient(135deg, hsl(210, 24%, 12%) 0%, hsl(210, 24%, 8%) 100%) !important;
+  border: 2px solid hsl(210, 24%, 20%) !important;
+  color: hsl(210, 16%, 70%) !important;
+}
+
+.turno-title {
+  color: hsl(210, 24%, 90%) !important;
+}
+
+.turno-description {
+  color: hsl(210, 16%, 70%) !important;
+}
+
+.admin-message {
+  background: rgba(74, 144, 226, 0.1) !important;
+  border: 1px solid hsl(210, 80%, 54%) !important;
+  color: hsl(210, 24%, 90%) !important;
+}
+
+.benefit-item {
+  color: hsl(210, 16%, 70%) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.turno-note {
+  color: hsl(210, 16%, 60%) !important;
+}
+
+/* Responsive navideño */
+@media (max-width: 768px) {
+  .christmas-main-title {
+    font-size: 2.5rem;
+  }
+  
+  .snow-flake {
+    font-size: 1rem;
+  }
+}
+
+/* Snow Accumulation Effect */
+.snow-accumulation {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 150px;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
+  z-index: 998;
+  animation: snow-pile 20s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: 50% 50% 0 0;
+}
+
+@keyframes snow-pile {
+  0%, 100% {
+    height: 120px;
+    opacity: 0.8;
+  }
+  50% {
+    height: 180px;
+    opacity: 0.9;
+  }
+}
+
+/* Windshield Wiper Animation */
+.wiper-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.wiper {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(to top, rgba(100, 150, 200, 0.6), transparent);
+  transform-origin: bottom center;
+  animation: wiper-sweep 8s ease-in-out infinite;
+  box-shadow: -2px 0 20px rgba(255, 255, 255, 0.6), 2px 0 20px rgba(255, 255, 255, 0.6);
+}
+
+.wiper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -30px;
+  width: 60px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(200, 230, 255, 0.4) 20%, rgba(200, 230, 255, 0.6) 50%, rgba(200, 230, 255, 0.4) 80%, transparent 100%);
+  filter: blur(10px);
+}
+
+@keyframes wiper-sweep {
+  0%, 10% {
+    transform: translateX(-50%) rotate(-60deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  45% {
+    transform: translateX(-50%) rotate(60deg);
+  }
+  50%, 100% {
+    transform: translateX(-50%) rotate(60deg);
+    opacity: 0;
+  }
+}
+
+/* Christmas Floating Message */
+.christmas-message-float {
+  position: fixed;
+  top: 80px;
+  right: 30px;
+  z-index: 1001;
+  animation: float-message 6s ease-in-out infinite;
+}
+
+@keyframes float-message {
+  0%, 100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(2deg);
+  }
+}
+
+.christmas-card {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.95), rgba(185, 28, 28, 0.95));
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 25px 30px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.4);
+  position: relative;
+  max-width: 350px;
+  animation: card-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes card-glow {
+  from {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 0 20px rgba(220, 38, 38, 0.4);
+  }
+  to {
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 30px rgba(220, 38, 38, 0.6);
+  }
+}
+
+.card-ornament {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 10px;
+  animation: ornament-spin 4s ease-in-out infinite;
+}
+
+.card-ornament.bottom {
+  margin-top: 10px;
+  margin-bottom: 0;
+  animation-delay: 2s;
+}
+
+@keyframes ornament-spin {
+  0%, 100% {
+    transform: rotate(-10deg) scale(1);
+  }
+  50% {
+    transform: rotate(10deg) scale(1.1);
+  }
+}
+
+.christmas-greeting-text {
+  font-family: 'Dancing Script', cursive;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 12px 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+
+.christmas-wish {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.6;
+  margin: 0;
+  text-align: center;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Responsive additions */
+@media (max-width: 768px) {
+  .christmas-message-float {
+    top: 60px;
+    right: 15px;
+    left: 15px;
+  }
+
+  .christmas-card {
+    max-width: 100%;
+    padding: 20px;
+  }
+
+  .christmas-greeting-text {
+    font-size: 1.8rem;
+  }
+
+  .christmas-wish {
+    font-size: 0.9rem;
+  }
+
+  .card-ornament {
+    font-size: 2rem;
+  }
+
+  .snow-accumulation {
+    height: 100px;
+  }
+}
+
+/* ========================================
+   ESTILOS DE NOTICIAS DEL SISTEMA
+   ======================================== */
+
+.news-section {
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 2rem 0;
+}
+
+.news-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: hsl(210, 24%, 90%);
+  text-align: center;
+  margin-bottom: 2rem;
+  text-shadow: 0 2px 10px rgba(74, 144, 226, 0.3);
+}
+
+.news-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 200%;
+  max-width: none;
+  margin: 0 auto;
+  margin-left: -50%;
+  padding: 0;
+}
+
+/* Panel de noticia estilo w3.css mejorado */
+.news-panel {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border-left: 5px solid;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  width: 100%;
+}
+
+.news-panel:hover {
+  transform: translateX(5px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Variantes de color */
+.news-panel-success {
+  border-left-color: #22c55e;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%);
+}
+
+.news-panel-info {
+  border-left-color: #3b82f6;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%);
+}
+
+.news-panel-quote {
+  border-left-color: #a855f7;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0.05) 100%);
+}
+
+/* Header del panel */
+.news-panel-header {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1.2rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: hsl(210, 24%, 95%);
+  font-size: 1.3rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.news-panel-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.3rem 0.8rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Body del panel */
+.news-panel-body {
+  padding: 2rem 2rem;
+}
+
+.news-panel-text {
+  color: hsl(210, 16%, 85%);
+  font-size: 1rem;
+  line-height: 1.8;
+  margin: 0;
+}
+
+/* Quote específico */
+.news-quote-text {
+  font-size: 1.3rem;
+  font-style: italic;
+  color: hsl(266, 85%, 75%);
+  text-align: center;
+  margin: 1rem 0;
+  padding: 1rem;
+  background: rgba(168, 85, 247, 0.1);
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.news-quote-author {
+  color: hsl(210, 16%, 75%);
+  font-size: 0.95rem;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+/* Footer del panel */
+.news-panel-footer {
+  background: rgba(0, 0, 0, 0.15);
+  padding: 0.8rem 1.5rem;
+  color: hsl(210, 16%, 70%);
+  font-size: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .news-section {
+    padding: 1.5rem 0.5rem;
+  }
+
+  .news-title {
+    font-size: 1.5rem;
+  }
+
+  .news-panel-header {
+    font-size: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .news-panel-body {
+    padding: 1rem;
+  }
+
+  .news-panel-text {
+    font-size: 0.95rem;
+  }
+
+  .news-quote-text {
+    font-size: 1.1rem;
+  }
+}
 </style>

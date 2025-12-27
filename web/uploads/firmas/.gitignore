@@ -1,0 +1,7 @@
+# Ignorar todas las firmas digitales
+*.png
+*.jpg
+*.jpeg
+
+# Mantener el directorio
+!.gitignore

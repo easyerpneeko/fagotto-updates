@@ -394,7 +394,7 @@ export default {
             name: '',
             phone: '+56',
             comment: '',
-            paymode: 'Metodo de pago',
+            paymode: 'Transferencia',
             review: '',
             // transaccion: '',
             voucherFile: null,
@@ -411,10 +411,7 @@ export default {
             app: null,
             status_payment: '',
             paymodes: [
-                { id: 1, name: 'Transferencia' },
-                { id: 2, name: 'Credito' },
-                { id: 3, name: 'Efectivo' },
-                // Agrega más objetos de paymodes según sea necesario
+                { id: 1, name: 'Transferencia' }
             ],
 
             jsonTable: {
@@ -500,7 +497,11 @@ export default {
             get() { return this.name.length > 0 }
         },
         isValidPhone: {
-            get() { return this.phone.length > 9 }
+            get() { 
+                // Validar formato chileno: +56XXXXXXXXX (13 caracteres: +56 + 9 dígitos)
+                const regex = /^\+56\d{9}$/;
+                return regex.test(this.phone);
+            }
         },
         isValidComment: {
             get() { return this.comment.length > 0 }
@@ -713,7 +714,7 @@ export default {
 
                     this.name = this.me.fullname;
                     this.phone = "+56";
-                    this.paymode = null;
+                    this.paymode = 'Transferencia';
                     // this.status = null;
                     this.products = [];
                     this.comment = "";
@@ -740,8 +741,22 @@ export default {
         validar_form() {
             if (!this.isValidProducts) {
                 this.$awn.alert("Es necesario agregar algun producto");
+                return false;
             }
-            if (!this.isValidName || !this.isValidPhone || !this.isValidPaymode) {
+            if (!this.isValidName) {
+                this.$awn.alert("Ingresa tu nombre completo");
+                return false;
+            }
+            if (!this.isValidPhone) {
+                this.$awn.alert("Ingresa bien el telefono (formato: +56912345678)");
+                return false;
+            }
+            if (!this.isValidComment) {
+                this.$awn.alert("Ingresa un comentario");
+                return false;
+            }
+            if (!this.isValidPaymode) {
+                this.$awn.alert("Selecciona un método de pago");
                 return false;
             }
             return true;

@@ -15,3 +15,8 @@ export function clearOnlyWaiter (state) {
   console.log('Clear Only Waiter!')
   state.onlyWaiter = null;
 }
+
+// Activar/desactivar modo modal fijo
+export function setKeepModalOpen (state, value) {
+  state.keepModalOpen = value;
+}

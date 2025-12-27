@@ -13,6 +13,9 @@ export function getAllOrdersActives(state) {
 export function getOnlyWaiter(state) {
   return state.onlyWaiter;
 }
+export function getKeepModalOpen(state) {
+  return state.keepModalOpen;
+}
 export function getBoardsFree(state) {
   var boardsFree = [];
   if(state.cafeteria.length > 0){

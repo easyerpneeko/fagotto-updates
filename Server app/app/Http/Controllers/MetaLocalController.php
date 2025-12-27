@@ -23,12 +23,19 @@ class MetaLocalController extends Controller
         try {
             $mes = $request->input('mes', date('n'));
             $anio = $request->input('anio', date('Y'));
+            $dia = $request->input('dia'); // Filtro opcional por día
 
             // Usar directamente el nombre de la base de datos maestra
-            $metas = DB::table('easyerp.metas_locales')
+            $query = DB::table('easyerp.metas_locales')
                 ->where('mes', $mes)
-                ->where('anio', $anio)
-                ->get();
+                ->where('anio', $anio);
+            
+            // Si se especifica día, filtrar por él
+            if ($dia !== null) {
+                $query->where('dia', $dia);
+            }
+            
+            $metas = $query->orderBy('dia', 'asc')->get();
 
             return response()->json([
                 'success' => true,
@@ -52,6 +59,7 @@ class MetaLocalController extends Controller
             $aplicationId = $request->input('aplication_id');
             $mes = $request->input('mes');
             $anio = $request->input('anio');
+            $dia = $request->input('dia'); // Obtener el día
             $metaDiaria = $request->input('meta_diaria');
 
             if (!$aplicationId || !$mes || !$anio) {
@@ -62,12 +70,20 @@ class MetaLocalController extends Controller
             }
 
             // Usar directamente el nombre de la base de datos maestra
-            // Verificar si ya existe
-            $metaExistente = DB::table('easyerp.metas_locales')
+            // Verificar si ya existe (incluyendo el día en la búsqueda)
+            $query = DB::table('easyerp.metas_locales')
                 ->where('aplication_id', $aplicationId)
                 ->where('mes', $mes)
-                ->where('anio', $anio)
-                ->first();
+                ->where('anio', $anio);
+            
+            // Si se especifica día, incluirlo en la búsqueda
+            if ($dia !== null) {
+                $query->where('dia', $dia);
+            } else {
+                $query->whereNull('dia');
+            }
+            
+            $metaExistente = $query->first();
 
             if ($metaExistente) {
                 // Actualizar
@@ -79,15 +95,18 @@ class MetaLocalController extends Controller
                     ]);
                 $metaId = $metaExistente->id;
             } else {
-                // Insertar
-                $metaId = DB::table('easyerp.metas_locales')->insertGetId([
+                // Insertar (incluyendo el día si existe)
+                $data = [
                     'aplication_id' => $aplicationId,
                     'mes' => $mes,
                     'anio' => $anio,
+                    'dia' => $dia, // Guardar el día
                     'meta_diaria' => $metaDiaria,
                     'created_at' => date('Y-m-d H:i:s'),
                     'updated_at' => date('Y-m-d H:i:s')
-                ]);
+                ];
+                
+                $metaId = DB::table('easyerp.metas_locales')->insertGetId($data);
             }
 
             $meta = DB::table('easyerp.metas_locales')->where('id', $metaId)->first();

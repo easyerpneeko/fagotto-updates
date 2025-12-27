@@ -41,6 +41,14 @@ async function createMainWindow() {/**/
     webPreferences: { nodeIntegration: true, contextIsolation: false, enableRemoteModule: true }
   })
 
+  // Limpiar caché al crear la ventana
+  console.log('🧹 Limpiando caché al iniciar...');
+  await mainWindow.webContents.session.clearCache();
+  await mainWindow.webContents.session.clearStorageData({
+    storages: ['appcache', 'serviceworkers', 'cachestorage']
+  });
+  console.log('✅ Caché limpiado');
+
   mainWindow.loadURL(winURL)
 
   mainWindow.on('closed', () => {
@@ -139,6 +147,7 @@ function initApp() {
       console.log(response)
   });*/
   console.log('App Init');
+  
   appInitialized = true;
   ConfigHelper.InitializeAplication();
   createMainWindow();

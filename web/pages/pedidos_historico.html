@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FagottoERP - Histórico de Pedidos</title>
+    <link rel="icon" type="image/x-icon" href="../assets/css/negro.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://kit.fontawesome.com/dacd53634d.js" crossorigin="anonymous"></script>
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!--styles-->
+    <link href="../assets/css/dashboard.css" rel="stylesheet">
+    <link href="../assets/css/pedidos.css" rel="stylesheet">
+    <link href="../assets/css/global.css" rel="stylesheet">
+    <!--helpers-->
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+    <script src="../assets/helpers/helperFunctions.js"></script>
+
+    <style>
+        /* ========== VARIABLES CSS ========== */
+        :root {
+            --primary-color: #3b82f6;
+            --primary-rgb: 59, 130, 246;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --background-gradient: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+            --card-background: rgba(255, 255, 255, 0.8);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --border-radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--background-gradient);
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .modern-header {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .modern-header .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .modern-card {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .modern-card .card-header {
+            background: white;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .table thead th {
+            background: #f8fafc;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
+            padding: 0.75rem 0.5rem;
+        }
+
+        .table tbody td {
+            vertical-align: middle;
+            padding: 0.75rem 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .btn-modern {
+            border-radius: 12px;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            transition: var(--transition);
+            border: none;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-modern.btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn-modern.btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-modern.btn-success:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+
+        .table-modern {
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .table-modern thead th {
+            background: white;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .table-modern tbody tr {
+            transition: var(--transition);
+        }
+
+        .table-modern tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .table-modern tbody td {
+            color: #1e293b;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .badge-modern {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .form-control-modern {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            transition: var(--transition);
+            background: var(--card-background);
+        }
+
+        .form-control-modern:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+            background: white;
+        }
+
+        .loader {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .filters-container {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- HEADER MODERNO -->
+    <header class="modern-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <a class="navbar-brand" href="./sucursal.html">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Histórico de Pedidos
+                </a>
+                <span class="badge bg-primary" id="sucursal-name">Cargando...</span>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-modern btn-secondary" onclick="volverASucursal()">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Volver a Sucursal
+                </button>
+                <button class="btn btn-modern btn-primary" onclick="cerrarSesion()">
+                    <i class="fas fa-sign-out-alt me-2"></i>
+                    Cerrar sesión
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid px-4 py-4">
+        <!-- FILTROS -->
+        <div class="filters-container">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Fecha Inicio</label>
+                    <input type="datetime-local" id="startDate" class="form-control form-control-modern">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Fecha Fin</label>
+                    <input type="datetime-local" id="endDate" class="form-control form-control-modern">
+                </div>
+                <div class="col-md-4 d-flex align-items-end gap-2">
+                    <button class="btn btn-modern btn-primary flex-fill" onclick="filterPedidos()">
+                        <i class="fas fa-search me-2"></i>
+                        Filtrar
+                    </button>
+                    <button class="btn btn-modern btn-outline-secondary" onclick="resetFilters()">
+                        <i class="fas fa-redo me-2"></i>
+                        Limpiar
+                    </button>
+                    <button class="btn btn-modern btn-success" onclick="exportarAExcel()" id="btnExportar" style="display: none;">
+                        <i class="fas fa-file-excel me-2"></i>
+                        Exportar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ESTADÍSTICAS -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="modern-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-shopping-cart fa-3x text-primary mb-3"></i>
+                        <h5 class="text-muted mb-2">Total Pedidos</h5>
+                        <h1 class="fw-bold" id="total-pedidos">0</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="modern-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-dollar-sign fa-3x text-success mb-3"></i>
+                        <h5 class="text-muted mb-2">Total en Ventas</h5>
+                        <h1 class="fw-bold text-success" id="total-ventas">$0</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="modern-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-wine-glass fa-3x text-info mb-3"></i>
+                        <h5 class="text-muted mb-2">Total Vasos</h5>
+                        <h1 class="fw-bold" id="total-vasos">0</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABLA DE PEDIDOS -->
+        <div class="modern-card">
+            <div class="card-header">
+                <i class="fas fa-list me-2"></i>
+                Listado de Pedidos Históricos
+            </div>
+            <div class="card-body">
+                <div id="loader-container" style="display: none;">
+                    <div class="loader"></div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-modern table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Teléfono</th>
+                                <th>Total</th>
+                                <th>Método Pago</th>
+                                <th>Alfredo</th>
+                                <th>Boloñesa</th>
+                                <th>Camarón</th>
+                                <th>Champiñón</th>
+                                <th>Pesto</th>
+                                <th>Vasos</th>
+                                <th>Otros</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pedidos-tbody">
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                    Seleccione un rango de fechas para ver los pedidos
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para ver detalles del pedido -->
+    <div class="modal fade" id="pedidoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="pedidoModalLabel">Pedido # - 0</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="row d-flex">
+                                <div class="col-md-12">
+                                    <ul class="list-group" id="data-pedido">
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">PRODUCTO</th>
+                                        <th scope="col">CANT</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-products">
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-dark">
+                                        <td colspan="3"><b>TOTAL: </b> <b id="total"></b></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/pedidos_historico.js"></script>
+</body>
+
+</html>

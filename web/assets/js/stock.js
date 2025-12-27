@@ -108,13 +108,36 @@ async function getProducts() {
             for (const index in products) {
                 if (products[index].category == 2) {
                     const sauceIcon = getSauceIcon(products[index].name);
-                    const kgPerBag = products[index].min_quantity || 2.079; // Kg por bolsa (default 2.079)
-                    const totalKg = (products[index].stock * kgPerBag).toFixed(3);
                     
-                    // Pesto es especial: 27 vasos/bolsa, las demás 13.5 vasos/bolsa
-                    const isPesto = products[index].name.toLowerCase().includes('pesto');
-                    const vasosPerBag = isPesto ? 27 : 13.5;
-                    const totalVasos = vasosPerBag * products[index].stock;
+                    // Determinar configuración según tipo de salsa
+                    const nameLower = products[index].name.toLowerCase();
+                    let kgPorSet27Vasos; // Kg que pesan las bolsas necesarias para hacer 27 vasos
+                    let bolsasPorSet27;  // Cuántas bolsas físicas se necesitan para 27 vasos
+                    let kgPorBolsaIndividual; // Peso de 1 bolsa física
+                    
+                    if (nameLower.includes('pesto')) {
+                        // PESTO: 1 bolsa = 27 vasos = 2.100 kg
+                        kgPorBolsaIndividual = 2.100;
+                        bolsasPorSet27 = 1;
+                        kgPorSet27Vasos = 2.100;
+                    } else if (nameLower.includes('bolognesa') || nameLower.includes('bolonesa') || nameLower.includes('boloñesa')) {
+                        // BOLOÑESA: 2 bolsas = 27 vasos = 3.718 kg (1 bolsa = 1.859 kg)
+                        kgPorBolsaIndividual = 1.859;
+                        bolsasPorSet27 = 2;
+                        kgPorSet27Vasos = 3.718;
+                    } else {
+                        // ALFREDO, CAMARÓN, CHAMPIÑÓN: 2 bolsas = 27 vasos = 4.158 kg (1 bolsa = 2.079 kg)
+                        kgPorBolsaIndividual = 2.079;
+                        bolsasPorSet27 = 2;
+                        kgPorSet27Vasos = 4.158;
+                    }
+                    
+                    // El stock representa "sets de 27 vasos"
+                    const totalBolsasFisicas = products[index].stock * bolsasPorSet27;
+                    const totalKg = (products[index].stock * kgPorSet27Vasos).toFixed(3);
+                    const totalVasos = products[index].stock * 27; // Siempre 27 vasos por set
+                    
+                    console.log(`📦 ${products[index].name}: Stock=${products[index].stock} sets, Bolsas=${totalBolsasFisicas}, Kg=${totalKg}, Vasos=${totalVasos}`);
                     
                     fila += `<tr>
                                 <td class="text-muted"><b>${i}</b></td>
@@ -125,8 +148,9 @@ async function getProducts() {
                                 <td>
                                     <span class="stock-badge bags">
                                         <i class="fas fa-box"></i>
-                                        ${products[index].stock}
+                                        ${totalBolsasFisicas}
                                     </span>
+                                    <small class="text-muted d-block mt-1">(${products[index].stock} sets)</small>
                                 </td>
                                 <td>
                                     <span class="stock-badge" style="background: linear-gradient(135deg, #f093fb20 0%, #f5576c20 100%); color: #f5576c;">
@@ -142,8 +166,9 @@ async function getProducts() {
                                 </td>
                                 <td>
                                     <small class="text-muted">
-                                        <div><strong>${kgPerBag} kg</strong>/bolsa</div>
-                                        <div><strong>${vasosPerBag}</strong> vasos/bolsa</div>
+                                        <div><strong>${kgPorBolsaIndividual} kg</strong>/bolsa física</div>
+                                        <div><strong>${bolsasPorSet27}</strong> bolsas = 27 vasos</div>
+                                        <div><strong>${kgPorSet27Vasos} kg</strong> por set</div>
                                     </small>
                                 </td>
                                 <td class="text-center">

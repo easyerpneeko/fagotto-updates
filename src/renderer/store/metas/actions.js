@@ -1,5 +1,5 @@
-import Connection from '@/helpers/Connection.js';
-import BaseUrl from '@/helpers/baseUrl.js';
+import Connection from '../../helpers/Connection.js';
+import BaseUrl from '../../helpers/baseUrl.js';
 
 export const fetchCurrentMeta = async ({ commit }) => {
   try {

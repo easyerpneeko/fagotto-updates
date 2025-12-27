@@ -610,12 +610,29 @@ export default {
             requiresTurno: true
           })
         }
-        // console.log(menu);
+        
+        // 👹 Módulo de Registro de Asistencia
+        menu.push({
+          label: 'Registro Asistencia',
+          route: '/inicio/registro-asistencia',
+          icon: 'fas fa-user-secret',
+          requiresTurno: false,
+          badge: 'NEW'
+        });
+
+        // Admin Carnets - OCULTO
+        // menu.push({
+        //   label: 'Admin Carnets',
+        //   route: '/inicio/admin-carnets',
+        //   icon: 'fas fa-id-card-alt',
+        //   requiresTurno: false,
+        //   badge: 'ADMIN'
+        // });
+
         this.menu = menu;
-      }, 500);
+      }, 200);
     },
 
-    // Cerrar sesion
     async logout() {
       await fs.unlink('authorization.json', (error) => {
         if (error) {

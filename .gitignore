@@ -18,3 +18,10 @@ electron-builder.yml
 bootstrap/
 gh_token.json
 .env
+
+# Configuración específica de cada local (NO subir a Git)
+src/renderer/config/app-config.json
+
+# Firmas digitales (privacidad)
+web/uploads/firmas/*.png
+web/uploads/firmas/*.jpg

@@ -1386,6 +1386,13 @@
                                 </a>
                             </div>
 
+                            <div class="nav-item-mobile">
+                                <a class="nav-link" href="./metas_diarias.html">
+                                    <i class="fas fa-bullseye"></i>
+                                    <span>Establecer Metas</span>
+                                </a>
+                            </div>
+
         
 
                             <!-- Sucursales en móvil -->
@@ -1451,6 +1458,13 @@
                                     <a class="nav-link" href="./stock.html">
                                         <i class="fas fa-boxes"></i>
                                         Control de Stock
+                                    </a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link" href="./metas_diarias.html">
+                                        <i class="fas fa-bullseye"></i>
+                                        Establecer Metas
                                     </a>
                                 </li>
                                
@@ -1609,21 +1623,26 @@
                                             <i class="fas fa-sort sort-icon"></i>
                                         </th>
                                         <th scope="col" class="sortable" data-column="2" data-type="number">
+                                            <i class="fas fa-bullseye"></i>
+                                            Meta Establecida
+                                            <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th scope="col" class="sortable" data-column="3" data-type="number">
                                             <i class="fas fa-hashtag"></i>
                                             Tickets
                                             <i class="fas fa-sort sort-icon"></i>
                                         </th>
-                                        <th scope="col" class="sortable" data-column="3" data-type="number">
+                                        <th scope="col" class="sortable" data-column="4" data-type="number">
                                             <i class="fas fa-motorcycle"></i>
                                             Venta Delivery
                                             <i class="fas fa-sort sort-icon"></i>
                                         </th>
-                                        <th scope="col" class="sortable" data-column="4" data-type="text">
+                                        <th scope="col" class="sortable" data-column="5" data-type="text">
                                             <i class="fas fa-ticket-alt"></i>
                                             Ticket P/Delivery
                                             <i class="fas fa-sort sort-icon"></i>
                                         </th>
-                                        <th scope="col" class="sortable" data-column="5" data-type="number">
+                                        <th scope="col" class="sortable" data-column="6" data-type="number">
                                             <i class="fas fa-percent"></i>
                                             %
                                             <i class="fas fa-sort sort-icon"></i>
@@ -1632,7 +1651,7 @@
                                 </thead>
                                 <tbody id="tabla-counters-tbody">
                                     <tr>
-                                        <td colspan="6" class="text-center">
+                                        <td colspan="7" class="text-center">
                                             <i class="fas fa-spinner fa-spin"></i>
                                             CARGANDO...
                                         </td>
@@ -1663,6 +1682,10 @@
                                             Venta Bruta
                                         </th>
                                         <th scope="col">
+                                            <i class="fas fa-bullseye"></i>
+                                            Meta Establecida
+                                        </th>
+                                        <th scope="col">
                                             <i class="fas fa-hashtag"></i>
                                             Tickets
                                         </th>
@@ -1682,7 +1705,7 @@
                                 </thead>
                                 <tbody id="tabla-counters-fagotto-tbody">
                                     <tr>
-                                        <td colspan="6" class="text-center">
+                                        <td colspan="7" class="text-center">
                                             <i class="fas fa-spinner fa-spin"></i>
                                             CARGANDO...
                                         </td>
@@ -1825,6 +1848,17 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-md-3">
+                                <div class="p-3 rounded" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: 3px solid #fff; box-shadow: 0 5px 20px rgba(102,126,234,0.4);">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-calculator fa-2x text-white me-3"></i>
+                                        <div class="text-white">
+                                            <div style="font-size: 0.75rem; opacity: 0.9;">🍝 TOTAL VENDIDO</div>
+                                            <div style="font-size: 1.8rem; font-weight: 900;" id="globalTotalVendido">0</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Tabla Mapa de Calor -->
@@ -1951,7 +1985,7 @@
         crossorigin="anonymous"></script>
     <script src="../assets/js/dashboard-kpis.js?v=2025111001"></script>
     <script src="../assets/js/dashboard-delivery-tickets.js?v=2025110501"></script>
-    <script src="../assets/js/dashboard.js?v=2025110501"></script>
+    <script src="../assets/js/dashboard.js?v=2025122602"></script>
     <script src="../assets/js/dashboard-comparison.js?v=2025102101"></script>
     <script src="../assets/js/cocinafagotto.js"></script>
     <script>

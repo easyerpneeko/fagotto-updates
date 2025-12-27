@@ -96,20 +96,45 @@
     </div>
 
     <!-- Right Side - Welcome Section -->
-    <div class="welcome-section">
-      <!-- Video Background Full -->
-      <video 
-        class="welcome-video-background" 
-        autoplay 
-        loop 
-        muted 
-        playsinline
-        :src="require('@/components/LandingPage/video.mp4')"
-      >
-        Tu navegador no soporta videos HTML5.
-      </video>
-      <!-- Content Over Video -->
+    <div class="welcome-section christmas-welcome">
+      <!-- Christmas Snow Animation -->
+      <div class="christmas-snow-login">
+        <div class="snow-flake-login" v-for="n in 30" :key="n" :style="{
+          left: (n * 3.33) + '%',
+          animationDelay: (n * 0.3) + 's',
+          animationDuration: (3 + Math.random() * 3) + 's'
+        }">❄</div>
+      </div>
 
+      <!-- Christmas Background with Trees -->
+      <div class="christmas-trees">
+        <div class="tree" v-for="i in 8" :key="'tree-' + i"></div>
+      </div>
+
+      <!-- Christmas Content -->
+      <div class="christmas-content">
+        <h1 class="christmas-welcome-title">Feliz navidad</h1>
+        
+        <!-- Santa Claus Image -->
+        <div class="santa-container">
+          <img 
+            src="https://pngimg.com/d/santa_claus_PNG38466.png" 
+            alt="Santa Claus" 
+            class="santa-image"
+          />
+        </div>
+
+        <div class="christmas-greeting">
+          <div class="greeting-icon">
+            <i class="fas fa-snowman"></i>
+          </div>
+          <h2 class="greeting-title">Feliz Navidad</h2>
+          <p class="greeting-text">
+            Que esta temporada navideña llene tu corazón de alegría y paz. 
+            ¡Bienvenido a Fagotto ERP!
+          </p>
+        </div>
+      </div>
     </div>
 
     <!-- Auto Update Component -->
@@ -1076,5 +1101,160 @@ export default {
   .welcome-title {
     font-size: 1.5rem;
   }
+}
+
+/* 🎄 CHRISTMAS STYLES FOR LOGIN */
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Pacifico&display=swap');
+
+.christmas-welcome {
+  background: linear-gradient(180deg, #e8f4f8 0%, #ffffff 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.christmas-trees {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 200px;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.tree {
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-left: 60px solid transparent;
+  border-right: 60px solid transparent;
+  border-bottom: 180px solid #d4e8d4;
+  opacity: 0.3;
+  animation: tree-sway 4s ease-in-out infinite;
+}
+
+.tree:nth-child(1) { left: 5%; animation-delay: 0s; }
+.tree:nth-child(2) { left: 15%; animation-delay: 0.5s; opacity: 0.2; }
+.tree:nth-child(3) { left: 28%; animation-delay: 1s; }
+.tree:nth-child(4) { left: 42%; animation-delay: 1.5s; opacity: 0.25; }
+.tree:nth-child(5) { left: 58%; animation-delay: 2s; }
+.tree:nth-child(6) { left: 72%; animation-delay: 2.5s; opacity: 0.2; }
+.tree:nth-child(7) { left: 85%; animation-delay: 3s; }
+.tree:nth-child(8) { left: 95%; animation-delay: 3.5s; opacity: 0.15; }
+
+@keyframes tree-sway {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  50% { transform: translateX(5px) rotate(2deg); }
+}
+
+.christmas-snow-login {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.snow-flake-login {
+  position: absolute;
+  top: -10%;
+  color: #b8d4e0;
+  font-size: 1.2rem;
+  opacity: 0.6;
+  animation: snow-fall-login linear infinite;
+}
+
+@keyframes snow-fall-login {
+  0% { transform: translateY(0) scale(0.5); }
+  50% { transform: translateY(50vh) scale(1); }
+  100% { transform: translateY(100vh) scale(0.5); }
+}
+
+.christmas-content {
+  position: relative;
+  z-index: 10;
+  padding: 40px 20px;
+  animation: slideInRight 0.8s ease-out;
+}
+
+.christmas-welcome-title {
+  font-family: 'Pacifico', cursive;
+  font-size: 4rem;
+  color: #e74c3c;
+  text-shadow: 2px 2px 0 #fff, 4px 4px 10px rgba(231, 76, 60, 0.3);
+  margin: 0 0 30px 0;
+  animation: title-float 3s ease-in-out infinite;
+}
+
+@keyframes title-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.santa-container {
+  position: relative;
+  margin: 40px auto;
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.santa-image {
+  width: 90%;
+  max-width: 450px;
+  height: auto;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.2));
+  animation: santa-wave 4s ease-in-out infinite;
+}
+
+@keyframes santa-wave {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-10px) rotate(-2deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(-10px) rotate(2deg); }
+}
+
+.christmas-greeting {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 500px;
+  margin: 0 auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.greeting-icon {
+  font-size: 3rem;
+  color: #3498db;
+  margin-bottom: 15px;
+  animation: icon-bounce 2s ease-in-out infinite;
+}
+
+@keyframes icon-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10px) scale(1.1); }
+}
+
+.greeting-title {
+  font-family: 'Dancing Script', cursive;
+  font-size: 2.5rem;
+  color: #27ae60;
+  margin: 0 0 15px 0;
+  font-weight: 700;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.greeting-text {
+  font-size: 1.1rem;
+  color: #555;
+  line-height: 1.6;
+  margin: 0;
 }
 </style>

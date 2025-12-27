@@ -1,6 +1,6 @@
 {
   "name": "fagotto-erp-app",
-  "version": "1.11.29",
+  "version": "1.11.35",
   "author": "",
   "description": "FagottoERP build over electron-vue",
   "license": "null",
@@ -94,6 +94,7 @@
     "exceljs": "^4.4.0",
     "export-from-json": "1.4.1",
     "file-saver": "^2.0.2",
+    "html2canvas": "^1.4.1",
     "inputmask": "^5.0.3",
     "jquery": "^3.5.1",
     "laravel-echo": "^1.11.7",
@@ -106,6 +107,7 @@
     "popper": "^1.0.1",
     "popper.js": "^1.16.1",
     "pusher-js": "^7.1.0-beta",
+    "qrcode": "^1.5.4",
     "tempusdominus-core": "^5.0.3",
     "vue": "^2.5.16",
     "vue-awesome-notifications": "^3.1.0",

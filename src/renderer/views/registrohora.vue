@@ -203,32 +203,32 @@ export default {
   
   methods: {
     cargarConfiguracionLocal() {
-      // Obtener configuración del local desde el store (serial y nombre del local)
-      const serial = this.$store.state.main.serial || localStorage.getItem('912338BA') || 'AGU001';
+      // Leer configuración desde el archivo aplication.json
+      const fs = require('fs');
+      const path = require('path');
       
-      // El appId es el serial del local almacenado
-      let appId = serial;
+      let appId = 'AGU001';
       let localNombre = 'Local';
       
-      // Intentar obtener información del local desde la API
-      const axios = require('axios');
-      const apiUrl = this.$store.state.main.apiUrl || 'https://posfagotto.cl';
+      try {
+        // Leer el archivo aplication.json del directorio raíz de la app
+        const aplData = fs.readFileSync('aplication.json', 'utf-8');
+        const config = JSON.parse(aplData);
+        
+        // El appId es el Serial del local
+        appId = config.Serial || appId;
+        localNombre = config.Name || config.name_public || localNombre;
+        
+        // Actualizar título de la ventana
+        document.title = 'Fagotto ' + localNombre;
+        
+        console.log('🏢 Local configurado desde aplication.json:', { appId, localNombre });
+        return { appId, localNombre, config };
+      } catch (error) {
+        console.error('❌ Error leyendo aplication.json:', error);
+        console.warn('⚠️ Usando valores por defecto');
+      }
       
-      axios.get(`${apiUrl}/api/web/getApp?id=0&slim=1`, {
-        headers: {
-          'App-Key': serial
-        }
-      }).then(response => {
-        if (response.data && response.data.name) {
-          localNombre = response.data.name;
-          document.title = 'Fagotto ' + localNombre;
-          console.log('🏢 Local configurado desde API:', { appId, localNombre });
-        }
-      }).catch(error => {
-        console.warn('⚠️ No se pudo obtener info del local desde API, usando valores actuales');
-      });
-      
-      console.log('🏢 Usando serial del local:', { appId, serial });
       return { appId, localNombre, config: null };
     },
     
@@ -273,16 +273,23 @@ export default {
     },
     
     async generarQRValidacion() {
-      // Obtener configuración del local desde el store (serial del local)
-      const serial = this.$store.state.main.serial || localStorage.getItem('912338BA') || 'AGU001';
+      // Leer configuración desde el archivo aplication.json
+      const fs = require('fs');
       
-      let appId = serial;
+      let appId = 'AGU001';
       let localNombre = 'Local';
       let localLat = -33.4372;
       let localLng = -70.6506;
       
-      // El appId es el serial del local almacenado
-      console.log('📍 Generando QR de validación con serial:', appId);
+      try {
+        const aplData = fs.readFileSync('aplication.json', 'utf-8');
+        const config = JSON.parse(aplData);
+        appId = config.Serial || appId;
+        localNombre = config.Name || config.name_public || localNombre;
+        console.log('📍 Generando QR de validación para:', { appId, localNombre });
+      } catch (error) {
+        console.warn('⚠️ Error leyendo aplication.json, usando AGU001 por defecto');
+      }
       
       // GPS por defecto (Santiago Centro)
       if (false) {
@@ -442,14 +449,21 @@ export default {
     },
     
     async generarQRRegistro() {
-      // Obtener configuración del local desde el store (serial del local)
-      const serial = this.$store.state.main.serial || localStorage.getItem('912338BA') || 'AGU001';
+      // Leer configuración desde el archivo aplication.json
+      const fs = require('fs');
       
-      // El appId es el serial del local almacenado
-      let appId = serial;
-      const localNombre = 'Local';
+      let appId = 'AGU001';
+      let localNombre = 'Local';
       
-      console.log('📍 Generando QR de registro para local con serial:', appId);
+      try {
+        const aplData = fs.readFileSync('aplication.json', 'utf-8');
+        const config = JSON.parse(aplData);
+        appId = config.Serial || appId;
+        localNombre = config.Name || config.name_public || localNombre;
+        console.log('📍 Generando QR de registro para:', { appId, localNombre });
+      } catch (error) {
+        console.warn('⚠️ Error leyendo aplication.json, usando AGU001 por defecto');
+      }
       
       // Generar sesión única de registro
       const timestamp = Date.now();

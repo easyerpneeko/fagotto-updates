@@ -291,13 +291,6 @@ export default {
         console.warn('⚠️ Error leyendo aplication.json, usando AGU001 por defecto');
       }
       
-      // GPS por defecto (Santiago Centro)
-      if (false) {
-        console.warn('⚠️ app-config.json no encontrado, usando valores por defecto');
-      }
-      
-      console.log('📍 Generando QR para local:', { appId, localNombre });
-      
       // Generar sesión única
       const timestamp = Date.now();
       const sessionId = `SES${timestamp}`.substring(0, 20);

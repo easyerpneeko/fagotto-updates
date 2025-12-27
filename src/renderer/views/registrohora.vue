@@ -203,32 +203,32 @@ export default {
   
   methods: {
     cargarConfiguracionLocal() {
-      // Leer configuración del local desde app-config.json
-      const fs = require('fs');
-      const path = require('path');
-      const configPath = path.join(__dirname, '../config/app-config.json');
+      // Obtener configuración del local desde el store (serial y nombre del local)
+      const serial = this.$store.state.main.serial || localStorage.getItem('912338BA') || 'AGU001';
       
-      let appId = 'AGU001';
+      // El appId es el serial del local almacenado
+      let appId = serial;
       let localNombre = 'Local';
       
-      if (fs.existsSync(configPath)) {
-        try {
-          const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-          appId = config.appId || appId;
-          localNombre = config.localNombre || localNombre;
-          
-          // Actualizar título de la ventana
-          document.title = 'Fagotto ' + localNombre;
-          
-          console.log('🏢 Local configurado:', { appId, localNombre });
-          return { appId, localNombre, config };
-        } catch (error) {
-          console.error('❌ Error leyendo app-config.json:', error);
-        }
-      } else {
-        console.warn('⚠️ app-config.json no encontrado, usando valores por defecto');
-      }
+      // Intentar obtener información del local desde la API
+      const axios = require('axios');
+      const apiUrl = this.$store.state.main.apiUrl || 'https://posfagotto.cl';
       
+      axios.get(`${apiUrl}/api/web/getApp?id=0&slim=1`, {
+        headers: {
+          'App-Key': serial
+        }
+      }).then(response => {
+        if (response.data && response.data.name) {
+          localNombre = response.data.name;
+          document.title = 'Fagotto ' + localNombre;
+          console.log('🏢 Local configurado desde API:', { appId, localNombre });
+        }
+      }).catch(error => {
+        console.warn('⚠️ No se pudo obtener info del local desde API, usando valores actuales');
+      });
+      
+      console.log('🏢 Usando serial del local:', { appId, serial });
       return { appId, localNombre, config: null };
     },
     
@@ -273,31 +273,19 @@ export default {
     },
     
     async generarQRValidacion() {
-      // Leer configuración del local desde app-config.json
-      const fs = require('fs');
-      const path = require('path');
-      const configPath = path.join(__dirname, '../config/app-config.json');
+      // Obtener configuración del local desde el store (serial del local)
+      const serial = this.$store.state.main.serial || localStorage.getItem('912338BA') || 'AGU001';
       
-      let appId = 'AGU001';
+      let appId = serial;
       let localNombre = 'Local';
       let localLat = -33.4372;
       let localLng = -70.6506;
       
-      // Leer app-config.json si existe
-      if (fs.existsSync(configPath)) {
-        try {
-          const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-          appId = config.appId || appId;
-          localNombre = config.localNombre || localNombre;
-          if (config.gps && config.gps.latitud) localLat = config.gps.latitud;
-          if (config.gps && config.gps.longitud) localLng = config.gps.longitud;
-          
-          // Actualizar título de la ventana con el nombre del local
-          document.title = 'Fagotto ' + localNombre;
-        } catch (error) {
-          console.error('❌ Error leyendo app-config.json:', error);
-        }
-      } else {
+      // El appId es el serial del local almacenado
+      console.log('📍 Generando QR de validación con serial:', appId);
+      
+      // GPS por defecto (Santiago Centro)
+      if (false) {
         console.warn('⚠️ app-config.json no encontrado, usando valores por defecto');
       }
       
@@ -454,30 +442,14 @@ export default {
     },
     
     async generarQRRegistro() {
-      // Leer configuración del local desde app-config.json
-      const fs = require('fs');
-      const path = require('path');
-      const configPath = path.join(__dirname, '../config/app-config.json');
+      // Obtener configuración del local desde el store (serial del local)
+      const serial = this.$store.state.main.serial || localStorage.getItem('912338BA') || 'AGU001';
       
-      let appId = 'AGU001';
+      // El appId es el serial del local almacenado
+      let appId = serial;
+      const localNombre = 'Local';
       
-      // Leer app-config.json si existe
-      if (fs.existsSync(configPath)) {
-        try {
-          const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-          appId = config.appId || appId;
-          const localNombre = config.localNombre || 'Local';
-          
-          // Actualizar título de la ventana con el nombre del local
-          document.title = 'Fagotto ' + localNombre;
-          
-          console.log('📍 Generando QR de registro para local:', { appId, localNombre });
-        } catch (error) {
-          console.error('❌ Error leyendo app-config.json:', error);
-        }
-      } else {
-        console.warn('⚠️ app-config.json no encontrado, usando AGU001 por defecto');
-      }
+      console.log('📍 Generando QR de registro para local con serial:', appId);
       
       // Generar sesión única de registro
       const timestamp = Date.now();

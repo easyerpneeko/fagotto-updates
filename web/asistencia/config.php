@@ -3,6 +3,9 @@
  * CONFIGURACIÓN SIMPLE - Carga todo desde .env
  */
 
+// Zona horaria de Chile
+date_default_timezone_set('America/Santiago');
+
 // Cargar .env
 function loadEnv($file = __DIR__ . '/.env') {
     if (!file_exists($file)) return;
@@ -44,7 +47,8 @@ function getDB() {
             $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4";
             $pdo = new PDO($dsn, DB_USER, DB_PASS, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET time_zone = '-03:00'" // Chile
             ]);
         } catch (PDOException $e) {
             die('❌ Error DB: ' . $e->getMessage());
@@ -52,3 +56,28 @@ function getDB() {
     }
     return $pdo;
 }
+
+/**
+ * Calcular distancia entre dos puntos GPS (fórmula Haversine)
+ * @param float $lat1 Latitud punto 1
+ * @param float $lon1 Longitud punto 1
+ * @param float $lat2 Latitud punto 2
+ * @param float $lon2 Longitud punto 2
+ * @return float Distancia en metros
+ */
+function calcularDistanciaGPS($lat1, $lon1, $lat2, $lon2) {
+    $radioTierra = 6371000; // Radio de la Tierra en metros
+    
+    $dLat = deg2rad($lat2 - $lat1);
+    $dLon = deg2rad($lon2 - $lon1);
+    
+    $a = sin($dLat / 2) * sin($dLat / 2) +
+         cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+         sin($dLon / 2) * sin($dLon / 2);
+    
+    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+    $distancia = $radioTierra * $c;
+    
+    return round($distancia, 2); // Metros con 2 decimales
+}
+

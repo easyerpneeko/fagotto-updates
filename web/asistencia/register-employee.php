@@ -3,14 +3,23 @@
  * Registro de Empleado - Captura facial y registro en AWS
  */
 
+// Headers para evitar caché
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+header("Expires: 0");
+
 require_once 'config.php';
 
 $sessionId = $_GET['session'] ?? null;
-$appId = $_GET['appid'] ?? null;
+$negocioParam = $_GET['negocio'] ?? null;
 
-if (!$sessionId || !$appId) {
-    die('Error: Parámetros inválidos');
+if (!$sessionId || !$negocioParam) {
+    die('Error: Parámetros inválidos (session y negocio requeridos)');
 }
+
+// Convertir el slug del negocio a nombre normal (ej: FAGOTTO_MANUEL_MONT → Fagotto Manuel Mont)
+$negocioNombre = str_replace('_', ' ', $negocioParam);
 
 // Validar sesión de registro
 try {
@@ -18,25 +27,27 @@ try {
     $stmt = $pdo->prepare("
         SELECT * FROM asistencias_sessions 
         WHERE session_id = ? 
+        AND negocio_nombre = ?
         AND expires_at > NOW()
         AND used = 0
     ");
-    $stmt->execute([$sessionId]);
+    $stmt->execute([$sessionId, $negocioNombre]);
     $session = $stmt->fetch();
     
     if (!$session) {
         // Debug: Mostrar información útil
         $debugInfo = "<br><br>Session ID: $sessionId<br>";
-        $debugInfo .= "App ID: $appId<br>";
+        $debugInfo .= "Negocio: $negocioNombre<br>";
         $debugInfo .= "Hora actual servidor: " . date('Y-m-d H:i:s') . "<br>";
         
-        // Verificar si la sesión existe pero expiró
-        $stmt2 = $pdo->prepare("SELECT session_id, expires_at, used FROM asistencias_sessions WHERE session_id = ?");
+        // Verificar si la sesión existe
+        $stmt2 = $pdo->prepare("SELECT session_id, negocio_nombre, expires_at, used FROM asistencias_sessions WHERE session_id = ?");
         $stmt2->execute([$sessionId]);
         $expiredSession = $stmt2->fetch();
         
         if ($expiredSession) {
             $debugInfo .= "<br>Sesión encontrada pero:<br>";
+            $debugInfo .= "- Negocio en DB: " . $expiredSession['negocio_nombre'] . "<br>";
             $debugInfo .= "- Expira: " . $expiredSession['expires_at'] . "<br>";
             $debugInfo .= "- Usada: " . ($expiredSession['used'] ? 'Sí' : 'No') . "<br>";
         } else {
@@ -46,6 +57,10 @@ try {
         
         die('<h2>Error: Sesión inválida o expirada</h2>' . $debugInfo);
     }
+    
+    // El nombre del negocio viene directamente de la sesión
+    $localNombre = $session['negocio_nombre'];
+    
 } catch (Exception $e) {
     die('Error de conexión: ' . $e->getMessage());
 }
@@ -534,7 +549,7 @@ try {
                 sessionId: '<?= $sessionId ?>',
                 appId: '<?= $appId ?>',
                 paso: 'datos',
-                localNombre: '<?= LOCAL_NOMBRE ?>',
+                localNombre: '<?= $localNombre ?>',
                 
                 empleado: {
                     nombre: '',

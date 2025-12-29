@@ -27,7 +27,13 @@ if (!$sessionId || !$employeeId || !$foto) {
 }
 
 try {
+    error_log("=== RECONOCIMIENTO FACIAL ===");
+    error_log("sessionId: " . $sessionId);
+    error_log("employeeId: " . $employeeId);
+    error_log("tipoMarcacion: " . $tipoMarcacion);
+    
     $pdo = getDB();
+    error_log("✅ DB conectada");
     
     // Validar sesión
     $stmt = $pdo->prepare("
@@ -36,6 +42,8 @@ try {
     ");
     $stmt->execute([$sessionId]);
     $session = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    error_log("Session encontrada: " . ($session ? 'Sí' : 'No'));
     
     if (!$session) {
         http_response_code(400);
@@ -51,6 +59,8 @@ try {
     $stmt->execute([$employeeId]);
     $employee = $stmt->fetch(PDO::FETCH_ASSOC);
     
+    error_log("Empleado encontrado: " . ($employee ? $employee['nombre'] : 'No'));
+    
     if (!$employee) {
         http_response_code(404);
         echo json_encode([
@@ -61,10 +71,14 @@ try {
     }
     
     // Buscar rostro en AWS Rekognition
+    error_log("🔍 Llamando a AWS Rekognition...");
     $rekognition = new AWSRekognition();
     $result = $rekognition->buscarRostro($foto, 75); // 75% de similitud mínima
     
+    error_log("Resultado Rekognition: " . json_encode($result));
+    
     if (!$result['success']) {
+        error_log("❌ Rekognition falló: " . $result['message']);
         http_response_code(400);
         echo json_encode([
             'success' => false,
@@ -86,15 +100,39 @@ try {
     // Registrar asistencia
     list($lat, $lng) = array_map('trim', explode(',', $ubicacion));
     
+    // VALIDAR GPS: Segunda capa de seguridad
+    if ($session['gps_lat'] && $session['gps_lng'] && $lat && $lng) {
+        $distancia = calcularDistanciaGPS(
+            $session['gps_lat'], 
+            $session['gps_lng'], 
+            (float)$lat, 
+            (float)$lng
+        );
+        
+        error_log("📍 Re-validación GPS en check-in:");
+        error_log("   Distancia: {$distancia}m");
+        
+        if ($distancia > 30) {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'message' => "Estás muy lejos del local ({$distancia}m). Máximo: 30m"
+            ]);
+            exit;
+        }
+    }
+    
     $stmt = $pdo->prepare("
         INSERT INTO asistencias_records 
-        (app_id, employee_id, fecha_hora, tipo_marcacion, coincidencia_facial, foto_capturada, gps_lat, gps_lng)
-        VALUES (?, ?, NOW(), ?, ?, ?, ?, ?)
+        (negocio_nombre, employee_id, nombre, cargo, fecha_hora, tipo_marcacion, coincidencia_facial, foto_capturada, gps_lat, gps_lng)
+        VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?)
     ");
     
     $stmt->execute([
-        $session['app_id'],
+        $session['negocio_nombre'],
         $employeeId,
+        $employee['nombre'],
+        $employee['cargo'],
         $tipoMarcacion,
         round($result['similarity']),
         $foto,
@@ -116,6 +154,8 @@ try {
     ]);
     
 } catch (Exception $e) {
+    error_log("❌ EXCEPTION en reconocimiento-facial: " . $e->getMessage());
+    error_log("Stack: " . $e->getTraceAsString());
     http_response_code(500);
     echo json_encode([
         'success' => false,

@@ -14,16 +14,26 @@
  * 7. Registra entrada en BD
  */
 
+// Headers para evitar caché
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+header("Expires: 0");
+
 // Configuración
 require_once 'config.php';
 require_once 'helpers/AWSRekognition.php';
 
-// Obtener session ID
+// Obtener session ID y nombre del negocio
 $sessionId = $_GET['session'] ?? null;
+$negocioParam = $_GET['negocio'] ?? null;
 
-if (!$sessionId) {
-    die('Error: Session ID requerido');
+if (!$sessionId || !$negocioParam) {
+    die('Error: Parámetros inválidos (session y negocio requeridos)');
 }
+
+// Convertir el slug del negocio a nombre normal (ej: FAGOTTO_MANUEL_MONT → Fagotto Manuel Mont)
+$negocioNombre = str_replace('_', ' ', $negocioParam);
 
 // Validar sesión
 try {
@@ -31,24 +41,27 @@ try {
     $stmt = $pdo->prepare("
         SELECT * FROM asistencias_sessions 
         WHERE session_id = ? 
+        AND negocio_nombre = ?
         AND expires_at > NOW()
         AND used = 0
     ");
-    $stmt->execute([$sessionId]);
+    $stmt->execute([$sessionId, $negocioNombre]);
     $session = $stmt->fetch();
 
     if (!$session) {
         // Debug: Mostrar información útil
         $debugInfo = "Session ID: $sessionId<br>";
+        $debugInfo .= "Negocio: $negocioNombre<br>";
         $debugInfo .= "Hora actual servidor: " . date('Y-m-d H:i:s') . "<br>";
         
-        // Verificar si la sesión existe pero expiró
-        $stmt2 = $pdo->prepare("SELECT session_id, expires_at, used FROM asistencias_sessions WHERE session_id = ?");
+        // Verificar si la sesión existe
+        $stmt2 = $pdo->prepare("SELECT session_id, negocio_nombre, expires_at, used FROM asistencias_sessions WHERE session_id = ?");
         $stmt2->execute([$sessionId]);
         $expiredSession = $stmt2->fetch();
         
         if ($expiredSession) {
             $debugInfo .= "Sesión encontrada pero:<br>";
+            $debugInfo .= "- Negocio en DB: " . $expiredSession['negocio_nombre'] . "<br>";
             $debugInfo .= "- Expira: " . $expiredSession['expires_at'] . "<br>";
             $debugInfo .= "- Usada: " . ($expiredSession['used'] ? 'Sí' : 'No') . "<br>";
         } else {
@@ -57,6 +70,10 @@ try {
         
         die('Error: Sesión inválida o expirada. Escanea el QR nuevamente.<br><br>' . $debugInfo);
     }
+    
+    // El nombre del negocio viene directamente de la sesión
+    $localNombre = $session['negocio_nombre'];
+    
 } catch (Exception $e) {
     die('Error de conexión: ' . $e->getMessage());
 }
@@ -78,7 +95,8 @@ try {
             <div class="header">
                 <i class="fas fa-clock"></i>
                 <h1>¿Qué quieres marcar?</h1>
-                <p>Selecciona el tipo de marcación</p>
+                <p>{{ localNombre }}</p>
+                <p style="font-size: 0.9rem; opacity: 0.8;">Selecciona el tipo de marcación</p>
             </div>
 
             <div class="tipo-list">
@@ -111,9 +129,10 @@ try {
         <!-- Paso 1: Seleccionar Empleado -->
         <div v-if="paso === 'seleccionar'" class="step-container">
             <div class="header">
-                <i class="fas fa-user-check"></i>
-                <h1>¿Quién eres?</h1>
-                <p>Selecciona tu nombre</p>
+                <i class="fas fa-store"></i>
+                <h1>{{ localNombre }}</h1>
+                <p style="font-size: 1.1rem; margin-top: 10px;">¿Quién eres?</p>
+                <p style="font-size: 0.9rem; opacity: 0.8;">Selecciona tu nombre</p>
             </div>
 
             <div class="empleados-list">
@@ -139,6 +158,10 @@ try {
             <i class="fas fa-map-marker-alt icon-lg pulse"></i>
             <h2>Validando ubicación...</h2>
             <p>{{ mensajeGPS }}</p>
+            <!-- DEBUG VISIBLE -->
+            <div v-if="debugInfo" style="background: #000; color: #0f0; padding: 10px; margin-top: 20px; font-family: monospace; font-size: 11px; text-align: left; border-radius: 8px; max-height: 200px; overflow-y: auto;">
+                <div v-for="(log, i) in debugInfo" :key="i">{{ log }}</div>
+            </div>
         </div>
 
         <!-- Paso 3: Capturar Foto -->
@@ -146,7 +169,8 @@ try {
             <div class="header">
                 <i class="fas fa-camera"></i>
                 <h1>Hola {{ empleadoSeleccionado.nombre }}</h1>
-                <p>Posiciona tu rostro en el óvalo</p>
+                <p><strong>{{ localNombre }}</strong></p>
+                <p style="font-size: 0.9rem; opacity: 0.8;">Posiciona tu rostro en el óvalo</p>
             </div>
 
             <div class="video-container">
@@ -250,6 +274,8 @@ try {
             el: '#app',
             data: {
                 sessionId: '<?= $sessionId ?>',
+                appId: '<?= $appId ?>',
+                localNombre: '<?= $localNombre ?>',
                 paso: 'tipo',
                 tipoMarcacion: '',
                 empleados: [],
@@ -258,6 +284,7 @@ try {
                 // GPS
                 mensajeGPS: 'Obteniendo ubicación...',
                 ubicacion: '',
+                debugInfo: [], // Para debug visible
                 
                 // Foto
                 detectando: false,
@@ -305,44 +332,91 @@ try {
                 },
                 
                 async validarGPS() {
+                    this.debugInfo = ['🔍 Iniciando validación GPS...'];
+                    
                     if (!navigator.geolocation) {
-                        this.mensajeError = 'GPS no disponible';
+                        this.debugInfo.push('❌ navigator.geolocation no disponible');
+                        this.mensajeError = 'GPS no disponible en tu dispositivo';
                         this.paso = 'error';
                         return;
                     }
                     
+                    this.debugInfo.push('✅ Geolocation API disponible');
+                    this.mensajeGPS = 'Obteniendo ubicación GPS...';
+                    
                     try {
+                        this.debugInfo.push('📡 Solicitando posición (timeout: 30s)...');
+                        
                         const position = await new Promise((resolve, reject) => {
                             navigator.geolocation.getCurrentPosition(resolve, reject, {
                                 enableHighAccuracy: true,
-                                timeout: 10000
+                                timeout: 30000,
+                                maximumAge: 0
                             });
                         });
                         
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
+                        const accuracy = position.coords.accuracy;
+                        
+                        this.debugInfo.push(`✅ GPS obtenido: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+                        this.debugInfo.push(`📏 Precisión: ${accuracy.toFixed(0)}m`);
+                        
+                        console.log('📍 GPS obtenido:', { lat, lng, accuracy });
                         this.ubicacion = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                        this.mensajeGPS = `Validando distancia... (precisión: ${accuracy.toFixed(0)}m)`;
+                        
+                        this.debugInfo.push('📤 Enviando a servidor para validar...');
+                        this.debugInfo.push(`   SessionId: ${this.sessionId}`);
+                        this.debugInfo.push(`   URL: https://asistencia.fagottoerp.cl/api/validar-gps.php`);
                         
                         // Validar distancia en el servidor
-                        const response = await axios.post('api/validar-gps.php', {
+                        const response = await axios.post('https://asistencia.fagottoerp.cl/api/validar-gps.php', {
                             sessionId: this.sessionId,
                             lat: lat,
                             lng: lng
+                        }, {
+                            timeout: 15000 // 15 segundos
                         });
                         
+                        this.debugInfo.push(`📥 Status: ${response.status}`);
+                        this.debugInfo.push(`📥 Respuesta: ${JSON.stringify(response.data)}`);
+                        console.log('📡 Respuesta validación GPS:', response.data);
+                        
                         if (response.data.valid) {
-                            this.mensajeGPS = '✅ Ubicación validada';
+                            this.debugInfo.push(`✅ VÁLIDO - Distancia: ${response.data.distance}m`);
+                            this.mensajeGPS = `✅ Ubicación validada (${response.data.distance}m)`;
                             setTimeout(() => {
                                 this.paso = 'foto';
                                 this.iniciarCamara();
-                            }, 1000);
+                            }, 1500);
                         } else {
-                            this.mensajeError = `Estás muy lejos del local (${response.data.distance}m)`;
+                            this.debugInfo.push(`❌ RECHAZADO - Distancia: ${response.data.distance}m > 30m`);
+                            this.mensajeError = `❌ Estás muy lejos del local\n\nDistancia: ${response.data.distance}m\nMáximo permitido: 30m\n\nDebes estar dentro o cerca del local.`;
                             this.paso = 'error';
                         }
                     } catch (error) {
-                        console.error('Error GPS:', error);
-                        this.mensajeError = 'No se pudo obtener tu ubicación';
+                        this.debugInfo.push(`❌ ERROR: ${error.message || error}`);
+                        if (error.code) this.debugInfo.push(`   Código error GPS: ${error.code}`);
+                        if (error.response) {
+                            this.debugInfo.push(`   HTTP Status: ${error.response.status}`);
+                            this.debugInfo.push(`   Respuesta: ${JSON.stringify(error.response.data)}`);
+                        } else if (error.request) {
+                            this.debugInfo.push(`   Sin respuesta del servidor (timeout o conexión)`);
+                        }
+                        console.error('❌ Error GPS completo:', error);
+                        
+                        let mensaje = 'No se pudo obtener tu ubicación';
+                        
+                        if (error.code === 1) {
+                            mensaje = '❌ Permiso denegado\n\nDebes permitir el acceso a la ubicación en la configuración de tu navegador.';
+                        } else if (error.code === 2) {
+                            mensaje = '❌ Ubicación no disponible\n\nVerifica que el GPS de tu celular esté activado.';
+                        } else if (error.code === 3) {
+                            mensaje = '❌ Tiempo de espera agotado\n\nIntenta en un lugar con mejor señal GPS.';
+                        }
+                        
+                        this.mensajeError = mensaje;
                         this.paso = 'error';
                     }
                 },

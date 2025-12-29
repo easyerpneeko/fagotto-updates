@@ -114,9 +114,7 @@ function createApplicationMenu() {
       label: 'Ver',
       submenu: [
         { label: 'Recargar', accelerator: 'CmdOrCtrl+R', role: 'reload' },
-        { label: 'Pantalla Completa', accelerator: 'F11', role: 'togglefullscreen' },
-        { type: 'separator' },
-        { label: 'DevTools', accelerator: 'F12', role: 'toggleDevTools' }
+        { label: 'Pantalla Completa', accelerator: 'F11', role: 'togglefullscreen' }
       ]
     },
     {

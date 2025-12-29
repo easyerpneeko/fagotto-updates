@@ -12,6 +12,7 @@
           <h2 class="qr-title">
             <i class="fas fa-shield-alt"></i>
             {{ tipoQR === 'checkin' ? 'Código de Validación' : 'Registrar Empleado' }}
+            <span class="local-badge">{{ localNombre }}</span>
           </h2>
           <button @click="cambiarTipoQR" class="btn-cambiar-tipo">
             <i :class="tipoQR === 'checkin' ? 'fas fa-user-plus' : 'fas fa-sign-in-alt'"></i>
@@ -44,7 +45,12 @@
       <div v-if="ultimosRegistros.length > 0" class="ultimos-registros">
         <h4><i class="fas fa-history"></i> Últimas marcadas</h4>
         <div class="registro-item" v-for="registro in ultimosRegistros" :key="registro.id">
-          <img :src="registro.foto" class="registro-foto" />
+          <img 
+            :src="registro.foto" 
+            class="registro-foto" 
+            @click="abrirFotoModal(registro.foto, registro.nombre)"
+            title="Click para agrandar"
+          />
           <div class="registro-info">
             <strong>{{ registro.nombre }}</strong>
             <span>{{ registro.hora }}</span>
@@ -136,11 +142,23 @@
     <button @click="abrirConfiguracion" class="btn-config">
       <i class="fas fa-cog"></i>
     </button>
+
+    <!-- Modal para ver foto ampliada -->
+    <div v-if="mostrarFotoModal" class="foto-modal-overlay" @click="cerrarFotoModal">
+      <div class="foto-modal-content" @click.stop>
+        <button class="foto-modal-close" @click="cerrarFotoModal">
+          <i class="fas fa-times"></i>
+        </button>
+        <img :src="fotoModalSrc" :alt="fotoModalNombre" class="foto-modal-img" />
+        <p class="foto-modal-nombre">{{ fotoModalNombre }}</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import QRCode from 'qrcode';
+import ConfigHelper from '@/helpers/ConfigHelper.js';
 
 export default {
   name: 'RegistroHora',
@@ -148,6 +166,7 @@ export default {
     return {
       modo: 'pantalla-entrada', // 'pantalla-entrada', 'captura-facial', 'resultado'
       tipoQR: 'checkin', // 'checkin' o 'registro'
+      localNombre: 'Local', // Nombre del local actual
       
       // QR de validación (cambia cada 30s)
       qrValidacionData: '',
@@ -187,6 +206,11 @@ export default {
       // Últimos registros
       ultimosRegistros: [],
       
+      // Modal de foto
+      mostrarFotoModal: false,
+      fotoModalSrc: '',
+      fotoModalNombre: '',
+      
       // Webcam
       videoStream: null,
     }
@@ -203,40 +227,50 @@ export default {
   
   methods: {
     cargarConfiguracionLocal() {
-      // Leer configuración desde el archivo aplication.json
-      const fs = require('fs');
-      const path = require('path');
+      // Obtener nombre del negocio desde ConfigHelper (aplication.json en memoria)
+      console.log('🔍 cargarConfiguracionLocal() - Obteniendo nombre del negocio desde ConfigHelper...');
       
-      let appId = 'AGU001';
-      let localNombre = 'Local';
-      
-      console.log('🔍 cargarConfiguracionLocal() - Iniciando...');
+      // Valores por defecto
+      let negocioNombre = null;
+      let localNombre = 'Sin Configuración';
       
       try {
-        // Leer el archivo aplication.json del directorio raíz de la app
-        const aplData = fs.readFileSync('aplication.json', 'utf-8');
-        console.log('📄 Archivo leído exitosamente');
-        const config = JSON.parse(aplData);
-        console.log('✅ JSON parseado:', config);
+        // Obtener configuración de la aplicación desde ConfigHelper
+        const appConfig = ConfigHelper.Config();
         
-        // El appId es el Serial del local
-        appId = config.Serial || appId;
-        localNombre = config.Name || config.name_public || localNombre;
+        if (!appConfig) {
+          console.error('❌ No se pudo obtener configuración de la aplicación');
+          this.localNombre = '⚠️ ERROR DE CONFIGURACIÓN';
+          return { negocioNombre: null, localNombre: this.localNombre };
+        }
         
-        console.log('🏢 Local configurado desde aplication.json:', { appId, localNombre });
-        console.log('   Serial leído:', config.Serial);
-        console.log('   AppId final:', appId);
+        // Obtener el nombre del negocio (priorizar Name sobre name_public)
+        negocioNombre = appConfig.Name || appConfig.name_public;
+        
+        if (!negocioNombre) {
+          console.error('❌ No se encontró el nombre del negocio en la configuración');
+          this.localNombre = '⚠️ NOMBRE NO CONFIGURADO';
+          return { negocioNombre: null, localNombre: this.localNombre };
+        }
+        
+        localNombre = negocioNombre;
+        console.log('✅ Nombre del negocio obtenido desde ConfigHelper:', negocioNombre);
+        console.log('✅ Serial de la app:', appConfig.Serial);
+        
+        console.log('✅ Configuración cargada:');
+        console.log('   🏢 Negocio:', negocioNombre);
+        console.log('   🔑 Serial:', appConfig.Serial);
         
         // Actualizar título de la ventana
-        document.title = 'Fagotto ' + localNombre;
+        document.title = 'Asistencia - ' + localNombre;
+        this.localNombre = localNombre;
         
-        return { appId, localNombre, config };
+        return { negocioNombre, localNombre };
+        
       } catch (error) {
-        console.error('❌ Error leyendo aplication.json:', error);
-        console.warn('⚠️ Usando valores por defecto');
+        console.error('❌ Error cargando configuración desde ConfigHelper:', error);
+        return { negocioNombre: null, localNombre: 'Error' };
       }
-      
-      return { appId, localNombre, config: null };
     },
     
     iniciarSistema() {
@@ -280,32 +314,22 @@ export default {
     },
     
     async generarQRValidacion() {
-      // Leer configuración desde el archivo aplication.json
-      const fs = require('fs');
-      
-      let appId = 'AGU001';
-      let localNombre = 'Local';
-      let localLat = -33.4372;
-      let localLng = -70.6506;
-      
       console.log('🔍 generarQRValidacion() - Iniciando...');
       
-      try {
-        const aplData = fs.readFileSync('aplication.json', 'utf-8');
-        console.log('📄 Archivo leído exitosamente');
-        const config = JSON.parse(aplData);
-        console.log('✅ JSON parseado:', config);
-        
-        appId = config.Serial || appId;
-        localNombre = config.Name || config.name_public || localNombre;
-        
-        console.log('📍 Generando QR de validación para:', { appId, localNombre });
-        console.log('   Serial leído:', config.Serial);
-        console.log('   AppId final:', appId);
-      } catch (error) {
-        console.error('❌ Error leyendo aplication.json:', error);
-        console.warn('⚠️ Usando AGU001 por defecto');
+      // Obtener nombre del negocio desde ConfigHelper
+      const { negocioNombre, localNombre } = this.cargarConfiguracionLocal();
+      
+      // Validar que haya un nombre de negocio
+      if (!negocioNombre) {
+        console.error('❌ No se puede generar QR: No hay negocio identificado');
+        this.$awn.alert('⚠️ Error de configuración: No se pudo obtener el nombre del negocio', {
+          labels: { alert: 'ERROR DE CONFIGURACIÓN' }
+        });
+        return;
       }
+      
+      console.log('📍 Generando QR de validación para:');
+      console.log('   🏢 Negocio:', negocioNombre);
       
       // Generar sesión única
       const timestamp = Date.now();
@@ -317,13 +341,13 @@ export default {
         const axios = require('axios');
         const response = await axios.post('https://asistencia.fagottoerp.cl/api/create-session.php', {
           session_id: sessionId,
-          app_id: appId,
+          negocio_nombre: negocioNombre,
           expires_at: expiresAt
         });
         
         if (response.data.success) {
           console.log('✅ Sesión de check-in creada:', sessionId);
-          console.log('   App ID:', appId);
+          console.log('   Negocio:', negocioNombre);
           console.log('   Expira:', expiresAt);
         } else {
           console.error('❌ Error del servidor:', response.data.error);
@@ -332,12 +356,19 @@ export default {
       } catch (error) {
         console.error('❌ Error creando sesión:', error);
         console.error('   URL:', 'https://asistencia.fagottoerp.cl/api/create-session.php');
-        console.error('   Datos:', { session_id: sessionId, app_id: appId, expires_at: expiresAt });
+        console.error('   Datos:', { session_id: sessionId, negocio_nombre: negocioNombre, expires_at: expiresAt });
         alert('Error de conexión al crear sesión. Verifica tu internet.');
       }
       
-      // URL con APPID del local
-      const checkUrl = `https://asistencia.fagottoerp.cl/qrcheck.php?session=${sessionId}&appid=${appId}`;
+      // URL con nombre del negocio + timestamp para evitar caché
+      const cacheBuster = Date.now();
+      const negocioSlug = negocioNombre.toUpperCase().replace(/\s+/g, '_');
+      const checkUrl = `https://asistencia.fagottoerp.cl/qrcheck.php?session=${sessionId}&negocio=${negocioSlug}&t=${cacheBuster}`;
+      
+      console.log('🔗 URL generada:', checkUrl);
+      console.log('   Session:', sessionId);
+      console.log('   🏢 Negocio:', negocioSlug);
+      console.log('   Cache buster:', cacheBuster);
       
       this.qrValidacionData = checkUrl;
       this.sessionId = sessionId;
@@ -458,48 +489,46 @@ export default {
     },
     
     async generarQRRegistro() {
-      // Leer configuración desde el archivo aplication.json
-      const fs = require('fs');
+      // Obtener configuración desde ConfigHelper
+      console.log('🔍 Obteniendo configuración desde ConfigHelper...');
       
-      let appId = 'AGU001';
-      let localNombre = 'Local';
+      const { negocioNombre, localNombre } = this.cargarConfiguracionLocal();
       
-      console.log('🔍 Intentando leer aplication.json...');
-      
-      try {
-        const aplData = fs.readFileSync('aplication.json', 'utf-8');
-        console.log('📄 Archivo leído, parseando JSON...');
-        const config = JSON.parse(aplData);
-        console.log('✅ JSON parseado:', config);
-        
-        appId = config.Serial || appId;
-        localNombre = config.Name || config.name_public || localNombre;
-        
-        console.log('📍 Generando QR de registro para:', { appId, localNombre });
-        console.log('   Serial leído:', config.Serial);
-        console.log('   AppId final:', appId);
-      } catch (error) {
-        console.error('❌ Error leyendo aplication.json:', error);
-        console.warn('⚠️ Usando AGU001 por defecto');
+      if (!negocioNombre) {
+        console.error('❌ No se pudo obtener configuración del negocio');
+        alert('⚠️ Error: No se pudo obtener el nombre del negocio de la configuración');
+        return;
       }
+      
+      console.log('✅ Negocio desde ConfigHelper:', localNombre);
       
       // Generar sesión única de registro
       const timestamp = Date.now();
       const sessionId = `REG${timestamp}`.substring(0, 20);
       const expiresAt = new Date(timestamp + 86400000).toISOString().slice(0, 19).replace('T', ' '); // +24 horas
       
+      console.log('📦 Datos a enviar al servidor:');
+      console.log('   session_id:', sessionId, '(tipo:', typeof sessionId, ')');
+      console.log('   negocio_nombre:', localNombre, '(tipo:', typeof localNombre, ')');
+      console.log('   expires_at:', expiresAt, '(tipo:', typeof expiresAt, ')');
+      
       // Crear sesión en servidor
       try {
         const axios = require('axios');
-        const response = await axios.post('https://asistencia.fagottoerp.cl/api/create-session.php', {
+        const payload = {
           session_id: sessionId,
-          app_id: appId,
+          negocio_nombre: localNombre,
           expires_at: expiresAt
-        });
+        };
+        
+        console.log('📤 Enviando POST a create-session.php...');
+        console.log('   Payload completo:', JSON.stringify(payload));
+        
+        const response = await axios.post('https://asistencia.fagottoerp.cl/api/create-session.php', payload);
         
         if (response.data.success) {
           console.log('✅ Sesión de registro creada:', sessionId);
-          console.log('   App ID:', appId);
+          console.log('   Negocio:', localNombre);
           console.log('   Expira en 24 horas:', expiresAt);
         } else {
           console.error('❌ Error del servidor:', response.data.error);
@@ -508,16 +537,19 @@ export default {
       } catch (error) {
         console.error('❌ Error creando sesión de registro:', error);
         console.error('   URL:', 'https://asistencia.fagottoerp.cl/api/create-session.php');
-        console.error('   Datos:', { session_id: sessionId, app_id: appId, expires_at: expiresAt });
+        console.error('   Datos:', { session_id: sessionId, negocio_nombre: localNombre, expires_at: expiresAt });
         alert('Error de conexión al crear sesión de registro. Verifica tu internet.');
       }
       
-      // URL para registro de empleado
-      const registerUrl = `https://asistencia.fagottoerp.cl/register-employee.php?session=${sessionId}&appid=${appId}`;
+      // URL para registro de empleado + timestamp para evitar caché
+      const cacheBuster = Date.now();
+      const negocioSlug = localNombre.toUpperCase().replace(/\s+/g, '_');
+      const registerUrl = `https://asistencia.fagottoerp.cl/register-employee.php?session=${sessionId}&negocio=${negocioSlug}&t=${cacheBuster}`;
       
       console.log('🔗 URL generada:', registerUrl);
       console.log('   Session:', sessionId);
-      console.log('   AppId usado en URL:', appId);
+      console.log('   Negocio:', negocioSlug);
+      console.log('   Cache buster:', cacheBuster);
       
       this.qrValidacionData = registerUrl;
       this.sessionId = sessionId;
@@ -760,6 +792,18 @@ export default {
     
     abrirConfiguracion() {
       this.$awn.info('Panel de configuración (próximamente)');
+    },
+
+    abrirFotoModal(fotoSrc, nombre) {
+      this.fotoModalSrc = fotoSrc;
+      this.fotoModalNombre = nombre;
+      this.mostrarFotoModal = true;
+    },
+
+    cerrarFotoModal() {
+      this.mostrarFotoModal = false;
+      this.fotoModalSrc = '';
+      this.fotoModalNombre = '';
     }
   }
 }
@@ -822,6 +866,20 @@ export default {
   color: #667eea;
   margin: 0;
   font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.qr-title .local-badge {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(245, 87, 108, 0.3);
 }
 
 .btn-cambiar-tipo {
@@ -947,6 +1005,13 @@ export default {
   height: 50px;
   border-radius: 50%;
   object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.registro-foto:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .registro-info {
@@ -1170,5 +1235,85 @@ export default {
 
 .text-success {
   color: #10b981;
+}
+
+/* ===== MODAL DE FOTO ===== */
+.foto-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.foto-modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  animation: zoomIn 0.3s;
+}
+
+@keyframes zoomIn {
+  from { 
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to { 
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.foto-modal-close {
+  position: absolute;
+  top: -50px;
+  right: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid white;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(10px);
+}
+
+.foto-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.foto-modal-img {
+  max-width: 100%;
+  max-height: 80vh;
+  border-radius: 15px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  object-fit: contain;
+}
+
+.foto-modal-nombre {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  margin: 0;
 }
 </style>

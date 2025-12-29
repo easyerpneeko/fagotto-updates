@@ -194,7 +194,6 @@
         <div class="modal-footer-new">
           <div v-if="jsonTable.items.length > 0" class="footer-content">
             <button class="btn-pay-primary" @click="openPaymentModal()">
-              <i class="fas fa-credit-card me-2"></i>
               Pagar
             </button>
           </div>
@@ -208,8 +207,8 @@
 
         </div>
 
-        <!-- Mantener el footer viejo oculto para compatibilidad -->
-        <div class="modal-footer" style="display: none;">
+        <!-- Footer viejo DESHABILITADO (usar solo el footer nuevo) -->
+        <div v-if="false" class="modal-footer">
 
           <button type="button" class="btn bg-dark text-white" @click="closeModal(false)">
             {{ (board && board.order == null || !board) ? 'Cerrar' : 'Volver' }}
@@ -343,12 +342,16 @@
       </div>
     </div>
     <modalVerify :propVerify="propVerify" @refreshData="refreshData" />
-    <ticket :typeCreateTicket="typeCreateTicket" v-model="ticketData" @changeValue="changeValue"
+    <ticket 
+      :key="`ticket-${ticketComponentKey}`"
+      :typeCreateTicket="typeCreateTicket" 
+      v-model="ticketData" 
+      @changeValue="changeValue"
       @closeModal="closeModal" />
     <venta-copas @addCopa="handleAddCopa" />
     
     <!-- Modal de métodos de pago -->
-    <div v-if="showPaymentModal" class="payment-modal-overlay" @click="closePaymentModal">
+    <div v-show="showPaymentModal" :key="`payment-modal-${ticketComponentKey}`" class="payment-modal-overlay" @click="closePaymentModal">
       <div class="payment-modal-content" @click.stop>
         <div class="payment-modal-header">
           <h5 class="payment-modal-title">
@@ -381,6 +384,13 @@
               class="payment-method-btn">
               <i class="fas fa-receipt"></i>
               <span>Boleta (SII)</span>
+            </button>
+            
+            <button v-if="settingEfectivo" 
+              @click="viewTicket('efectivo'); closePaymentModal()" 
+              class="payment-method-btn">
+              <i class="fas fa-money-bill-wave"></i>
+              <span>Efectivo</span>
             </button>
             
             <button v-if="settingDebito" 
@@ -430,6 +440,13 @@
               class="payment-method-btn">
               <i class="fas fa-ticket-alt"></i>
               <span>Sodexo</span>
+            </button>
+            
+            <button v-if="settingAmipass" 
+              @click="viewTicket('amipass'); closePaymentModal()" 
+              class="payment-method-btn">
+              <i class="fas fa-ticket-alt"></i>
+              <span>Amipass</span>
             </button>
             
             <button v-if="settingPedidosYa" 
@@ -503,6 +520,8 @@ export default {
       showCategoriesModal: false,
       // Modal de métodos de pago
       showPaymentModal: false,
+      // Key para forzar re-render del componente ticket
+      ticketComponentKey: 0,
       // data de nueva venta
       products: [],
       productSearch: '',
@@ -589,7 +608,7 @@ export default {
     // tickets (require board)
 
     //JC FECHA 2022-12-14
-    viewTicket(val = false) {
+    async viewTicket(val = false) {
       if (this.productoSend.length == 0) {
         this.$awn.alert("Es necesario agregar algun producto");
         return false;
@@ -794,6 +813,17 @@ export default {
       } else {
         if (val) this.typeCreateTicket = val;
       }
+      
+      // 🔧 FIX: Asegurar que el modal de pago esté cerrado antes de abrir createTicket
+      this.showPaymentModal = false;
+      
+      // 🧹 LIMPIEZA PREVENTIVA: Eliminar backdrops residuales antes de abrir el modal
+      $('.modal-backdrop').not(':last').remove();
+      $('body').removeClass('modal-open').addClass('modal-open'); // Reset class
+      
+      // ⏱️ ESPERAR UN TICK para que Vue procese los cambios de typeCreateTicket
+      await this.$nextTick();
+      
       $('#createTicket').modal('show');
 
     },
@@ -811,9 +841,32 @@ export default {
         this.gananciaTotal = null;
         this.categorieNow = null; // Resetear categoría para mostrar mensaje de bienvenida
         
+        // 🔧 RESET CRÍTICO: Limpiar typeCreateTicket para que el watcher se dispare en la próxima venta
+        this.typeCreateTicket = null;
+        
+        // 🔧 FIX: Cerrar modal de pagos primero si está abierto
+        this.showPaymentModal = false;
+        
+        // 🧹 LIMPIEZA FORZADA: Eliminar todos los modales residuales de Bootstrap
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open');
+        $('body').css('padding-right', '');
+        
+        // 🧹 LIMPIAR NOTIFICACIONES AWN ACUMULADAS
+        $('.awn-popup-async-block, .awn-popup-async').remove();
+        
+        // 🔄 FORZAR RE-RENDER: Incrementar key para destruir y recrear el componente ticket
+        this.ticketComponentKey++;
+        
         // Cerrar modales secundarios
         $('#createTicket').modal('hide');
         $('#completeOrder').modal('hide');
+        
+        // ⏱️ Pequeño delay para asegurar limpieza del DOM
+        setTimeout(() => {
+          $('.modal-backdrop').remove();
+          $('.awn-popup-async-block, .awn-popup-async').remove();
+        }, 100);
         
         // Emitir refresh pero NO cerrar el modal
         this.$emit('refresh', true);

@@ -92,25 +92,24 @@ try {
     $empleados = $stmt->fetchAll();
     
     // Procesar filtros
-    $filtroAppId = $_GET['app_id'] ?? '';
+    $filtroNegocio = $_GET['negocio'] ?? '';
     $filtroEmployeeId = $_GET['employee_id'] ?? '';
     $filtroFechaDesde = $_GET['fecha_desde'] ?? date('Y-m-d', strtotime('-7 days'));
     $filtroFechaHasta = $_GET['fecha_hasta'] ?? date('Y-m-d');
     
     // Obtener registros con filtros
     $sqlRegistros = "
-        SELECT r.*, e.nombre as empleado_nombre, e.cargo, l.nombre as local_nombre
+        SELECT r.*, e.nombre as empleado_nombre, e.cargo
         FROM asistencias_records r
         LEFT JOIN asistencias_employees e ON r.employee_id = e.id
-        LEFT JOIN asistencias_locales l ON r.app_id = l.app_id
         WHERE 1=1
     ";
     
     $params = [];
     
-    if ($filtroAppId) {
-        $sqlRegistros .= " AND r.app_id = ?";
-        $params[] = $filtroAppId;
+    if ($filtroNegocio) {
+        $sqlRegistros .= " AND r.negocio_nombre = ?";
+        $params[] = $filtroNegocio;
     }
     
     if ($filtroEmployeeId) {
@@ -388,10 +387,10 @@ try {
         <div class="filtros">
             <div class="filtro-group">
                 <label><i class="fas fa-store"></i> Local</label>
-                <select id="filtro_app_id">
+                <select id="filtro_negocio">
                     <option value="">Todos los locales</option>
                     <?php foreach ($locales as $local): ?>
-                    <option value="<?= $local['app_id'] ?>" <?= $filtroAppId == $local['app_id'] ? 'selected' : '' ?>>
+                    <option value="<?= htmlspecialchars($local['nombre']) ?>" <?= $filtroNegocio == $local['nombre'] ? 'selected' : '' ?>>
                         <?= htmlspecialchars($local['nombre']) ?>
                     </option>
                     <?php endforeach; ?>
@@ -596,13 +595,13 @@ try {
         
         // Funciones para filtros
         function aplicarFiltros() {
-            const appId = document.getElementById('filtro_app_id').value;
+            const negocio = document.getElementById('filtro_negocio').value;
             const employeeId = document.getElementById('filtro_employee_id').value;
             const fechaDesde = document.getElementById('filtro_fecha_desde').value;
             const fechaHasta = document.getElementById('filtro_fecha_hasta').value;
             
             let url = '?';
-            if (appId) url += `app_id=${appId}&`;
+            if (negocio) url += `negocio=${encodeURIComponent(negocio)}&`;
             if (employeeId) url += `employee_id=${employeeId}&`;
             if (fechaDesde) url += `fecha_desde=${fechaDesde}&`;
             if (fechaHasta) url += `fecha_hasta=${fechaHasta}`;
@@ -615,13 +614,13 @@ try {
         }
         
         function exportarExcel() {
-            const appId = document.getElementById('filtro_app_id').value;
+            const negocio = document.getElementById('filtro_negocio').value;
             const employeeId = document.getElementById('filtro_employee_id').value;
             const fechaDesde = document.getElementById('filtro_fecha_desde').value;
             const fechaHasta = document.getElementById('filtro_fecha_hasta').value;
             
             let url = 'api/exportar-excel.php?';
-            if (appId) url += `app_id=${appId}&`;
+            if (negocio) url += `negocio=${encodeURIComponent(negocio)}&`;
             if (employeeId) url += `employee_id=${employeeId}&`;
             if (fechaDesde) url += `fecha_desde=${fechaDesde}&`;
             if (fechaHasta) url += `fecha_hasta=${fechaHasta}`;

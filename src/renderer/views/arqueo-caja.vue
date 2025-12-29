@@ -976,6 +976,12 @@ export default {
             localStorage.setItem('montoInicialTurno', montoInicial.toString());
             localStorage.setItem('turnoId', this.turnoId.toString()); // 🔧 ARREGLO: Guardar también el ID
             
+            // 🔧 NUEVO: Guardar nombre del negocio para sistema de asistencia
+            if (request.data && request.data.turno && request.data.turno.app_nombre) {
+              localStorage.setItem('turnoNegocioNombre', request.data.turno.app_nombre);
+              console.log('🏢 Nombre del negocio guardado:', request.data.turno.app_nombre);
+            }
+            
             this.cargandoTurno = false;
             this.$awn.success(`Turno iniciado con $${this.formatMoney(montoInicial)}`, { labels: { success: 'TURNO ACTIVO' } });
             

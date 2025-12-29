@@ -1,5 +1,5 @@
 <template>
-  <div class="modal fade modalForce" id="createTicket" tabindex="-1" role="dialog" aria-labelledby="createTicket" aria-hidden="true" data-backdrop="false">
+  <div class="modal fade modalForce" id="createTicket" tabindex="-1" role="dialog" aria-labelledby="createTicket" aria-hidden="true" data-backdrop="false" data-focus="false">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header bg-primario">
@@ -22,13 +22,16 @@
         <div class="modal-footer">
           <!-- <button type="button" class="btn bg-secundario text-white" @click="backCatalog()">Volver</button> -->
 
-          <button v-if="!this.value.order && ticket_sell && settingBoletaLocal" type="button" class="btn bg-primario text-white" @click="createTicketSell('boleta_local')">Ticket + efectivo</button>
-          <button v-if="!this.value.order && ticket_sell && settingBoleta" type="button" class="btn bg-dark text-white" @click="createTicketSell('boleta')">Ticket + boleta</button>
-          <button v-if="!this.value.order && ticket_sell && settingFactura" type="button" class="btn bg-secundario text-white" @click="createTicketSell('factura')">Ticket + factura</button>
-          <button v-if="!this.value.order && ticket_sell_close" type="button" class="btn bg-primario text-white" @click="viewTicket('ticket_venta')">
+          <button v-if="!this.value.order && ticket_sell && settingBoletaLocal" type="button" class="btn bg-primario text-white" @click="createTicketSell('boleta_local')" :disabled="isProcessing">Ticket + efectivo</button>
+          <button v-if="!this.value.order && ticket_sell && settingBoleta" type="button" class="btn bg-dark text-white" @click="createTicketSell('boleta')" :disabled="isProcessing">Ticket + boleta</button>
+          <button v-if="!this.value.order && ticket_sell && settingFactura" type="button" class="btn bg-secundario text-white" @click="createTicketSell('factura')" :disabled="isProcessing">Ticket + factura</button>
+          <button v-if="!this.value.order && ticket_sell_close" type="button" class="btn bg-primario text-white" @click="viewTicket('ticket_venta')" :disabled="isProcessing">
             Ticket + Cerrar venta
           </button>
-          <button type="button" class="btn bg-primario text-white" @click="createTicket(false, true)">Crear ticket</button>
+          <button type="button" class="btn bg-primario text-white" @click="createTicket(false, true)" :disabled="isProcessing">
+            <span v-if="isProcessing">🔄 Procesando...</span>
+            <span v-else>Crear ticket</span>
+          </button>
         </div>
       </div>
     </div>
@@ -52,6 +55,7 @@ export default {
     return{
       type_sell: null,
       other_type: null,
+      isProcessing: false,
       jsonTable: {
         btn: false,
         items: null,
@@ -451,20 +455,23 @@ export default {
         thing.set('other_type', 'pedidos_ya');
       }
       
-      Loader.fullPage();
-      // Iniciando peticion
+      // 🔧 Marcar como procesando
+      this.isProcessing = true;
       
-      //Si es debito mando la data a otro endpoint
-      if(this.type_sell=='other' ||this.type_sell=='transferencia' ||this.type_sell=='rappi' ||this.type_sell=='junaeb' ||this.type_sell=='uber' ||this.type_sell=='credito' || this.type_sell=='amipass' || this.type_sell=='banco_chile_20' || this.type_sell=='pluxee' || this.type_sell=='pedidos_ya'){
-        var request = await this.$store.dispatch("sells/newTicket", thing);
-        console.log("RESPUESTA DE LA APIII CREARTICKET",request);
-      }else{
+      // Iniciando peticion
+      try {
+        //Si es debito mando la data a otro endpoint
+        if(this.type_sell=='other' ||this.type_sell=='transferencia' ||this.type_sell=='rappi' ||this.type_sell=='junaeb' ||this.type_sell=='uber' ||this.type_sell=='credito' || this.type_sell=='amipass' || this.type_sell=='banco_chile_20' || this.type_sell=='pluxee' || this.type_sell=='pedidos_ya'){
+          var request = await this.$store.dispatch("sells/newTicket", thing);
+          console.log("RESPUESTA DE LA APIII CREARTICKET",request);
+        }else{
 
-        if(this.value.order) var request = await this.$store.dispatch("sells/editTicket", {data: thing, id: this.value.order.id});
-        else var request = await this.$store.dispatch("sells/newTicket", thing);
+          if(this.value.order) var request = await this.$store.dispatch("sells/editTicket", {data: thing, id: this.value.order.id});
+          else var request = await this.$store.dispatch("sells/newTicket", thing);
+        }
+      } finally {
+        this.isProcessing = false;
       }
-
-      Loader.hide();
 
       // Verificando respuesta
       if (!request.success) {
@@ -574,8 +581,10 @@ export default {
         }
       }
 
-      //reinicio el type_cell
-      this.type_sell=null;
+      //reinicio el type_sell y other_type
+      this.type_sell = null;
+      this.other_type = null;
+      this.isProcessing = false;
       this.$emit('closeModal', true);
     },
 
@@ -591,6 +600,9 @@ export default {
       }
     },
     backCatalog(){
+      // 🧹 LIMPIEZA: Remover backdrops residuales antes de cambiar modales
+      $('.modal-backdrop').not(':last').remove();
+      
       $('#createTicket').modal('hide');
       $('#modalCatalog').modal('show');
     },

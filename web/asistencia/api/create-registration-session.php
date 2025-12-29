@@ -1,26 +1,20 @@
 <?php
 /**
- * API: Crear Sesión de Check-in
+ * API: Crear Sesión de Registro de Empleado
+ * POST /api/create-registration-session.php
  */
 
 require_once '../config.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-
-// Manejar preflight OPTIONS request
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
     
     $sessionId = $data['session_id'] ?? null;
     $appId = $data['app_id'] ?? null;
+    $localNombre = $data['local_nombre'] ?? 'Local';
     $expiresAt = $data['expires_at'] ?? null;
     
     if (!$sessionId || !$appId || !$expiresAt) {
@@ -30,15 +24,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     try {
         $pdo = getDB();
+        
+        // Insertar el local en asistencias_locales si no existe (para evitar foreign key constraint)
+        $stmtLocal = $pdo->prepare("
+            INSERT IGNORE INTO asistencias_locales (app_id, nombre, latitud, longitud, radio_metros, active)
+            VALUES (?, ?, -33.4372, -70.6506, 50, 1)
+        ");
+        $stmtLocal->execute([$appId, $localNombre]);
+        
+        // Crear sesión de registro (tipo especial)
         $stmt = $pdo->prepare("
             INSERT INTO asistencias_sessions (session_id, app_id, expires_at, used)
             VALUES (?, ?, ?, 0)
         ");
-        $stmt->execute([$sessionId, $appId, $expiresAt]);
+        $stmt->execute(['REG-' . $sessionId, $appId, $expiresAt]);
         
         echo json_encode([
             'success' => true,
-            'session_id' => $sessionId,
+            'session_id' => 'REG-' . $sessionId,
             'app_id' => $appId
         ]);
         

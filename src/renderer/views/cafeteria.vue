@@ -1,10 +1,6 @@
 <template>
   <div class="default-bg p-2 d-flex flex-column align-items-end pt-md-5">
     <div class="actionsCafeteria">
-      <button :disabled="offOn" v-if="addtionsWaitersInstalled" @click="openAssignWaiter(true)" type="button" class="m-1 btn-width btn bg-primario text-white text-capitalize">
-        <i class="fas fa-plus"></i>
-        Adición
-      </button>
       <button :disabled="offOn" @click="getBoards(true)" type="button" class="m-1 btn-width btn bg-secundario text-white text-capitalize">
         <i class="fas fa-sync-alt"></i>
         Refrescar
@@ -14,6 +10,9 @@
         <i :class="keepModalOpen ? 'fas fa-lock' : 'fas fa-lock-open'"></i>
         {{ keepModalOpen ? 'Modal Fijo' : 'Modal Normal' }}
       </button>
+      <button @click="showHelpModal()" type="button" class="m-1 btn-width btn bg-info text-white text-capitalize">
+        <i class="fas fa-question-circle"></i>
+        Ayuda
       </button>
       <button :disabled="offOn" v-if="notification" @click="openNotifyList = !openNotifyList" type="button" class="m-1 btn-width btn bg-light text-white text-capitalize">
         <small class="notification-counter"></small>
@@ -72,6 +71,63 @@
 
     <addtion-waiter></addtion-waiter>
     <modalTurned/>
+    
+    <!-- Modal de ayuda sobre modos de operación -->
+    <div class="modal" id="modalModeHelp" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header bg-primario text-white">
+            <h5 class="modal-title">
+              <i class="fas fa-info-circle me-2"></i>
+              Modos de Operación del Catálogo
+            </h5>
+          </div>
+          <div class="modal-body">
+            <div class="mode-explanation mb-4">
+              <h6 class="text-success">
+                <i class="fas fa-lock me-2"></i>
+                <strong>MODAL FIJO</strong> (Recomendado para alta demanda)
+              </h6>
+              <ul class="mt-2">
+                <li>✅ El catálogo <strong>permanece abierto</strong> después de cada venta</li>
+                <li>✅ Puedes procesar <strong>múltiples ventas seguidas</strong> sin cerrar</li>
+                <li>✅ El carrito se <strong>limpia automáticamente</strong> después de cada venta</li>
+                <li>✅ <strong>Ahorra tiempo</strong> en situaciones con mucho flujo de clientes</li>
+                <li>✅ No necesitas volver a pinchar la mesa para la siguiente orden</li>
+              </ul>
+            </div>
+
+            <div class="mode-explanation">
+              <h6 class="text-dark">
+                <i class="fas fa-lock-open me-2"></i>
+                <strong>MODAL NORMAL</strong> (Comportamiento tradicional)
+              </h6>
+              <ul class="mt-2">
+                <li>➡️ El catálogo se <strong>cierra</strong> después de cada venta</li>
+                <li>➡️ Debes <strong>pinchar la mesa nuevamente</strong> para la siguiente orden</li>
+                <li>➡️ Comportamiento <strong>clásico</strong> del sistema</li>
+                <li>➡️ Útil cuando trabajas con <strong>una venta a la vez</strong></li>
+              </ul>
+            </div>
+
+            <div class="alert alert-info mt-3">
+              <i class="fas fa-lightbulb me-2"></i>
+              <strong>Tip:</strong> Puedes cambiar entre modos en cualquier momento usando el botón <strong>"Modal Fijo"</strong> / <strong>"Modal Normal"</strong> en la parte superior.
+            </div>
+            
+            <div class="text-center mt-3" style="color: #6b7280; font-size: 0.9rem;">
+              <code>&lt;/&gt;</code> Saludos Jimmy Arriagada <code>&lt;/&gt;</code>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn bg-primario text-white" data-dismiss="modal" style="width: 100%;">
+              <i class="fas fa-check me-2"></i>
+              Entendido
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div>
 </template>
@@ -110,6 +166,12 @@ export default {
     this.getBoards(true);
     this.pusherMounted();
     this.notificationsBoards();
+    this.keepModalOpen = this.$store.getters['cafeteria/getKeepModalOpen'];
+    
+    // Mostrar modal de ayuda SIEMPRE al entrar
+    setTimeout(() => {
+      $('#modalModeHelp').modal('show');
+    }, 1000);
   },
   unmounted() {
     console.log('unmounted CAFFETERIA');
@@ -126,6 +188,11 @@ export default {
     }
   },
   methods:{
+    showHelpModal() {
+      setTimeout(() => {
+        $('#modalModeHelp').modal('show');
+      }, 100);
+    },
     toggleKeepModalOpen() {
       this.keepModalOpen = !this.keepModalOpen;
       this.$store.commit('cafeteria/setKeepModalOpen', this.keepModalOpen);

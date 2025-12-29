@@ -67,7 +67,15 @@
       "icon": "build/icons/logo-1.png"
     },
     "win": {
-      "icon": "build/icons/logo-1.png"
+      "icon": "build/icons/logo-1.png",
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
     },
     "linux": {
       "icon": "build/icons/logo-1.png"

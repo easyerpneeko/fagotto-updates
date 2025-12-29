@@ -732,9 +732,16 @@ class ServicesSII {
       ['type' => 'nota_de_credito', 'value' => '61'],
       ['type' => 'guia_de_despacho', 'value' => '52']
     );
+    
+    // Convertir a string para asegurar comparación correcta
+    $document = (string) $document;
+    
     foreach ($typeDocument as $key) {
       if ($document == $key['value']) return $key['type'];
     }
+    
+    // Si no encuentra el tipo, lanzar una excepción con info útil
+    throw new \Exception("Tipo de documento no reconocido: TD={$document}. Tipos válidos: 33 (Factura), 39 (Boleta), 52 (Guía Despacho), 61 (Nota Crédito)");
   }
 
   public static function getEnvs($id){

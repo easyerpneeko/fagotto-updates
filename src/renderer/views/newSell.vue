@@ -1005,48 +1005,46 @@ export default {
       thing.append('fecha_vencimiento', client.fecha_vencimiento)
       thing.append('nro_transaccion', client.nro_transaccion);
       thing.append('documento_referencia', client.documento_referencia)
-      var verifyTotal = this.total;
-      if (verifyTotal >= 3862000) this.openVerify(thing);
-      else {
-        // Iniciando peticion
-        /*
-          // api/local/sell
-          en el servidor
-          SellsController@newSell
-          SIIController@processFactura
-          ServicesSII@processFactura_con_Data
-          StringXML@facturaXML_con_Data
+      
+      // Verificación de monto alto removida - ahora procesa directamente
+      // Iniciando peticion
+      /*
+        // api/local/sell
+        en el servidor
+        SellsController@newSell
+        SIIController@processFactura
+        ServicesSII@processFactura_con_Data
+        StringXML@facturaXML_con_Data
       */
-        var request = await this.$store.dispatch("sells/newSell", thing);
-        // Verificando respuesta
-        if (request.success) {
+      var request = await this.$store.dispatch("sells/newSell", thing);
+      // Verificando respuesta
+      if (request.success) {
 
-          this.$awn.success("Venta realizada con exito", { labels: { success: 'CORRECTO' } });
+        this.$awn.success("Venta realizada con exito", { labels: { success: 'CORRECTO' } });
 
-          if (request.data.response_folio == 'boleta' || request.data.response_folio == 'factura') {
-            this.$awn.info('El ajuste de ' + request.data.response_folio + ' se encuentra desactivado');
-          } else if (request.data.response_folio) {
-            console.log('Ejecutando impresion...');
-            //var printPDF = await Print.printBase64(request.data.response_folio);
-            this.imprimir(request.data.response_folio);
-          }
-          if (this.turned_ventas && !this.other_type && (this.type_sell == 'boleta' || this.type_sell == 'factura' || this.type_sell == 'boleta_local')) {
-            this.sell_total = this.total;
-            $('#modalTurned').modal('show');
+        if (request.data.response_folio == 'boleta' || request.data.response_folio == 'factura') {
+          this.$awn.info('El ajuste de ' + request.data.response_folio + ' se encuentra desactivado');
+        } else if (request.data.response_folio) {
+          console.log('Ejecutando impresion...');
+          //var printPDF = await Print.printBase64(request.data.response_folio);
+          this.imprimir(request.data.response_folio);
+        }
+        if (this.turned_ventas && !this.other_type && (this.type_sell == 'boleta' || this.type_sell == 'factura' || this.type_sell == 'boleta_local')) {
+          this.sell_total = this.total;
+          $('#modalTurned').modal('show');
 
-          }
+        }
+        this.reiniciarNewSell();
+
+      } else {
+        if (request.data.id) {
+
           this.reiniciarNewSell();
 
+          this.$awn.success("Venta realizada con exito", { labels: { success: 'CORRECTO' } });
+          this.$awn.info(request.data.response_folio);
         } else {
-          if (request.data.id) {
-
-            this.reiniciarNewSell();
-
-            this.$awn.success("Venta realizada con exito", { labels: { success: 'CORRECTO' } });
-            this.$awn.info(request.data.response_folio);
-          } else {
-            this.$awn.alert(request.data);
-          }
+          this.$awn.alert(request.data);
         }
       }
       Loader.hide();

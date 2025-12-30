@@ -1,0 +1,650 @@
+<template>
+  <div class="pedido-final-container">
+    <!-- Header -->
+    <div class="header">
+      <h1>
+        <i class="fas fa-clipboard-list"></i>
+        Pedido Final - Precios Centralizados
+      </h1>
+      <p class="subtitle">{{ localNombre }}</p>
+    </div>
+
+    <!-- Controles superiores -->
+    <div class="controls-bar">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input 
+          v-model="busqueda" 
+          type="text" 
+          placeholder="Buscar producto..." 
+          @input="filtrarProductos"
+        />
+      </div>
+      
+      <div class="filter-buttons">
+        <button 
+          :class="['btn-filter', { active: filtroCategoria === 'todos' }]"
+          @click="filtrarPorCategoria('todos')"
+        >
+          Todos
+        </button>
+        <button 
+          :class="['btn-filter', { active: filtroCategoria === 'empaque' }]"
+          @click="filtrarPorCategoria('empaque')"
+        >
+          Empaque
+        </button>
+        <button 
+          :class="['btn-filter', { active: filtroCategoria === 'salsas' }]"
+          @click="filtrarPorCategoria('salsas')"
+        >
+          Salsas
+        </button>
+        <button 
+          :class="['btn-filter', { active: filtroCategoria === 'ciabatta' }]"
+          @click="filtrarPorCategoria('ciabatta')"
+        >
+          Ciabattas
+        </button>
+      </div>
+
+      <button @click="cargarPrecios" class="btn-refresh">
+        <i class="fas fa-sync-alt" :class="{ 'fa-spin': cargando }"></i>
+        Actualizar
+      </button>
+    </div>
+
+    <!-- Tabla de precios -->
+    <div class="tabla-container">
+      <table class="tabla-precios">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>U Venta</th>
+            <th>Unidad Medida</th>
+            <th>Precio por U Medida</th>
+            <th>Categoría</th>
+            <th>Estado</th>
+            <th>Última Actualización</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="cargando">
+            <td colspan="7" class="loading-row">
+              <div class="spinner"></div>
+              Cargando precios...
+            </td>
+          </tr>
+          <tr v-else-if="productosFiltrados.length === 0">
+            <td colspan="7" class="empty-row">
+              <i class="fas fa-inbox"></i>
+              No se encontraron productos
+            </td>
+          </tr>
+          <tr 
+            v-else
+            v-for="producto in productosFiltrados" 
+            :key="producto.id"
+            :class="{ 'inactivo': !producto.activo }"
+          >
+            <td class="producto-nombre">
+              <strong>{{ producto.producto }}</strong>
+            </td>
+            <td class="centro">{{ formatearNumero(producto.unidad_venta) }}</td>
+            <td>{{ producto.unidad_medida }}</td>
+            <td class="precio">
+              ${{ formatearPrecio(producto.precio_por_unidad) }}
+            </td>
+            <td>
+              <span class="badge-categoria" :class="producto.categoria">
+                {{ producto.categoria }}
+              </span>
+            </td>
+            <td class="centro">
+              <span class="badge-estado" :class="producto.activo ? 'activo' : 'inactivo'">
+                {{ producto.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td class="centro">{{ formatearFecha(producto.fecha_actualizacion) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Resumen de totales -->
+    <div v-if="!cargando && productos.length > 0" class="resumen">
+      <div class="resumen-item">
+        <i class="fas fa-box"></i>
+        <span>Total Productos:</span>
+        <strong>{{ productos.length }}</strong>
+      </div>
+      <div class="resumen-item">
+        <i class="fas fa-check-circle text-success"></i>
+        <span>Activos:</span>
+        <strong>{{ productosActivos }}</strong>
+      </div>
+      <div class="resumen-item">
+        <i class="fas fa-times-circle text-danger"></i>
+        <span>Inactivos:</span>
+        <strong>{{ productosInactivos }}</strong>
+      </div>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div v-if="mensajeError" class="mensaje-error">
+      <i class="fas fa-exclamation-triangle"></i>
+      {{ mensajeError }}
+    </div>
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+import ConfigHelper from '@/helpers/ConfigHelper.js';
+
+export default {
+  name: 'PedidoFinal',
+  
+  data() {
+    return {
+      localNombre: 'Cargando...',
+      productos: [],
+      productosFiltrados: [],
+      cargando: false,
+      mensajeError: '',
+      busqueda: '',
+      filtroCategoria: 'todos',
+      refreshInterval: null
+    }
+  },
+  
+  computed: {
+    productosActivos() {
+      return this.productos.filter(p => p.activo).length;
+    },
+    
+    productosInactivos() {
+      return this.productos.filter(p => !p.activo).length;
+    }
+  },
+  
+  mounted() {
+    console.log('📦 Sistema de Pedido Final iniciado');
+    this.cargarConfiguracionLocal();
+    this.cargarPrecios();
+    
+    // Actualizar precios cada 5 minutos
+    this.refreshInterval = setInterval(() => {
+      this.cargarPrecios();
+    }, 300000); // 5 minutos
+  },
+  
+  beforeDestroy() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+  },
+  
+  methods: {
+    cargarConfiguracionLocal() {
+      try {
+        const appConfig = ConfigHelper.Config();
+        
+        if (!appConfig) {
+          console.error('❌ No se pudo obtener configuración de la aplicación');
+          this.localNombre = '⚠️ ERROR DE CONFIGURACIÓN';
+          return;
+        }
+        
+        const negocioNombre = appConfig.Name || appConfig.name_public;
+        
+        if (!negocioNombre) {
+          console.error('❌ No se encontró el nombre del negocio en la configuración');
+          this.localNombre = '⚠️ NOMBRE NO CONFIGURADO';
+          return;
+        }
+        
+        this.localNombre = negocioNombre;
+        console.log('✅ Configuración cargada - Negocio:', negocioNombre);
+        
+      } catch (error) {
+        console.error('❌ Error cargando configuración:', error);
+        this.localNombre = 'Error';
+      }
+    },
+    
+    async cargarPrecios() {
+      this.cargando = true;
+      this.mensajeError = '';
+      
+      try {
+        console.log('📡 Consultando precios desde DB maestra...');
+        
+        // Consultar la tabla pedidofinal_precios en la DB maestra (easyerp)
+        const response = await axios.post('https://asistencia.fagottoerp.cl/api/consultar_precios_pedido.php', {
+          action: 'obtener_precios'
+        });
+        
+        if (response.data && response.data.success) {
+          this.productos = response.data.precios;
+          this.productosFiltrados = [...this.productos];
+          console.log('✅ Precios cargados:', this.productos.length, 'productos');
+          
+          // Aplicar filtros actuales
+          this.filtrarProductos();
+        } else {
+          throw new Error(response.data && response.data.message ? response.data.message : 'Error al obtener precios');
+        }
+        
+      } catch (error) {
+        console.error('❌ Error cargando precios desde API:', error.message);
+        console.log('⚠️ Usando datos de ejemplo (MODO DESARROLLO)');
+        
+        // Datos mock para desarrollo
+        this.productos = [
+          { id: 1, producto: 'Mezcla', unidad_venta: 2.90, unidad_medida: 'Bolsa', precio_por_unidad: 11835, categoria: 'empaque', activo: 1, fecha_actualizacion: '2025-12-29 00:00:00' },
+          { id: 2, producto: 'Vaso', unidad_venta: 500.00, unidad_medida: 'Caja 500', precio_por_unidad: 61000, categoria: 'empaque', activo: 1, fecha_actualizacion: '2025-12-29 00:00:00' },
+          { id: 3, producto: 'Sobre de tenedor', unidad_venta: 500.00, unidad_medida: 'Caja 500', precio_por_unidad: 32400, categoria: 'empaque', activo: 1, fecha_actualizacion: '2025-12-29 00:00:00' },
+          { id: 4, producto: 'Salsa Boloñesa', unidad_venta: 2.00, unidad_medida: 'Bolsa 2k', precio_por_unidad: 9604, categoria: 'salsas', activo: 1, fecha_actualizacion: '2025-12-29 00:00:00' },
+          { id: 5, producto: 'Queso', unidad_venta: 1.00, unidad_medida: 'Bolsa 1k', precio_por_unidad: 10668, categoria: 'salsas', activo: 1, fecha_actualizacion: '2025-12-29 00:00:00' },
+          { id: 6, producto: 'Salsa Alfredo', unidad_venta: 2.00, unidad_medida: 'Bolsa 2k', precio_por_unidad: 8603, categoria: 'salsas', activo: 1, fecha_actualizacion: '2025-12-29 00:00:00' },
+          { id: 7, producto: 'Salsa Camarón', unidad_venta: 2.00, unidad_medida: 'Bolsa 2k', precio_por_unidad: 13840, categoria: 'salsas', activo: 1, fecha_actualizacion: '2025-12-29 00:00:00' },
+          { id: 8, producto: 'Salsa Champiñón', unidad_venta: 2.00, unidad_medida: 'Bolsa 2k', precio_por_unidad: 13869, categoria: 'salsas', activo: 1, fecha_actualizacion: '2025-12-29 00:00:00' },
+          { id: 9, producto: 'Salsa Pesto', unidad_venta: 2.00, unidad_medida: 'Bolsa 2k', precio_por_unidad: 37125, categoria: 'salsas', activo: 1, fecha_actualizacion: '2025-12-29 00:00:00' },
+          { id: 10, producto: 'Ciabatta Pesto', unidad_venta: 1.00, unidad_medida: 'unidad', precio_por_unidad: 1597, categoria: 'ciabatta', activo: 1, fecha_actualizacion: '2025-12-29 00:00:00' },
+          { id: 11, producto: 'Ciabatta Queso Crema Salame', unidad_venta: 1.00, unidad_medida: 'unidad', precio_por_unidad: 1597, categoria: 'ciabatta', activo: 1, fecha_actualizacion: '2025-12-29 00:00:00' },
+          { id: 12, producto: 'Ciabatta Aliato', unidad_venta: 1.00, unidad_medida: 'unidad', precio_por_unidad: 1080, categoria: 'ciabatta', activo: 1, fecha_actualizacion: '2025-12-29 00:00:00' },
+          { id: 13, producto: 'Salsa Queso Cheddar', unidad_venta: 2.00, unidad_medida: 'Bolsa 2k', precio_por_unidad: 0, categoria: 'salsas', activo: 0, fecha_actualizacion: '2025-12-29 00:00:00' },
+          { id: 14, producto: 'Salsa Pollo Mostaza', unidad_venta: 2.00, unidad_medida: 'Bolsa 2k', precio_por_unidad: 0, categoria: 'salsas', activo: 0, fecha_actualizacion: '2025-12-29 00:00:00' }
+        ];
+        
+        this.productosFiltrados = [...this.productos];
+        this.filtrarProductos();
+        
+        this.mensajeError = '⚠️ Modo desarrollo: Usando datos de ejemplo. Para datos reales, sube consultar_precios_pedido.php al servidor.';
+      } finally {
+        this.cargando = false;
+      }
+    },
+    
+    filtrarProductos() {
+      let resultado = [...this.productos];
+      
+      // Filtrar por categoría
+      if (this.filtroCategoria !== 'todos') {
+        resultado = resultado.filter(p => p.categoria === this.filtroCategoria);
+      }
+      
+      // Filtrar por búsqueda
+      if (this.busqueda.trim()) {
+        const termino = this.busqueda.toLowerCase();
+        resultado = resultado.filter(p => 
+          p.producto.toLowerCase().includes(termino)
+        );
+      }
+      
+      this.productosFiltrados = resultado;
+    },
+    
+    filtrarPorCategoria(categoria) {
+      this.filtroCategoria = categoria;
+      this.filtrarProductos();
+    },
+    
+    formatearPrecio(precio) {
+      return new Intl.NumberFormat('es-CL').format(precio);
+    },
+    
+    formatearNumero(numero) {
+      return new Intl.NumberFormat('es-CL', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      }).format(numero);
+    },
+    
+    formatearFecha(fecha) {
+      if (!fecha) return '-';
+      
+      const date = new Date(fecha);
+      const opciones = {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      
+      return date.toLocaleDateString('es-CL', opciones);
+    }
+  }
+}
+</script>
+
+<style scoped>
+.pedido-final-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.header h1 {
+  font-size: 2.5em;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.header h1 i {
+  color: #3498db;
+  margin-right: 15px;
+}
+
+.subtitle {
+  font-size: 1.2em;
+  color: #7f8c8d;
+  font-weight: 600;
+}
+
+.controls-bar {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-box i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #95a5a6;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 10px 10px 10px 40px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-filter {
+  padding: 8px 16px;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.btn-filter:hover {
+  border-color: #3498db;
+  color: #3498db;
+}
+
+.btn-filter.active {
+  background: #3498db;
+  color: white;
+  border-color: #3498db;
+}
+
+.btn-refresh {
+  padding: 10px 20px;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-refresh:hover {
+  background: #229954;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.btn-refresh i {
+  margin-right: 8px;
+}
+
+.tabla-container {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.tabla-precios {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-precios thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.tabla-precios th {
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tabla-precios tbody tr {
+  border-bottom: 1px solid #ecf0f1;
+  transition: all 0.3s;
+}
+
+.tabla-precios tbody tr:hover {
+  background: #f8f9fa;
+  transform: scale(1.01);
+}
+
+.tabla-precios tbody tr.inactivo {
+  opacity: 0.6;
+  background: #fafafa;
+}
+
+.tabla-precios td {
+  padding: 15px;
+  font-size: 14px;
+}
+
+.producto-nombre strong {
+  color: #2c3e50;
+  font-size: 15px;
+}
+
+.centro {
+  text-align: center;
+}
+
+.precio {
+  font-weight: 700;
+  color: #27ae60;
+  font-size: 16px;
+}
+
+.badge-categoria {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-categoria.empaque {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.badge-categoria.salsas {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.badge-categoria.ciabatta {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.badge-categoria.general {
+  background: #e0f2f1;
+  color: #00796b;
+}
+
+.badge-estado {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-estado.activo {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge-estado.inactivo {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.loading-row,
+.empty-row {
+  text-align: center;
+  padding: 40px !important;
+  color: #95a5a6;
+  font-size: 16px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(0,0,0,0.1);
+  border-top-color: #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 10px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.resumen {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.resumen-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+}
+
+.resumen-item i {
+  font-size: 24px;
+}
+
+.resumen-item strong {
+  color: #2c3e50;
+  font-size: 20px;
+}
+
+.text-success {
+  color: #27ae60;
+}
+
+.text-danger {
+  color: #e74c3c;
+}
+
+.mensaje-error {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #f5c6cb;
+  margin-top: 20px;
+}
+
+.mensaje-error i {
+  margin-right: 10px;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .tabla-precios {
+    font-size: 13px;
+  }
+  
+  .tabla-precios th,
+  .tabla-precios td {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .controls-bar {
+    flex-direction: column;
+  }
+  
+  .filter-buttons {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .btn-filter {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .resumen {
+    flex-direction: column;
+  }
+}
+</style>

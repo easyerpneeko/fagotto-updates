@@ -620,6 +620,15 @@ export default {
           badge: 'NEW'
         });
 
+        // 📦 Módulo de Pedido Final - Precios
+        menu.push({
+          label: 'Pedido Final',
+          route: '/inicio/pedido-final',
+          icon: 'fas fa-clipboard-list',
+          requiresTurno: false,
+          badge: 'PRECIO'
+        });
+
         // Admin Carnets - OCULTO
         // menu.push({
         //   label: 'Admin Carnets',

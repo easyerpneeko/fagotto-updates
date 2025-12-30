@@ -221,4 +221,33 @@ class ProductController extends Controller
 
       return response()->json($changes, 200);
   }
+
+  /**
+   * Obtener precios centralizados desde la DB maestra (easyerp)
+   * Tabla: pedidofinal_precios
+   */
+  public function getPreciosCentralizados()
+  {
+      try {
+          // Conectar a la base de datos maestra (easyerp)
+          $preciosCentralizados = DB::connection('easyerp_master')
+              ->table('pedidofinal_precios')
+              ->where('activo', 1)
+              ->orderBy('categoria')
+              ->orderBy('producto')
+              ->get();
+
+          return response()->json([
+              'success' => true,
+              'data' => $preciosCentralizados
+          ], 200);
+
+      } catch (\Exception $e) {
+          return response()->json([
+              'success' => false,
+              'message' => 'Error al obtener precios centralizados: ' . $e->getMessage()
+          ], 500);
+      }
+  }
 }
+

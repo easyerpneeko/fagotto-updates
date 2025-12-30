@@ -151,6 +151,45 @@ class RequestsController extends Controller
         return response()->json(['message' => 'Pedido creado con éxito'], 201);
     }
 
+    public function storePedidoFinal(Request $request)
+    {
+        $validatedData = $request->validate([
+            'contact_name' => 'required|string|max:70',
+            'contact_phone' => 'required|string|max:20',
+            'paymode' => 'required',
+            'payment_method' => 'nullable|string|in:contado,credito,efectivo,debito,transferencia,cheque,banco,amipass,multicaja,edenred,convenio_empresa,sodexo,rappi,junaeb,uber,pedidos_ya,pluxee,banco_chile_20,fluxi',
+            'invoice_type' => 'nullable|string|in:ticket,boleta',
+            'status' => 'required',
+            'products' => 'required|string',
+            'comment' => 'required|string',
+            'price' => '',
+            'subtotal' => '',
+            'iva' => '',
+            'emergency' => '',
+            'despacho' => '',
+            'app_id' => 'required|integer',
+        ]);
+
+        // NO validamos stock porque son productos de precios centralizados
+        $newRequest = new Requests();
+        $newRequest->contact_name = $validatedData['contact_name'];
+        $newRequest->contact_phone = $validatedData['contact_phone'];
+        $newRequest->paymode = $validatedData['paymode'];
+        $newRequest->price = $validatedData['price'] ?? 0;
+        $newRequest->subtotal = $validatedData['subtotal'] ?? 0;
+        $newRequest->iva = $validatedData['iva'] ?? 0;
+        $newRequest->emergency = $validatedData['emergency'] ?? 0;
+        $newRequest->despacho = $validatedData['despacho'] ?? 0;
+        $newRequest->products = $validatedData['products'];
+        $newRequest->comment = $validatedData['comment'];
+        $newRequest->status = $validatedData['status'];
+        $newRequest->status_payment = 'impagado';
+        $newRequest->app_id = $validatedData['app_id'];
+        $newRequest->save();
+
+        return response()->json(['message' => 'Pedido Final creado con éxito', 'id' => $newRequest->id], 201);
+    }
+
     public function update(Request $request, $id)
     {
         $validatedData = $request->validate([

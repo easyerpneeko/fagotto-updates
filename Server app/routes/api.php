@@ -297,6 +297,9 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::post('/local/products/updateStock/{id}', 'ProductController@updateStock'); 
           Route::get('/local/products/stockHistory', 'ProductController@getStockHistory'); 
           
+          // Precios centralizados desde DB maestra
+          Route::get('/local/precios-centralizados', 'ProductController@getPreciosCentralizados');
+          
           Route::get('/local/products/fagotto', 'Controllers_local\ProductsController@getProductsOfFagotto');
 //JC - 
           Route::post('app/local/products/sell', 'Controllers_local\ProductsController@getProductsOfSell');
@@ -584,6 +587,7 @@ Route::group(['middleware' => ['AppSecurity']], function () {
         Route::group(['middleware' => ['Config:modulos.pedidos']], function () {
           Route::get('/local/requests', 'Controllers_local\RequestsController@index');
           Route::post('/local/request', 'Controllers_local\RequestsController@store');
+          Route::post('/local/request/pedido-final', 'Controllers_local\RequestsController@storePedidoFinal');
           Route::put('/local/request/{id}', 'Controllers_local\RequestsController@update');
           Route::delete('/local/request/{id}', 'Controllers_local\RequestsController@remove');
           Route::put('/local/request/decline/{app_id}/{id}', 'Controllers_local\RequestsController@decline');

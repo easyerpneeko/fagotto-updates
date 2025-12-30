@@ -162,3 +162,10 @@ export async function assignIngredientsToProduct(context, formdata) {
       };
   }
 }
+
+// Obtener precios centralizados desde DB maestra (easyerp.pedidofinal_precios)
+export async function getPreciosCentralizados(context) {
+  let url = BaseUrl.getUrl('api/local/precios-centralizados');
+  const request = await Connection.request('get', url);
+  return request;
+}

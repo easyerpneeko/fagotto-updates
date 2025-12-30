@@ -105,6 +105,11 @@
             Consultar Boleta
           </button>
 
+          <button type="button" class="btn bg-primario text-white text-capitalize"
+            v-if="dataDetail && siiInstalled && settingFactura && (dataDetail.type == 'guia_despacho' || dataDetail.other_type == 'guia_despacho')" @click="consultarVenta">
+            Consultar Guía de Despacho
+          </button>
+
 
           <button type="button" class="btn bg-dark text-white"
             v-if="dataDetail && siiInstalled && settingBoleta && ((!dataDetail.type && !type) || dataDetail.type == 'Boleta Local')"
@@ -129,13 +134,16 @@
             Imprimir Boleta
           </button>
 
-          <button type="button" class="btn bg-dark text-white text-capitalize" @click="printPDFGuia('print')"
-            v-if="dataDetail && siiInstalled && settingFactura && dataDetail.type == 'guia_despacho'">
-            Imprimir PDF Guia despacho
+          <button type="button" class="btn bg-dark text-white text-capitalize"
+            v-if="dataDetail && siiInstalled && settingFactura && (dataDetail.type == 'guia_despacho' || dataDetail.other_type == 'guia_despacho')"
+            @click="printPDFGuia('print')">
+            Imprimir Guía de Despacho
           </button>
-          <button type="button" class="btn bg-dark text-white text-capitalize" @click="printPDFGuia('pdf')"
-            v-if="dataDetail && siiInstalled && settingFactura && dataDetail.type == 'guia_despacho'">
-            PDF Guia despacho
+          
+          <button type="button" class="btn bg-dark text-white text-capitalize"
+            v-if="dataDetail && siiInstalled && settingFactura && (dataDetail.type == 'guia_despacho' || dataDetail.other_type == 'guia_despacho')"
+            @click="printPDFGuia('pdf')">
+            PDF Guía de Despacho
           </button>
 
           <button type="button" class="btn bg-dark text-white text-capitalize"

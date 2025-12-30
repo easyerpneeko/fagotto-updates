@@ -640,8 +640,14 @@ class ServicesSII {
 
     //Desahabilitar cache
     ini_set("soap.wsdl_cache_enabled", "0");
-    //Reviso si es factura o boleta
-    $tipoDTE = ($folio->type == 'factura')?"33":"39";
+    //Reviso si es factura, boleta o guía de despacho
+    if ($folio->type == 'factura') {
+      $tipoDTE = "33";
+    } elseif ($folio->type == 'guia_despacho') {
+      $tipoDTE = "52";
+    } else {
+      $tipoDTE = "39"; // boleta
+    }
     //Establecer parametros de envío Ejemplo:
     $parametros = array("TIPODTE" => $tipoDTE,"FOLIODTE" => $folio->folio,"AMBIENTE" => "1","TOKEN" => $Token);
 

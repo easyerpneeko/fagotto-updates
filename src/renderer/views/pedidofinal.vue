@@ -38,6 +38,10 @@
                     <p class="header-subtitle">{{ this.app && this.app.Name ? this.app.Name : 'Cargando...' }} • {{ this.date }}</p>
                 </div>
                 <div class="header-right">
+                    <button @click="mostrarHistorial = !mostrarHistorial" class="btn-historial">
+                        <i class="fas fa-history"></i>
+                        {{ mostrarHistorial ? 'Nuevo Pedido' : 'Historial' }}
+                    </button>
                     <div class="total-badge">
                         <span class="total-label">Total:</span>
                         <span class="total-value">${{ formatNumber(totalPedido) }}</span>
@@ -45,8 +49,74 @@
                 </div>
             </div>
 
+            <!-- Historial de Pedidos -->
+            <div v-if="mostrarHistorial" class="historial-container">
+                <div class="historial-header">
+                    <h3><i class="fas fa-clock"></i> Historial de Pedidos ({{ historialPedidos.length }})</h3>
+                    <button @click="cargarHistorial" class="btn-refresh-small" :disabled="loadingHistorial">
+                        <i class="fas fa-sync-alt" :class="{ 'fa-spin': loadingHistorial }"></i>
+                    </button>
+                </div>
+
+                <div v-if="loadingHistorial" class="loading-modern">
+                    <i class="fas fa-spinner fa-spin"></i> Cargando historial...
+                </div>
+
+                <div v-else-if="!historialPedidos || historialPedidos.length === 0" class="empty-state">
+                    <i class="fas fa-inbox fa-3x"></i>
+                    <p>No hay pedidos registrados</p>
+                </div>
+
+                <div v-else class="historial-grid">
+                    <div v-for="pedido in historialPedidos" :key="pedido.id" class="historial-card">
+                        <div class="historial-card-header">
+                            <div class="pedido-numero">
+                                <i class="fas fa-hashtag"></i> {{ pedido.id }}
+                            </div>
+                            <div class="pedido-status" :class="'status-' + pedido.status">
+                                {{ pedido.status }}
+                            </div>
+                        </div>
+                        <div class="historial-card-body">
+                            <div class="historial-info">
+                                <div class="info-row">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>{{ formatDate(pedido.created_at) }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <i class="fas fa-user"></i>
+                                    <span>{{ pedido.contact_name }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>{{ pedido.paymode }}</span>
+                                </div>
+                                <div class="info-row" v-if="pedido.comment">
+                                    <i class="fas fa-comment"></i>
+                                    <span>{{ pedido.comment }}</span>
+                                </div>
+                            </div>
+                            <div class="historial-productos">
+                                <h5>Productos:</h5>
+                                <div v-for="(producto, index) in parseProducts(pedido.products)" :key="index" class="producto-item">
+                                    <span class="producto-qty">{{ producto.quantity }}x</span>
+                                    <span class="producto-name">{{ producto.name }}</span>
+                                    <span class="producto-price">${{ formatNumber(parseFloat(producto.price) * parseInt(producto.quantity)) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="historial-card-footer">
+                            <div class="pedido-total">
+                                <span>Total:</span>
+                                <strong>${{ formatNumber(parseFloat(pedido.price)) }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Formulario Compacto -->
-            <div class="form-compact">
+            <div v-if="!mostrarHistorial" class="form-compact">
                 <div class="form-grid">
                     <div class="form-field">
                         <label><i class="fas fa-user"></i> Nombre</label>
@@ -73,7 +143,7 @@
             </div>
 
             <!-- Productos en Cards -->
-            <div class="productos-section">
+            <div v-if="!mostrarHistorial" class="productos-section">
                 <div class="section-header">
                     <h3>📦 Selecciona tus Productos</h3>
                     <button @click="cargarPreciosCentralizados" class="btn-refresh">
@@ -154,6 +224,9 @@ export default {
         return {
             // Control de pantallas
             inicioSesion: false,
+            mostrarHistorial: false,
+            loadingHistorial: false,
+            historialPedidos: [],
             
             // Productos centralizados desde DB maestra
             productosCentralizados: [],
@@ -192,6 +265,10 @@ export default {
         this.name = this.me.fullname;
         // Cargar productos al iniciar
         await this.cargarPreciosCentralizados();
+        // Si ya inició sesión, cargar historial
+        if (this.inicioSesion && this.app && this.app.Id) {
+            this.cargarHistorial();
+        }
     },
     computed: {
         me: { get() { return this.$store.getters['main/user']; } },
@@ -228,8 +305,27 @@ export default {
             return FormatNumber.format(value);
         },
         
+        formatDate(date) {
+            return moment(date).format('DD/MM/YYYY HH:mm');
+        },
+        
+        parseProducts(productsJson) {
+            try {
+                const productos = JSON.parse(productsJson);
+                console.log('🛒 Productos parseados:', productos);
+                return productos;
+            } catch (e) {
+                console.error('❌ Error parseando productos:', e);
+                return [];
+            }
+        },
+        
         iniciarPedido() {
             this.inicioSesion = true;
+            // Cargar historial solo si app está disponible
+            if (this.app && this.app.Id) {
+                this.cargarHistorial();
+            }
         },
         
         incrementar(producto) {
@@ -370,7 +466,6 @@ export default {
                 contact_name: this.name,
                 contact_phone: this.phone,
                 paymode: this.paymode,
-                status_payment: 'impagado',
                 status: 'nuevo',
                 products: JSON.stringify(productosSeleccionados),
                 comment: this.comment,
@@ -381,6 +476,9 @@ export default {
                 despacho: 0,
                 app_id: this.app.Id
             };
+            
+            console.log('📤 Datos a enviar:', data);
+            console.log('🔑 app_id tipo:', typeof this.app.Id, 'valor:', this.app.Id);
             
             var formData = new FormData();
             for (let key in data) if (data[key]) formData.append(key, data[key]);
@@ -404,11 +502,56 @@ export default {
                 this.productosCentralizados.forEach(p => p.cantidad = 0);
                 
                 this.submitted = false;
+                
+                // Recargar historial y cambiar a vista de historial
+                await this.cargarHistorial();
+                this.mostrarHistorial = true;
             } else {
                 console.log(request.data);
                 this.$awn.alert(request.data.message || 'Error al crear pedido');
             }
             this.waitResponse = false;
+        },
+        
+        async cargarHistorial() {
+            try {
+                // Validar que app esté disponible
+                if (!this.app || !this.app.Id) {
+                    console.warn('⚠️ App no disponible aún, esperando...');
+                    return;
+                }
+                
+                this.loadingHistorial = true;
+                
+                // Usar la misma estructura que pedidos.vue
+                var params = '?params=true&appId=' + this.app.Id;
+                
+                var request = await this.$store.dispatch('requests/getRequests', params);
+                console.log('📦 Historial pedidos:', request);
+                
+                if (!request.success) {
+                    this.$awn.alert(request.data);
+                    this.historialPedidos = [];
+                    return;
+                }
+                
+                // Misma estructura que pedidos.vue: request.data.items
+                if (request.data && request.data.items) {
+                    // Ordenar por fecha más reciente primero
+                    this.historialPedidos = request.data.items.sort((a, b) => {
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    });
+                    console.log('✅ Historial cargado:', this.historialPedidos.length, 'pedidos');
+                } else {
+                    this.historialPedidos = [];
+                }
+            } catch (error) {
+                console.error('❌ Error cargando historial:', error);
+                this.$awn.alert('Error al cargar historial de pedidos');
+                this.historialPedidos = [];
+            } finally {
+                this.loadingHistorial = false;
+            }
         }
     }
 }
@@ -560,6 +703,33 @@ export default {
     font-size: 14px;
 }
 
+.header-right {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.btn-historial {
+    padding: 12px 24px;
+    background: white;
+    border: 2px solid #667eea;
+    color: #667eea;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-historial:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+}
+
 .total-badge {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 15px 30px;
@@ -578,6 +748,231 @@ export default {
     color: white;
     font-size: 24px;
     font-weight: 700;
+}
+
+/* ==================== HISTORIAL DE PEDIDOS ==================== */
+.historial-container {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-bottom: 25px;
+}
+
+.historial-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.historial-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 22px;
+}
+
+.historial-header h3 i {
+    margin-right: 10px;
+    color: #667eea;
+}
+
+.btn-refresh-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: #f5f7fa;
+    color: #667eea;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-refresh-small:hover:not(:disabled) {
+    background: #667eea;
+    color: white;
+    transform: rotate(180deg);
+}
+
+.btn-refresh-small:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #95a5a6;
+}
+
+.empty-state i {
+    color: #e0e6ed;
+    margin-bottom: 20px;
+}
+
+.empty-state p {
+    font-size: 18px;
+    margin: 0;
+}
+
+.historial-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.historial-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #e0e6ed;
+    transition: all 0.3s;
+}
+
+.historial-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    border-color: #667eea;
+}
+
+.historial-card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pedido-numero {
+    color: white;
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.pedido-status {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-nuevo {
+    background: #3498db;
+    color: white;
+}
+
+.status-preparando {
+    background: #f39c12;
+    color: white;
+}
+
+.status-listo {
+    background: #27ae60;
+    color: white;
+}
+
+.status-entregado {
+    background: #95a5a6;
+    color: white;
+}
+
+.status-cancelado {
+    background: #e74c3c;
+    color: white;
+}
+
+.historial-card-body {
+    padding: 20px;
+}
+
+.historial-info {
+    margin-bottom: 20px;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    color: #2c3e50;
+}
+
+.info-row i {
+    color: #667eea;
+    width: 20px;
+}
+
+.historial-productos {
+    background: #f5f7fa;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.historial-productos h5 {
+    margin: 0 0 12px 0;
+    color: #2c3e50;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.producto-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #e0e6ed;
+}
+
+.producto-item:last-child {
+    border-bottom: none;
+}
+
+.producto-qty {
+    background: #667eea;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 40px;
+    text-align: center;
+}
+
+.producto-name {
+    flex: 1;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.producto-price {
+    color: #27ae60;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.historial-card-footer {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-top: 2px solid #e0e6ed;
+}
+
+.pedido-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    color: #2c3e50;
+}
+
+.pedido-total strong {
+    color: #27ae60;
+    font-size: 20px;
 }
 
 /* Formulario Compacto */

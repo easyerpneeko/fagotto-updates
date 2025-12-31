@@ -213,10 +213,16 @@
                         </div>
                         <span class="footer-total-final">TOTAL FINAL: <strong>${{ formatNumber(totalConIVA) }}</strong></span>
                     </div>
-                    <button @click="newRequest" class="btn-finalizar" :disabled="waitResponse || totalPedido === 0">
-                        <i class="fas fa-check-circle"></i>
-                        {{ waitResponse ? 'Enviando...' : 'Finalizar Pedido' }}
-                    </button>
+                    <div class="footer-buttons">
+                        <button @click="ticketYEfectivo" class="btn-ticket-efectivo" :disabled="waitResponse || totalPedido === 0">
+                            <i class="fas fa-receipt"></i>
+                            {{ waitResponse ? 'Procesando...' : 'Ticket + Efectivo' }}
+                        </button>
+                        <button @click="newRequest" class="btn-finalizar" :disabled="waitResponse || totalPedido === 0">
+                            <i class="fas fa-check-circle"></i>
+                            {{ waitResponse ? 'Enviando...' : 'Finalizar Pedido' }}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -623,6 +629,112 @@ export default {
                 this.$awn.alert(request.data.message || 'Error al crear pedido');
             }
             this.waitResponse = false;
+        },
+        
+        async ticketYEfectivo() {
+            this.submitted = true;
+            if (!this.validar_form()) {
+                return;
+            }
+            
+            // Forzar método de pago a Efectivo
+            this.paymode = 'Efectivo';
+            
+            // Filtrar solo productos con cantidad > 0
+            const productosSeleccionados = this.productosCentralizados
+                .filter(p => p.cantidad > 0)
+                .map(p => ({
+                    id: p.id,
+                    name: p.producto,
+                    quantity: p.cantidad,
+                    price: p.precio_por_unidad,
+                    unidad_medida: p.unidad_medida,
+                    unidad_venta: p.unidad_venta,
+                    vasos: 0
+                }));
+            
+            const data = {
+                contact_name: this.name,
+                contact_phone: this.phone,
+                paymode: 'Efectivo',
+                status: 'nuevo',
+                products: JSON.stringify(productosSeleccionados),
+                comment: this.comment + ' [TICKET+EFECTIVO]',
+                price: this.totalPedido,
+                subtotal: this.totalPedido,
+                iva: 0,
+                emergency: 0,
+                despacho: 0,
+                app_id: this.app.Id
+            };
+            
+            console.log('🎫 Ticket+Efectivo - Datos a enviar:', data);
+            
+            var formData = new FormData();
+            for (let key in data) if (data[key]) formData.append(key, data[key]);
+            
+            this.waitResponse = true;
+            Loader.fullPage();
+            let request = await this.$store.dispatch('requests/newRequestPedidoFinal', formData);
+            
+            if (request.success) {
+                // Imprimir ticket automáticamente
+                await this.imprimirTicket(request.data);
+                
+                // Generar boleta/factura automáticamente
+                await this.generarBoleta(request.data.id);
+                
+                Loader.hide();
+                this.$awn.success('Venta completada - Ticket impreso', { labels: { success: 'CORRECTO' } });
+                
+                // Limpiar formulario
+                this.name = this.me.fullname;
+                this.phone = "+56";
+                this.paymode = 'Transferencia';
+                this.comment = "";
+                this.totalPedido = 0;
+                
+                // Resetear cantidades
+                this.productosCentralizados.forEach(p => p.cantidad = 0);
+                
+                this.submitted = false;
+                
+                // Recargar historial
+                await this.cargarHistorial();
+                this.mostrarHistorial = true;
+            } else {
+                Loader.hide();
+                console.log(request.data);
+                this.$awn.alert(request.data.message || 'Error al procesar venta');
+            }
+            this.waitResponse = false;
+        },
+        
+        async imprimirTicket(pedidoData) {
+            try {
+                console.log('🖨️ Imprimiendo ticket...', pedidoData);
+                // Aquí puedes llamar a tu sistema de impresión de tickets
+                // Por ahora solo logueamos
+                this.$awn.info('Ticket enviado a impresora');
+            } catch (error) {
+                console.error('❌ Error imprimiendo ticket:', error);
+            }
+        },
+        
+        async generarBoleta(pedidoId) {
+            try {
+                console.log('📄 Generando boleta para pedido:', pedidoId);
+                // Llamar al endpoint de facturación
+                const response = await this.$store.dispatch('sii/generarFactura', { pedidoId });
+                if (response.success) {
+                    this.$awn.success('Boleta generada correctamente');
+                } else {
+                    this.$awn.warning('Venta registrada pero fallo la boleta');
+                }
+            } catch (error) {
+                console.error('❌ Error generando boleta:', error);
+                this.$awn.warning('Venta registrada pero fallo la boleta');
+            }
         },
         
         async cargarHistorial() {

@@ -582,7 +582,15 @@ class StringXML {
       $subtotal = '0'; // Inicializar como string para precisión decimal
 
       foreach ($products as $key => $value) {
-          if ($value->category === 2) {
+          // 🔥 Detectar si es producto de pedidofinal.vue (solo tiene 'price' sin 'costo')
+          $esPedidoFinal = !isset($value->costo) && isset($value->price);
+          
+          if ($esPedidoFinal) {
+              // Producto de pedidofinal.vue: price es unitario, sin IVA incluido
+              $unitario = round($value->price);
+              $quantity = $value->quantity;
+              $total = round(bcmul($quantity, $unitario, 2));
+          } elseif (isset($value->category) && $value->category === 2) {
               // Precio diferenciado para ALFREDO/BOLOÑESA en emergencia
               if ($value->name === 'ALFREDO' || $value->name === 'BOLOÑESA') {
                   $unitario = 377; // 1508 ÷ 4 = 377
@@ -592,6 +600,7 @@ class StringXML {
               $quantity = $value->vasos;
               $total = bcmul($quantity, $unitario, 2);
           } else {
+              // Producto tradicional con costo
               $unitario = round(bcdiv($value->costo, $value->quantity, 2));
               $quantity = $value->quantity;
               $total = round(bcmul($quantity, $unitario, 2));
@@ -745,17 +754,33 @@ class StringXML {
       $totalGeneral = 0;
       $cantidadProductos = 0;
       
-      foreach ($products as $value) {
-        // Saltar el vaso (id=1) ya que su costo se distribuye
-        if ($value->id == 1) {
-          continue;
-        }
-        // Contar solo productos que forman la fórmula (salsas, queso, huevos, harina)
-        // Excluir opcionales (category 3)
-        if ($value->category !== 3) {
-          $totalGeneral += $value->costo;
-          $cantidadProductos++;
-        }
+      // 🔥 Detectar si es pedido de pedidofinal.vue
+      $esPedidoFinal = false;
+      if (count($products) > 0) {
+          $primerProducto = reset($products);
+          $esPedidoFinal = !isset($primerProducto->costo) && isset($primerProducto->price);
+      }
+      
+      if ($esPedidoFinal) {
+          // Para pedidos de pedidofinal.vue, simplemente sumar price * quantity
+          foreach ($products as $value) {
+              $totalGeneral += ($value->price * $value->quantity);
+              $cantidadProductos++;
+          }
+      } else {
+          // Para pedidos tradicionales
+          foreach ($products as $value) {
+            // Saltar el vaso (id=1) ya que su costo se distribuye
+            if (isset($value->id) && $value->id == 1) {
+              continue;
+            }
+            // Contar solo productos que forman la fórmula (salsas, queso, huevos, harina)
+            // Excluir opcionales (category 3)
+            if (isset($value->category) && $value->category !== 3) {
+              $totalGeneral += $value->costo;
+              $cantidadProductos++;
+            }
+          }
       }
       
       // Paso 2: Calcular el monto que le corresponde a cada producto
@@ -767,26 +792,46 @@ class StringXML {
 
       // Paso 3: Generar detalle con el monto equitativo
       foreach ($products as $key => $value) {
+        // 🔥 Para pedidos de pedidofinal.vue
+        if ($esPedidoFinal) {
+          $quantity = $value->quantity;
+          $unitario = round($value->price);
+          $total = round($quantity * $unitario);
+          
+          $XML_DETALLE .= Self::DetallePedido([
+            'nombre' => $value->name,
+            'i' => $i,
+            'cantidad' => $quantity,
+            'precio' => $unitario,
+            'total' => $total
+          ]);
+
+          $i++;
+          $subtotal += $total;
+          continue;
+        }
+        
+        // Para pedidos tradicionales
         // Saltar el vaso
-        if ($value->id == 1) {
+        if (isset($value->id) && $value->id == 1) {
           continue;
         }
 
         // Calcular cantidad según categoría
-        if ($value->category === 2) {
+        if (isset($value->category) && $value->category === 2) {
           // Salsas: cantidad = vasos
           $quantity = $value->vasos;
-        } else if ($value->category === 3) {
+        } else if (isset($value->category) && $value->category === 3) {
           // Opcionales: usar su costo real
           $quantity = $value->quantity;
           $montoPorProducto = $value->costo; // Opcionales usan su costo real
-        } else if ($value->id == 5) {
+        } else if (isset($value->id) && $value->id == 5) {
           // Queso: por kilos
           $quantity = round(($value->quantity * 1000) / $value->price, 2);
-        } else if ($value->id == 9) {
+        } else if (isset($value->id) && $value->id == 9) {
           // Harina
           $quantity = $value->quantity * $value->price;
-        } else if ($value->category === 1) {
+        } else if (isset($value->category) && $value->category === 1) {
           // Por unidad (huevos, etc)
           $quantity = $value->quantity;
         } else {
@@ -795,7 +840,7 @@ class StringXML {
         }
 
         // Total para este producto
-        $total = $value->category === 3 ? $value->costo : $montoPorProducto;
+        $total = (isset($value->category) && $value->category === 3) ? $value->costo : $montoPorProducto;
         
         // Precio unitario
         $unitario = $quantity > 0 ? round($total / $quantity, 2) : 0;

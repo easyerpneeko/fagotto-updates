@@ -42,9 +42,17 @@
                         <i class="fas fa-history"></i>
                         {{ mostrarHistorial ? 'Nuevo Pedido' : 'Historial' }}
                     </button>
-                    <div class="total-badge">
-                        <span class="total-label">Total:</span>
-                        <span class="total-value">${{ formatNumber(totalPedido) }}</span>
+                    <div class="total-badge-container">
+                        <div class="total-badge">
+                            <span class="total-label">Subtotal:</span>
+                            <span class="total-value">${{ formatNumber(totalPedido) }}</span>
+                        </div>
+                        <div class="iva-badge-header">
+                            <i class="fas fa-plus-circle"></i> IVA 19%: ${{ formatNumber(montoIVA) }}
+                        </div>
+                        <div class="total-final-header">
+                            TOTAL: ${{ formatNumber(totalConIVA) }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -198,13 +206,87 @@
                 <div class="footer-content">
                     <div class="footer-info">
                         <span class="items-count">{{ cantidadProductos }} productos seleccionados</span>
-                        <span class="footer-total">Total: <strong>${{ formatNumber(totalPedido) }}</strong></span>
+                        <span class="footer-total">Subtotal: <strong>${{ formatNumber(totalPedido) }}</strong></span>
+                        <div class="footer-iva-destacado">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>+ IVA 19%: <strong>${{ formatNumber(montoIVA) }}</strong></span>
+                        </div>
+                        <span class="footer-total-final">TOTAL FINAL: <strong>${{ formatNumber(totalConIVA) }}</strong></span>
                     </div>
                     <button @click="newRequest" class="btn-finalizar" :disabled="waitResponse || totalPedido === 0">
                         <i class="fas fa-check-circle"></i>
                         {{ waitResponse ? 'Enviando...' : 'Finalizar Pedido' }}
                     </button>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Modal de Bienvenida al Nuevo Sistema -->
+        <div v-if="mostrarModalBienvenida" class="modal-bienvenida-overlay" @click="cerrarModalBienvenida">
+            <div class="modal-bienvenida-container" @click.stop>
+                <button @click="cerrarModalBienvenida" class="modal-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+                
+                <div class="modal-icon-header">
+                    <div class="icon-circle">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                </div>
+                
+                <h2 class="modal-title">¡Bienvenido al Nuevo Sistema de Pedidos!</h2>
+                
+                <div class="modal-content">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h3>Pedidos Individuales</h3>
+                            <p>Ahora puedes pedir productos de forma individual, sin ataduras ni packs obligatorios</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-hand-pointer"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h3>Súper Intuitivo</h3>
+                            <p>Interfaz moderna y fácil de usar. Selecciona solo lo que necesitas, cuando lo necesitas</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h3>Precios Actualizados</h3>
+                            <p>Sistema centralizado con precios siempre al día. Transparencia total</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h3>Rápido y Eficiente</h3>
+                            <p>Completa tu pedido en minutos. Sin complicaciones, sin esperas</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer-note">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Este es un sistema mejorado para brindarte mayor flexibilidad y control en tus pedidos</span>
+                </div>
+                
+                <button @click="cerrarModalBienvenida" class="btn-entendido">
+                    <i class="fas fa-check"></i>
+                    ¡Entendido, empecemos!
+                </button>
             </div>
         </div>
     </div>
@@ -227,6 +309,7 @@ export default {
             mostrarHistorial: false,
             loadingHistorial: false,
             historialPedidos: [],
+            mostrarModalBienvenida: false,
             
             // Productos centralizados desde DB maestra
             productosCentralizados: [],
@@ -269,6 +352,8 @@ export default {
         if (this.inicioSesion && this.app && this.app.Id) {
             this.cargarHistorial();
         }
+        // Verificar si es la primera vez que usa el sistema
+        this.verificarPrimeraVez();
     },
     computed: {
         me: { get() { return this.$store.getters['main/user']; } },
@@ -282,6 +367,16 @@ export default {
         // Cantidad de productos seleccionados
         cantidadProductos() {
             return this.productosCentralizados.filter(p => p.cantidad > 0).length;
+        },
+        
+        // Calcular IVA (19% del total)
+        montoIVA() {
+            return Math.round(this.totalPedido * 0.19);
+        },
+        
+        // Total con IVA incluido
+        totalConIVA() {
+            return this.totalPedido + this.montoIVA;
         },
         
         isValidName: {
@@ -326,6 +421,23 @@ export default {
             if (this.app && this.app.Id) {
                 this.cargarHistorial();
             }
+        },
+        
+        verificarPrimeraVez() {
+            // Verificar si es la primera vez que el usuario entra al sistema
+            const yaVioModal = localStorage.getItem('pedidoFinal_modalVisto');
+            if (!yaVioModal) {
+                // Mostrar modal después de un pequeño delay para mejor experiencia
+                setTimeout(() => {
+                    this.mostrarModalBienvenida = true;
+                }, 800);
+            }
+        },
+        
+        cerrarModalBienvenida() {
+            this.mostrarModalBienvenida = false;
+            // Guardar en localStorage que ya vio el modal
+            localStorage.setItem('pedidoFinal_modalVisto', 'true');
         },
         
         incrementar(producto) {
@@ -730,10 +842,17 @@ export default {
     box-shadow: 0 4px 12px rgba(102,126,234,0.3);
 }
 
+.total-badge-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+}
+
 .total-badge {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 15px 30px;
-    border-radius: 50px;
+    padding: 10px 25px;
+    border-radius: 25px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -741,13 +860,42 @@ export default {
 
 .total-label {
     color: rgba(255,255,255,0.9);
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .total-value {
     color: white;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 700;
+}
+
+.iva-badge-header {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(238,90,111,0.4);
+    animation: pulse-warning 2s infinite;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.iva-badge-header i {
+    font-size: 16px;
+}
+
+.total-final-header {
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    color: white;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-size: 18px;
+    font-weight: 800;
+    box-shadow: 0 4px 15px rgba(39,174,96,0.4);
+    letter-spacing: 1px;
 }
 
 /* ==================== HISTORIAL DE PEDIDOS ==================== */
@@ -1307,7 +1455,7 @@ export default {
 .footer-info {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
 }
 
 .items-count {
@@ -1322,8 +1470,80 @@ export default {
 
 .footer-total strong {
     color: #27ae60;
-    font-size: 24px;
+    font-size: 20px;
     margin-left: 10px;
+}
+
+.footer-iva-destacado {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(238,90,111,0.5);
+    animation: pulse-warning 2s infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.footer-iva-destacado i {
+    font-size: 20px;
+    animation: shake 1s infinite;
+}
+
+.footer-iva-destacado strong {
+    font-size: 22px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.footer-total-final {
+    color: #2c3e50;
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    padding: 10px;
+    background: rgba(39,174,96,0.1);
+    border-radius: 8px;
+    border: 2px solid #27ae60;
+}
+
+.footer-total-final strong {
+    color: #27ae60;
+    font-size: 28px;
+    margin-left: 10px;
+}
+
+@keyframes pulse-warning {
+    0%, 100% {
+        box-shadow: 0 4px 15px rgba(238,90,111,0.5);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 6px 25px rgba(238,90,111,0.8);
+        transform: scale(1.02);
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    75% { transform: rotate(10deg); }
+}
+
+.footer-iva {
+    color: #e74c3c;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.footer-iva strong {
+    color: #c0392b;
+    font-size: 18px;
+    margin-left: 5px;
 }
 
 .btn-finalizar {
@@ -1353,6 +1573,39 @@ export default {
     margin-right: 10px;
 }
 
+/* Badge IVA */
+.iva-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: 8px;
+    vertical-align: middle;
+    box-shadow: 0 2px 6px rgba(238,90,111,0.4);
+    animation: pulse-iva 2s infinite;
+}
+
+@keyframes pulse-iva {
+    0%, 100% {
+        box-shadow: 0 2px 6px rgba(238,90,111,0.4);
+    }
+    50% {
+        box-shadow: 0 4px 12px rgba(238,90,111,0.6);
+    }
+}
+
+.footer-iva-note {
+    color: #e74c3c;
+    font-size: 12px;
+    font-weight: 600;
+    font-style: italic;
+    display: block;
+    margin-top: 5px;
+}
+
 /* Responsive */
 @media (max-width: 1400px) {
     .productos-grid {
@@ -1366,6 +1619,240 @@ export default {
     }
 }
 
+/* ==================== MODAL BIENVENIDA ==================== */
+.modal-bienvenida-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+    padding: 20px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-bienvenida-container {
+    background: white;
+    border-radius: 24px;
+    max-width: 650px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.4s ease;
+    position: relative;
+    padding: 40px 30px 30px 30px;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: #f0f0f0;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.modal-close-btn:hover {
+    background: #e74c3c;
+    color: white;
+    transform: rotate(90deg);
+}
+
+.modal-icon-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.icon-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    animation: pulse-icon 2s infinite;
+}
+
+.icon-circle i {
+    font-size: 45px;
+    color: white;
+}
+
+@keyframes pulse-icon {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+    }
+}
+
+.modal-title {
+    text-align: center;
+    color: #2c3e50;
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0 0 30px 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.modal-content {
+    margin-bottom: 25px;
+}
+
+.feature-item {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 25px;
+    align-items: flex-start;
+}
+
+.feature-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.feature-icon i {
+    font-size: 22px;
+    color: white;
+}
+
+.feature-text h3 {
+    margin: 0 0 8px 0;
+    color: #2c3e50;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.feature-text p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.modal-footer-note {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+    padding: 15px 20px;
+    border-radius: 12px;
+    border-left: 4px solid #667eea;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.modal-footer-note i {
+    color: #667eea;
+    font-size: 20px;
+}
+
+.modal-footer-note span {
+    color: #2c3e50;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.btn-entendido {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-entendido:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+}
+
+.btn-entendido i {
+    font-size: 18px;
+}
+
+@media (max-width: 768px) {
+    .modal-bienvenida-container {
+        padding: 30px 20px 20px 20px;
+    }
+    
+    .modal-title {
+        font-size: 24px;
+    }
+    
+    .feature-item {
+        gap: 15px;
+    }
+    
+    .feature-icon {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .feature-text h3 {
+        font-size: 16px;
+    }
+    
+    .feature-text p {
+        font-size: 13px;
+    }
+}
+
+/* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
     .modern-header {
         flex-direction: column;

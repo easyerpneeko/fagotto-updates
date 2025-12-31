@@ -96,43 +96,27 @@
     </div>
 
     <!-- Right Side - Welcome Section -->
-    <div class="welcome-section christmas-welcome">
-      <!-- Christmas Snow Animation -->
-      <div class="christmas-snow-login">
-        <div class="snow-flake-login" v-for="n in 30" :key="n" :style="{
-          left: (n * 3.33) + '%',
-          animationDelay: (n * 0.3) + 's',
-          animationDuration: (3 + Math.random() * 3) + 's'
-        }">❄</div>
-      </div>
-
-      <!-- Christmas Background with Trees -->
-      <div class="christmas-trees">
-        <div class="tree" v-for="i in 8" :key="'tree-' + i"></div>
-      </div>
-
-      <!-- Christmas Content -->
-      <div class="christmas-content">
-        <h1 class="christmas-welcome-title">Feliz navidad</h1>
-        
-        <!-- Santa Claus Image -->
-        <div class="santa-container">
-          <img 
-            src="https://pngimg.com/d/santa_claus_PNG38466.png" 
-            alt="Santa Claus" 
-            class="santa-image"
-          />
-        </div>
-
-        <div class="christmas-greeting">
-          <div class="greeting-icon">
-            <i class="fas fa-snowman"></i>
-          </div>
-          <h2 class="greeting-title">Feliz Navidad</h2>
-          <p class="greeting-text">
-            Que esta temporada navideña llene tu corazón de alegría y paz. 
-            ¡Bienvenido a Fagotto ERP!
-          </p>
+    <div class="welcome-section">
+      <!-- Fagotto Video Fullscreen -->
+      <video 
+        autoplay 
+        loop 
+        muted 
+        playsinline 
+        class="welcome-video-background"
+        @error="handleVideoError"
+      >
+        <source :src="require('./video.mp4')" type="video/mp4">
+        Tu navegador no soporta video HTML5.
+      </video>
+      
+      <!-- Welcome Content Overlay -->
+      <div class="welcome-content">
+        <div class="welcome-header">
+          <h1 class="welcome-title">Bienvenido a Fagotto ERP</h1>
+          <p class="welcome-subtitle">Sistema de gestión empresarial completo</p>
+          <p class="new-year-message">¡Feliz Año Nuevo 2026! 🎊</p>
+          <p class="new-year-submessage">Que este nuevo año traiga éxito y prosperidad</p>
         </div>
       </div>
     </div>
@@ -234,6 +218,9 @@ export default {
 
       }
       Loader.hide();
+    },
+    handleVideoError(e) {
+      console.error('Error al cargar el video:', e);
     }
   }
 }
@@ -652,6 +639,40 @@ export default {
   color: white;
   margin: 0;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-subtitle {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 10px 0 0 0;
+  font-weight: 400;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.new-year-message {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #FFD700;
+  margin: 30px 0 5px 0;
+  text-shadow: 0 2px 15px rgba(255, 215, 0, 0.5);
+  animation: glow 2s ease-in-out infinite;
+}
+
+.new-year-submessage {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 5px 0 0 0;
+  font-weight: 500;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes glow {
+  0%, 100% { 
+    text-shadow: 0 2px 15px rgba(255, 215, 0, 0.5);
+  }
+  50% { 
+    text-shadow: 0 2px 25px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.6);
+  }
 }
 
 /* Illustration */

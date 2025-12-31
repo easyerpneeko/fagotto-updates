@@ -17,14 +17,14 @@
       <div class="wiper"></div>
     </div>
 
-    <!-- Christmas Message -->
+    <!-- New Year Message -->
     <div class="christmas-message-float">
       <div class="christmas-card">
-        <div class="card-ornament">🎄</div>
-        <h2 class="christmas-greeting-text">¡Feliz Navidad!</h2>
-        <p class="christmas-wish">Que esta época navideña llene tu hogar de amor, paz y felicidad. 
-          ¡Felices fiestas desde Fagotto ERP! 🎅✨</p>
-        <div class="card-ornament bottom">🎁</div>
+        <div class="card-ornament">🎊</div>
+        <h2 class="christmas-greeting-text">¡Feliz Año Nuevo 2026!</h2>
+        <p class="christmas-wish">Que este nuevo año traiga éxito, prosperidad y felicidad. 
+          ¡Feliz Año Nuevo desde Fagotto ERP! 🎉✨</p>
+        <div class="card-ornament bottom">🎆</div>
       </div>
     </div>
 
@@ -34,9 +34,9 @@
         <!-- Mensaje de Turno Requerido -->
         <div v-if="!turnoActivo" class="turno-required-overlay">
           <div class="turno-required-card text-center p-5">
-            <!-- Christmas Title Header -->
+            <!-- New Year Title Header -->
             <div class="christmas-header mb-4">
-              <h1 class="christmas-main-title">Merry Christmas</h1>
+              <h1 class="christmas-main-title">Happy New Year 2026</h1>
             </div>
 
             <div class="turno-icon-container mb-4">
@@ -107,6 +107,30 @@
             
             <div class="news-container">
               
+              <!-- Noticia NUEVA: Pedidos Individuales -->
+              <div class="news-panel news-panel-primary">
+                <div class="news-panel-header">
+                  <i class="fas fa-box-open me-2"></i>
+                  <strong>Sistema de Pedidos Individuales</strong>
+                  <span class="news-panel-badge">ESTRENO SÁBADO</span>
+                </div>
+                <div class="news-panel-body">
+                  <p class="news-panel-text">
+                    <strong>¡Revolución en pedidos!</strong> Desde el sábado podrás hacer pedidos de forma individual • 
+                    <strong>Sin ataduras:</strong> Ya no más packs obligatorios • 
+                    <strong>Total libertad:</strong> Pide solo lo que necesitas, cuando lo necesitas • 
+                    <strong>Interfaz intuitiva:</strong> Sistema moderno y fácil de usar • 
+                    <strong>Precios actualizados:</strong> Sistema centralizado con transparencia total • 
+                    <strong>Exclusivo para Admin:</strong> Acceso inicial restringido
+                  </p>
+                </div>
+                <div class="news-panel-footer">
+                  <i class="far fa-calendar-alt me-2"></i>31 de Diciembre, 2025 • 
+                  <i class="far fa-clock ms-2 me-2"></i>11:59 PM • 
+                  <strong style="color: #667eea;">Disponible desde el Sábado 04/01/2026</strong>
+                </div>
+              </div>
+              
               <!-- Noticia 1: Sistema de Ventas Optimizado -->
               <div class="news-panel news-panel-success">
                 <div class="news-panel-header">
@@ -124,7 +148,7 @@
                   </p>
                 </div>
                 <div class="news-panel-footer">
-                  <i class="far fa-calendar-alt me-2"></i>26 de Diciembre, 2025 • 
+                  <i class="far fa-calendar-alt me-2"></i>31 de Diciembre, 2025 • 
                   <i class="far fa-clock ms-2 me-2"></i>12:00 PM
                 </div>
               </div>
@@ -146,7 +170,7 @@
                   </p>
                 </div>
                 <div class="news-panel-footer">
-                  <i class="far fa-calendar-alt me-2"></i>26 de Diciembre, 2025 • 
+                  <i class="far fa-calendar-alt me-2"></i>31 de Diciembre, 2025 • 
                   <i class="far fa-clock ms-2 me-2"></i>10:30 AM
                 </div>
               </div>
@@ -172,7 +196,7 @@
                   </p>
                 </div>
                 <div class="news-panel-footer">
-                  <i class="far fa-calendar-alt me-2"></i>26 de Diciembre, 2025 • 
+                  <i class="far fa-calendar-alt me-2"></i>31 de Diciembre, 2025 • 
                   <i class="far fa-clock ms-2 me-2"></i>09:00 AM
                 </div>
               </div>
@@ -1295,6 +1319,11 @@ export default {
 }
 
 /* Variantes de color */
+.news-panel-primary {
+  border-left-color: #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.05) 100%);
+}
+
 .news-panel-success {
   border-left-color: #22c55e;
   background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%);

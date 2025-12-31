@@ -620,14 +620,16 @@ export default {
           badge: 'NEW'
         });
 
-        // 📦 Módulo de Pedido Final - Precios
-        menu.push({
-          label: 'Pedido Final',
-          route: '/inicio/pedido-final',
-          icon: 'fas fa-clipboard-list',
-          requiresTurno: false,
-          badge: 'PRECIO'
-        });
+        // 📦 Módulo de Pedido Final - Solo para Admin
+        if (isAdmin) {
+          menu.push({
+            label: 'Pedido Final',
+            route: '/inicio/pedido-final',
+            icon: 'fas fa-clipboard-list',
+            requiresTurno: false,
+            badge: 'ADMIN'
+          });
+        }
 
         // Admin Carnets - OCULTO
         // menu.push({

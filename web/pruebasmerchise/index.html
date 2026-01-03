@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fagotto - Menú Merchise</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .header p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .menu-container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 15px;
+        }
+        
+        .section-card {
+            background: white;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .section-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        
+        .section-header:hover {
+            transform: translateY(-2px);
+        }
+        
+        .section-header h3 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 600;
+        }
+        
+        .section-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .product-item {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .product-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .product-item:last-child {
+            border-bottom: none;
+        }
+        
+        .product-header {
+            display: flex;
+            align-items: start;
+            gap: 15px;
+        }
+        
+        .product-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 12px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        
+        .product-info {
+            flex: 1;
+        }
+        
+        .product-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3436;
+            margin-bottom: 5px;
+        }
+        
+        .product-description {
+            font-size: 14px;
+            color: #636e72;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .product-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #00b894;
+        }
+        
+        .product-sku {
+            font-size: 12px;
+            color: #b2bec3;
+            margin-top: 5px;
+        }
+        
+        /* Modal Modificadores */
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .modifier-group {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .modifier-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3436;
+            margin-bottom: 5px;
+        }
+        
+        .modifier-subtitle {
+            font-size: 14px;
+            color: #636e72;
+            margin-bottom: 15px;
+        }
+        
+        .modifier-option {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 2px solid #dfe6e9;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modifier-option:hover {
+            border-color: #667eea;
+        }
+        
+        .modifier-option.selected {
+            border-color: #667eea;
+            background: #f0f3ff;
+        }
+        
+        .modifier-option-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #2d3436;
+        }
+        
+        .modifier-option-price {
+            font-size: 16px;
+            font-weight: 600;
+            color: #00b894;
+        }
+        
+        .add-to-cart-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .add-to-cart-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .quantity-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .quantity-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .quantity-value {
+            font-size: 24px;
+            font-weight: 600;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #636e72;
+        }
+        
+        .collapse {
+            transition: height 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1><i class="fas fa-utensils"></i> Fagotto Pasta & Salsa</h1>
+            <p>Vista previa del menú Merchise</p>
+        </div>
+    </div>
+
+    <div class="menu-container" id="menuContainer">
+        <!-- El menú se cargará aquí -->
+    </div>
+
+    <!-- Modal Modificadores -->
+    <div class="modal fade" id="productModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle"></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Modificadores aquí -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Datos de ejemplo basados en la tabla
+        const menuData = {
+            "success": true,
+            "restaurant": {
+                "name": "Fagotto Pasta & Salsa",
+                "description": "Pasta artesanal italiana"
+            },
+            "menu": {
+                "sections": [
+                    {
+                        "sku": "1",
+                        "name": "Combos",
+                        "items": [
+                            {
+                                "sku": "2.0",
+                                "name": "Combo individual",
+                                "price": 7550,
+                                "description": "Pasta y bebida de 350 ml a elegir.",
+                                "image": "https://via.placeholder.com/300x300/667eea/ffffff?text=Combo+Individual",
+                                "modifiers": [
+                                    {
+                                        "name": "Elige tu pasta",
+                                        "required": true,
+                                        "min": 1,
+                                        "max": 1,
+                                        "options": [
+                                            {"name": "Pasta Pesto", "price": 0},
+                                            {"name": "Pasta Alfredo", "price": 0},
+                                            {"name": "Pasta Bolognesa", "price": 0},
+                                            {"name": "Pasta Champiñón", "price": 0},
+                                            {"name": "Pasta Camarón", "price": 0}
+                                        ]
+                                    },
+                                    {
+                                        "name": "Elige tu bebida",
+                                        "required": true,
+                                        "min": 1,
+                                        "max": 1,
+                                        "options": [
+                                            {"name": "Coca-Cola Original", "price": 0},
+                                            {"name": "Sprite Original", "price": 0},
+                                            {"name": "Sprite Sin azucar", "price": 0}
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "sku": "15.0",
+                                "name": "Combo para 2",
+                                "price": 15090,
+                                "description": "2 Pastas y 2 bebidas de 350 ml a elegir.",
+                                "image": "https://via.placeholder.com/300x300/764ba2/ffffff?text=Combo+Para+2",
+                                "modifiers": [
+                                    {
+                                        "name": "Elige tus pastas (2)",
+                                        "required": true,
+                                        "min": 2,
+                                        "max": 2,
+                                        "options": [
+                                            {"name": "Pasta Pesto", "price": 0},
+                                            {"name": "Pasta Alfredo", "price": 0},
+                                            {"name": "Pasta Bolognesa", "price": 0},
+                                            {"name": "Pasta Champiñón", "price": 0}
+                                        ]
+                                    },
+                                    {
+                                        "name": "Elige tus bebidas (2)",
+                                        "required": true,
+                                        "min": 2,
+                                        "max": 2,
+                                        "options": [
+                                            {"name": "Coca-Cola", "price": 0},
+                                            {"name": "Sprite", "price": 0}
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "sku": "28.0",
+                                "name": "Combo familiar",
+                                "price": 30190,
+                                "description": "4 Pastas y 4 bebidas de 350 ml a elegir.",
+                                "image": "https://via.placeholder.com/300x300/e84393/ffffff?text=Combo+Familiar",
+                                "modifiers": [
+                                    {
+                                        "name": "Elige tus pastas (4)",
+                                        "required": true,
+                                        "min": 4,
+                                        "max": 4,
+                                        "options": [
+                                            {"name": "Pasta Pesto", "price": 0},
+                                            {"name": "Pasta Alfredo", "price": 0},
+                                            {"name": "Pasta Bolognesa", "price": 0}
+                                        ]
+                                    },
+                                    {
+                                        "name": "Elige tus bebidas (4)",
+                                        "required": true,
+                                        "min": 4,
+                                        "max": 4,
+                                        "options": [
+                                            {"name": "Coca-Cola", "price": 0},
+                                            {"name": "Sprite", "price": 0}
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "sku": "41",
+                        "name": "Pastas bigoli",
+                        "items": [
+                            {
+                                "sku": "42.0",
+                                "name": "Pasta pesto",
+                                "price": 6290,
+                                "description": "Pasta bigoli artesanal con salsa pesto.",
+                                "image": "https://via.placeholder.com/300x300/00b894/ffffff?text=Pasta+Pesto",
+                                "modifiers": []
+                            },
+                            {
+                                "sku": "44.0",
+                                "name": "Pasta Alfredo",
+                                "price": 6290,
+                                "description": "Pasta bigoli artesanal con salsa alfredo.",
+                                "image": "https://via.placeholder.com/300x300/00b894/ffffff?text=Pasta+Alfredo",
+                                "modifiers": []
+                            },
+                            {
+                                "sku": "47.0",
+                                "name": "Pasta bolonesa",
+                                "price": 6290,
+                                "description": "Pasta bigoli artesanal con salsa bolonesa.",
+                                "image": "https://via.placeholder.com/300x300/00b894/ffffff?text=Pasta+Bolognesa",
+                                "modifiers": []
+                            }
+                        ]
+                    },
+                    {
+                        "sku": "55",
+                        "name": "Bebidas",
+                        "items": [
+                            {
+                                "sku": "56.0",
+                                "name": "Coca-Cola Original",
+                                "price": 2800,
+                                "description": "350 ml.",
+                                "image": "https://via.placeholder.com/300x300/e74c3c/ffffff?text=Coca-Cola",
+                                "modifiers": []
+                            },
+                            {
+                                "sku": "57.0",
+                                "name": "Sprite Original",
+                                "price": 2800,
+                                "description": "350 ml.",
+                                "image": "https://via.placeholder.com/300x300/2ecc71/ffffff?text=Sprite",
+                                "modifiers": []
+                            },
+                            {
+                                "sku": "58.0",
+                                "name": "Sprite Sin azucar",
+                                "price": 2800,
+                                "description": "350 ml.",
+                                "image": "https://via.placeholder.com/300x300/27ae60/ffffff?text=Sprite+Zero",
+                                "modifiers": []
+                            }
+                        ]
+                    },
+                    {
+                        "sku": "sandwiches",
+                        "name": "Sándwiches",
+                        "items": [
+                            {
+                                "sku": "focaccia_pesto",
+                                "name": "Focaccia pesto",
+                                "price": 3770,
+                                "description": "Pan artesanal, pesto, pomodoro, jamón y queso",
+                                "image": "https://via.placeholder.com/300x300/f39c12/ffffff?text=Focaccia+Pesto",
+                                "modifiers": []
+                            },
+                            {
+                                "sku": "focaccia_salame",
+                                "name": "Focaccia salame",
+                                "price": 3770,
+                                "description": "Pan artesanal, queso crema y salame",
+                                "image": "https://via.placeholder.com/300x300/e67e22/ffffff?text=Focaccia+Salame",
+                                "modifiers": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // Renderizar menú
+        function renderMenu() {
+            const container = document.getElementById('menuContainer');
+            const sections = menuData.menu.sections;
+            
+            sections.forEach(section => {
+                const sectionCard = document.createElement('div');
+                sectionCard.className = 'section-card';
+                
+                const sectionHeader = document.createElement('div');
+                sectionHeader.className = 'section-header';
+                sectionHeader.innerHTML = `
+                    <h3>${section.name}</h3>
+                    <span class="section-badge">${section.items.length} productos</span>
+                `;
+                
+                const sectionBody = document.createElement('div');
+                sectionBody.className = 'section-body';
+                
+                section.items.forEach(item => {
+                    const productDiv = document.createElement('div');
+                    productDiv.className = 'product-item';
+                    productDiv.onclick = () => openProductModal(item);
+                    
+                    productDiv.innerHTML = `
+                        <div class="product-header">
+                            <img src="${item.image}" alt="${item.name}" class="product-image">
+                            <div class="product-info">
+                                <div class="product-name">${item.name}</div>
+                                <div class="product-description">${item.description}</div>
+                                <div class="product-price">$${item.price.toLocaleString('es-CL')}</div>
+                                <div class="product-sku">SKU: ${item.sku}</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    sectionBody.appendChild(productDiv);
+                });
+                
+                sectionCard.appendChild(sectionHeader);
+                sectionCard.appendChild(sectionBody);
+                container.appendChild(sectionCard);
+            });
+        }
+
+        // Abrir modal con modificadores
+        function openProductModal(product) {
+            const modal = new bootstrap.Modal(document.getElementById('productModal'));
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            
+            modalTitle.textContent = product.name;
+            
+            let modifiersHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="${product.image}" style="width: 100%; max-width: 300px; border-radius: 12px;">
+                    <p style="color: #636e72; margin-top: 10px;">${product.description}</p>
+                    <h4 style="color: #00b894; font-weight: 700;">$${product.price.toLocaleString('es-CL')}</h4>
+                </div>
+            `;
+            
+            if (product.modifiers && product.modifiers.length > 0) {
+                product.modifiers.forEach((modifier, modIndex) => {
+                    modifiersHTML += `
+                        <div class="modifier-group">
+                            <div class="modifier-title">${modifier.name}</div>
+                            <div class="modifier-subtitle">
+                                ${modifier.required ? '<span style="color: #e74c3c;">Requerido</span>' : 'Opcional'} 
+                                - Selecciona ${modifier.min === modifier.max ? modifier.min : `${modifier.min} a ${modifier.max}`}
+                            </div>
+                    `;
+                    
+                    modifier.options.forEach((option, optIndex) => {
+                        const optionId = `mod_${modIndex}_opt_${optIndex}`;
+                        modifiersHTML += `
+                            <div class="modifier-option" data-modifier="${modIndex}" data-option="${optIndex}" 
+                                 onclick="selectOption(this, ${modifier.min}, ${modifier.max})">
+                                <span class="modifier-option-name">
+                                    <i class="far fa-circle" style="margin-right: 10px;"></i>
+                                    ${option.name}
+                                </span>
+                                <span class="modifier-option-price">
+                                    ${option.price > 0 ? '+$' + option.price.toLocaleString('es-CL') : 'Incluido'}
+                                </span>
+                            </div>
+                        `;
+                    });
+                    
+                    modifiersHTML += `</div>`;
+                });
+            } else {
+                modifiersHTML += '<p style="text-align: center; color: #636e72;">Este producto no tiene opciones adicionales.</p>';
+            }
+            
+            modifiersHTML += `
+                <div class="quantity-selector">
+                    <button class="quantity-btn" onclick="changeQuantity(-1)">-</button>
+                    <span class="quantity-value" id="quantity">1</span>
+                    <button class="quantity-btn" onclick="changeQuantity(1)">+</button>
+                </div>
+                <button class="add-to-cart-btn" onclick="addToCart()">
+                    <i class="fas fa-shopping-cart"></i> Agregar al carrito
+                </button>
+            `;
+            
+            modalBody.innerHTML = modifiersHTML;
+            modal.show();
+        }
+
+        let currentQuantity = 1;
+
+        function changeQuantity(delta) {
+            currentQuantity = Math.max(1, currentQuantity + delta);
+            document.getElementById('quantity').textContent = currentQuantity;
+        }
+
+        function selectOption(element, min, max) {
+            const modifier = element.dataset.modifier;
+            const selected = document.querySelectorAll(`.modifier-option[data-modifier="${modifier}"].selected`);
+            
+            if (element.classList.contains('selected')) {
+                element.classList.remove('selected');
+                element.querySelector('i').className = 'far fa-circle';
+            } else {
+                if (selected.length >= max) {
+                    if (max === 1) {
+                        selected.forEach(s => {
+                            s.classList.remove('selected');
+                            s.querySelector('i').className = 'far fa-circle';
+                        });
+                    } else {
+                        alert(`Solo puedes seleccionar ${max} opciones`);
+                        return;
+                    }
+                }
+                element.classList.add('selected');
+                element.querySelector('i').className = 'fas fa-check-circle';
+            }
+        }
+
+        function addToCart() {
+            alert(`¡Producto agregado al carrito! (${currentQuantity} unidad${currentQuantity > 1 ? 'es' : ''})`);
+            bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+            currentQuantity = 1;
+        }
+
+        // Inicializar
+        renderMenu();
+    </script>
+</body>
+</html>

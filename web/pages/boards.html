@@ -106,6 +106,9 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <div class="input-group mb-2">
+                        <input type="text" class="form-control" placeholder="NOMBRE DEL CLIENTE" id="client_name">
+                    </div>
                     <div class="input-group ">
                         <input type="text" class="form-control" placeholder="COMENTARIO" id="commit">
                     </div>
@@ -125,6 +128,7 @@
         const _nameBoss = $("#boss-name")
         const _nameWaiter = $("#waiter-name")
         const _commit = $("#commit")
+        const _clientName = $("#client_name")
         const _SendVentas = $("#send")
         const _total = $("#total")
         const _list = $("#board-list")
@@ -314,6 +318,7 @@
                                         }
                                     })
                                     _commit.val(_PRECARGA.commit)
+                                    _clientName.val(_PRECARGA.client_ticket || "")
                                 }
                                 return false
                             }
@@ -388,9 +393,8 @@
                 "board_id": String(_VENTA.board),
                 "total": String(_VENTA.total),
                 "products": _VENTA.products,
-
                 "description": _commit.val(),
-
+                "client_ticket": _clientName.val(),
             }, function (request) {
                 if (!is_undefined(request.ticket)) {
                     _console.log("ORDEN ENVIADA", "")
@@ -434,7 +438,7 @@
                 _PRECARGA.waiter = board.waiter.id
                 _PRECARGA.board = board.id
                 _PRECARGA.commit = board.order.description
-
+                _PRECARGA.client_ticket = board.order.client_ticket || ""
             }
 
             handleOpenOrder()

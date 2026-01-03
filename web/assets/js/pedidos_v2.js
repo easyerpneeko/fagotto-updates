@@ -313,40 +313,38 @@ function verPedido(app_id, id) {
             
             let fila = "";
 
-            // FunciÃ³n para determinar la unidad correcta - VERSIÓN ROBUSTA
+            // FunciÃ³n para determinar la unidad correcta - USA unidad_medida DE LA DB
             function getUnidadProducto(product) {
                 console.log("🔍 MODAL ANALISIS:", {
                     nombre: product.name,
                     cantidad: product.quantity,
+                    unidad_medida: product.unidad_medida,
                     categoria: product.category,
-                    id: product.id,
-                    nombreLower: product.name.toLowerCase()
+                    id: product.id
                 });
                 
-                // FOCACCIAS - MÁXIMA PRIORIDAD - MÚLTIPLES DETECTORES
-                // ⚠️ IMPORTANTE: Solo detectar focaccias por nombre si REALMENTE contiene "focaccia"
+                // ✅ PRIORIDAD 1: Si viene unidad_medida de la base de datos, usarla
+                if (product.unidad_medida && product.unidad_medida.trim() !== '') {
+                    console.log("✅ USANDO UNIDAD DE DB:", product.name, "->", product.quantity + ' ' + product.unidad_medida);
+                    return product.quantity + ' ' + product.unidad_medida;
+                }
+                
+                // FALLBACK: Lógica anterior por si no viene unidad_medida
+                // FOCACCIAS
                 const esFocacciaNombre = product.name.toLowerCase().includes('focaccia') && !product.name.toLowerCase().includes('pesto');
                 const esCategoria3 = product.category == 3;
-                const esFocacciaID = [11, 23, 27, 28].includes(product.id); // ✅ AGREGADO ID 27 para Focaccia alleato
-                
-                // 🥫 EXCLUSIÓN ESPECÍFICA: El pesto (salsa ID 19) NUNCA es focaccia
-                const esPestoSalsaPorID = product.id == 19; // Pesto salsa específico
+                const esFocacciaID = [11, 23, 27, 28].includes(product.id);
+                const esPestoSalsaPorID = product.id == 19;
                 const esPestoSalsa = product.name.toLowerCase().includes('pesto') && !product.name.toLowerCase().includes('focaccia');
                 
                 if ((esFocacciaNombre || esCategoria3 || esFocacciaID) && !esPestoSalsaPorID && !esPestoSalsa) {
                     const cantidadFinal = parseInt(product.quantity) || product.quantity;
-                    console.log("🥖 FOCACCIA CONFIRMADA:", {
-                        nombre: product.name,
-                        cantidadOriginal: product.quantity,
-                        cantidadFinal: cantidadFinal,
-                        detectadoPor: esFocacciaNombre ? 'NOMBRE' : esCategoria3 ? 'CATEGORIA_3' : 'ID_FOCACCIA'
-                    });
+                    console.log("🥖 FOCACCIA FALLBACK:", product.name, "->", cantidadFinal + ' unidades');
                     return cantidadFinal + ' unidades';
                 }
                 
-                // 🥫 SALSAS - SIEMPRE EN KILOGRAMOS (prioridad alta)
-                if (product.id == 19) { // Pesto salsa específico
-                    console.log("🥫 PESTO SALSA DETECTADO (ID 19):", product.name, "->", product.quantity + ' kg');
+                // SALSAS FALLBACK
+                if (product.id == 19) {
                     return product.quantity + ' kg';
                 }
                 
@@ -356,23 +354,21 @@ function verPedido(app_id, id) {
                                product.name.toLowerCase().includes('mostaza');
                 
                 if (esSalsa && !product.name.toLowerCase().includes('focaccia')) {
-                    console.log("🥫 SALSA DETECTADA:", product.name, "->", product.quantity + ' kg');
                     return product.quantity + ' kg';
                 }
                 
-                // Casos específicos
+                // Casos específicos fallback
                 if (product.name === 'Botella de Huevos 1L') return product.quantity + ' botellas';
                 if (product.name === 'Aceite Vegetal 5L') return product.quantity + ' unidades';
                 if (product.name === 'Pliego (124 stickers)') return product.quantity + ' Pliego';
                 
-                // Productos específicos en unidades
                 const productosUnidades = ['Vaso', 'Sandwich', 'Aceite de oliva 5kg', 'Harina', 'Bolsa', 'papel mantequilla (Focaccia)', 'Papel Mantequilla (Bandeja)'];
                 if (productosUnidades.includes(product.name)) {
                     return product.quantity + ' unidades';
                 }
                 
                 // Por defecto kg
-                console.log("⚡ Producto va en KG:", product.name);
+                console.log("⚡ FALLBACK - Producto va en KG:", product.name);
                 return product.quantity + ' kg';
             }
 
@@ -1281,40 +1277,38 @@ async function imprimirPedidoPDF() {
         startY += 10; // Cabecera más chica
         const rowHeight = 9; // Filas más chicas
         
-        // FUNCIÓN PDF - IDÉNTICA AL MODAL
+        // FUNCIÓN PDF - USA unidad_medida DE LA DB
         function getUnidadProducto(product) {
             console.log("🔍 PDF ANALISIS:", {
                 nombre: product.name,
                 cantidad: product.quantity,
+                unidad_medida: product.unidad_medida,
                 categoria: product.category,
-                id: product.id,
-                nombreLower: product.name.toLowerCase()
+                id: product.id
             });
             
-            // FOCACCIAS - MÁXIMA PRIORIDAD - MÚLTIPLES DETECTORES
-            // ⚠️ IMPORTANTE: Solo detectar focaccias por nombre si REALMENTE contiene "focaccia"
+            // ✅ PRIORIDAD 1: Si viene unidad_medida de la base de datos, usarla
+            if (product.unidad_medida && product.unidad_medida.trim() !== '') {
+                console.log("✅ PDF USANDO UNIDAD DE DB:", product.name, "->", product.quantity + ' ' + product.unidad_medida);
+                return product.quantity + ' ' + product.unidad_medida;
+            }
+            
+            // FALLBACK: Lógica anterior por si no viene unidad_medida
+            // FOCACCIAS
             const esFocacciaNombre = product.name.toLowerCase().includes('focaccia') && !product.name.toLowerCase().includes('pesto');
             const esCategoria3 = product.category == 3;
-            const esFocacciaID = [11, 23, 27, 28].includes(product.id); // ✅ AGREGADO ID 27 para Focaccia alleato
-            
-            // 🥫 EXCLUSIÓN ESPECÍFICA: El pesto (salsa ID 19) NUNCA es focaccia
-            const esPestoSalsaPorID = product.id == 19; // Pesto salsa específico
+            const esFocacciaID = [11, 23, 27, 28].includes(product.id);
+            const esPestoSalsaPorID = product.id == 19;
             const esPestoSalsa = product.name.toLowerCase().includes('pesto') && !product.name.toLowerCase().includes('focaccia');
             
             if ((esFocacciaNombre || esCategoria3 || esFocacciaID) && !esPestoSalsaPorID && !esPestoSalsa) {
                 const cantidadFinal = parseInt(product.quantity) || product.quantity;
-                console.log("🥖 PDF FOCACCIA CONFIRMADA:", {
-                    nombre: product.name,
-                    cantidadOriginal: product.quantity,
-                    cantidadFinal: cantidadFinal,
-                    detectadoPor: esFocacciaNombre ? 'NOMBRE' : esCategoria3 ? 'CATEGORIA_3' : 'ID_FOCACCIA'
-                });
+                console.log("🥖 PDF FOCACCIA FALLBACK:", product.name, "->", cantidadFinal + ' unidades');
                 return cantidadFinal + ' unidades';
             }
             
-            // 🥫 SALSAS - SIEMPRE EN KILOGRAMOS (prioridad alta)
-            if (product.id == 19) { // Pesto salsa específico
-                console.log("🥫 PDF PESTO SALSA DETECTADO (ID 19):", product.name, "->", product.quantity + ' kg');
+            // SALSAS FALLBACK
+            if (product.id == 19) {
                 return product.quantity + ' kg';
             }
             
@@ -1324,23 +1318,21 @@ async function imprimirPedidoPDF() {
                            product.name.toLowerCase().includes('mostaza');
             
             if (esSalsa && !product.name.toLowerCase().includes('focaccia')) {
-                console.log("🥫 PDF SALSA DETECTADA:", product.name, "->", product.quantity + ' kg');
                 return product.quantity + ' kg';
             }
             
-            // Casos específicos
+            // Casos específicos fallback
             if (product.name === 'Botella de Huevos 1L') return product.quantity + ' botellas';
             if (product.name === 'Aceite Vegetal 5L') return product.quantity + ' unidades';
             if (product.name === 'Pliego (124 stickers)') return product.quantity + ' Pliego';
             
-            // Productos específicos en unidades
             const productosUnidades = ['Vaso', 'Sandwich', 'Aceite de oliva 5kg', 'Harina', 'Bolsa', 'papel mantequilla (Focaccia)', 'Papel Mantequilla (Bandeja)'];
             if (productosUnidades.includes(product.name)) {
                 return product.quantity + ' unidades';
             }
             
             // Por defecto kg
-            console.log("⚡ PDF Producto va en KG:", product.name);
+            console.log("⚡ PDF FALLBACK - Producto va en KG:", product.name);
             return product.quantity + ' kg';
         }
         

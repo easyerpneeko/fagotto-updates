@@ -699,10 +699,9 @@ async function cargarCounterEnTabla(request) {
                                 </div>`;
                 } else {
                     metaHTML = `<div>
-                                    <div class="fw-bold text-danger">❌ Meta fallida</div>
-                                    <div style="font-size: 0.85rem; color: #ef4444;">
+                                    <div style="font-size: 1.3rem; font-weight: bold; color: #f59e0b;">Faltan ${formatearMontoChile(Math.abs(diferencia))}</div>
+                                    <div style="font-size: 0.85rem; color: #9ca3af;">
                                         Meta: ${formatearMontoChile(metaValor)}
-                                        <span class="badge bg-danger">Faltó ${formatearMontoChile(Math.abs(diferencia))}</span>
                                     </div>
                                 </div>`;
                 }
@@ -824,10 +823,9 @@ async function cargarCounterEnTabla(request) {
                                 </div>`;
                 } else {
                     metaHTML = `<div>
-                                    <div class="fw-bold text-danger">❌ Meta fallida</div>
-                                    <div style="font-size: 0.85rem; color: #ef4444;">
+                                    <div style="font-size: 1.3rem; font-weight: bold; color: #f59e0b;">Faltan ${formatearMontoChile(Math.abs(diferencia))}</div>
+                                    <div style="font-size: 0.85rem; color: #9ca3af;">
                                         Meta: ${formatearMontoChile(metaValor)}
-                                        <span class="badge bg-danger">Faltó ${formatearMontoChile(Math.abs(diferencia))}</span>
                                     </div>
                                 </div>`;
                 }

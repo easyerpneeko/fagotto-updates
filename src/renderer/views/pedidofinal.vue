@@ -49,7 +49,7 @@
                                 {{ mostrarHistorial ? 'Pedido' : 'Historial' }}
                             </button>
                         </div>
-                        <div class="col-lg-2 col-md-6 col-6 mt-3 mt-md-0">
+                        <div class="col-lg-2 col-md-6 col-6 mt-3 mt-md-0" style="display: none;">
                             <button @click="abrirAdminProductos" class="btn-urgente w-100" style="background: linear-gradient(45deg, #6c757d, #495057);">
                                 <i class="fas fa-cog"></i>
                                 Admin

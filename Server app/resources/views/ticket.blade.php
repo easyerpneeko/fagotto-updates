@@ -107,9 +107,16 @@ if (isset($order['envs']) && isset($order['envs']->sii_logo) && isset($order['en
           <p class="text-uppercase">
             Mesero: {{ $order['waiter']->name }}
           </p>
-          <p class="text-uppercase mb-2">
+          <p class="text-uppercase">
             Mesa: {{ $order['board']->name  }}
           </p>
+          @if(isset($order['client_ticket']) && $order['client_ticket'])
+          <p class="text-uppercase mb-2">
+            Nombre cliente: {{ $order['client_ticket'] }}
+          </p>
+          @else
+          <p class="mb-2"></p>
+          @endif
         @endif
       </div>
       <table>

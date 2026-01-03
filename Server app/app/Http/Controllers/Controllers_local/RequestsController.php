@@ -170,24 +170,93 @@ class RequestsController extends Controller
             'app_id' => 'required|integer',
         ]);
 
-        // NO validamos stock porque son productos de precios centralizados
-        $newRequest = new Requests();
-        $newRequest->contact_name = $validatedData['contact_name'];
-        $newRequest->contact_phone = $validatedData['contact_phone'];
-        $newRequest->paymode = $validatedData['paymode'];
-        $newRequest->price = $validatedData['price'] ?? 0;
-        $newRequest->subtotal = $validatedData['subtotal'] ?? 0;
-        $newRequest->iva = $validatedData['iva'] ?? 0;
-        $newRequest->emergency = $validatedData['emergency'] ?? 0;
-        $newRequest->despacho = $validatedData['despacho'] ?? 0;
-        $newRequest->products = $validatedData['products'];
-        $newRequest->comment = $validatedData['comment'];
-        $newRequest->status = $validatedData['status'];
-        $newRequest->status_payment = 'impagado';
-        $newRequest->app_id = $validatedData['app_id'];
-        $newRequest->save();
+        // Validar stock de productos antes de crear el pedido
+        $productos = json_decode($validatedData['products'], true);
+        $productosConStock = [];
+        
+        foreach ($productos as $producto) {
+            // Buscar el producto en la tabla de precios centralizados
+            $productoDB = DB::connection('easyerp_master')
+                ->table('pedidofinal_precios')
+                ->where('id', $producto['id'])
+                ->first();
+            
+            if (!$productoDB) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Producto '{$producto['name']}' no encontrado en precios centralizados"
+                ], 404);
+            }
+            
+            // Solo validar stock si el producto tiene control de stock (stock NOT NULL)
+            if ($productoDB->stock !== null) {
+                $cantidadSolicitada = floatval($producto['quantity']);
+                $stockDisponible = floatval($productoDB->stock);
+                
+                if ($stockDisponible <= 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "⚠️ '{$productoDB->producto}' sin stock disponible"
+                    ], 400);
+                }
+                
+                if ($cantidadSolicitada > $stockDisponible) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "⚠️ '{$productoDB->producto}': solo quedan {$stockDisponible} {$productoDB->unidad_medida}, solicitaste {$cantidadSolicitada}"
+                    ], 400);
+                }
+                
+                // Guardar para descontar después
+                $productosConStock[] = [
+                    'id' => $productoDB->id,
+                    'cantidad' => $cantidadSolicitada
+                ];
+            }
+        }
 
-        return response()->json(['message' => 'Pedido Final creado con éxito', 'id' => $newRequest->id], 201);
+        // Crear el pedido usando transacción para atomicidad
+        DB::beginTransaction();
+        try {
+            $newRequest = new Requests();
+            $newRequest->contact_name = $validatedData['contact_name'];
+            $newRequest->contact_phone = $validatedData['contact_phone'];
+            $newRequest->paymode = $validatedData['paymode'];
+            $newRequest->price = $validatedData['price'] ?? 0;
+            $newRequest->subtotal = $validatedData['subtotal'] ?? 0;
+            $newRequest->iva = $validatedData['iva'] ?? 0;
+            $newRequest->emergency = $validatedData['emergency'] ?? 0;
+            $newRequest->despacho = $validatedData['despacho'] ?? 0;
+            $newRequest->products = $validatedData['products'];
+            $newRequest->comment = $validatedData['comment'];
+            $newRequest->status = $validatedData['status'];
+            $newRequest->status_payment = 'impagado';
+            $newRequest->app_id = $validatedData['app_id'];
+            $newRequest->save();
+            
+            // Descontar stock de los productos
+            foreach ($productosConStock as $prod) {
+                DB::connection('easyerp_master')
+                    ->table('pedidofinal_precios')
+                    ->where('id', $prod['id'])
+                    ->decrement('stock', $prod['cantidad']);
+            }
+            
+            DB::commit();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Pedido Final creado con éxito',
+                'id' => $newRequest->id
+            ], 201);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear pedido: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function update(Request $request, $id)

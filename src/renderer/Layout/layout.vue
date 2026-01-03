@@ -532,15 +532,24 @@ export default {
           //   requiresTurno: true
           // });
         }
-        //Modulo de pedidos
-        if (pedidos) {
-          menu.push({
-            label: 'Crear Pedido',
-            route: '/inicio/pedidos',
-            icon: 'fas fa-truck-loading',
-            requiresTurno: true
-          });
-        }
+        // ❌ DESHABILITADO - Crear Pedido (viejo sistema)
+        // if (pedidos) {
+        //   menu.push({
+        //     label: 'Crear Pedido',
+        //     route: '/inicio/pedidos',
+        //     icon: 'fas fa-truck-loading',
+        //     requiresTurno: true
+        //   });
+        // }
+        
+        // 📦 Módulo de Pedido Final - Público para todos
+        menu.push({
+          label: 'Crear Pedido',
+          route: '/inicio/pedido-final',
+          icon: 'fas fa-clipboard-list',
+          requiresTurno: false,
+          badge: 'NUEVO'
+        });
         
         // Módulo Totem (Kiosko) - Solo administradores
         const isAdmin = this.isUserAdmin();
@@ -550,7 +559,7 @@ export default {
             route: '/inicio/totem',
             icon: 'fas fa-desktop',
             requiresTurno: false,
-            badge: 'NEW'
+            badge: 'ADMIN'
           });
         }
         
@@ -619,17 +628,6 @@ export default {
           requiresTurno: false,
           badge: 'NEW'
         });
-
-        // 📦 Módulo de Pedido Final - Solo para Admin
-        if (isAdmin) {
-          menu.push({
-            label: 'Pedido Final',
-            route: '/inicio/pedido-final',
-            icon: 'fas fa-clipboard-list',
-            requiresTurno: false,
-            badge: 'ADMIN'
-          });
-        }
 
         // Admin Carnets - OCULTO
         // menu.push({

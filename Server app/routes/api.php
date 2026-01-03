@@ -234,6 +234,14 @@ Route::group(['middleware' => ['AppSecurity']], function () {
 
   Route::post('/local/login', 'Controllers_local\LoginLocal@login');
 
+  // ========== MERCADISE DELIVERY INTEGRATION (Solo App-Key, sin JWT) ==========
+  Route::group(['middleware' => ['AppSecurity']], function () {
+    Route::get('/mercadise/menu', 'MercadiseController@getMenu'); // Mercadise lee catálogo
+    Route::post('/webhooks/mercadise', 'MercadiseController@receiveOrder'); // Mercadise envía pedidos
+    Route::get('/mercadise/orders', 'MercadiseController@getOrders'); // Listar pedidos internos
+    Route::put('/mercadise/orders/{orderId}/status', 'MercadiseController@updateOrderStatus'); // Actualizar estado
+  });
+
   Route::group(['middleware' => ['JwtMiddleware']], function () {
 
       Route::get('/local/feeds', 'FeedController@getMyFeeds');
@@ -297,8 +305,11 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::post('/local/products/updateStock/{id}', 'ProductController@updateStock'); 
           Route::get('/local/products/stockHistory', 'ProductController@getStockHistory'); 
           
-          // Precios centralizados desde DB maestra
+          // Precios centralizados desde DB maestra - CRUD completo
           Route::get('/local/precios-centralizados', 'ProductController@getPreciosCentralizados');
+          Route::post('/local/precios-centralizados', 'ProductController@createPrecioCentralizado');
+          Route::put('/local/precios-centralizados/{id}', 'ProductController@updatePrecioCentralizado');
+          Route::delete('/local/precios-centralizados/{id}', 'ProductController@deletePrecioCentralizado');
           
           Route::get('/local/products/fagotto', 'Controllers_local\ProductsController@getProductsOfFagotto');
 //JC - 

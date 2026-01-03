@@ -249,5 +249,133 @@ class ProductController extends Controller
           ], 500);
       }
   }
+
+  /**
+   * Crear nuevo producto en pedidofinal_precios
+   */
+  public function createPrecioCentralizado(Request $request)
+  {
+      try {
+          // Validar datos requeridos
+          $request->validate([
+              'producto' => 'required|string|max:255',
+              'unidad_venta' => 'required|numeric',
+              'unidad_medida' => 'required|string|max:50',
+              'precio_por_unidad' => 'required|numeric',
+              'categoria' => 'required|string|max:100',
+              'activo' => 'boolean'
+          ]);
+
+          // Insertar en la DB maestra
+          $id = DB::connection('easyerp_master')
+              ->table('pedidofinal_precios')
+              ->insertGetId([
+                  'producto' => $request->producto,
+                  'unidad_venta' => $request->unidad_venta,
+                  'unidad_medida' => $request->unidad_medida,
+                  'precio_por_unidad' => $request->precio_por_unidad,
+                  'categoria' => strtolower($request->categoria),
+                  'activo' => $request->activo ?? 1,
+                  'fecha_actualizacion' => now()
+              ]);
+
+          return response()->json([
+              'success' => true,
+              'message' => 'Producto creado exitosamente',
+              'data' => ['id' => $id]
+          ], 201);
+
+      } catch (\Exception $e) {
+          return response()->json([
+              'success' => false,
+              'message' => 'Error al crear producto: ' . $e->getMessage()
+          ], 500);
+      }
+  }
+
+  /**
+   * Actualizar producto existente en pedidofinal_precios
+   */
+  public function updatePrecioCentralizado(Request $request, $id)
+  {
+      try {
+          // Validar datos
+          $request->validate([
+              'producto' => 'required|string|max:255',
+              'unidad_venta' => 'required|numeric',
+              'unidad_medida' => 'required|string|max:50',
+              'precio_por_unidad' => 'required|numeric',
+              'categoria' => 'required|string|max:100',
+              'activo' => 'boolean'
+          ]);
+
+          // Actualizar en la DB maestra
+          $updated = DB::connection('easyerp_master')
+              ->table('pedidofinal_precios')
+              ->where('id', $id)
+              ->update([
+                  'producto' => $request->producto,
+                  'unidad_venta' => $request->unidad_venta,
+                  'unidad_medida' => $request->unidad_medida,
+                  'precio_por_unidad' => $request->precio_por_unidad,
+                  'categoria' => strtolower($request->categoria),
+                  'activo' => $request->activo ?? 1,
+                  'fecha_actualizacion' => now()
+              ]);
+
+          if (!$updated) {
+              return response()->json([
+                  'success' => false,
+                  'message' => 'Producto no encontrado'
+              ], 404);
+          }
+
+          return response()->json([
+              'success' => true,
+              'message' => 'Producto actualizado exitosamente'
+          ], 200);
+
+      } catch (\Exception $e) {
+          return response()->json([
+              'success' => false,
+              'message' => 'Error al actualizar producto: ' . $e->getMessage()
+          ], 500);
+      }
+  }
+
+  /**
+   * Eliminar producto de pedidofinal_precios (soft delete)
+   */
+  public function deletePrecioCentralizado($id)
+  {
+      try {
+          // Soft delete: marcar como inactivo en lugar de eliminar
+          $updated = DB::connection('easyerp_master')
+              ->table('pedidofinal_precios')
+              ->where('id', $id)
+              ->update([
+                  'activo' => 0,
+                  'fecha_actualizacion' => now()
+              ]);
+
+          if (!$updated) {
+              return response()->json([
+                  'success' => false,
+                  'message' => 'Producto no encontrado'
+              ], 404);
+          }
+
+          return response()->json([
+              'success' => true,
+              'message' => 'Producto eliminado exitosamente'
+          ], 200);
+
+      } catch (\Exception $e) {
+          return response()->json([
+              'success' => false,
+              'message' => 'Error al eliminar producto: ' . $e->getMessage()
+          ], 500);
+      }
+  }
 }
 

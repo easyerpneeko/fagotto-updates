@@ -1,0 +1,24 @@
+Hola!
+
+Les paso los archivos para probar la API:
+
+- Merchise_API_Tests.postman_collection.json → la colección con todos los tests
+- Locales_Fagotto.xlsx → los 22 locales con sus App-Keys
+
+Para probar solo tienen que:
+1. Abrir Postman e importar el JSON
+2. Ir a la colección → Edit → Variables 
+3. Cambiar el app_key por el Serial de cualquier local del Excel
+4. Correr los tests del 1 al 5 en orden
+
+Los endpoints son:
+- GET /api/merchise/menu (obtener productos)
+- POST /api/webhooks/merchise (recibir pedidos)
+- GET /api/merchise/orders (ver pedidos)
+- PUT /api/merchise/orders/{id}/status (actualizar estado)
+
+La autenticación es solo con el header App-Key, no necesitan token ni nada más.
+
+Ya probé todo acá y funciona perfecto. Si tienen alguna duda me avisan nomás.
+
+Saludos!

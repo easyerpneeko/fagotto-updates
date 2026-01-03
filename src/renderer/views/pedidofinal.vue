@@ -30,53 +30,62 @@
         </div>
 
         <!-- Interfaz Principal de Pedidos -->
-        <div v-else class="pedido-final-main">
-            <!-- Header Moderno -->
-            <div class="modern-header">
-                <div class="header-left">
-                    <h2>🛒 Tu Pedido</h2>
-                    <p class="header-subtitle">{{ this.app && this.app.Name ? this.app.Name : 'Cargando...' }} • {{ this.date }}</p>
-                </div>
-                <div class="header-right">
-                    <button @click="mostrarHistorial = !mostrarHistorial" class="btn-historial">
-                        <i class="fas fa-history"></i>
-                        {{ mostrarHistorial ? 'Nuevo Pedido' : 'Historial' }}
-                    </button>
-                    <div class="total-badge-container">
-                        <div class="total-badge">
-                            <span class="total-label">Subtotal:</span>
-                            <span class="total-value">${{ formatNumber(totalPedido) }}</span>
+        <div v-else class="pedidos-container">
+            <div class="pedidos-main">
+                <!-- Header Responsivo -->
+                <div class="pedidos-header fade-in-up">
+                    <div class="row align-items-center">
+                        <div class="col-lg-5 col-md-6 col-12">
+                            <div class="pedidos-title-card card">
+                                <div class="card-body">
+                                    <h5>🛒 Tu Pedido</h5>
+                                    <span>{{ this.app && this.app.Name ? this.app.Name : 'Cargando...' }} • {{ this.date }}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="iva-badge-header">
-                            <i class="fas fa-plus-circle"></i> IVA 19%: ${{ formatNumber(montoIVA) }}
+                        <div class="col-lg-2 col-md-6 col-6 mt-3 mt-md-0">
+                            <button @click="mostrarHistorial = !mostrarHistorial" class="btn-urgente w-100">
+                                <i class="fas fa-history"></i>
+                                {{ mostrarHistorial ? 'Pedido' : 'Historial' }}
+                            </button>
                         </div>
-                        <div class="total-final-header">
-                            TOTAL: ${{ formatNumber(totalConIVA) }}
+                        <div class="col-lg-2 col-md-6 col-6 mt-3 mt-md-0">
+                            <button @click="abrirAdminProductos" class="btn-urgente w-100" style="background: linear-gradient(45deg, #6c757d, #495057);">
+                                <i class="fas fa-cog"></i>
+                                Admin
+                            </button>
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-12 mt-3 mt-lg-0">
+                            <div class="total-badge-responsive">
+                                <span class="total-label">Total:</span>
+                                <span class="total-value">${{ formatNumber(totalPedido) }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Historial de Pedidos -->
-            <div v-if="mostrarHistorial" class="historial-container">
-                <div class="historial-header">
-                    <h3><i class="fas fa-clock"></i> Historial de Pedidos ({{ historialPedidos.length }})</h3>
-                    <button @click="cargarHistorial" class="btn-refresh-small" :disabled="loadingHistorial">
-                        <i class="fas fa-sync-alt" :class="{ 'fa-spin': loadingHistorial }"></i>
-                    </button>
-                </div>
+                <!-- Historial de Pedidos -->
+                <div v-if="mostrarHistorial" class="section-card fade-in-up">
+                    <div class="section-card-header">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <h3 class="m-0"><i class="fas fa-clock"></i> Historial de Pedidos ({{ historialPedidos.length }})</h3>
+                            <button @click="cargarHistorial" class="btn-refresh-small" :disabled="loadingHistorial" style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;">
+                                <i class="fas fa-sync-alt" :class="{ 'fa-spin': loadingHistorial }"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="section-card-body">
+                        <div v-if="loadingHistorial" class="loading-modern">
+                            <i class="fas fa-spinner fa-spin"></i> Cargando historial...
+                        </div>
 
-                <div v-if="loadingHistorial" class="loading-modern">
-                    <i class="fas fa-spinner fa-spin"></i> Cargando historial...
-                </div>
+                        <div v-else-if="!historialPedidos || historialPedidos.length === 0" class="empty-state fade-in-up">
+                            <i class="fas fa-inbox fa-3x"></i>
+                            <p>No hay pedidos registrados</p>
+                        </div>
 
-                <div v-else-if="!historialPedidos || historialPedidos.length === 0" class="empty-state">
-                    <i class="fas fa-inbox fa-3x"></i>
-                    <p>No hay pedidos registrados</p>
-                </div>
-
-                <div v-else class="historial-grid">
-                    <div v-for="pedido in historialPedidos" :key="pedido.id" class="historial-card">
+                        <div v-else class="historial-grid">
+                            <div v-for="pedido in historialPedidos" :key="pedido.id" class="historial-card">
                         <div class="historial-card-header">
                             <div class="pedido-numero">
                                 <i class="fas fa-hashtag"></i> {{ pedido.id }}
@@ -121,178 +130,296 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Formulario Compacto -->
-            <div v-if="!mostrarHistorial" class="form-compact">
-                <div class="form-grid">
-                    <div class="form-field">
-                        <label><i class="fas fa-user"></i> Nombre</label>
-                        <input v-model="name" type="text" placeholder="Tu nombre completo">
-                    </div>
-                    <div class="form-field">
-                        <label><i class="fas fa-phone"></i> Teléfono</label>
-                        <input v-model="phone" type="text" placeholder="+56 9 XXXX XXXX">
-                    </div>
-                    <div class="form-field">
-                        <label><i class="fas fa-credit-card"></i> Método de Pago</label>
-                        <select v-model="paymode">
-                            <option value="Metodo de pago" disabled>Selecciona</option>
-                            <option v-for="paymode in paymodes" :value="paymode.name" :key="paymode.id">
-                                {{ paymode.name }}
-                            </option>
-                        </select>
-                    </div>
-                    <div class="form-field full-width">
-                        <label><i class="fas fa-comment"></i> Comentarios</label>
-                        <textarea v-model="comment" rows="2" placeholder="Detalles adicionales"></textarea>
                     </div>
                 </div>
-            </div>
 
-            <!-- Productos en Cards -->
-            <div v-if="!mostrarHistorial" class="productos-section">
-                <div class="section-header">
-                    <h3>📦 Selecciona tus Productos</h3>
-                    <button @click="cargarPreciosCentralizados" class="btn-refresh">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
+                <!-- Formulario Compacto -->
+                <div v-if="!mostrarHistorial" class="section-card fade-in-up">
+                    <div class="section-card-header">
+                        <h3 class="m-0">📝 Datos del Pedido</h3>
+                    </div>
+                    <div class="section-card-body">
+                        <!-- Información del Negocio -->
+                        <div class="business-info">
+                            <div class="info-item">
+                                <div class="info-label">🏢 Local</div>
+                                <p class="info-value">{{ this.app && this.app.Name ? this.app.Name : 'Cargando...' }}</p>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">📅 Fecha</div>
+                                <p class="info-value">{{ this.date }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Formulario Moderno -->
+                        <form class="modern-form">
+                            <div class="form-group-modern">
+                                <input v-model="name" type="text" placeholder="Tu nombre completo*" class="form-control-modern">
+                                <i class="input-icon fas fa-user"></i>
+                            </div>
+                            <div class="form-group-modern">
+                                <input v-model="phone" type="text" placeholder="Número de teléfono*" class="form-control-modern">
+                                <i class="input-icon fas fa-phone"></i>
+                            </div>
+                            <div class="form-group-modern">
+                                <select v-model="paymode" class="form-control-modern select-modern">
+                                    <option value="Metodo de pago" disabled>💳 Selecciona método de pago</option>
+                                    <option v-for="paymode in paymodes" :value="paymode.name" :key="paymode.id">
+                                        {{ paymode.name }}
+                                    </option>
+                                </select>
+                                <i class="input-icon fas fa-credit-card"></i>
+                            </div>
+                            <div class="form-group-modern col-span-full">
+                                <textarea v-model="comment" rows="3" placeholder="Detalles adicionales del pedido*" class="form-control-modern textarea-modern"></textarea>
+                                <i class="input-icon fas fa-comment-alt"></i>
+                            </div>
+                        </form>
+                    </div>
                 </div>
 
-                <div v-if="loadingProducts" class="loading-modern">
-                    <i class="fas fa-spinner fa-spin"></i> Cargando productos...
-                </div>
+                <!-- Productos en Cards -->
+                <div v-if="!mostrarHistorial" class="section-card fade-in-up">
+                    <div class="section-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="m-0">📦 Selecciona tus Productos ({{ cantidadProductos }})</h3>
+                        <button @click="cargarPreciosCentralizados" class="btn-refresh" style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="section-card-body">
+                        <div v-if="loadingProducts" class="loading-modern">
+                            <i class="fas fa-spinner fa-spin"></i> Cargando productos...
+                        </div>
 
-                <!-- Grid de Productos por Categoría -->
-                <div v-else>
-                    <div v-for="categoria in categorias" :key="categoria" class="categoria-group">
-                        <h4 class="categoria-title">{{ getCategoriaEmoji(categoria) }} {{ categoria.toUpperCase() }}</h4>
-                        <div class="productos-grid">
-                            <div v-for="producto in getProductosByCategoria(categoria)" :key="producto.id" 
-                                class="producto-card"
-                                :class="{ 'selected': producto.cantidad > 0 }">
-                                <div class="card-header">
-                                    <h5 class="producto-nombre">{{ producto.producto }}</h5>
-                                    <span class="producto-unidad">{{ producto.unidad_medida }}</span>
-                                </div>
-                                <div class="card-precio">
-                                    <span class="precio-label">Precio:</span>
-                                    <span class="precio-valor">${{ formatNumber(producto.precio_por_unidad) }}</span>
-                                </div>
-                                <div class="card-controls">
-                                    <button @click="decrementar(producto)" class="btn-qty" :disabled="producto.cantidad === 0">
-                                        <i class="fas fa-minus"></i>
-                                    </button>
-                                    <input type="number" 
-                                        v-model.number="producto.cantidad" 
-                                        min="0"
-                                        class="input-qty"
-                                        @input="calcularTotal">
-                                    <button @click="incrementar(producto)" class="btn-qty">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                                <div v-if="producto.cantidad > 0" class="card-subtotal">
-                                    Subtotal: <strong>${{ formatNumber(producto.cantidad * producto.precio_por_unidad) }}</strong>
+                        <!-- Grid de Productos por Categoría -->
+                        <div v-else>
+                            <div v-for="categoria in categorias" :key="categoria" class="categoria-group">
+                                <h4 class="categoria-title">{{ getCategoriaEmoji(categoria) }} {{ categoria.toUpperCase() }}</h4>
+                                <div class="productos-grid-responsive">
+                                    <div v-for="producto in getProductosByCategoria(categoria)" :key="producto.id" 
+                                        class="producto-card-modern"
+                                        :class="{ 
+                                            'selected': producto.cantidad > 0,
+                                            'producto-sin-stock': producto.stock !== null && producto.stock <= 0
+                                        }">
+                                        <div v-if="producto.stock !== null && producto.stock <= 0" class="stock-badge-bloqueado">
+                                            🚫 Sin Stock
+                                        </div>
+                                        <div v-else-if="producto.stock !== null && producto.stock > 0" class="stock-badge-disponible">
+                                            � {{ producto.stock }} {{ producto.unidad_medida }}
+                                        </div>
+                                        <div class="card-header-modern">
+                                            <h5 class="producto-nombre">{{ producto.producto }}</h5>
+                                            <span class="producto-unidad">{{ producto.unidad_medida }}</span>
+                                        </div>
+                                        <div class="card-precio-modern">
+                                            <span class="precio-label">Precio:</span>
+                                            <span class="precio-valor">${{ formatNumber(producto.precio_por_unidad) }}</span>
+                                        </div>
+                                        <div class="card-controls-modern">
+                                            <button @click="decrementar(producto)" class="btn-qty-modern" :disabled="producto.cantidad === 0 || (producto.stock !== null && producto.stock <= 0)">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                            <input type="number" 
+                                                v-model.number="producto.cantidad" 
+                                                min="0"
+                                                class="input-qty-modern"
+                                                :disabled="producto.stock !== null && producto.stock <= 0"
+                                                @input="calcularTotal">
+                                            <button @click="incrementar(producto)" class="btn-qty-modern" :disabled="producto.stock !== null && producto.stock <= 0">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                        <div v-if="producto.cantidad > 0" class="card-subtotal-modern">
+                                            Subtotal: <strong>${{ formatNumber(producto.cantidad * producto.precio_por_unidad) }}</strong>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Footer con botón fijo -->
-            <div class="footer-fixed">
-                <div class="footer-content">
-                    <div class="footer-info">
-                        <span class="items-count">{{ cantidadProductos }} productos seleccionados</span>
-                        <span class="footer-total">Subtotal: <strong>${{ formatNumber(totalPedido) }}</strong></span>
-                        <div class="footer-iva-destacado">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span>+ IVA 19%: <strong>${{ formatNumber(montoIVA) }}</strong></span>
+                <!-- Footer con botón fijo -->
+                <div class="section-card fade-in-up" v-if="!mostrarHistorial">
+                    <div class="section-card-body" style="padding: 1.5rem;">
+                        <div class="products-indicator">
+                            <div class="products-status" :class="totalPedido > 0 ? 'has-products' : 'no-products'">
+                                <i class="cart-icon fas fa-shopping-cart"></i>
+                                <span v-if="cantidadProductos > 0">
+                                    {{ cantidadProductos }} productos seleccionados
+                                </span>
+                                <span v-else>Sin productos seleccionados</span>
+                                <span class="products-badge">{{ cantidadProductos }}</span>
+                            </div>
+                            <div class="action-buttons">
+                                <button @click="newRequest" class="btn-modern btn-success-modern" :disabled="waitResponse || totalPedido === 0">
+                                    <i class="fas fa-check-circle"></i>
+                                    {{ waitResponse ? 'Enviando...' : 'Finalizar Pedido' }}
+                                </button>
+                            </div>
                         </div>
-                        <span class="footer-total-final">TOTAL FINAL: <strong>${{ formatNumber(totalConIVA) }}</strong></span>
-                    </div>
-                    <div class="footer-buttons">
-                        <button @click="ticketYEfectivo" class="btn-ticket-efectivo" :disabled="waitResponse || totalPedido === 0">
-                            <i class="fas fa-receipt"></i>
-                            {{ waitResponse ? 'Procesando...' : 'Ticket + Efectivo' }}
-                        </button>
-                        <button @click="newRequest" class="btn-finalizar" :disabled="waitResponse || totalPedido === 0">
-                            <i class="fas fa-check-circle"></i>
-                            {{ waitResponse ? 'Enviando...' : 'Finalizar Pedido' }}
-                        </button>
+                        
+                        <div v-if="cantidadProductos > 0" class="price-summary mt-3 p-3" style="background: #f8f9fa; border-radius: 10px; border-left: 4px solid #28a745;">
+                            <div class="d-flex justify-content-between align-items-center" style="font-weight: 700; font-size: 1.2em;">
+                                <span>💵 Total Final:</span>
+                                <span class="text-success">${{ formatNumber(totalPedido) }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Modal de Bienvenida al Nuevo Sistema -->
-        <div v-if="mostrarModalBienvenida" class="modal-bienvenida-overlay" @click="cerrarModalBienvenida">
-            <div class="modal-bienvenida-container" @click.stop>
-                <button @click="cerrarModalBienvenida" class="modal-close-btn">
-                    <i class="fas fa-times"></i>
-                </button>
-                
-                <div class="modal-icon-header">
-                    <div class="icon-circle">
-                        <i class="fas fa-rocket"></i>
+
+        <!-- Modal de Administración de Productos -->
+        <div class="modal fade" id="modalAdminProductos" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+                <div class="modal-content" style="border-radius: 15px;">
+                    <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <h5 class="modal-title">
+                            <i class="fas fa-cog"></i> Administración de Productos
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" style="padding: 2rem;">
+                        <!-- Botón para agregar nuevo producto -->
+                        <div class="mb-4">
+                            <button @click="nuevoProducto" class="btn btn-success btn-lg">
+                                <i class="fas fa-plus-circle"></i> Agregar Nuevo Producto
+                            </button>
+                        </div>
+
+                        <!-- Tabla de productos -->
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Producto</th>
+                                        <th>Unidad Venta</th>
+                                        <th>Unidad Medida</th>
+                                        <th>Precio</th>
+                                        <th>Categoría</th>
+                                        <th>Activo</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="producto in productosCentralizados" :key="producto.id">
+                                        <td>{{ producto.id }}</td>
+                                        <td>{{ producto.producto }}</td>
+                                        <td>{{ producto.unidad_venta }}</td>
+                                        <td>{{ producto.unidad_medida }}</td>
+                                        <td>${{ formatNumber(producto.precio_por_unidad) }}</td>
+                                        <td>
+                                            <span class="badge badge-primary">{{ producto.categoria }}</span>
+                                        </td>
+                                        <td>
+                                            <span :class="producto.activo ? 'badge badge-success' : 'badge badge-secondary'">
+                                                {{ producto.activo ? 'Sí' : 'No' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button @click="editarProducto(producto)" class="btn btn-sm btn-warning mr-1">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button @click="confirmarEliminar(producto)" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
                     </div>
                 </div>
-                
-                <h2 class="modal-title">¡Bienvenido al Nuevo Sistema de Pedidos!</h2>
-                
-                <div class="modal-content">
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                        <div class="feature-text">
-                            <h3>Pedidos Individuales</h3>
-                            <p>Ahora puedes pedir productos de forma individual, sin ataduras ni packs obligatorios</p>
-                        </div>
+            </div>
+        </div>
+
+        <!-- Modal para Editar/Crear Producto -->
+        <div class="modal fade" id="modalEditarProducto" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content" style="border-radius: 15px;">
+                    <div class="modal-header" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white;">
+                        <h5 class="modal-title">
+                            <i class="fas fa-box"></i> {{ productoEditando.id ? 'Editar' : 'Nuevo' }} Producto
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
-                    
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <i class="fas fa-hand-pointer"></i>
-                        </div>
-                        <div class="feature-text">
-                            <h3>Súper Intuitivo</h3>
-                            <p>Interfaz moderna y fácil de usar. Selecciona solo lo que necesitas, cuando lo necesitas</p>
-                        </div>
+                    <div class="modal-body" style="padding: 2rem;">
+                        <form @submit.prevent="guardarProducto">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label><i class="fas fa-tag"></i> Nombre del Producto *</label>
+                                        <input v-model="productoEditando.producto" type="text" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label><i class="fas fa-weight"></i> Unidad Venta *</label>
+                                        <input v-model.number="productoEditando.unidad_venta" type="number" step="0.01" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label><i class="fas fa-ruler"></i> Unidad Medida *</label>
+                                        <select v-model="productoEditando.unidad_medida" class="form-control" required>
+                                            <option value="kg">kg</option>
+                                            <option value="unidad">unidad</option>
+                                            <option value="litro">litro</option>
+                                            <option value="gramo">gramo</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label><i class="fas fa-dollar-sign"></i> Precio por Unidad *</label>
+                                        <input v-model.number="productoEditando.precio_por_unidad" type="number" step="1" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label><i class="fas fa-list"></i> Categoría *</label>
+                                        <select v-model="productoEditando.categoria" class="form-control" required>
+                                            <option value="insumos">Insumos</option>
+                                            <option value="salsas">Salsas</option>
+                                            <option value="ciabatta">Ciabatta</option>
+                                            <option value="pastas">Pastas</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" id="switchActivo" v-model="productoEditando.activo">
+                                            <label class="custom-control-label" for="switchActivo">
+                                                <i class="fas fa-toggle-on"></i> Producto Activo
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                    
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <i class="fas fa-dollar-sign"></i>
-                        </div>
-                        <div class="feature-text">
-                            <h3>Precios Actualizados</h3>
-                            <p>Sistema centralizado con precios siempre al día. Transparencia total</p>
-                        </div>
-                    </div>
-                    
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <div class="feature-text">
-                            <h3>Rápido y Eficiente</h3>
-                            <p>Completa tu pedido en minutos. Sin complicaciones, sin esperas</p>
-                        </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" @click="guardarProducto" class="btn btn-success">
+                            <i class="fas fa-save"></i> Guardar
+                        </button>
                     </div>
                 </div>
-                
-                <div class="modal-footer-note">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Este es un sistema mejorado para brindarte mayor flexibilidad y control en tus pedidos</span>
-                </div>
-                
-                <button @click="cerrarModalBienvenida" class="btn-entendido">
-                    <i class="fas fa-check"></i>
-                    ¡Entendido, empecemos!
-                </button>
             </div>
         </div>
     </div>
@@ -315,11 +442,22 @@ export default {
             mostrarHistorial: false,
             loadingHistorial: false,
             historialPedidos: [],
-            mostrarModalBienvenida: false,
             
             // Productos centralizados desde DB maestra
             productosCentralizados: [],
             loadingProducts: false,
+            stockRefreshInterval: null, // Timer para actualizar stock
+            
+            // Administración de productos
+            productoEditando: {
+                id: null,
+                producto: '',
+                unidad_venta: 1,
+                unidad_medida: 'kg',
+                precio_por_unidad: 0,
+                categoria: 'insumos',
+                activo: 1
+            },
             
             // Formulario
             name: '',
@@ -358,31 +496,33 @@ export default {
         if (this.inicioSesion && this.app && this.app.Id) {
             this.cargarHistorial();
         }
-        // Verificar si es la primera vez que usa el sistema
-        this.verificarPrimeraVez();
+        // Iniciar actualización automática de stock cada 10 segundos
+        this.iniciarActualizacionStock();
+    },
+    beforeDestroy() {
+        // Limpiar el intervalo cuando se destruye el componente
+        if (this.stockRefreshInterval) {
+            clearInterval(this.stockRefreshInterval);
+        }
     },
     computed: {
         me: { get() { return this.$store.getters['main/user']; } },
         
-        // Categorías únicas de productos
+        // Categorías únicas de productos ordenadas
         categorias() {
             const cats = [...new Set(this.productosCentralizados.map(p => p.categoria))];
-            return cats.sort();
+            // Orden específico: insumos, salsas, ciabatta, pastas
+            const orden = { 'insumos': 1, 'salsas': 2, 'ciabatta': 3, 'pastas': 4 };
+            return cats.sort((a, b) => {
+                const ordenA = orden[a.toLowerCase()] || 999;
+                const ordenB = orden[b.toLowerCase()] || 999;
+                return ordenA - ordenB;
+            });
         },
         
         // Cantidad de productos seleccionados
         cantidadProductos() {
             return this.productosCentralizados.filter(p => p.cantidad > 0).length;
-        },
-        
-        // Calcular IVA (19% del total)
-        montoIVA() {
-            return Math.round(this.totalPedido * 0.19);
-        },
-        
-        // Total con IVA incluido
-        totalConIVA() {
-            return this.totalPedido + this.montoIVA;
         },
         
         isValidName: {
@@ -429,23 +569,6 @@ export default {
             }
         },
         
-        verificarPrimeraVez() {
-            // Verificar si es la primera vez que el usuario entra al sistema
-            const yaVioModal = localStorage.getItem('pedidoFinal_modalVisto');
-            if (!yaVioModal) {
-                // Mostrar modal después de un pequeño delay para mejor experiencia
-                setTimeout(() => {
-                    this.mostrarModalBienvenida = true;
-                }, 800);
-            }
-        },
-        
-        cerrarModalBienvenida() {
-            this.mostrarModalBienvenida = false;
-            // Guardar en localStorage que ya vio el modal
-            localStorage.setItem('pedidoFinal_modalVisto', 'true');
-        },
-        
         incrementar(producto) {
             producto.cantidad++;
             this.calcularTotal();
@@ -459,17 +582,88 @@ export default {
         },
         
         getProductosByCategoria(categoria) {
-            return this.productosCentralizados.filter(p => p.categoria === categoria);
+            return this.productosCentralizados
+                .filter(p => p.categoria === categoria)
+                .sort((a, b) => a.producto.localeCompare(b.producto));
         },
         
         getCategoriaEmoji(categoria) {
             const emojis = {
-                'empaque': '📦',
+                'insumos': '📦',
                 'salsas': '🍝',
                 'ciabatta': '🥖',
+                'pastas': '🍝',
                 'general': '🛒'
             };
-            return emojis[categoria] || '📌';
+            return emojis[categoria.toLowerCase()] || '📌';
+        },
+        
+        iniciarActualizacionStock() {
+            // Actualizar stock cada 10 segundos
+            this.stockRefreshInterval = setInterval(async () => {
+                if (!this.mostrarHistorial && this.inicioSesion) {
+                    await this.actualizarStockSilencioso();
+                }
+            }, 10000); // 10 segundos
+            
+            console.log('🔄 Actualización automática de stock iniciada (cada 10s)');
+        },
+        
+        async actualizarStockSilencioso() {
+            try {
+                // Guardar las cantidades actuales del usuario
+                const cantidadesActuales = {};
+                this.productosCentralizados.forEach(p => {
+                    if (p.cantidad > 0) {
+                        cantidadesActuales[p.id] = p.cantidad;
+                    }
+                });
+                
+                // Obtener stock actualizado
+                const response = await this.$store.dispatch('products/getPreciosCentralizados');
+                
+                let productos = null;
+                if (response.success && response.data) {
+                    if (response.data.data && Array.isArray(response.data.data)) {
+                        productos = response.data.data;
+                    } else if (Array.isArray(response.data)) {
+                        productos = response.data;
+                    } else if (response.data.success && Array.isArray(response.data.data)) {
+                        productos = response.data.data;
+                    }
+                }
+                
+                if (productos && Array.isArray(productos)) {
+                    // Detectar productos que se quedaron sin stock
+                    const productosAgotados = [];
+                    
+                    this.productosCentralizados = productos.map(p => {
+                        const producto = {
+                            ...p,
+                            precio_por_unidad: parseFloat(p.precio_por_unidad),
+                            cantidad: cantidadesActuales[p.id] || 0 // Mantener cantidad del carrito
+                        };
+                        
+                        // Verificar si el producto se quedó sin stock y el usuario tenía cantidad
+                        if (producto.stock !== null && producto.stock <= 0 && cantidadesActuales[p.id] > 0) {
+                            productosAgotados.push(producto.producto);
+                            producto.cantidad = 0; // Quitar del carrito
+                        }
+                        
+                        return producto;
+                    });
+                    
+                    // Alertar si algún producto se agotó
+                    if (productosAgotados.length > 0) {
+                        this.$awn.alert(`⚠️ Se agotó: ${productosAgotados.join(', ')}. Fue removido de tu pedido.`);
+                        this.calcularTotal();
+                    }
+                    
+                    console.log('🔄 Stock actualizado en tiempo real');
+                }
+            } catch (error) {
+                console.error('❌ Error actualizando stock:', error);
+            }
         },
         
         async cargarPreciosCentralizados() {
@@ -567,6 +761,9 @@ export default {
                 return;
             }
             
+            // Actualizar stock una última vez antes de enviar
+            await this.actualizarStockSilencioso();
+            
             // Filtrar solo productos con cantidad > 0
             const productosSeleccionados = this.productosCentralizados
                 .filter(p => p.cantidad > 0)
@@ -579,6 +776,24 @@ export default {
                     unidad_venta: p.unidad_venta,
                     vasos: 0 // Campo requerido por RequestsController
                 }));
+            
+            // Validar que no haya productos sin stock
+            const productosSinStock = productosSeleccionados.filter(p => {
+                const productoDB = this.productosCentralizados.find(prod => prod.id === p.id);
+                return productoDB && productoDB.stock !== null && productoDB.stock <= 0;
+            });
+            
+            if (productosSinStock.length > 0) {
+                const nombres = productosSinStock.map(p => p.name).join(', ');
+                this.$awn.alert(`⚠️ Los siguientes productos se agotaron: ${nombres}. Actualiza tu pedido.`);
+                // Remover productos sin stock del carrito
+                productosSinStock.forEach(p => {
+                    const producto = this.productosCentralizados.find(prod => prod.id === p.id);
+                    if (producto) producto.cantidad = 0;
+                });
+                this.calcularTotal();
+                return;
+            }
             
             const data = {
                 contact_name: this.name,
@@ -631,112 +846,6 @@ export default {
             this.waitResponse = false;
         },
         
-        async ticketYEfectivo() {
-            this.submitted = true;
-            if (!this.validar_form()) {
-                return;
-            }
-            
-            // Forzar método de pago a Efectivo
-            this.paymode = 'Efectivo';
-            
-            // Filtrar solo productos con cantidad > 0
-            const productosSeleccionados = this.productosCentralizados
-                .filter(p => p.cantidad > 0)
-                .map(p => ({
-                    id: p.id,
-                    name: p.producto,
-                    quantity: p.cantidad,
-                    price: p.precio_por_unidad,
-                    unidad_medida: p.unidad_medida,
-                    unidad_venta: p.unidad_venta,
-                    vasos: 0
-                }));
-            
-            const data = {
-                contact_name: this.name,
-                contact_phone: this.phone,
-                paymode: 'Efectivo',
-                status: 'nuevo',
-                products: JSON.stringify(productosSeleccionados),
-                comment: this.comment + ' [TICKET+EFECTIVO]',
-                price: this.totalPedido,
-                subtotal: this.totalPedido,
-                iva: 0,
-                emergency: 0,
-                despacho: 0,
-                app_id: this.app.Id
-            };
-            
-            console.log('🎫 Ticket+Efectivo - Datos a enviar:', data);
-            
-            var formData = new FormData();
-            for (let key in data) if (data[key]) formData.append(key, data[key]);
-            
-            this.waitResponse = true;
-            Loader.fullPage();
-            let request = await this.$store.dispatch('requests/newRequestPedidoFinal', formData);
-            
-            if (request.success) {
-                // Imprimir ticket automáticamente
-                await this.imprimirTicket(request.data);
-                
-                // Generar boleta/factura automáticamente
-                await this.generarBoleta(request.data.id);
-                
-                Loader.hide();
-                this.$awn.success('Venta completada - Ticket impreso', { labels: { success: 'CORRECTO' } });
-                
-                // Limpiar formulario
-                this.name = this.me.fullname;
-                this.phone = "+56";
-                this.paymode = 'Transferencia';
-                this.comment = "";
-                this.totalPedido = 0;
-                
-                // Resetear cantidades
-                this.productosCentralizados.forEach(p => p.cantidad = 0);
-                
-                this.submitted = false;
-                
-                // Recargar historial
-                await this.cargarHistorial();
-                this.mostrarHistorial = true;
-            } else {
-                Loader.hide();
-                console.log(request.data);
-                this.$awn.alert(request.data.message || 'Error al procesar venta');
-            }
-            this.waitResponse = false;
-        },
-        
-        async imprimirTicket(pedidoData) {
-            try {
-                console.log('🖨️ Imprimiendo ticket...', pedidoData);
-                // Aquí puedes llamar a tu sistema de impresión de tickets
-                // Por ahora solo logueamos
-                this.$awn.info('Ticket enviado a impresora');
-            } catch (error) {
-                console.error('❌ Error imprimiendo ticket:', error);
-            }
-        },
-        
-        async generarBoleta(pedidoId) {
-            try {
-                console.log('📄 Generando boleta para pedido:', pedidoId);
-                // Llamar al endpoint de facturación
-                const response = await this.$store.dispatch('sii/generarFactura', { pedidoId });
-                if (response.success) {
-                    this.$awn.success('Boleta generada correctamente');
-                } else {
-                    this.$awn.warning('Venta registrada pero fallo la boleta');
-                }
-            } catch (error) {
-                console.error('❌ Error generando boleta:', error);
-                this.$awn.warning('Venta registrada pero fallo la boleta');
-            }
-        },
-        
         async cargarHistorial() {
             try {
                 // Validar que app esté disponible
@@ -776,12 +885,132 @@ export default {
             } finally {
                 this.loadingHistorial = false;
             }
+        },
+        
+        // ==================== MÉTODOS DE ADMINISTRACIÓN DE PRODUCTOS ====================
+        
+        abrirAdminProductos() {
+            $('#modalAdminProductos').modal('show');
+        },
+        
+        nuevoProducto() {
+            this.productoEditando = {
+                id: null,
+                producto: '',
+                unidad_venta: 1,
+                unidad_medida: 'kg',
+                precio_por_unidad: 0,
+                categoria: 'insumos',
+                activo: 1
+            };
+            $('#modalEditarProducto').modal('show');
+        },
+        
+        editarProducto(producto) {
+            this.productoEditando = {
+                ...producto,
+                activo: producto.activo ? 1 : 0
+            };
+            $('#modalEditarProducto').modal('show');
+        },
+        
+        async guardarProducto() {
+            try {
+                // Validar campos requeridos
+                if (!this.productoEditando.producto || !this.productoEditando.unidad_venta || 
+                    !this.productoEditando.precio_por_unidad || !this.productoEditando.categoria) {
+                    this.$awn.alert('Por favor completa todos los campos requeridos');
+                    return;
+                }
+                
+                Loader.fullPage();
+                
+                const datos = {
+                    producto: this.productoEditando.producto,
+                    unidad_venta: parseFloat(this.productoEditando.unidad_venta),
+                    unidad_medida: this.productoEditando.unidad_medida,
+                    precio_por_unidad: parseFloat(this.productoEditando.precio_por_unidad),
+                    categoria: this.productoEditando.categoria.toLowerCase(),
+                    activo: this.productoEditando.activo ? 1 : 0
+                };
+                
+                let request;
+                
+                if (this.productoEditando.id) {
+                    // Actualizar producto existente
+                    request = await this.$store.dispatch('products/updatePedidoFinalProduct', {
+                        id: this.productoEditando.id,
+                        data: datos
+                    });
+                } else {
+                    // Crear nuevo producto
+                    request = await this.$store.dispatch('products/createPedidoFinalProduct', datos);
+                }
+                
+                Loader.hide();
+                
+                if (request.success) {
+                    this.$awn.success(this.productoEditando.id ? 'Producto actualizado correctamente' : 'Producto creado correctamente');
+                    $('#modalEditarProducto').modal('hide');
+                    
+                    // Recargar productos
+                    await this.cargarPreciosCentralizados();
+                } else {
+                    this.$awn.alert(request.data || 'Error al guardar el producto');
+                }
+            } catch (error) {
+                Loader.hide();
+                console.error('❌ Error guardando producto:', error);
+                this.$awn.alert('Error al guardar el producto');
+            }
+        },
+        
+        confirmarEliminar(producto) {
+            if (confirm(`¿Estás seguro de eliminar el producto "${producto.producto}"?\n\nEsta acción no se puede deshacer.`)) {
+                this.eliminarProducto(producto.id);
+            }
+        },
+        
+        async eliminarProducto(id) {
+            try {
+                Loader.fullPage();
+                
+                const request = await this.$store.dispatch('products/deletePedidoFinalProduct', id);
+                
+                Loader.hide();
+                
+                if (request.success) {
+                    this.$awn.success('Producto eliminado correctamente');
+                    
+                    // Recargar productos
+                    await this.cargarPreciosCentralizados();
+                } else {
+                    this.$awn.alert(request.data || 'Error al eliminar el producto');
+                }
+            } catch (error) {
+                Loader.hide();
+                console.error('❌ Error eliminando producto:', error);
+                this.$awn.alert('Error al eliminar el producto');
+            }
+        },
+        
+        // ==================== FIN MÉTODOS DE ADMINISTRACIÓN ====================
+        
+        formatDate(date) {
+            return moment(date).format('DD/MM/YYYY HH:mm');
+        },
+        
+        formatNumber(number) {
+            return FormatNumber.format(number);
         }
     }
 }
 </script>
 
 <style scoped>
+/* Importar estilos base responsivos de pedidos.css */
+@import '../assets/css/pedidos.css';
+
 /* ==================== PANTALLA DE BIENVENIDA ==================== */
 .welcome-screen {
     min-height: 100vh;
@@ -954,17 +1183,10 @@ export default {
     box-shadow: 0 4px 12px rgba(102,126,234,0.3);
 }
 
-.total-badge-container {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: flex-end;
-}
-
 .total-badge {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 10px 25px;
-    border-radius: 25px;
+    padding: 15px 30px;
+    border-radius: 50px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -972,42 +1194,13 @@ export default {
 
 .total-label {
     color: rgba(255,255,255,0.9);
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .total-value {
     color: white;
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 700;
-}
-
-.iva-badge-header {
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-    color: white;
-    padding: 8px 20px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 700;
-    box-shadow: 0 4px 12px rgba(238,90,111,0.4);
-    animation: pulse-warning 2s infinite;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.iva-badge-header i {
-    font-size: 16px;
-}
-
-.total-final-header {
-    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
-    color: white;
-    padding: 12px 30px;
-    border-radius: 25px;
-    font-size: 18px;
-    font-weight: 800;
-    box-shadow: 0 4px 15px rgba(39,174,96,0.4);
-    letter-spacing: 1px;
 }
 
 /* ==================== HISTORIAL DE PEDIDOS ==================== */
@@ -1567,7 +1760,7 @@ export default {
 .footer-info {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 5px;
 }
 
 .items-count {
@@ -1582,80 +1775,8 @@ export default {
 
 .footer-total strong {
     color: #27ae60;
-    font-size: 20px;
+    font-size: 24px;
     margin-left: 10px;
-}
-
-.footer-iva-destacado {
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 700;
-    text-align: center;
-    box-shadow: 0 4px 15px rgba(238,90,111,0.5);
-    animation: pulse-warning 2s infinite;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.footer-iva-destacado i {
-    font-size: 20px;
-    animation: shake 1s infinite;
-}
-
-.footer-iva-destacado strong {
-    font-size: 22px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
-.footer-total-final {
-    color: #2c3e50;
-    font-size: 18px;
-    font-weight: 700;
-    text-align: center;
-    padding: 10px;
-    background: rgba(39,174,96,0.1);
-    border-radius: 8px;
-    border: 2px solid #27ae60;
-}
-
-.footer-total-final strong {
-    color: #27ae60;
-    font-size: 28px;
-    margin-left: 10px;
-}
-
-@keyframes pulse-warning {
-    0%, 100% {
-        box-shadow: 0 4px 15px rgba(238,90,111,0.5);
-        transform: scale(1);
-    }
-    50% {
-        box-shadow: 0 6px 25px rgba(238,90,111,0.8);
-        transform: scale(1.02);
-    }
-}
-
-@keyframes shake {
-    0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(-10deg); }
-    75% { transform: rotate(10deg); }
-}
-
-.footer-iva {
-    color: #e74c3c;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.footer-iva strong {
-    color: #c0392b;
-    font-size: 18px;
-    margin-left: 5px;
 }
 
 .btn-finalizar {
@@ -1685,42 +1806,12 @@ export default {
     margin-right: 10px;
 }
 
-/* Badge IVA */
-.iva-badge {
-    display: inline-block;
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-    color: white;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 700;
-    margin-left: 8px;
-    vertical-align: middle;
-    box-shadow: 0 2px 6px rgba(238,90,111,0.4);
-    animation: pulse-iva 2s infinite;
-}
-
-@keyframes pulse-iva {
-    0%, 100% {
-        box-shadow: 0 2px 6px rgba(238,90,111,0.4);
-    }
-    50% {
-        box-shadow: 0 4px 12px rgba(238,90,111,0.6);
-    }
-}
-
-.footer-iva-note {
-    color: #e74c3c;
-    font-size: 12px;
-    font-weight: 600;
-    font-style: italic;
-    display: block;
-    margin-top: 5px;
-}
-
 /* Responsive */
 @media (max-width: 1400px) {
     .productos-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .productos-grid-responsive {
         grid-template-columns: repeat(3, 1fr);
     }
 }
@@ -1729,242 +1820,11 @@ export default {
     .productos-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-}
-
-/* ==================== MODAL BIENVENIDA ==================== */
-.modal-bienvenida-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(8px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-    animation: fadeIn 0.3s ease;
-    padding: 20px;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.modal-bienvenida-container {
-    background: white;
-    border-radius: 24px;
-    max-width: 650px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: slideUp 0.4s ease;
-    position: relative;
-    padding: 40px 30px 30px 30px;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    .productos-grid-responsive {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
-.modal-close-btn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: #f0f0f0;
-    color: #666;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-}
-
-.modal-close-btn:hover {
-    background: #e74c3c;
-    color: white;
-    transform: rotate(90deg);
-}
-
-.modal-icon-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.icon-circle {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-    animation: pulse-icon 2s infinite;
-}
-
-.icon-circle i {
-    font-size: 45px;
-    color: white;
-}
-
-@keyframes pulse-icon {
-    0%, 100% {
-        transform: scale(1);
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-    }
-    50% {
-        transform: scale(1.05);
-        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
-    }
-}
-
-.modal-title {
-    text-align: center;
-    color: #2c3e50;
-    font-size: 28px;
-    font-weight: 800;
-    margin: 0 0 30px 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.modal-content {
-    margin-bottom: 25px;
-}
-
-.feature-item {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 25px;
-    align-items: flex-start;
-}
-
-.feature-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-.feature-icon i {
-    font-size: 22px;
-    color: white;
-}
-
-.feature-text h3 {
-    margin: 0 0 8px 0;
-    color: #2c3e50;
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.feature-text p {
-    margin: 0;
-    color: #7f8c8d;
-    font-size: 14px;
-    line-height: 1.6;
-}
-
-.modal-footer-note {
-    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
-    padding: 15px 20px;
-    border-radius: 12px;
-    border-left: 4px solid #667eea;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 25px;
-}
-
-.modal-footer-note i {
-    color: #667eea;
-    font-size: 20px;
-}
-
-.modal-footer-note span {
-    color: #2c3e50;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-.btn-entendido {
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.btn-entendido:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
-}
-
-.btn-entendido i {
-    font-size: 18px;
-}
-
-@media (max-width: 768px) {
-    .modal-bienvenida-container {
-        padding: 30px 20px 20px 20px;
-    }
-    
-    .modal-title {
-        font-size: 24px;
-    }
-    
-    .feature-item {
-        gap: 15px;
-    }
-    
-    .feature-icon {
-        width: 45px;
-        height: 45px;
-    }
-    
-    .feature-text h3 {
-        font-size: 16px;
-    }
-    
-    .feature-text p {
-        font-size: 13px;
-    }
-}
-
-/* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
     .modern-header {
         flex-direction: column;
@@ -1973,6 +1833,10 @@ export default {
     }
     
     .productos-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .productos-grid-responsive {
         grid-template-columns: 1fr;
     }
     
@@ -1985,4 +1849,245 @@ export default {
         width: 100%;
     }
 }
+
+/* Estilos adicionales específicos para pedidofinal */
+.total-badge-responsive {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    color: white;
+}
+
+.total-badge-responsive .total-label {
+    display: block;
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-bottom: 0.25rem;
+}
+
+.total-badge-responsive .total-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.categoria-group {
+    margin-bottom: 2rem;
+}
+
+.categoria-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--primary-color, #007bff);
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid var(--primary-color, #007bff);
+}
+
+.productos-grid-responsive {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.producto-card-modern {
+    background: white;
+    border: 2px solid #e0e6ed;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.producto-card-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.producto-card-modern.selected {
+    border-color: #28a745;
+    background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%);
+}
+
+.producto-card-modern.producto-sin-stock {
+    opacity: 0.6;
+    background: #f8f9fa;
+    border-color: #dc3545;
+    position: relative;
+}
+
+.producto-card-modern.producto-sin-stock::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(220, 53, 69, 0.05) 10px,
+        rgba(220, 53, 69, 0.05) 20px
+    );
+    pointer-events: none;
+    border-radius: 12px;
+}
+
+.stock-badge-bloqueado {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+.stock-badge-disponible {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+.card-header-modern {
+    margin-bottom: 1rem;
+}
+
+.card-header-modern .producto-nombre {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #212529;
+}
+
+.card-header-modern .producto-unidad {
+    font-size: 0.85rem;
+    color: #6c757d;
+    background: #f8f9fa;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.card-precio-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.card-precio-modern .precio-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.card-precio-modern .precio-valor {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #28a745;
+}
+
+.card-controls-modern {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.btn-qty-modern {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #007bff;
+    background: white;
+    color: #007bff;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-qty-modern:hover:not(:disabled) {
+    background: #007bff;
+    color: white;
+}
+
+.btn-qty-modern:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.input-qty-modern {
+    flex: 1;
+    height: 40px;
+    text-align: center;
+    border: 2px solid #e0e6ed;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.card-subtotal-modern {
+    text-align: right;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.card-subtotal-modern strong {
+    font-size: 1.1rem;
+}
+
+/* Historial grid responsivo */
+.historial-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+@media (max-width: 576px) {
+    .historial-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .total-badge-responsive .total-value {
+        font-size: 1.2rem;
+    }
+    
+    .categoria-title {
+        font-size: 1.1rem;
+    }
+    
+    .productos-grid-responsive {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Clase col-span-full para el textarea */
+.col-span-full {
+    grid-column: 1 / -1;
+}
 </style>
+

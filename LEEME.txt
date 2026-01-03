@@ -1,0 +1,65 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║           FAGOTTO ERP - VERSION WINDOWS PORTABLE             ║
+║                     Versión 1.11.40                          ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+📦 INSTRUCCIONES DE USO:
+════════════════════════════════════════════════════════════════
+
+1. DESCOMPRIMIR EL ARCHIVO
+   - Descomprime el archivo ZIP completo en una carpeta
+   - Recomendado: C:\Fagotto-ERP\
+
+2. EJECUTAR LA APLICACIÓN
+   - Abre la carpeta "win-unpacked"
+   - Haz doble clic en "fagotto-erd-aplication.exe"
+
+3. PRIMERA EJECUCIÓN
+   - Windows puede mostrar una advertencia de seguridad
+   - Haz clic en "Más información"
+   - Luego en "Ejecutar de todas formas"
+
+⚠️ IMPORTANTE:
+════════════════════════════════════════════════════════════════
+
+   Si Windows Defender bloquea la app:
+   1. Clic derecho en el .exe
+   2. Propiedades
+   3. Marcar "Desbloquear"
+   4. Aplicar
+
+🆕 NOVEDADES VERSIÓN 1.11.40:
+════════════════════════════════════════════════════════════════
+
+   ✅ Sistema de pedidos 100% responsivo
+   ✅ 5 nuevos productos agregados
+   ✅ Interfaz adaptada para móviles y tablets
+   ✅ Productos organizados por categorías
+   ✅ Diseño mejorado con gradientes y animaciones
+
+📋 CONTENIDO DEL PAQUETE:
+════════════════════════════════════════════════════════════════
+
+   win-unpacked/
+   └── fagotto-erd-aplication.exe  ← EJECUTAR ESTE ARCHIVO
+
+🔧 REQUISITOS:
+════════════════════════════════════════════════════════════════
+
+   - Windows 10/11 (64-bit)
+   - 4 GB RAM mínimo
+   - 500 MB espacio libre
+
+📞 SOPORTE:
+════════════════════════════════════════════════════════════════
+
+   Para más detalles consulta:
+   INSTRUCCIONES_WINDOWS_PORTABLE.md
+
+════════════════════════════════════════════════════════════════
+   Compilado: 31 de Diciembre de 2025
+   Build: 1.11.40
+   Plataforma: Windows x64
+════════════════════════════════════════════════════════════════

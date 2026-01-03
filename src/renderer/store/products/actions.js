@@ -169,3 +169,23 @@ export async function getPreciosCentralizados(context) {
   const request = await Connection.request('get', url);
   return request;
 }
+// Crear nuevo producto en pedidofinal_precios
+export async function createPedidoFinalProduct(context, data) {
+  let url = BaseUrl.getUrl('api/local/precios-centralizados');
+  const request = await Connection.request('post', url, data);
+  return request;
+}
+
+// Actualizar producto existente en pedidofinal_precios
+export async function updatePedidoFinalProduct(context, { id, data }) {
+  let url = BaseUrl.getUrl(`api/local/precios-centralizados/${id}`);
+  const request = await Connection.request('put', url, data);
+  return request;
+}
+
+// Eliminar producto de pedidofinal_precios
+export async function deletePedidoFinalProduct(context, id) {
+  let url = BaseUrl.getUrl(`api/local/precios-centralizados/${id}`);
+  const request = await Connection.request('delete', url);
+  return request;
+}

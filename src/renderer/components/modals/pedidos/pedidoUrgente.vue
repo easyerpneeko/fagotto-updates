@@ -19,16 +19,17 @@
                                 </div>
 
                                 <div class="col-md-12 mb-3">
-                                    <h6 class="text-muted mb-2 fw-bold">🍽️ Productos disponibles</h6>
+                                    <h6 class="text-muted mb-2 fw-bold">🍽️ Productos disponibles ({{ productos.length }} productos)</h6>
                                     <div class="d-flex flex-wrap gap-2">
-                                        <template v-for="(producto, index) in productos">
-                                            <button v-if="(producto.name != 'Despacho' && producto.name != 'Queso')" type="button"
-                                                @click="addProduct(producto)"
-                                                class="btn btn-outline-primary btn-sm rounded-pill product-btn"
-                                                title="Click para añadir al pedido Individual">
-                                                🛒 {{ producto.name }} <i class="fa fa-plus ms-1"></i>
-                                            </button>
-                                        </template>
+                                        <button 
+                                            v-for="(producto, index) in productos" 
+                                            :key="index"
+                                            type="button"
+                                            @click="addProduct(producto)"
+                                            class="btn btn-outline-primary btn-sm rounded-pill product-btn"
+                                            :title="`${producto.name} - $${formatNumber(producto.compra)}`">
+                                            🛒 {{ producto.name }} <i class="fa fa-plus ms-1"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -42,71 +43,44 @@
                                     <tr>
                                         <th scope="col">Producto</th>
                                         <th scope="col">Cantidad</th>
-                                        <th scope="col"></th>
-                                        <th scope="col">Precio Unit.</th>
-                                        <th scope="col">Precio Total</th>
+                                        <th scope="col">Unidad medida</th>
+                                        <th scope="col">Precio x medida</th>
+                                        <th scope="col">Total</th>
                                         <th scope="col" class="text-center">Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <template v-if="productosPedido.length > 0">
                                         <tr v-for="(producto, index) in productosPedido" :key="index">
+                                            <!-- Nombre producto -->
                                             <td class="fw-bold">{{ producto.name }}</td>
 
-                                            <!-- Cantidad -->
-                                           
-                                            <td v-if="(producto.category == 4)">
-                                                <input min="1" class="form-control form-control-sm" type="number" v-model="producto.quantity"
-                                                    @change="calcularMontos()" />
-                                                <small class="text-muted">Kg</small>
-                                            </td>
-                                            <!-- POR UNIDAD -->
-                                            <td v-if="(producto.category == 1 && producto.name != 'Vaso' && producto.name != 'Bolsa de Queso')">
-                                                <input min="1" class="form-control form-control-sm" type="number" v-model="producto.quantity" @change="calcularMontos()" />
-                                                <small class="text-muted">Unidad(es)</small>
-                                            </td>
-                                            <td v-if="(producto.name == 'Vaso')">
-                                                <input min="27" step="27" class="form-control form-control-sm" type="number" v-model="producto.quantity" @change="calcularMontos()" />
-                                                <small class="text-muted">Unidad(es)</small>
-                                            </td>
-                                            <td v-if="(producto.name == 'Bolsa de Queso')">
-                                                <input min="1" class="form-control form-control-sm" type="number" v-model="producto.quantity" @change="calcularMontos()" />
-                                                <small class="text-muted">{{ producto.price + " gr" }}</small>
-                                            </td>
-                                            <!-- OPCIONALES -->
-                                            <td v-if="(producto.category == 3)">
-                                                <input min="1" class="form-control form-control-sm" type="number" v-model="producto.quantity"
-                                                    @change="calcularMontos()" />
-                                                <small class="text-muted">{{ (producto.name == 'Botella de Huevos 1L' ? 'Botellas(s)' : 'Unidad(es)') }}</small>
-                                            </td>
-                                             <!-- SALSAS -->
-                                            <td v-if="(producto.category == 2)">
-                                                <input class="form-control form-control-sm" :min="producto.min_quantity" :step="producto.min_quantity" type="number" v-model="producto.vasos" @change="calcularMontos()" />
-                                                <small class="text-muted">Vasos</small>
+                                            <!-- Cantidad (input simple) -->
+                                            <td style="width: 100px;">
+                                                <input 
+                                                    min="1" 
+                                                    step="1"
+                                                    class="form-control form-control-sm" 
+                                                    type="number" 
+                                                    v-model.number="producto.quantity" 
+                                                    @input="calcularMontos()" 
+                                                />
                                             </td>
 
-                                            <!-- Kilos de salsa -->
-                                            <td v-if="(producto.category == 2)">
-                                                <span class="text-success fw-bold">{{ (producto.quantity = (producto.vasos * producto.price) / 1000) }} kg</span>
-                                            </td>
-                                            <td v-if="(producto.category != 2)">
+                                            <!-- Unidad de medida (de la imagen) -->
+                                            <td class="text-muted">{{ producto.unidad_medida }}</td>
 
+                                            <!-- Precio por medida -->
+                                            <td class="fw-bold">${{ formatNumber(producto.compra) }}</td>
+
+                                            <!-- Total = cantidad × precio -->
+                                            <td class="fw-bold text-success">
+                                                ${{ formatNumber(producto.quantity * producto.compra) }}
                                             </td>
 
-                                            <!-- Precio unitario -->
-                                            <td class="fw-bold">
-                                                ${{ (producto.compra * 1) }}
-                                            </td>
-                                            <!-- Precio Total -->
-                                            <td v-if="(producto.category == 2)" class="fw-bold text-success">
-                                                ${{ (formatNumber(producto.vasos * producto.compra)) }}
-                                            </td>
-                                            <td v-else class="fw-bold text-success">
-                                                ${{ (formatNumber(producto.quantity * producto.compra)) }}
-                                            </td>
-                                            <!-- Remover -->
+                                            <!-- Botón eliminar -->
                                             <td class="text-center">
-                                                <button class="btn btn-danger btn-sm rounded-pill" @click="removeProduct(index)" title="Eliminar producto">
+                                                <button class="btn btn-danger btn-sm rounded-pill" @click="removeProduct(index)">
                                                     <i class="fa fa-times"></i>
                                                 </button>
                                             </td>
@@ -174,14 +148,9 @@
 </template>
 
 <script>
-// Componentes
-// import customTable from '@/components/tables/table.vue';
-// import modalVerify from '@/components/modals/verifyDelete.vue';
-
-// Helpers y plugins
+// Helpers
 import ConfigHelper from '@/helpers/ConfigHelper.js';
 import FormatNumber from '@/helpers/FormatNumber.js';
-// import Loader from '@/helpers/Loader';
 
 export default {
     products: {
@@ -191,42 +160,43 @@ export default {
     data() {
         return {
             totalPrice: 0,
-            productosPedido: [
-                // 1: { name: 'Vasos', quantity: 160, vasos: 1 },
+            productosPedido: [],
+            // 🎯 PRODUCTOS HARDCODEADOS DE LA IMAGEN - NO DEPENDEN DE LA API
+            productos: [
+                { id: 1, name: 'Mezcla Harina huevo', compra: 11835, unidad_medida: 'Bolsa 2.9 KG', quantity: 1 },
+                { id: 2, name: 'Vaso', compra: 61000, unidad_medida: 'caja 500', quantity: 1 },
+                { id: 3, name: 'Sobre de tenedor', compra: 32400, unidad_medida: 'caja 500', quantity: 1 },
+                { id: 4, name: 'Bolsa Boloñesa', compra: 9604, unidad_medida: 'Bolsa 2 k', quantity: 1 },
+                { id: 5, name: 'Queso', compra: 10668, unidad_medida: 'Bolsa 1k', quantity: 1 },
+                { id: 6, name: 'Salsa Alfredo', compra: 8603, unidad_medida: 'Bolsa 2 k', quantity: 1 },
+                { id: 7, name: 'Salsa Camarón', compra: 13840, unidad_medida: 'Bolsa 2 k', quantity: 1 },
+                { id: 8, name: 'Salsa Champiñón', compra: 13869, unidad_medida: 'Bolsa 2 k', quantity: 1 },
+                { id: 9, name: 'Salsa Pesto', compra: 37125, unidad_medida: 'Bolsa 2 k', quantity: 1 },
+                { id: 10, name: 'Ciabatta Pesto', compra: 1597, unidad_medida: 'Unidad', quantity: 1 },
+                { id: 11, name: 'Ciabatta Queso crema salame', compra: 1597, unidad_medida: 'Unidad', quantity: 1 },
+                { id: 12, name: 'Ciabatta Aliato', compra: 1080, unidad_medida: 'Unidad', quantity: 1 },
+          //      { id: 13, name: 'Salsa Pollo Mostaza', compra: 0, unidad_medida: 'Bolsa 2 k', quantity: 1 }
             ],
-            salsasPedido: [],
-            opcionalPedido: [],
-            productos: {
-                // //Producto | quantity | Vasos
-                // 1: { name: 'Huevos', quantity: 1, vasos: 1 },
-            },
-
             productoSend: [],
             montoNeto: 0,
             despacho: 0,
             iva: 0.19,
-            emergencia:0.1,
             montoDespacho: 0,
             montoIva: 0,
             montoTotal: 0,
-            montoEmergencia:0,
-            montoOpcionales: 0,
-            vasoxsalsa: 1,
-            emergency: true
+            montoEmergencia: 0,
+            montoOpcionales: 0
         }
     },
-    components: {
-
-    },
-    async mounted() {
-        //Trae los productos fijo de db 
-        await this.getProducts();
-
-    },
+    components: {},
     methods: {
+        // 🎯 CERRAR MODAL
         async closeModal(refresh = false) {
-            //Volvemos los arreglos al estado inicial
+            this.resetModal();
+            $('#pedidoUrgente').modal('hide');
+        },
 
+        resetModal() {
             this.montoDespacho = 0;
             this.montoIva = 0;
             this.montoEmergencia = 0;
@@ -235,166 +205,110 @@ export default {
             this.productosPedido = [];
             this.productoSend = [];
             this.totalPrice = 0;
-
-            $('#pedidoUrgente').modal('hide');
         },
+
+        // 🎯 AGREGAR PRODUCTO - Ya viene con su unidad de medida hardcodeada
         addProduct(producto) {
-            const existingProduct = this.productosPedido.find((p) => p.name === producto.name);
-            if (existingProduct) {
-                console.log(`Producto ${producto.name} ya existente.`);
-            } else {
-                const productoCopia = Object.assign({}, producto);
-                
-                if (productoCopia.category == 2) {
-                    productoCopia.vasos = productoCopia.min_quantity;
-                }
-                if (productoCopia.name == 'Vaso') {
-                    productoCopia.quantity = 27;
-                }else{
-                    productoCopia.quantity = 1;
-                }
-                this.productosPedido.push(productoCopia);
+            console.log('➕ Agregando producto:', producto.name);
+            
+            const existe = this.productosPedido.find(p => p.name === producto.name);
+            if (existe) {
+                console.log('⚠️ Producto ya existe:', producto.name);
+                this.$awn.info(`${producto.name} ya está en el pedido`);
+                return;
             }
+
+            // Copiar el producto completo (ya tiene unidad_medida)
+            const productoCopia = { ...producto };
+            productoCopia.quantity = 1; // Siempre empieza en 1
+            
+            console.log('✅ Producto agregado:', productoCopia);
+            
+            this.productosPedido.push(productoCopia);
             this.calcularMontos();
         },
+
+        // 🎯 REMOVER PRODUCTO
         removeProduct(index) {
             if (index >= 0 && index < this.productosPedido.length) {
                 this.productosPedido.splice(index, 1);
+                this.calcularMontos();
             }
-            this.calcularMontos();
         },
+
         formatNumber(number) {
             return FormatNumber.format(number);
         },
+
+        // 🎯 CALCULAR MONTOS - Lógica MUY simple: cantidad × precio
         calcularMontos() {
-            //monto neto
-            this.montoNeto = 0;
-            //Corregimos cantidades no validas de las salsas
-            this.validateInput();
+            // Sumar todos los productos: cantidad × precio de compra
+            this.montoNeto = this.productosPedido.reduce((total, producto) => {
+                const subtotal = (producto.quantity || 0) * (producto.compra || 0);
+                return total + subtotal;
+            }, 0);
 
-            for (var index in this.productosPedido) {
-                if (this.productosPedido[index].category == 2) {
-                    this.productosPedido[index].costo = this.productosPedido[index].vasos * this.productosPedido[index].compra;
-                } else {
-                    this.productosPedido[index].costo = this.productosPedido[index].quantity * this.productosPedido[index].compra;
-                }
-
-                this.montoNeto += parseFloat(this.productosPedido[index].costo);
-            }
-            
+            // IVA
             this.montoIva = Math.ceil(this.iva * this.montoNeto);
-            //🔥 SIN CARGO DE EMERGENCIA NI DESPACHO - Pedido libre manteniendo x27
+
+            // Sin cargos adicionales
             this.montoEmergencia = 0;
             this.montoDespacho = 0;
 
-            // 🎯 Calcular el total final restando el descuento
-            const discountAmount = this.totalDiscountAmount;
-            this.totalPrice = Math.ceil(this.montoNeto + this.montoDespacho + this.montoIva + this.montoEmergencia - discountAmount);
+            // Descuento (si existe)
+            const descuento = this.totalDiscountAmount;
+
+            // Total final
+            this.totalPrice = Math.ceil(
+                this.montoNeto + 
+                this.montoDespacho + 
+                this.montoIva + 
+                this.montoEmergencia - 
+                descuento
+            );
         },
+
+        // 🎯 CONFIRMAR Y ENVIAR PRODUCTOS
         addProducts() {
-            console.log('Productos pedido: ', this.productosPedido);
-
-            this.productoSend = this.productosPedido;
-
-            if (this.productoSend.length == 0) {
-                this.$awn.alert("Es necesario agregar algun producto");
-                return false;
+            if (this.productosPedido.length === 0) {
+                this.$awn.alert("Es necesario agregar algún producto");
+                return;
             }
 
+            // Emitir eventos
+            this.$emit('update-products', this.productosPedido);
+            this.$emit('update-total', this.totalPrice);
+            this.$emit('update-subtotal', this.montoNeto);
+            this.$emit('update-monto-iva', this.montoIva);
+            this.$emit('update-monto-emergencia', this.montoEmergencia);
+            this.$emit('update-monto-despacho', this.montoDespacho);
+            this.$emit('update-montoOpcionales', this.montoOpcionales);
 
-            this.totalPrice = this.montoNeto + this.montoDespacho + this.montoIva + this.montoEmergencia;
-
-            console.log('Total price', this.totalPrice);
-
-            this.$emit('update-products', this.productoSend);
-            this.$emit('update-total',(this.totalPrice));
-            this.$emit('update-subtotal', (this.montoNeto));
-            this.$emit('update-monto-iva', (this.montoIva));
-            this.$emit('update-monto-emergencia', (this.montoEmergencia));
-            this.$emit('update-monto-despacho',(this.montoDespacho));
-            this.$emit('update-montoOpcionales',(this.montoOpcionales));
-
-            this.productoSend = [];
-            this.productosPedido = [];
-            this.montoOpcionales = 0;
-            this.montoDespacho = 0;
-            this.montoIva = 0;
-            this.montoEmergencia = 0;
-            this.totalPrice = 0;
-            this.montoNeto = 0;
+            this.resetModal();
             $('#pedidoUrgente').modal('hide');
-        },
-        async getProducts() {
-            // Iniciando peticion
-            // Loader.dinamic();
-            var request = await this.$store.dispatch("products/getProductsOfIndex");
-
-            // Loader.hide();
-            // Verificando respuesta
-            if (request.success) {
-                this.productos = request.data;
-
-                for (const producto in this.productos) {
-                    if (this.productos[producto].name === 'Despacho') {
-                        if (this.isDespachoGratis) {
-                            this.despacho = 0;
-                        } else {
-                            this.despacho = this.productos[producto].compra;
-                        }
-                    }
-                    //Para agregar la variable costo en cada producto
-                    this.productos[producto].costo = 0;
-                }
-            }
-            else this.$awn.alert('Error al obtener los productos');
-
-        },
-        convertirAKilogramosYRedondear(gramos, multiplicador) {
-            const kilogramos = (gramos * multiplicador) / 1000;
-            return Math.ceil(kilogramos * 1000) / 1000;
-        },
-        validateInput() {
-            // Redondea al múltiplo más cercano
-            for (var index in this.productosPedido) {
-                if(this.productosPedido[index].category == 2){
-                    this.productosPedido[index].vasos = Math.round(this.productosPedido[index].vasos / this.productosPedido[index].min_quantity) * this.productosPedido[index].min_quantity; 
-                }
-                if(this.productosPedido[index].name == 'Vaso'){
-                    this.productosPedido[index].quantity = Math.round(this.productosPedido[index].quantity / 27) * 27; 
-                }
-                
-            }
         }
     },
     computed: {
-        isDespachoGratis: { get() { return ConfigHelper.ConfStr('modulos.pedidos.ajustes.despacho_gratis'); } },
+        isDespachoGratis: {
+            get() { return ConfigHelper.ConfStr('modulos.pedidos.ajustes.despacho_gratis'); }
+        },
 
-        // 🎯 Calcular descuento total basado en productos con discount_percentage
+        // 🎯 Descuento simple
         totalDiscountAmount: {
             get() {
                 if (!this.productosPedido || !Array.isArray(this.productosPedido)) return 0;
                 
-                let discountTotal = 0;
-                this.productosPedido.forEach(product => {
-                    if (product.discount_percentage && product.discount_percentage > 0) {
-                        let productTotal = 0;
-                        
-                        // Calcular según categoría (igual que en calcularMontos)
-                        if (product.category == 2) {
-                            productTotal = parseFloat(product.vasos || 0) * parseFloat(product.compra || 0);
-                        } else {
-                            productTotal = parseFloat(product.quantity || 1) * parseFloat(product.compra || 0);
-                        }
-                        
-                        const discount = (productTotal * parseFloat(product.discount_percentage)) / 100;
-                        discountTotal += discount;
+                return this.productosPedido.reduce((total, producto) => {
+                    if (producto.discount_percentage && producto.discount_percentage > 0) {
+                        const subtotal = (producto.quantity || 0) * (producto.compra || 0);
+                        const descuento = (subtotal * producto.discount_percentage) / 100;
+                        return total + descuento;
                     }
-                });
-                
-                return Math.ceil(discountTotal);
+                    return total;
+                }, 0);
             }
         }
-    },
+    }
 }
 </script>
 

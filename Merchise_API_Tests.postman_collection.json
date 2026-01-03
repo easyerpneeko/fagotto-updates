@@ -1,0 +1,479 @@
+{
+	"info": {
+		"_postman_id": "mercadise-api-tests-2026",
+		"name": "Merchise API Tests",
+		"description": "Colección completa para probar la integración con Merchise Delivery.\n\n**Endpoints disponibles:**\n- GET /api/mercadise/menu - Obtener catálogo de productos\n- POST /api/webhooks/mercadise - Recibir pedidos desde Merchise\n- GET /api/mercadise/orders - Listar pedidos recibidos\n- PUT /api/mercadise/orders/{id}/status - Actualizar estado de pedido\n\n**Autenticación:**\nSolo requiere header `App-Key` con el Serial único de cada local.\n\n**Configuración:**\n1. Importa esta colección en Postman\n2. Edita las variables de la colección\n3. Cambia `app_key` por el Serial de tu local\n4. Ejecuta los tests en orden",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://posfagotto.cl",
+			"type": "string"
+		},
+		{
+			"key": "app_key",
+			"value": "463E-A767-C73C-58B5-2116",
+			"type": "string"
+		},
+		{
+			"key": "pedido_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1 - GET Menu (Leer Catálogo)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has success true\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.success).to.eql(true);",
+							"});",
+							"",
+							"pm.test(\"Response has local info\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.local).to.have.property('id');",
+							"    pm.expect(jsonData.local).to.have.property('nombre');",
+							"    pm.expect(jsonData.local).to.have.property('serial');",
+							"});",
+							"",
+							"pm.test(\"Response has productos array\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.productos).to.be.an('array');",
+							"});",
+							"",
+							"pm.test(\"Total productos matches array length\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.total_productos).to.eql(jsonData.productos.length);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "App-Key",
+						"value": "{{app_key}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/mercadise/menu",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"mercadise",
+						"menu"
+					]
+				},
+				"description": "**Descripción:**\nMerchise solicita el catálogo de productos del local.\n\n**Identificación:**\nEl sistema identifica automáticamente el local mediante el header `App-Key`.\n\n**Respuesta:**\n- Lista de productos activos\n- Información del local\n- Total de productos\n- Timestamp de la consulta"
+			},
+			"response": []
+		},
+		{
+			"name": "2 - POST Nuevo Pedido (Webhook)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Order was created\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.success).to.eql(true);",
+							"    pm.expect(jsonData.pedido_id).to.be.a('number');",
+							"});",
+							"",
+							"pm.test(\"Order ID matches\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.order_id).to.include('MERC-');",
+							"});",
+							"",
+							"pm.test(\"Status is received\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql('received');",
+							"});",
+							"",
+							"// Guardar pedido_id para próximos tests",
+							"var jsonData = pm.response.json();",
+							"pm.collectionVariables.set(\"pedido_id\", jsonData.pedido_id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "App-Key",
+						"value": "{{app_key}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"order_id\": \"MERC-2026-{{$randomInt}}\",\n  \"customer\": {\n    \"name\": \"Juan Pérez\",\n    \"phone\": \"+56912345678\",\n    \"address\": \"Las Condes, Santiago\"\n  },\n  \"items\": [\n    {\n      \"product_id\": 5,\n      \"nombre\": \"Pizza Margarita\",\n      \"cantidad\": 2,\n      \"precio\": 8500\n    },\n    {\n      \"product_id\": 7,\n      \"nombre\": \"Coca Cola 500ml\",\n      \"cantidad\": 1,\n      \"precio\": 2000\n    }\n  ],\n  \"total\": 19000,\n  \"payment_method\": \"efectivo\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/webhooks/mercadise",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"webhooks",
+						"mercadise"
+					]
+				},
+				"description": "**Descripción:**\nMerchise envía un nuevo pedido realizado por un cliente.\n\n**Validaciones:**\n- order_id único y requerido\n- customer.name y customer.phone requeridos\n- items array con mínimo 1 producto\n- total numérico mayor a 0\n\n**Funcionalidades:**\n- Detecta pedidos duplicados (por order_id)\n- Guarda con app_id del local automáticamente\n- Registra timestamp de recepción\n- Responde con tiempo estimado"
+			},
+			"response": []
+		},
+		{
+			"name": "3 - GET Lista Pedidos",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has pedidos array\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.pedidos).to.be.an('array');",
+							"});",
+							"",
+							"pm.test(\"Response has local info\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.local).to.have.property('id');",
+							"    pm.expect(jsonData.local).to.have.property('nombre');",
+							"});",
+							"",
+							"pm.test(\"Pedidos have required fields\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    if (jsonData.pedidos.length > 0) {",
+							"        var pedido = jsonData.pedidos[0];",
+							"        pm.expect(pedido).to.have.property('id');",
+							"        pm.expect(pedido).to.have.property('app_id');",
+							"        pm.expect(pedido).to.have.property('order_id_mercadise');",
+							"        pm.expect(pedido).to.have.property('customer_name');",
+							"        pm.expect(pedido).to.have.property('items');",
+							"        pm.expect(pedido).to.have.property('total');",
+							"        pm.expect(pedido).to.have.property('status');",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "App-Key",
+						"value": "{{app_key}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/mercadise/orders",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"mercadise",
+						"orders"
+					],
+					"query": [
+						{
+							"key": "status",
+							"value": "pending",
+							"description": "Filtrar por estado (opcional)",
+							"disabled": true
+						},
+						{
+							"key": "fecha_desde",
+							"value": "2026-01-01",
+							"description": "Filtrar desde fecha (opcional)",
+							"disabled": true
+						},
+						{
+							"key": "fecha_hasta",
+							"value": "2026-01-31",
+							"description": "Filtrar hasta fecha (opcional)",
+							"disabled": true
+						}
+					]
+				},
+				"description": "**Descripción:**\nObtiene la lista de pedidos recibidos desde Merchise para el local actual.\n\n**Filtros opcionales:**\n- `status`: pending, accepted, preparing, ready, delivered, cancelled\n- `fecha_desde`: YYYY-MM-DD\n- `fecha_hasta`: YYYY-MM-DD\n\n**Respuesta:**\n- Array de pedidos con items decodificados\n- Info del local\n- Total de pedidos encontrados\n- Límite: últimos 100 pedidos"
+			},
+			"response": []
+		},
+		{
+			"name": "4 - PUT Actualizar Estado",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Status updated successfully\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.success).to.eql(true);",
+							"    pm.expect(jsonData.message).to.include('actualizado');",
+							"});",
+							"",
+							"pm.test(\"New status is accepted\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql('accepted');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "App-Key",
+						"value": "{{app_key}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"status\": \"accepted\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/mercadise/orders/{{pedido_id}}/status",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"mercadise",
+						"orders",
+						"{{pedido_id}}",
+						"status"
+					]
+				},
+				"description": "**Descripción:**\nActualiza el estado de un pedido y registra el timestamp correspondiente.\n\n**Estados válidos:**\n- `pending` → Recién recibido\n- `accepted` → Aceptado (guarda accepted_at)\n- `preparing` → En preparación\n- `ready` → Listo para entregar (guarda ready_at)\n- `delivered` → Entregado (guarda delivered_at)\n- `cancelled` → Cancelado\n\n**Nota:**\nEl pedido_id se toma automáticamente del test anterior.\nPuedes cambiarlo manualmente en las variables de la colección."
+			},
+			"response": []
+		},
+		{
+			"name": "5 - POST Pedido Duplicado (Protección)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Duplicate detected\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.success).to.eql(true);",
+							"    pm.expect(jsonData.message).to.include('ya registrado');",
+							"});",
+							"",
+							"pm.test(\"Returns existing order status\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('status');",
+							"    pm.expect(jsonData).to.have.property('order_id');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "App-Key",
+						"value": "{{app_key}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"order_id\": \"MERC-2026-TEST-DUPLICATE\",\n  \"customer\": {\n    \"name\": \"María López\",\n    \"phone\": \"+56987654321\",\n    \"address\": \"Providencia, Santiago\"\n  },\n  \"items\": [\n    {\n      \"product_id\": 6,\n      \"nombre\": \"Pizza Pepperoni\",\n      \"cantidad\": 1,\n      \"precio\": 9500\n    }\n  ],\n  \"total\": 9500,\n  \"payment_method\": \"tarjeta\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/webhooks/mercadise",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"webhooks",
+						"mercadise"
+					]
+				},
+				"description": "**Descripción:**\nPrueba la protección contra pedidos duplicados.\n\n**Instrucciones:**\n1. Ejecuta primero el Test 2 para crear un pedido\n2. Ejecuta este test con el mismo order_id\n3. El sistema debe detectar el duplicado\n\n**Comportamiento esperado:**\n- Status 200 (no 201)\n- Mensaje: \"Pedido ya registrado previamente\"\n- NO crea un nuevo registro en la BD\n- Responde con el estado actual del pedido existente\n\n**Nota:**\nPara probar, ejecuta este request DOS VECES seguidas con el mismo order_id."
+			},
+			"response": []
+		},
+		{
+			"name": "ERROR - Sin App-Key",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 401\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"Error message is correct\", function () {",
+							"    var response = pm.response.text();",
+							"    pm.expect(response).to.include('Codigo de aplicacion no encontrado');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/mercadise/menu",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"mercadise",
+						"menu"
+					]
+				},
+				"description": "**Test de Error:**\nVerifica que el sistema rechaza requests sin App-Key.\n\n**Error esperado:**\n- Status: 401 Unauthorized\n- Mensaje: \"Codigo de aplicacion no encontrado en header.\""
+			},
+			"response": []
+		},
+		{
+			"name": "ERROR - App-Key Inválido",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"Error message is correct\", function () {",
+							"    var response = pm.response.text();",
+							"    pm.expect(response).to.include('Serial no encontrado');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "App-Key",
+						"value": "SERIAL-INVALIDO-12345",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/mercadise/menu",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"mercadise",
+						"menu"
+					]
+				},
+				"description": "**Test de Error:**\nVerifica que el sistema rechaza App-Keys que no existen en la base de datos.\n\n**Error esperado:**\n- Status: 404 Not Found\n- Mensaje: \"Serial no encontrado.\""
+			},
+			"response": []
+		}
+	]
+}

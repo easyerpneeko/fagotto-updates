@@ -267,11 +267,18 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- jQuery -->
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    
+    <!-- Helpers necesarios -->
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+    <script src="../assets/helpers/helperFunctions.js"></script>
+    
     <script>
-        // Configuración de la API
-        const API_URL = window.location.origin;
-        const TOKEN = localStorage.getItem('token');
-        
         // Formatear números a CLP
         function formatCLP(number) {
             return new Intl.NumberFormat('es-CL', {
@@ -305,42 +312,41 @@
                 document.getElementById('tableContent').style.display = 'none';
                 document.getElementById('noDataMessage').style.display = 'none';
                 
-                let url = `${API_URL}/api/local/compras-fabrica/ventas`;
+                let endpoint = '/local/compras-fabrica/ventas';
                 
                 // Agregar parámetros de fecha si existen
-                const params = new URLSearchParams();
-                if (fechaInicio) params.append('fecha_inicio', fechaInicio);
-                if (fechaFin) params.append('fecha_fin', fechaFin);
-                
-                if (params.toString()) {
-                    url += '?' + params.toString();
+                if (fechaInicio && fechaFin) {
+                    endpoint += `?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`;
+                } else if (fechaInicio) {
+                    endpoint += `?fecha_inicio=${fechaInicio}`;
+                } else if (fechaFin) {
+                    endpoint += `?fecha_fin=${fechaFin}`;
                 }
                 
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${TOKEN}`,
-                        'Content-Type': 'application/json'
+                const url = generarURLApi(endpoint);
+                
+                await __conection({
+                    url: url,
+                    header: credentials(),
+                    dev: true,
+                    method: 'GET'
+                }, {}, function (response) {
+                    if (response && response.success !== false) {
+                        renderTabla(response.data);
+                        renderEstadisticas(response.stats);
+                    } else {
+                        mostrarError('No se pudieron cargar los datos');
                     }
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                }, function(error) {
+                    console.error('Error:', error);
+                    mostrarError('Error al cargar datos de ventas');
+                    document.getElementById('loadingSpinner').style.display = 'none';
                 });
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar datos');
-                }
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    renderTabla(result.data);
-                    renderEstadisticas(result.stats);
-                } else {
-                    mostrarError('No se pudieron cargar los datos');
-                }
                 
             } catch (error) {
                 console.error('Error:', error);
                 mostrarError('Error al cargar datos de ventas');
-            } finally {
                 document.getElementById('loadingSpinner').style.display = 'none';
             }
         }
@@ -410,7 +416,7 @@
         }
         
         // Inicializar - Cargar datos al cargar la página
-        document.addEventListener('DOMContentLoaded', () => {
+        $(document).ready(function() {
             cargarVentas();
         });
     </script>

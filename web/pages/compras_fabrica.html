@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📦 Compras de Fábrica - Reporte de Ventas</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-weight: 700;
+            margin: 0;
+            font-size: 2rem;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        
+        .stat-card .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .filters-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow-x: auto;
+        }
+        
+        .table {
+            margin: 0;
+        }
+        
+        .table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .table thead th {
+            border: none;
+            padding: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .table tbody tr {
+            transition: background-color 0.2s;
+        }
+        
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+        }
+        
+        .badge-cantidad {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .producto-nombre {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+        
+        .btn-filtrar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .btn-filtrar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-limpiar {
+            background: #6c757d;
+            border: none;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .icon-producto {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .stat-card .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-factory"></i> 📦 Compras de Fábrica</h1>
+            <p class="mb-0 text-muted">Reporte global de ventas por producto</p>
+        </div>
+        
+        <!-- Estadísticas -->
+        <div class="stats-container" id="statsContainer">
+            <div class="stat-card">
+                <div class="stat-label">Total Productos</div>
+                <div class="stat-value" id="totalProductos">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Pedidos</div>
+                <div class="stat-value" id="totalPedidos">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Monto Total</div>
+                <div class="stat-value" id="montoTotal">-</div>
+            </div>
+        </div>
+        
+        <!-- Filtros -->
+        <div class="filters-card">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Fecha Inicio</label>
+                    <input type="date" class="form-control" id="fechaInicio">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Fecha Fin</label>
+                    <input type="date" class="form-control" id="fechaFin">
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-filtrar w-100" onclick="aplicarFiltros()">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tabla de Productos -->
+        <div class="table-container">
+            <div id="loadingSpinner" class="loading">
+                <i class="fas fa-spinner fa-spin fa-3x"></i>
+                <p class="mt-3">Cargando datos de ventas...</p>
+            </div>
+            
+            <div id="tableContent" style="display: none;">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th>Producto</th>
+                            <th style="width: 180px; text-align: center;">Cantidad Total</th>
+                            <th style="width: 150px; text-align: right;">Precio Prom.</th>
+                            <th style="width: 150px; text-align: right;">Total Vendido</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Se llena dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="noDataMessage" class="no-data" style="display: none;">
+                <i class="fas fa-inbox fa-3x mb-3"></i>
+                <p class="h5">No hay datos de ventas para mostrar</p>
+                <p class="text-muted">Intenta ajustar los filtros de fecha</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery -->
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    
+    <!-- Helpers necesarios -->
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+    <script src="../assets/helpers/helperFunctions.js"></script>
+    
+    <script>
+        // Formatear números a CLP
+        function formatCLP(number) {
+            return new Intl.NumberFormat('es-CL', {
+                style: 'currency',
+                currency: 'CLP'
+            }).format(number);
+        }
+        
+        // Formatear números grandes
+        function formatNumber(number) {
+            return new Intl.NumberFormat('es-CL').format(number);
+        }
+        
+        // Obtener icono según categoría/nombre del producto
+        function getProductIcon(nombre) {
+            const nombreLower = nombre.toLowerCase();
+            if (nombreLower.includes('salsa')) return '🍝';
+            if (nombreLower.includes('pasta')) return '🍜';
+            if (nombreLower.includes('harina') || nombreLower.includes('mezcla')) return '🌾';
+            if (nombreLower.includes('vaso') || nombreLower.includes('sobre')) return '🥤';
+            if (nombreLower.includes('queso')) return '🧀';
+            if (nombreLower.includes('ciabatta') || nombreLower.includes('pan')) return '🥖';
+            if (nombreLower.includes('bolsa')) return '🛍️';
+            return '📦';
+        }
+        
+        // Cargar datos de ventas
+        async function cargarVentas(fechaInicio = null, fechaFin = null) {
+            try {
+                document.getElementById('loadingSpinner').style.display = 'block';
+                document.getElementById('tableContent').style.display = 'none';
+                document.getElementById('noDataMessage').style.display = 'none';
+                
+                let endpoint = '/local/compras-fabrica/ventas';
+                
+                // Agregar parámetros de fecha si existen
+                if (fechaInicio && fechaFin) {
+                    endpoint += `?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`;
+                } else if (fechaInicio) {
+                    endpoint += `?fecha_inicio=${fechaInicio}`;
+                } else if (fechaFin) {
+                    endpoint += `?fecha_fin=${fechaFin}`;
+                }
+                
+                const url = generarURLApi(endpoint);
+                
+                await __conection({
+                    url: url,
+                    header: credentials(),
+                    dev: true,
+                    method: 'GET'
+                }, {}, function (response) {
+                    if (response && response.success !== false) {
+                        renderTabla(response.data);
+                        renderEstadisticas(response.stats);
+                    } else {
+                        mostrarError('No se pudieron cargar los datos');
+                    }
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                }, function(error) {
+                    console.error('Error:', error);
+                    mostrarError('Error al cargar datos de ventas');
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                });
+                
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('Error al cargar datos de ventas');
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+        }
+        
+        // Renderizar tabla
+        function renderTabla(productos) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            if (!productos || productos.length === 0) {
+                document.getElementById('noDataMessage').style.display = 'block';
+                return;
+            }
+            
+            document.getElementById('tableContent').style.display = 'block';
+            
+            productos.forEach((producto, index) => {
+                const row = document.createElement('tr');
+                
+                const icon = getProductIcon(producto.producto);
+                
+                row.innerHTML = `
+                    <td class="text-center">${index + 1}</td>
+                    <td>
+                        <span class="icon-producto">${icon}</span>
+                        <span class="producto-nombre">${producto.producto}</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge-cantidad">
+                            ${formatNumber(producto.cantidad_total)} ${producto.unidad_medida}
+                        </span>
+                    </td>
+                    <td class="text-end">${formatCLP(producto.precio_promedio)}</td>
+                    <td class="text-end fw-bold text-success">${formatCLP(producto.total_vendido)}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Renderizar estadísticas
+        function renderEstadisticas(stats) {
+            document.getElementById('totalProductos').textContent = formatNumber(stats.total_productos);
+            document.getElementById('totalPedidos').textContent = formatNumber(stats.total_pedidos);
+            document.getElementById('montoTotal').textContent = formatCLP(stats.monto_total);
+        }
+        
+        // Aplicar filtros
+        function aplicarFiltros() {
+            const fechaInicio = document.getElementById('fechaInicio').value;
+            const fechaFin = document.getElementById('fechaFin').value;
+            
+            cargarVentas(fechaInicio, fechaFin);
+        }
+        
+        // Mostrar error
+        function mostrarError(mensaje) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-danger">
+                        <i class="fas fa-exclamation-triangle"></i> ${mensaje}
+                    </td>
+                </tr>
+            `;
+            document.getElementById('tableContent').style.display = 'block';
+        }
+        
+        // Inicializar - Cargar datos al cargar la página
+        $(document).ready(function() {
+            cargarVentas();
+        });
+    </script>
+</body>
+</html>

@@ -86,15 +86,11 @@
             @click="editarCliente(null)">
             Editar Cliente
           </button>
-          <!-- Botón cancelar factura comentado
-          <button type="button" class="btn bg-dark text-white text-capitalize" @click="openCancelSell">
+          <button type="button" class="btn bg-dark text-white text-capitalize" 
+            v-if="dataDetail && dataDetail.type == 'factura'" 
+            @click="openCancelSell">
             Cancelar factura
           </button>
-          -->
-          <!-- <button type="button" class="btn bg-dark text-white text-capitalize"
-            v-if="notaInstalled && dataDetail && dataDetail.type == 'factura'" @click="cancelSell">
-            Cancelar factura
-          </button> -->
           <button type="button" class="btn bg-primario text-white text-capitalize"
             v-if="dataDetail && siiInstalled && settingFactura && dataDetail.type == 'factura'" @click="consultarVenta">
             Consultar Factura
@@ -192,10 +188,11 @@
             </button>
           </div>
           <div v-if="dataDetail" class="modal-body">
-            <label>Fecha de cancelacion</label>
+            <label>Fecha de emisión de la factura original a anular</label>
             <div class="col-12">
-                <date-picker class="widthInput" format="YYYY-MM-DD" type="date" v-model="cancelDate" placeholder="Fechas" confirm></date-picker>
+                <date-picker class="widthInput" format="YYYY-MM-DD" type="date" v-model="cancelDate" placeholder="Ingrese la fecha de la factura" confirm></date-picker>
             </div>
+            <small class="text-muted">Esta es la fecha en que se emitió la factura que desea anular (puede ser de un mes anterior).</small>
           </div>
           <div class="modal-footer" v-if="dataDetail && !dataDetail.trash">
             <button type="button" class="btn bg-dark text-white text-capitalize" @click="cancelSell">

@@ -1036,4 +1036,145 @@ class RequestsController extends Controller
 
         return response()->json($query, 200);
     }
+
+    /**
+     * Obtener productos de pedidofinal_precios para control de stock
+     */
+    public function getPedidoFinalStock()
+    {
+        try {
+            \Log::info('getPedidoFinalStock: Iniciando consulta');
+            
+            $productos = DB::table('easyerp.pedidofinal_precios')
+                ->select(
+                    'id', 
+                    'producto as name', 
+                    'stock', 
+                    'unidad_medida', 
+                    'unidad_venta',
+                    'precio_por_unidad as precio', 
+                    'categoria', 
+                    'min_stock'
+                )
+                ->whereNotNull('stock') // Solo productos con control de stock
+                ->orderBy('producto', 'asc')
+                ->get()
+                ->map(function($producto) {
+                    // Calcular kilos totales si es bolsa de 2kg
+                    $producto->kilos_totales = null;
+                    
+                    // Si la unidad de venta es 2 (kg por bolsa) y tiene stock
+                    if ($producto->unidad_venta && $producto->stock) {
+                        $producto->kilos_totales = $producto->stock * $producto->unidad_venta;
+                    }
+                    
+                    return $producto;
+                });
+
+            \Log::info('getPedidoFinalStock: Productos encontrados', ['count' => $productos->count()]);
+            
+            return response()->json($productos, 200);
+        } catch (\Exception $e) {
+            \Log::error('getPedidoFinalStock: Error', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener productos: ' . $e->getMessage(),
+                'error' => $e->getLine()
+            ], 500);
+        }
+    }
+
+    /**
+     * Actualizar stock de un producto en pedidofinal_precios
+     */
+    public function updatePedidoFinalStock(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'stock_added' => 'required|numeric', // Puede ser positivo o negativo
+        ]);
+
+        try {
+            $producto = DB::table('easyerp.pedidofinal_precios')
+                ->where('id', $id)
+                ->first();
+
+            if (!$producto) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Producto no encontrado'
+                ], 404);
+            }
+
+            $stockAnterior = $producto->stock ?? 0;
+            $nuevoStock = $stockAnterior + $validatedData['stock_added'];
+
+            if ($nuevoStock < 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El stock no puede ser negativo'
+                ], 400);
+            }
+
+            // Actualizar stock
+            DB::table('easyerp.pedidofinal_precios')
+                ->where('id', $id)
+                ->update(['stock' => $nuevoStock]);
+
+            // Registrar el cambio en historial (opcional si la tabla no existe)
+            try {
+                DB::table('easyerp.pedidofinal_stock_history')
+                    ->insert([
+                        'producto_id' => $id,
+                        'producto_nombre' => $producto->producto,
+                        'stock_anterior' => $stockAnterior,
+                        'stock_agregado' => $validatedData['stock_added'],
+                        'stock_nuevo' => $nuevoStock,
+                        'usuario' => Auth::check() ? Auth::user()->name : 'Sistema',
+                        'fecha' => now(),
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+            } catch (\Exception $e) {
+                // Si la tabla de historial no existe, continuar sin registrar
+                \Log::warning('No se pudo registrar en historial: ' . $e->getMessage());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Stock actualizado correctamente',
+                'stock_anterior' => $stockAnterior,
+                'stock_nuevo' => $nuevoStock
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar stock: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener historial de cambios de stock
+     */
+    public function getPedidoFinalStockHistory()
+    {
+        try {
+            $historial = DB::table('easyerp.pedidofinal_stock_history')
+                ->orderBy('fecha', 'desc')
+                ->limit(100)
+                ->get();
+
+            return response()->json($historial, 200);
+        } catch (\Exception $e) {
+            // Si la tabla no existe, devolver array vacío
+            \Log::warning('Error al obtener historial: ' . $e->getMessage());
+            return response()->json([], 200);
+        }
+    }
 }

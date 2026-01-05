@@ -51,6 +51,9 @@ Route::post('/totem/productos', 'Controllers_local\TotemController@crearProducto
 Route::put('/totem/productos/{id}', 'Controllers_local\TotemController@actualizarProducto');
 Route::delete('/totem/productos/{id}', 'Controllers_local\TotemController@eliminarProducto');
 
+// Versiones de Aplicación (sin autenticación para acceso público)
+Route::get('/versions', 'VersionController@index');
+
 /*Route::get('/codeTest', function() {
   session(['app-current' => Aplication::find(1)]);
   session(['app-config' => CurrentApp::App()->getApp()]);
@@ -599,6 +602,7 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::get('/local/requests', 'Controllers_local\RequestsController@index');
           Route::post('/local/request', 'Controllers_local\RequestsController@store');
           Route::post('/local/request/pedido-final', 'Controllers_local\RequestsController@storePedidoFinal');
+          
           Route::put('/local/request/{id}', 'Controllers_local\RequestsController@update');
           Route::delete('/local/request/{id}', 'Controllers_local\RequestsController@remove');
           Route::put('/local/request/decline/{app_id}/{id}', 'Controllers_local\RequestsController@decline');
@@ -633,6 +637,11 @@ Route::group(['middleware' => ['AppSecurity']], function () {
 
           //Facturar Pedido
           Route::post('/web/pedido/facturar/reposteria', 'Controllers_local\RequestsController@facturarPedidoReposteria'); 
+
+          // Stock de Pedido Final - Gestión de inventario de productos finales
+          Route::get('/local/pedidofinal/stock', 'Controllers_local\RequestsController@getPedidoFinalStock');
+          Route::post('/local/pedidofinal/stock/{id}', 'Controllers_local\RequestsController@updatePedidoFinalStock');
+          Route::get('/local/pedidofinal/stock/history', 'Controllers_local\RequestsController@getPedidoFinalStockHistory');
 
         });
 

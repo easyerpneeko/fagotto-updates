@@ -64,7 +64,7 @@ function openModalAddStock(productId, stock, productName = '') {
 
 async function getProducts() {
     var url = "";
-    url = generarURLApi(`/local/products/index`);
+    url = generarURLApi(`/local/pedidofinal/stock`);
 
     await __conection({
         url: url,
@@ -84,19 +84,19 @@ async function getProducts() {
                                     <tr>
                                         <th scope="col" style="width: 5%;">#</th>
                                         <th scope="col" style="width: 25%;">
-                                            <i class="fas fa-bottle-droplet"></i> Producto
+                                            <i class="fas fa-box-open"></i> Producto
                                         </th>
                                         <th scope="col" style="width: 12%;">
-                                            <i class="fas fa-box"></i> Bolsas
+                                            <i class="fas fa-boxes"></i> Stock (Bolsas)
                                         </th>
                                         <th scope="col" style="width: 12%;">
-                                            <i class="fas fa-weight"></i> Kg Total
+                                            <i class="fas fa-weight"></i> Kilos Totales
                                         </th>
                                         <th scope="col" style="width: 12%;">
-                                            <i class="fas fa-wine-glass"></i> Vasos
+                                            <i class="fas fa-balance-scale"></i> Unidad
                                         </th>
-                                        <th scope="col" style="width: 15%;">
-                                            <i class="fas fa-info-circle"></i> Info/Bolsa
+                                        <th scope="col" style="width: 12%;">
+                                            <i class="fas fa-dollar-sign"></i> Precio
                                         </th>
                                         <th scope="col" style="width: 12%;" class="text-center">
                                             <i class="fas fa-edit"></i> Acciones
@@ -106,82 +106,65 @@ async function getProducts() {
                                 <tbody>`;
 
             for (const index in products) {
-                if (products[index].category == 2) {
-                    const sauceIcon = getSauceIcon(products[index].name);
-                    
-                    // Determinar configuración según tipo de salsa
-                    const nameLower = products[index].name.toLowerCase();
-                    let kgPorSet27Vasos; // Kg que pesan las bolsas necesarias para hacer 27 vasos
-                    let bolsasPorSet27;  // Cuántas bolsas físicas se necesitan para 27 vasos
-                    let kgPorBolsaIndividual; // Peso de 1 bolsa física
-                    
-                    if (nameLower.includes('pesto')) {
-                        // PESTO: 1 bolsa = 27 vasos = 2.100 kg
-                        kgPorBolsaIndividual = 2.100;
-                        bolsasPorSet27 = 1;
-                        kgPorSet27Vasos = 2.100;
-                    } else if (nameLower.includes('bolognesa') || nameLower.includes('bolonesa') || nameLower.includes('boloñesa')) {
-                        // BOLOÑESA: 2 bolsas = 27 vasos = 3.718 kg (1 bolsa = 1.859 kg)
-                        kgPorBolsaIndividual = 1.859;
-                        bolsasPorSet27 = 2;
-                        kgPorSet27Vasos = 3.718;
-                    } else {
-                        // ALFREDO, CAMARÓN, CHAMPIÑÓN: 2 bolsas = 27 vasos = 4.158 kg (1 bolsa = 2.079 kg)
-                        kgPorBolsaIndividual = 2.079;
-                        bolsasPorSet27 = 2;
-                        kgPorSet27Vasos = 4.158;
-                    }
-                    
-                    // El stock representa "sets de 27 vasos"
-                    const totalBolsasFisicas = products[index].stock * bolsasPorSet27;
-                    const totalKg = (products[index].stock * kgPorSet27Vasos).toFixed(3);
-                    const totalVasos = products[index].stock * 27; // Siempre 27 vasos por set
-                    
-                    console.log(`📦 ${products[index].name}: Stock=${products[index].stock} sets, Bolsas=${totalBolsasFisicas}, Kg=${totalKg}, Vasos=${totalVasos}`);
-                    
-                    fila += `<tr>
-                                <td class="text-muted"><b>${i}</b></td>
-                                <td class="product-name">
-                                    ${sauceIcon}
-                                    <span class="ms-2">${products[index].name}</span>
-                                </td>
-                                <td>
-                                    <span class="stock-badge bags">
-                                        <i class="fas fa-box"></i>
-                                        ${totalBolsasFisicas}
+                const stock = products[index].stock || 0;
+                const unidad = products[index].unidad_medida || 'unidad';
+                const precio = products[index].precio ? `$${parseFloat(products[index].precio).toLocaleString('es-CL')}` : 'N/A';
+                const kilosTotales = products[index].kilos_totales;
+                const unidadVenta = products[index].unidad_venta || 0;
+                const categoria = (products[index].categoria || '').toLowerCase();
+                const nombreProducto = (products[index].name || '').toLowerCase();
+                
+                // Verificar si es una salsa (por categoría o nombre)
+                const esSalsa = categoria.includes('salsa') || nombreProducto.includes('salsa');
+                
+                // Determinar color del badge según nivel de stock
+                let stockClass = 'success';
+                if (stock <= 5) stockClass = 'danger';
+                else if (stock <= 20) stockClass = 'warning';
+                
+                // Mostrar kilos totales SOLO si es salsa y tiene kilosTotales
+                let kilosDisplay = '';
+                if (esSalsa && kilosTotales) {
+                    kilosDisplay = `<span class="badge bg-info fs-6">
+                                        <i class="fas fa-weight-hanging"></i> ${kilosTotales.toLocaleString('es-CL')} kg
                                     </span>
-                                    <small class="text-muted d-block mt-1">(${products[index].stock} sets)</small>
-                                </td>
-                                <td>
-                                    <span class="stock-badge" style="background: linear-gradient(135deg, #f093fb20 0%, #f5576c20 100%); color: #f5576c;">
-                                        <i class="fas fa-weight-hanging"></i>
-                                        ${totalKg} kg
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="stock-badge cups">
-                                        <i class="fas fa-wine-glass"></i>
-                                        ${totalVasos}
-                                    </span>
-                                </td>
-                                <td>
-                                    <small class="text-muted">
-                                        <div><strong>${kgPorBolsaIndividual} kg</strong>/bolsa física</div>
-                                        <div><strong>${bolsasPorSet27}</strong> bolsas = 27 vasos</div>
-                                        <div><strong>${kgPorSet27Vasos} kg</strong> por set</div>
-                                    </small>
-                                </td>
-                                <td class="text-center">
-                                    <button class='btn btn-edit-stock btn-sm' 
-                                            onclick="openModalAddStock(${products[index].id}, ${products[index].stock}, '${products[index].name.replace(/'/g, "\\'")}')" 
-                                            data-stock="${products[index].stock}">
-                                        <i class="fa-solid fa-edit"></i> Editar
-                                    </button>
-                                </td>
-                            </tr>`;
-                    i++;
+                                    <br>
+                                    <small class="text-muted">(${stock} x ${unidadVenta}kg)</small>`;
+                } else {
+                    kilosDisplay = '<span class="text-muted">N/A</span>';
                 }
                 
+                fila += `<tr>
+                            <td class="text-muted"><b>${i}</b></td>
+                            <td class="product-name">
+                                <i class="fas fa-box text-primary"></i>
+                                <span class="ms-2"><strong>${products[index].name}</strong></span>
+                            </td>
+                            <td>
+                                <span class="badge bg-${stockClass} fs-6">
+                                    ${stock} bolsas
+                                </span>
+                            </td>
+                            <td>
+                                ${kilosDisplay}
+                            </td>
+                            <td>
+                                <span class="text-muted">
+                                    <i class="fas fa-ruler"></i> ${unidad}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-success fw-bold">${precio}</span>
+                            </td>
+                            <td class="text-center">
+                                <button class='btn btn-edit-stock btn-sm' 
+                                        onclick="openModalAddStock(${products[index].id}, ${stock}, '${products[index].name.replace(/'/g, "\\'")}')" 
+                                        data-stock="${stock}">
+                                    <i class="fa-solid fa-edit"></i> Editar
+                                </button>
+                            </td>
+                        </tr>`;
+                i++;
             }
             fila += `</tbody>
                         </table>
@@ -261,7 +244,7 @@ async function saveStock() {
     try {
         const response = await __conection(
             {
-                url: generarURLApi(`/local/products/updateStock/${productIdToUpdate}`),
+                url: generarURLApi(`/local/pedidofinal/stock/${productIdToUpdate}`),
                 header: credentials(),
                 dev: true,
                 method: 'POST',
@@ -285,7 +268,7 @@ async function saveStock() {
 }
 
 async function getStockHistory() {
-    const url = generarURLApi(`/local/products/stockHistory`);
+    const url = generarURLApi(`/local/pedidofinal/stock/history`);
 
     await __conection({
         url: url,
@@ -303,16 +286,17 @@ async function getStockHistory() {
                                 <thead>
                                     <tr>
                                         <th style="width: 20%;">Fecha y Hora</th>
-                                        <th style="width: 20%;">Usuario</th>
-                                        <th style="width: 15%;">Anterior</th>
-                                        <th style="width: 15%;">Nuevo</th>
-                                        <th style="width: 15%;">Cambio</th>
+                                        <th style="width: 25%;">Producto</th>
+                                        <th style="width: 15%;">Usuario</th>
+                                        <th style="width: 12%;">Anterior</th>
+                                        <th style="width: 12%;">Nuevo</th>
+                                        <th style="width: 16%;">Cambio</th>
                                     </tr>
                                 </thead>
                                 <tbody>`;
 
             for (const change of changes) {
-                const date = new Date(change.created_at);
+                const date = new Date(change.fecha);
                 const formattedDate = date.toLocaleString('es-CL', {
                     day: '2-digit',
                     month: '2-digit',
@@ -321,7 +305,7 @@ async function getStockHistory() {
                     minute: '2-digit'
                 });
 
-                const difference = change.new_value - change.old_value;
+                const difference = change.stock_agregado;
                 let changeBadge = '';
                 let changeIcon = '';
                 let changeClass = '';
@@ -346,20 +330,23 @@ async function getStockHistory() {
                                 ${formattedDate}
                             </td>
                             <td>
+                                <strong>${change.producto_nombre}</strong>
+                            </td>
+                            <td>
                                 <span class="user-badge">
                                     <i class="fas fa-user"></i>
-                                    ${change.user_name || 'Sistema'}
+                                    ${change.usuario || 'Sistema'}
                                 </span>
                             </td>
                             <td>
-                                <strong>${change.old_value}</strong> bolsas
+                                <strong>${change.stock_anterior}</strong>
                             </td>
                             <td>
-                                <strong>${change.new_value}</strong> bolsas
+                                <strong>${change.stock_nuevo}</strong>
                             </td>
                             <td>
                                 <span class="change-badge ${changeClass}">
-                                    ${changeIcon} ${changeBadge} bolsas
+                                    ${changeIcon} ${changeBadge}
                                 </span>
                             </td>
                         </tr>`;

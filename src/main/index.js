@@ -340,6 +340,58 @@ ipcMain.on('app_version', (event) => {
   event.sender.send('app_version', { version: app.getVersion() });
 });
 
+// Handle version tracking ping from renderer
+ipcMain.on('track_version', async (event, data) => {
+  try {
+    const { serial } = data;
+    if (!serial) {
+      console.log('⚠️ No serial provided for version tracking');
+      return;
+    }
+
+    const version = app.getVersion();
+    const systemInfo = JSON.stringify({
+      platform: os.platform(),
+      arch: os.arch(),
+      release: os.release(),
+      hostname: os.hostname()
+    });
+
+    console.log('📊 Tracking version:', version, 'for serial:', serial);
+
+    // Send to backend - usando la ruta de Laravel
+    const trackUrl = 'https://posfagotto.cl/api/track-version';
+    
+    https.request(trackUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'App-Key': serial
+      }
+    }, (res) => {
+      let responseData = '';
+      res.on('data', (chunk) => {
+        responseData += chunk;
+      });
+      res.on('end', () => {
+        if (res.statusCode === 200) {
+          console.log('✅ Version tracked successfully:', responseData);
+        } else {
+          console.log('⚠️ Version tracking response:', res.statusCode, responseData);
+        }
+      });
+    }).on('error', (error) => {
+      console.error('❌ Error tracking version:', error.message);
+    }).end(JSON.stringify({
+      version: version,
+      system_info: systemInfo
+    }));
+
+  } catch (error) {
+    console.error('❌ Error in track_version handler:', error);
+  }
+});
+
 // Handle update download request from renderer (DISABLED - using automatic download instead)
 // ipcMain.on('download_update', async (event, data) => {
 //   try {

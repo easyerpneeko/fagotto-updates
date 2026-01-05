@@ -51,6 +51,10 @@ Route::post('/totem/productos', 'Controllers_local\TotemController@crearProducto
 Route::put('/totem/productos/{id}', 'Controllers_local\TotemController@actualizarProducto');
 Route::delete('/totem/productos/{id}', 'Controllers_local\TotemController@eliminarProducto');
 
+// Version Tracking - Sistema de monitoreo de versiones por negocio
+Route::post('/track-version', 'VersionTrackingController@trackVersion');
+Route::get('/versions', 'VersionTrackingController@getVersions');
+
 /*Route::get('/codeTest', function() {
   session(['app-current' => Aplication::find(1)]);
   session(['app-config' => CurrentApp::App()->getApp()]);

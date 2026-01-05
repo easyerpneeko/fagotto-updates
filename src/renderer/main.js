@@ -40,6 +40,7 @@ import 'vue2-datepicker/index.css';
 import 'vue-select/dist/vue-select.css';
 
 import EchoHelper, { $pusher, $echo } from './helpers/EchoHelper';
+import VersionTracker from './helpers/VersionTracker';
 import Chartkick from 'vue-chartkick'
 import Chart from 'chart.js'
 
@@ -69,4 +70,11 @@ new Vue({
   store,
   template: '<App/>',
 }).$mount('#app');
+
+// Iniciar tracking de versión automático
+// Se enviará la versión cada 5 minutos al servidor
+setTimeout(() => {
+  VersionTracker.startTracking();
+  console.log('📊 Version tracking activado - monitoreando versión cada 5 minutos');
+}, 10000); // Esperar 10 segundos después de que cargue la app
 

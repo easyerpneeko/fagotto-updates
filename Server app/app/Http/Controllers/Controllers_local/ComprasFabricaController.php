@@ -18,9 +18,8 @@ class ComprasFabricaController extends Controller
             $fechaInicio = $request->input('fecha_inicio');
             $fechaFin = $request->input('fecha_fin');
             
-            // Obtener todos los pedidos finales
-            $query = DB::table('requests')
-                ->select('id', 'products', 'created_at', 'status')
+            // Obtener todos los pedidos finales usando el modelo Requests
+            $query = \App\models_local\Requests::select('id', 'products', 'created_at', 'status', 'app_id')
                 ->where('status', '!=', 'cancelado');
             
             // Filtrar por rango de fechas si se proporciona

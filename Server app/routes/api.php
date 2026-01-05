@@ -643,6 +643,10 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::post('/local/pedidofinal/stock/{id}', 'Controllers_local\RequestsController@updatePedidoFinalStock');
           Route::get('/local/pedidofinal/stock/history', 'Controllers_local\RequestsController@getPedidoFinalStockHistory');
 
+          // Compras de Fábrica - Reporte de ventas por producto
+          Route::get('/local/compras-fabrica/ventas', 'Controllers_local\ComprasFabricaController@getVentasPorProducto');
+          Route::get('/local/compras-fabrica/top', 'Controllers_local\ComprasFabricaController@getTopProductos');
+
         });
 
         // Modulo de operaciones ===========================================c

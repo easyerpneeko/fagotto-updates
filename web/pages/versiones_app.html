@@ -98,6 +98,9 @@
         <a href="./dashboard.html" class="btn-back">
             <i class="fas fa-arrow-left"></i> Volver al Dashboard
         </a>
+        <a href="./admin_version.html" class="btn-back" style="float: right; background: #28a745; color: white;">
+            <i class="fas fa-cog"></i> Administrar Versión
+        </a>
 
         <h1 class="text-white text-center mb-4">
             <i class="fas fa-chart-line"></i> Monitor de Versiones - Fagotto ERP
@@ -109,6 +112,7 @@
                 <div class="stats-card">
                     <div class="stats-number" id="stat-latest">-</div>
                     <div class="stats-label">ÚLTIMA VERSIÓN</div>
+                    <small id="stat-source" style="color: #6c757d; font-size: 11px;"></small>
                 </div>
             </div>
             <div class="col-md-3">
@@ -192,8 +196,11 @@
                 }, {}, function(response) {
                     console.log('✅ Versiones obtenidas:', response);
                     if (response.success) {
-                        allData = response.data;
-                        latestVersion = response.latest_version;
+                        allData = response.data;                        
+                        // Mostrar fuente de la versión
+                        const sourceLabel = getSourceLabel(response.version_source);
+                        document.getElementById('stat-source').textContent = sourceLabel;
+                                                latestVersion = response.latest_version;
                         renderStats(response.stats, latestVersion);
                         renderTable(allData, latestVersion);
                     }
@@ -288,6 +295,12 @@
             if (minutes <= 10) return 'fas fa-circle ping-recent';
             if (minutes <= 60) return 'fas fa-circle ping-warning';
             return 'fas fa-circle ping-offline';
+        }
+
+        function getSourceLabel(source) {
+            if (source === 'database') return '🗄️ Base de Datos';
+            if (source === 'github') return '🐙 GitHub API';
+            return '⚠️ Fallback';
         }
 
         // Cargar datos al inicio

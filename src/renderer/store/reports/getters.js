@@ -17,3 +17,7 @@ export function getterExpenses(state) {
 export function getterOneWaiter(state) {
   return state.oneWaiter;
 }
+
+export function getterDailySales(state) {
+  return state.dailySales || 0;
+}

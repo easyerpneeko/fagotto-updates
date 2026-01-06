@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Versión Oficial - Fagotto ERP</title>
+    <link rel="icon" type="image/x-icon" href="../assets/css/negro.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="../assets/js/jquery-3.6.0.min.js"></script>
+    <script src="../assets/helpers/helperURL.js"></script>
+    <script src="../assets/helpers/helperSpecial.js"></script>
+    <script src="../assets/helpers/helperRoutes.js"></script>
+    <script src="../assets/helpers/helperStore.js"></script>
+    <script src="../assets/helpers/helperRequest.js"></script>
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 20px;
+        }
+        .version-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .source-badge {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 10px 5px;
+        }
+        .source-database { background: #28a745; color: white; }
+        .source-github { background: #6cc644; color: white; }
+        .source-fallback { background: #ffc107; color: #000; }
+        
+        .btn-back {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .btn-back:hover {
+            background: #f8f9fa;
+            color: #667eea;
+        }
+        .info-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .info-value {
+            font-size: 18px;
+            color: #212529;
+            margin-top: 5px;
+        }
+        .alert-custom {
+            border-radius: 10px;
+            border: none;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="./versiones_app.html" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Volver a Versiones
+        </a>
+
+        <h1 class="text-white text-center mb-4">
+            <i class="fas fa-cog"></i> Administrar Versión Oficial
+        </h1>
+
+        <!-- Estado actual -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-info-circle"></i> Estado Actual del Sistema
+                </h3>
+            </div>
+            <div class="card-body">
+                <div id="current-status">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actualizar versión -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-edit"></i> Actualizar Versión Oficial
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info alert-custom">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong>¿Cuándo actualizar?</strong><br>
+                    Actualiza la versión oficial cuando publiques una nueva versión en GitHub y quieras que todos los negocios se consideren "desactualizados" hasta que actualicen.
+                </div>
+
+                <form id="update-form">
+                    <div class="mb-3">
+                        <label for="new-version" class="form-label">Nueva Versión Oficial</label>
+                        <input type="text" class="form-control form-control-lg" id="new-version" 
+                               placeholder="Ej: 1.11.51" 
+                               pattern="^\d+\.\d+\.\d+$"
+                               required>
+                        <small class="text-muted">Formato: X.Y.Z (ejemplo: 1.11.51)</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="updated-by" class="form-label">Tu Nombre (Opcional)</label>
+                        <input type="text" class="form-control" id="updated-by" 
+                               placeholder="Ej: Jimmy Admin">
+                        <small class="text-muted">Para registrar quién hizo el cambio</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-save"></i> Actualizar Versión Oficial
+                    </button>
+                </form>
+
+                <div id="update-result" class="mt-3"></div>
+            </div>
+        </div>
+
+        <!-- Cómo funciona -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-question-circle"></i> ¿Cómo Funciona?
+                </h3>
+            </div>
+            <div class="card-body">
+                <h5>🔍 Sistema de Triple Verificación</h5>
+                <ol class="mt-3">
+                    <li class="mb-3">
+                        <strong class="text-success">1️⃣ Base de Datos (Prioritaria)</strong><br>
+                        La versión que TÚ configuras aquí. Es la más confiable porque la controlas manualmente.
+                    </li>
+                    <li class="mb-3">
+                        <strong class="text-info">2️⃣ GitHub API</strong><br>
+                        Si la DB no está disponible, consulta el último release de GitHub automáticamente.
+                    </li>
+                    <li class="mb-3">
+                        <strong class="text-warning">3️⃣ Fallback Hardcoded</strong><br>
+                        Si todo falla, usa la versión hardcodeada en el código (1.11.50).
+                    </li>
+                </ol>
+
+                <div class="alert alert-success alert-custom mt-4">
+                    <i class="fas fa-check-circle"></i>
+                    <strong>Recomendación:</strong> Siempre actualiza la versión aquí cuando publiques un nuevo release en GitHub. Así tienes control total.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (!_store().serial.isset()) ? window.location.href = "../index.html" : "";
+
+        let currentConfig = {};
+
+        // Cargar estado actual
+        async function loadCurrentStatus() {
+            try {
+                const url = generarURLApi('/versions/config');
+                
+                await __conection({
+                    url: url,
+                    header: credentials(),
+                    dev: true,
+                    method: 'GET'
+                }, {}, function(response) {
+                    if (response.success) {
+                        currentConfig = response.config;
+                        const current = response.current_official_version;
+                        
+                        const html = `
+                            <div class="version-display">
+                                v${current.version}
+                            </div>
+                            
+                            <div class="text-center mb-4">
+                                <span class="source-badge source-${getSourceClass(current.source)}">
+                                    ${getSourceLabel(current.source)}
+                                </span>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <div class="info-label">Versión en Base de Datos</div>
+                                        <div class="info-value">
+                                            ${currentConfig.app_official_version ? 
+                                                'v' + currentConfig.app_official_version.config_value : 
+                                                '❌ No configurada'}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <div class="info-label">Última Actualización</div>
+                                        <div class="info-value">
+                                            ${currentConfig.app_official_version ? 
+                                                new Date(currentConfig.app_official_version.updated_at).toLocaleString('es-CL') : 
+                                                'N/A'}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <div class="info-label">Actualizado Por</div>
+                                        <div class="info-value">
+                                            ${currentConfig.version_last_updated_by ? 
+                                                currentConfig.version_last_updated_by.config_value : 
+                                                'N/A'}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <div class="info-label">Repositorio GitHub</div>
+                                        <div class="info-value" style="font-size: 14px;">
+                                            ${currentConfig.github_repo_url ? 
+                                                currentConfig.github_repo_url.config_value : 
+                                                'N/A'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        document.getElementById('current-status').innerHTML = html;
+                        
+                        // Pre-llenar el formulario con la siguiente versión sugerida
+                        if (current.version) {
+                            document.getElementById('new-version').placeholder = 
+                                'Sugerencia: ' + suggestNextVersion(current.version);
+                        }
+                    }
+                }, function(error) {
+                    console.error('Error:', error);
+                    document.getElementById('current-status').innerHTML = `
+                        <div class="alert alert-danger">Error al cargar configuración</div>
+                    `;
+                });
+            } catch (error) {
+                console.error('Error loading status:', error);
+            }
+        }
+
+        // Actualizar versión oficial
+        document.getElementById('update-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const newVersion = document.getElementById('new-version').value.trim();
+            const updatedBy = document.getElementById('updated-by').value.trim();
+            
+            if (!validateVersion(newVersion)) {
+                showResult('error', 'Formato de versión inválido. Usa X.Y.Z (ejemplo: 1.11.51)');
+                return;
+            }
+
+            try {
+                const url = generarURLApi('/versions/update-official');
+                
+                await __conection({
+                    url: url,
+                    header: credentials(),
+                    dev: true,
+                    method: 'POST',
+                    data: {
+                        version: newVersion,
+                        updated_by: updatedBy || 'Admin Panel'
+                    }
+                }, {}, function(response) {
+                    if (response.success) {
+                        showResult('success', `✅ Versión actualizada correctamente a v${newVersion}`);
+                        
+                        // Recargar estado
+                        setTimeout(() => {
+                            loadCurrentStatus();
+                            document.getElementById('update-form').reset();
+                        }, 1500);
+                    } else {
+                        showResult('error', 'Error al actualizar versión');
+                    }
+                }, function(error) {
+                    console.error('Error:', error);
+                    showResult('error', 'Error al actualizar versión');
+                });
+            } catch (error) {
+                console.error('Error updating version:', error);
+                showResult('error', 'Error al actualizar versión');
+            }
+        });
+
+        function validateVersion(version) {
+            return /^\d+\.\d+\.\d+$/.test(version);
+        }
+
+        function suggestNextVersion(current) {
+            const parts = current.split('.').map(Number);
+            parts[2]++; // Incrementar patch
+            return parts.join('.');
+        }
+
+        function getSourceClass(source) {
+            if (source === 'database') return 'database';
+            if (source === 'github') return 'github';
+            return 'fallback';
+        }
+
+        function getSourceLabel(source) {
+            if (source === 'database') return '🗄️ Base de Datos';
+            if (source === 'github') return '🐙 GitHub API';
+            return '⚠️ Fallback';
+        }
+
+        function showResult(type, message) {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            document.getElementById('update-result').innerHTML = `
+                <div class="alert ${alertClass} alert-custom">
+                    ${message}
+                </div>
+            `;
+        }
+
+        // Cargar al inicio
+        loadCurrentStatus();
+    </script>
+</body>
+</html>

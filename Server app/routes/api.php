@@ -54,6 +54,8 @@ Route::delete('/totem/productos/{id}', 'Controllers_local\TotemController@elimin
 // Version Tracking - Sistema de monitoreo de versiones por negocio
 Route::post('/track-version', 'VersionTrackingController@trackVersion');
 Route::get('/versions', 'VersionTrackingController@getVersions');
+Route::get('/versions/config', 'VersionTrackingController@getVersionConfig');
+Route::post('/versions/update-official', 'VersionTrackingController@updateOfficialVersion');
 
 /*Route::get('/codeTest', function() {
   session(['app-current' => Aplication::find(1)]);
@@ -603,6 +605,12 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::get('/local/requests', 'Controllers_local\RequestsController@index');
           Route::post('/local/request', 'Controllers_local\RequestsController@store');
           Route::post('/local/request/pedido-final', 'Controllers_local\RequestsController@storePedidoFinal');
+          
+          // Reportes e historial de pedido final
+          Route::get('/local/pedidofinal/historial', 'Controllers_local\RequestsController@getHistorialPedidos');
+          Route::get('/local/pedidofinal/reporte-productos', 'Controllers_local\RequestsController@getReporteProductos');
+          Route::get('/local/pedidofinal/reporte-timeline', 'Controllers_local\RequestsController@getReporteTimeline');
+          
           Route::put('/local/request/{id}', 'Controllers_local\RequestsController@update');
           Route::delete('/local/request/{id}', 'Controllers_local\RequestsController@remove');
           Route::put('/local/request/decline/{app_id}/{id}', 'Controllers_local\RequestsController@decline');

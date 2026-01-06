@@ -12,30 +12,66 @@ $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 
 use Illuminate\Support\Facades\DB;
 
-// Obtener última versión de GitHub
-function getLatestGithubVersion() {
-    $url = 'https://api.github.com/repos/easyerpneeko/fagotto-updates/releases/latest';
-    $opts = [
-        'http' => [
-            'method' => 'GET',
-            'header' => [
-                'User-Agent: PHP',
-                'Accept: application/vnd.github.v3+json'
-            ],
-            'timeout' => 5
-        ]
-    ];
-    $context = stream_context_create($opts);
-    $response = @file_get_contents($url, false, $context);
-    
-    if ($response) {
-        $data = json_decode($response, true);
-        return str_replace('v', '', $data['tag_name'] ?? 'N/A');
+/**
+ * Obtener la versión oficial del sistema (igual que el Controller)
+ * Prioridad: 1) Base de datos, 2) GitHub, 3) Fallback
+ */
+function getOfficialVersion() {
+    // 1️⃣ Intentar desde DB (system_config)
+    try {
+        $config = DB::table('system_config')
+            ->where('config_key', 'app_official_version')
+            ->first();
+        
+        if ($config && !empty($config->config_value)) {
+            return [
+                'version' => $config->config_value,
+                'source' => '🗄️ Base de Datos'
+            ];
+        }
+    } catch (Exception $e) {
+        // DB no disponible, continuar
     }
-    return 'N/A';
+
+    // 2️⃣ Intentar desde GitHub
+    try {
+        $url = 'https://api.github.com/repos/easyerpneeko/fagotto-updates/releases/latest';
+        $opts = [
+            'http' => [
+                'method' => 'GET',
+                'header' => [
+                    'User-Agent: Fagotto-Check-Script',
+                    'Accept: application/vnd.github.v3+json'
+                ],
+                'timeout' => 5
+            ]
+        ];
+        $context = stream_context_create($opts);
+        $response = @file_get_contents($url, false, $context);
+        
+        if ($response) {
+            $data = json_decode($response, true);
+            if (isset($data['tag_name'])) {
+                return [
+                    'version' => str_replace('v', '', $data['tag_name']),
+                    'source' => '🐙 GitHub API'
+                ];
+            }
+        }
+    } catch (Exception $e) {
+        // GitHub no disponible, continuar
+    }
+
+    // 3️⃣ Fallback hardcoded
+    return [
+        'version' => '1.11.50',
+        'source' => '⚠️ Fallback Hardcoded'
+    ];
 }
 
-$latestGithub = getLatestGithubVersion();
+$versionData = getOfficialVersion();
+$latestGithub = $versionData['version'];
+$versionSource = $versionData['source'];
 
 // Obtener datos de la DB usando Laravel
 try {
@@ -155,8 +191,9 @@ foreach ($negocios as $n) {
 
 <div class="stats">
     <div class="stat-box">
-        <div class="stat-label">ÚLTIMA VERSIÓN GITHUB</div>
+        <div class="stat-label">VERSIÓN OFICIAL</div>
         <div class="stat-value ok"><?= $latestGithub ?></div>
+        <div style="font-size: 11px; color: #858585; margin-top: 5px;"><?= $versionSource ?></div>
     </div>
     <div class="stat-box">
         <div class="stat-label">TOTAL NEGOCIOS</div>

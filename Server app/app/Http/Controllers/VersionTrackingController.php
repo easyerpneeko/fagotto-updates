@@ -134,34 +134,9 @@ class VersionTrackingController extends Controller
                 ->orderBy('last_ping', 'DESC')
                 ->get();
 
-            // Obtener la versión más reciente desde GitHub
-            $latestVersion = '1.11.42'; // Default
-            
-            try {
-                $githubUrl = 'https://api.github.com/repos/easyerpneeko/fagotto-updates/releases/latest';
-                $context = stream_context_create([
-                    'http' => [
-                        'method' => 'GET',
-                        'header' => [
-                            'User-Agent: PHP',
-                            'Accept: application/vnd.github.v3+json'
-                        ],
-                        'timeout' => 5
-                    ]
-                ]);
-                
-                $response = @file_get_contents($githubUrl, false, $context);
-                
-                if ($response) {
-                    $githubData = json_decode($response, true);
-                    if (isset($githubData['tag_name'])) {
-                        $latestVersion = str_replace('v', '', $githubData['tag_name']);
-                    }
-                }
-            } catch (\Exception $e) {
-                // Si falla GitHub, usar el default
-                \Log::warning('Error obteniendo versión de GitHub: ' . $e->getMessage());
-            }
+            // Obtener la versión oficial con triple verificación
+            $latestVersion = $this->getOfficialVersion();
+            \Log::info('📊 Versión oficial determinada: ' . $latestVersion['version'] . ' (Fuente: ' . $latestVersion['source'] . ')');
 
             // Calcular estadísticas
             $total = count($data);
@@ -172,7 +147,7 @@ class VersionTrackingController extends Controller
             foreach ($data as $row) {
                 if ($row->minutes_since_ping > 60) {
                     $offline++;
-                } elseif ($row->current_version === $latestVersion) {
+                } elseif ($row->current_version === $latestVersion['version']) {
                     $updated++;
                 } else {
                     $outdated++;
@@ -196,7 +171,9 @@ class VersionTrackingController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $data,
-                'latest_version' => $latestVersion,
+                'latest_version' => $latestVersion['version'],
+                'version_source' => $latestVersion['source'],
+                'version_timestamp' => $latestVersion['timestamp'],
                 'stats' => [
                     'total' => $total,
                     'updated' => $updated,
@@ -209,6 +186,162 @@ class VersionTrackingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Error del servidor',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener la versión oficial del sistema con triple verificación
+     * Prioridad: 1) Base de datos (system_config), 2) GitHub API, 3) Fallback hardcoded
+     * 
+     * @return array ['version' => string, 'source' => string, 'timestamp' => string]
+     */
+    private function getOfficialVersion()
+    {
+        $version = null;
+        $source = null;
+        
+        // 1️⃣ PRIMERA OPCIÓN: Base de datos (system_config) - LA MÁS CONFIABLE
+        try {
+            $config = DB::table('system_config')
+                ->where('config_key', 'app_official_version')
+                ->first();
+            
+            if ($config && !empty($config->config_value)) {
+                \Log::info('✅ Versión obtenida desde DB: ' . $config->config_value);
+                return [
+                    'version' => $config->config_value,
+                    'source' => 'database',
+                    'timestamp' => $config->updated_at
+                ];
+            }
+        } catch (\Exception $e) {
+            \Log::warning('⚠️ Error obteniendo versión de DB: ' . $e->getMessage());
+        }
+
+        // 2️⃣ SEGUNDA OPCIÓN: GitHub API - SI LA DB NO ESTÁ DISPONIBLE
+        try {
+            $repoConfig = DB::table('system_config')
+                ->where('config_key', 'github_repo_url')
+                ->first();
+            
+            $repo = $repoConfig ? $repoConfig->config_value : 'easyerpneeko/fagotto-updates';
+            $githubUrl = "https://api.github.com/repos/{$repo}/releases/latest";
+            
+            $context = stream_context_create([
+                'http' => [
+                    'method' => 'GET',
+                    'header' => [
+                        'User-Agent: Fagotto-ERP-Server',
+                        'Accept: application/vnd.github.v3+json'
+                    ],
+                    'timeout' => 5
+                ]
+            ]);
+            
+            $response = @file_get_contents($githubUrl, false, $context);
+            
+            if ($response) {
+                $githubData = json_decode($response, true);
+                if (isset($githubData['tag_name'])) {
+                    $version = str_replace('v', '', $githubData['tag_name']);
+                    \Log::info('✅ Versión obtenida desde GitHub: ' . $version);
+                    return [
+                        'version' => $version,
+                        'source' => 'github',
+                        'timestamp' => $githubData['published_at'] ?? now()
+                    ];
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::warning('⚠️ Error obteniendo versión de GitHub: ' . $e->getMessage());
+        }
+
+        // 3️⃣ ÚLTIMA OPCIÓN: Fallback hardcoded (package.json actual)
+        \Log::warning('⚠️ Usando versión hardcoded como fallback');
+        return [
+            'version' => '1.11.50', // ⚠️ ACTUALIZAR ESTO CUANDO CAMBIES package.json
+            'source' => 'fallback_hardcoded',
+            'timestamp' => now()
+        ];
+    }
+
+    /**
+     * Actualizar la versión oficial en la base de datos
+     * POST /api/versions/update-official
+     * Body: { version, updated_by }
+     */
+    public function updateOfficialVersion(Request $request)
+    {
+        try {
+            $request->validate([
+                'version' => 'required|string|regex:/^\d+\.\d+\.\d+$/',
+                'updated_by' => 'nullable|string'
+            ]);
+
+            // Actualizar versión oficial
+            DB::table('system_config')
+                ->where('config_key', 'app_official_version')
+                ->update([
+                    'config_value' => $request->version,
+                    'updated_at' => now()
+                ]);
+
+            // Registrar quién actualizó
+            if ($request->updated_by) {
+                DB::table('system_config')
+                    ->where('config_key', 'version_last_updated_by')
+                    ->update([
+                        'config_value' => $request->updated_by,
+                        'updated_at' => now()
+                    ]);
+            }
+
+            \Log::info('📝 Versión oficial actualizada a: ' . $request->version . ' por: ' . ($request->updated_by ?? 'unknown'));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Versión oficial actualizada correctamente',
+                'new_version' => $request->version,
+                'updated_by' => $request->updated_by ?? 'unknown',
+                'timestamp' => now()
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error actualizando versión',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener configuración de versiones
+     * GET /api/versions/config
+     */
+    public function getVersionConfig()
+    {
+        try {
+            $config = DB::table('system_config')
+                ->whereIn('config_key', [
+                    'app_official_version',
+                    'version_check_source',
+                    'version_last_updated_by',
+                    'github_repo_url'
+                ])
+                ->get()
+                ->keyBy('config_key');
+
+            return response()->json([
+                'success' => true,
+                'config' => $config,
+                'current_official_version' => $this->getOfficialVersion()
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error obteniendo configuración',
                 'message' => $e->getMessage()
             ], 500);
         }

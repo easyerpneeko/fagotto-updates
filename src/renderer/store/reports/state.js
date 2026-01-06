@@ -4,5 +4,6 @@ export default {
   waiters: false,
   workshifts: false,
   expenses: false,
-  oneWaiter:false
+  oneWaiter:false,
+  dailySales: 0
 }

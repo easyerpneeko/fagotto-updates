@@ -12,13 +12,45 @@ export async function getSells(context, data) {
 export async function getCounters(context, data) {
   let url = BaseUrl.getUrl('api/local/report/counters'+ data.params);
   const request = await Connection.request('get',url, data.data);
+  console.log('🔍 getCounters response:', request);
+  console.log('🔍 request.success:', request.success);
+  console.log('🔍 request.data:', request.data);
   if(request.success){
+    console.log('✅ Guardando counters:', request.data.counters);
     context.commit('setProperty', { key: 'counters', data: request.data.counters });
     context.commit('setProperty', { key: 'products', data: request.data.products });
     context.commit('setProperty', { key: 'waiters', data: request.data.waiters });
     context.commit('setProperty', { key: 'expenses', data: request.data.expenses });
     context.commit('setProperty', { key: 'workshifts', data: request.data.workshifts });
   }
+}
+
+// Nueva función para obtener ventas del día actual (como en dashboard web)
+export async function getDailySales(context, { startDate, endDate }) {
+  let url = BaseUrl.getUrl(`api/getAppCounters?startDate=${startDate}&endDate=${endDate}`);
+  const request = await Connection.request('get', url, {});
+  
+  if(request.success) {
+    // El formato de respuesta es: { "app_id,app_name": { original: { counters: { balanceTotal: ... }}}}
+    // Necesitamos extraer el balanceTotal de la app actual
+    const currentAppId = context.rootState.aplication.aplication && context.rootState.aplication.aplication.id;
+    
+    for (const appKey in request.data) {
+      const appId = parseInt(appKey.split(',')[0]);
+      if (appId === currentAppId) {
+        if (request.data[appKey] && 
+            request.data[appKey].original && 
+            request.data[appKey].original.counters && 
+            request.data[appKey].original.counters.balanceTotal) {
+          const balanceTotal = parseFloat(request.data[appKey].original.counters.balanceTotal);
+          context.commit('setProperty', { key: 'dailySales', data: balanceTotal });
+          return balanceTotal;
+        }
+      }
+    }
+  }
+  
+  return 0;
 }
 export async function getOneWaiter(context, data) {
   console.log(":::::::::::: GetOneWaiter :::::::::::::", {context, data})

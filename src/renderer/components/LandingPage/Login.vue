@@ -148,9 +148,9 @@ export default {
     }
   },
 
-  mounted() {
+  async mounted() {
     this.name = ConfigHelper.ConfStr('name');
-    this.getAppVersion();
+    await this.getAppVersion();
   },
   props: {
     version: {
@@ -159,25 +159,25 @@ export default {
     }
   },
   methods: {
-    getAppVersion() {
+    async getAppVersion() {
       try {
-        // Intentar obtener la versión del package.json del main process
-        if (remote && remote.app) {
-          this.appVersion = remote.app.getVersion();
-        } else if (process.env.npm_package_version) {
-          this.appVersion = process.env.npm_package_version;
+        // Usar el mismo sistema de versiones que ya establecimos
+        const BaseUrl = require('@/helpers/baseUrl.js').default;
+        const Connection = require('@/helpers/Connection.js').default;
+        
+        const url = BaseUrl.getUrl('api/versions/official');
+        const response = await Connection.request('get', url, {});
+        
+        if (response.success && response.data && response.data.version) {
+          this.appVersion = response.data.version;
+          console.log('✅ Versión oficial cargada:', this.appVersion);
         } else {
-          // Fallback a leer el archivo directamente
-          const path = require('path');
-          const packagePath = path.join(__dirname, '../../../../package.json');
-          if (fs.existsSync(packagePath)) {
-            const packageData = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
-            this.appVersion = packageData.version;
-          }
+          // Fallback
+          this.appVersion = '1.11.50';
         }
       } catch (error) {
-        console.log('No se pudo obtener la versión:', error);
-        this.appVersion = 'dev';
+        console.log('⚠️ No se pudo obtener la versión oficial, usando fallback:', error);
+        this.appVersion = '1.11.50';
       }
     },
     async sendLogin() {

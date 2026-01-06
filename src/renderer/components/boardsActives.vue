@@ -106,7 +106,8 @@ export default {
     return {
       floatingHearts: [],
       heartIdCounter: 0,
-      previousVentas: 0
+      previousVentas: 0,
+      salesRefreshInterval: null
     }
   },
   methods:{
@@ -203,6 +204,40 @@ export default {
       }
       $('#modalAssignWaiter').modal('show');
     },
+    async updateDailySales() {
+      // Usar el mismo método que report.vue usa para actualizar counters
+      const hoy = new Date();
+      // Usar fecha local, no UTC
+      const year = hoy.getFullYear();
+      const month = String(hoy.getMonth() + 1).padStart(2, '0');
+      const day = String(hoy.getDate()).padStart(2, '0');
+      const startDate = `${year}-${month}-${day} 00:00:00`;
+      const endDate = `${year}-${month}-${day} 23:59:59`;
+      
+      console.log('📅 Actualizando ventas del día:', startDate, 'al', endDate);
+      
+      // Crear FormData como en report.vue
+      const thing = new FormData();
+      thing.append('startDate', startDate);
+      thing.append('endDate', endDate);
+      
+      // Construir params igual que report.vue
+      let params = '?params=true';
+      params += '&factura=true';
+      params += '&boleta=true';
+      params += '&fastSell=true';
+      params += '&noSii=true';
+      params += '&credito=true';
+      params += '&debito=true';
+      params += '&efectivo=true';
+      
+      console.log('🔗 Llamando a getCounters con params:', params);
+      
+      // Llamar al action con el formato correcto
+      await this.$store.dispatch('reports/getCounters', { data: thing, params });
+      
+      console.log('✅ getCounters ejecutado, counters actuales:', this.$store.getters['reports/getterCounters']);
+    },
     lanzarCorazones() {
       // Crear 3-5 corazones aleatorios
       const cantidad = Math.floor(Math.random() * 3) + 3;
@@ -243,10 +278,13 @@ export default {
     currentMeta: { get(){ return this.$store.getters['metas/getCurrentMeta'] } },
     reportCounters: { get(){ return this.$store.getters['reports/getterCounters'] } },
     ventasHoy() {
-      // Usar el balanceTotal del reporte del día actual
+      // Usar el balanceTotal del reporte, igual que report.vue
+      console.log('🔍 reportCounters:', this.reportCounters);
       if (this.reportCounters && this.reportCounters.balanceTotal) {
+        console.log('💰 balanceTotal encontrado:', this.reportCounters.balanceTotal);
         return parseFloat(this.reportCounters.balanceTotal);
       }
+      console.log('⚠️ No hay balanceTotal');
       return 0;
     },
     porcentajeCumplimiento() {
@@ -286,24 +324,22 @@ export default {
     // Cargar la meta diaria del local
     await this.$store.dispatch('metas/fetchCurrentMeta');
     
-    // Cargar los counters del día actual (ventas del día)
-    const hoy = new Date();
-    const params = {
-      startDate: hoy.toISOString().split('T')[0] + ' 00:00:00',
-      endDate: hoy.toISOString().split('T')[0] + ' 23:59:59',
-      params: true,
-      factura: true,
-      boleta: true,
-      fastSell: true,
-      noSii: true,
-      credito: true,
-      debito: true,
-      efectivo: true
-    };
-    await this.$store.dispatch('reports/GetCounters', params);
+    // Cargar ventas del día actual usando el mismo endpoint que dashboard web
+    await this.updateDailySales();
     
     // Guardar ventas iniciales
     this.previousVentas = this.ventasHoy;
+    
+    // Actualizar ventas cada 30 segundos (igual que dashboard web)
+    this.salesRefreshInterval = setInterval(() => {
+      this.updateDailySales();
+    }, 30000);
+  },
+  beforeDestroy() {
+    // Limpiar interval cuando se destruye el componente
+    if (this.salesRefreshInterval) {
+      clearInterval(this.salesRefreshInterval);
+    }
   }
 }
 </script>

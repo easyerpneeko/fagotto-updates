@@ -88,7 +88,7 @@
         <span class="env-badge">{{ appInProduction }}</span>
         <span class="version-text">
           <i class="fas fa-code-branch"></i>
-          <b id="version">v1.11.6</b>
+          <b id="version">{{ appVersion }}</b>
         </span>
       </div>
       
@@ -125,7 +125,8 @@ export default {
       serial: '',
       w: remote.getCurrentWindow(),
       waitResponse: false,
-      appInProduction: process.env.NODE_ENV
+      appInProduction: process.env.NODE_ENV,
+      appVersion: '1.11.50'
     }
   },
   props:['version'],
@@ -137,7 +138,10 @@ export default {
       ConfigHelper.ConfigHandler(false, JSON.parse(data), false);
     });
   },
-  mounted(){
+  async mounted(){
+    // Cargar versión oficial del sistema
+    await this.getAppVersion();
+    
     //Para el auto actualizador
     // const version = document.getElementById('version');
     // ipcRenderer.send('app_version');
@@ -172,6 +176,25 @@ export default {
 
   },
   methods: {
+    async getAppVersion() {
+      try {
+        const BaseUrl = require('@/helpers/baseUrl.js').default;
+        const Connection = require('@/helpers/Connection.js').default;
+        
+        const url = BaseUrl.getUrl('api/versions/official');
+        const response = await Connection.request('get', url, {});
+        
+        if (response.success && response.data && response.data.version) {
+          this.appVersion = response.data.version;
+          console.log('✅ Versión oficial cargada:', this.appVersion);
+        } else {
+          this.appVersion = '1.11.50';
+        }
+      } catch (error) {
+        console.log('⚠️ No se pudo obtener la versión oficial, usando fallback:', error);
+        this.appVersion = '1.11.50';
+      }
+    },
     async sendSerial(){
       this.waitResponse = true;
       Loader.fullPage();

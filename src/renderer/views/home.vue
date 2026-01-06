@@ -107,16 +107,40 @@
             
             <div class="news-container">
               
-              <!-- Noticia NUEVA: Pedidos Individuales -->
+              <!-- Noticia NUEVA: Versión 1.11.51 - Mejoras importantes -->
               <div class="news-panel news-panel-primary">
                 <div class="news-panel-header">
-                  <i class="fas fa-box-open me-2"></i>
-                  <strong>Sistema de Pedidos Individuales</strong>
-                  <span class="news-panel-badge">ESTRENO SÁBADO</span>
+                  <i class="fas fa-rocket me-2"></i>
+                  <strong>Versión 1.11.51 - Mejoras y Nuevas Funcionalidades</strong>
+                  <span class="news-panel-badge">ACTUALIZACIÓN</span>
                 </div>
                 <div class="news-panel-body">
                   <p class="news-panel-text">
-                    <strong>¡Revolución en pedidos!</strong> Desde el sábado podrás hacer pedidos de forma individual • 
+                    <strong>🎯 Sistema de Metas Mejorado:</strong> Nueva visualización con progreso diario, barra animada y corazones flotantes al alcanzar ventas • 
+                    <strong>📊 Dashboard de Metas:</strong> Fecha del día, porcentaje de cumplimiento en tiempo real y colores dinámicos según progreso • 
+                    <strong>🔄 Sistema de Versiones Centralizado:</strong> Triple verificación (Base de Datos → GitHub → Fallback) para control total • 
+                    <strong>📦 Historial de Compras:</strong> Nuevo panel para ver el total de compras por producto en rangos de fechas • 
+                    <strong>⚡ Actualización Automática:</strong> Las ventas se actualizan cada 30 segundos sin recargar la página • 
+                    <strong>🎨 Interfaz Visual Mejorada:</strong> Animaciones fluidas y feedback visual instantáneo
+                  </p>
+                </div>
+                <div class="news-panel-footer">
+                  <i class="far fa-calendar-alt me-2"></i>5 de Enero, 2026 • 
+                  <i class="far fa-clock ms-2 me-2"></i>11:30 PM • 
+                  <strong style="color: #667eea;">Disponible ahora</strong>
+                </div>
+              </div>
+              
+              <!-- Noticia: Sistema de Pedidos Individuales -->
+              <div class="news-panel news-panel-success">
+                <div class="news-panel-header">
+                  <i class="fas fa-box-open me-2"></i>
+                  <strong>Sistema de Pedidos Individuales</strong>
+                  <span class="news-panel-badge">ACTIVO</span>
+                </div>
+                <div class="news-panel-body">
+                  <p class="news-panel-text">
+                    <strong>¡Revolución en pedidos!</strong> Ya disponible el sistema de pedidos individuales • 
                     <strong>Sin ataduras:</strong> Ya no más packs obligatorios • 
                     <strong>Total libertad:</strong> Pide solo lo que necesitas, cuando lo necesitas • 
                     <strong>Interfaz intuitiva:</strong> Sistema moderno y fácil de usar • 
@@ -125,14 +149,13 @@
                   </p>
                 </div>
                 <div class="news-panel-footer">
-                  <i class="far fa-calendar-alt me-2"></i>31 de Diciembre, 2025 • 
-                  <i class="far fa-clock ms-2 me-2"></i>11:59 PM • 
-                  <strong style="color: #667eea;">Disponible desde el Sábado 04/01/2026</strong>
+                  <i class="far fa-calendar-alt me-2"></i>4 de Enero, 2026 • 
+                  <i class="far fa-clock ms-2 me-2"></i>12:00 AM
                 </div>
               </div>
               
               <!-- Noticia 1: Sistema de Ventas Optimizado -->
-              <div class="news-panel news-panel-success">
+              <div class="news-panel news-panel-info">
                 <div class="news-panel-header">
                   <i class="fas fa-rocket me-2"></i>
                   <strong>Sistema de Ventas Optimizado</strong>

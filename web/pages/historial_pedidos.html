@@ -109,13 +109,19 @@
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">Fecha Desde</label>
                         <input type="date" class="form-control" id="fecha-desde">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">Fecha Hasta</label>
                         <input type="date" class="form-control" id="fecha-hasta">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Filtrar por Producto</label>
+                        <select class="form-select" id="producto-select">
+                            <option value="todos" selected>📦 Todos los productos</option>
+                        </select>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Vista</label>
@@ -125,7 +131,7 @@
                             <option value="timeline">Timeline Diario</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">&nbsp;</label>
                         <button class="btn btn-primary w-100" onclick="cargarDatos()">
                             <i class="fas fa-search"></i> Consultar
@@ -140,7 +146,7 @@
             <div class="col-md-3">
                 <div class="stats-card">
                     <div class="stats-number" id="stat-total">$0</div>
-                    <div class="stats-label">TOTAL GASTADO</div>
+                    <div class="stats-label">TOTAL Comprado</div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -199,17 +205,68 @@
         document.getElementById('fecha-hasta').valueAsDate = hoy;
         document.getElementById('fecha-desde').valueAsDate = primerDia;
 
+        // Cargar productos disponibles al inicio
+        async function cargarProductos() {
+            try {
+                const url = generarURLApi('/local/pedidofinal/stock');
+                
+                await __conection({
+                    url: url,
+                    header: credentials(),
+                    method: 'GET'
+                }, {}, function(productos) {
+                    const select = document.getElementById('producto-select');
+                    
+                    // Ordenar por categoría y nombre
+                    productos.sort((a, b) => {
+                        if (a.categoria !== b.categoria) {
+                            return (a.categoria || '').localeCompare(b.categoria || '');
+                        }
+                        return (a.producto || '').localeCompare(b.producto || '');
+                    });
+                    
+                    // Agrupar por categoría
+                    let categoriaActual = '';
+                    productos.forEach(producto => {
+                        if (producto.categoria !== categoriaActual) {
+                            categoriaActual = producto.categoria;
+                            const optgroup = document.createElement('optgroup');
+                            optgroup.label = '━━ ' + (categoriaActual || 'Sin categoría') + ' ━━';
+                            select.appendChild(optgroup);
+                        }
+                        
+                        const option = document.createElement('option');
+                        option.value = producto.id;
+                        option.textContent = producto.producto;
+                        select.appendChild(option);
+                    });
+                });
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+            }
+        }
+
+        // Cargar productos al inicio
+        cargarProductos();
+
         async function cargarDatos() {
             const fechaDesde = document.getElementById('fecha-desde').value;
             const fechaHasta = document.getElementById('fecha-hasta').value;
             const vista = document.getElementById('vista-select').value;
+            const productoId = document.getElementById('producto-select').value;
 
             if (!fechaDesde || !fechaHasta) {
                 alert('Por favor selecciona las fechas');
                 return;
             }
 
-            const params = `?fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}`;
+            let params = `?fecha_desde=${fechaDesde}&fecha_hasta=${fechaHasta}`;
+            
+            // Agregar filtro de producto si no es "todos"
+            if (productoId !== 'todos') {
+                params += `&producto_id=${productoId}`;
+            }
+            
             let endpoint = '';
             
             switch(vista) {

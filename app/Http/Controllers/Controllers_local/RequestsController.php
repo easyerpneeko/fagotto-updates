@@ -151,6 +151,141 @@ class RequestsController extends Controller
         return response()->json(['message' => 'Pedido creado con éxito'], 201);
     }
 
+    /**
+     * Crear pedido final con sistema centralizado de precios
+     * POST /api/local/request/pedido-final
+     */
+    public function storePedidoFinal(Request $request)
+    {
+        $validatedData = $request->validate([
+            'contact_name' => 'required|string|max:70',
+            'contact_phone' => 'required|string|max:20',
+            'paymode' => 'required',
+            'payment_method' => 'nullable|string|in:contado,credito,efectivo,debito,transferencia,cheque,banco,amipass,multicaja,edenred,convenio_empresa,sodexo,rappi,junaeb,uber,pedidos_ya,pluxee,banco_chile_20,fluxi',
+            'invoice_type' => 'nullable|string|in:ticket,boleta',
+            'status' => 'required',
+            'products' => 'required|string',
+            'comment' => 'required|string',
+            'price' => '',
+            'subtotal' => '',
+            'iva' => '',
+            'emergency' => '',
+            'despacho' => '',
+            'app_id' => 'required|integer',
+        ]);
+
+        $productos = json_decode($validatedData['products'], true);
+        $productosConStock = [];
+        
+        foreach ($productos as $producto) {
+            $productoDB = DB::connection('easyerp_master')
+                ->table('pedidofinal_precios')
+                ->where('id', $producto['id'])
+                ->first();
+            
+            if (!$productoDB) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Producto '{$producto['name']}' no encontrado"
+                ], 404);
+            }
+            
+            if ($productoDB->stock !== null) {
+                $cantidadSolicitada = floatval($producto['quantity']);
+                $stockDisponible = floatval($productoDB->stock);
+                
+                if ($stockDisponible <= 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "⚠️ '{$productoDB->producto}' sin stock disponible"
+                    ], 400);
+                }
+                
+                if ($cantidadSolicitada > $stockDisponible) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "⚠️ '{$productoDB->producto}': solo quedan {$stockDisponible} {$productoDB->unidad_medida}, solicitaste {$cantidadSolicitada}"
+                    ], 400);
+                }
+                
+                $productosConStock[] = [
+                    'id' => $productoDB->id,
+                    'cantidad' => $cantidadSolicitada
+                ];
+            }
+        }
+
+        DB::beginTransaction();
+        try {
+            $newRequest = new Requests();
+            $newRequest->contact_name = $validatedData['contact_name'];
+            $newRequest->contact_phone = $validatedData['contact_phone'];
+            $newRequest->paymode = $validatedData['paymode'];
+            $newRequest->price = $validatedData['price'] ?? 0;
+            $newRequest->subtotal = $validatedData['subtotal'] ?? 0;
+            $newRequest->iva = $validatedData['iva'] ?? 0;
+            $newRequest->emergency = $validatedData['emergency'] ?? 0;
+            $newRequest->despacho = $validatedData['despacho'] ?? 0;
+            $newRequest->products = $validatedData['products'];
+            $newRequest->comment = $validatedData['comment'];
+            $newRequest->status = $validatedData['status'];
+            $newRequest->status_payment = 'impagado';
+            $newRequest->app_id = $validatedData['app_id'];
+            $newRequest->save();
+            
+            foreach ($productosConStock as $prod) {
+                DB::connection('easyerp_master')
+                    ->table('pedidofinal_precios')
+                    ->where('id', $prod['id'])
+                    ->decrement('stock', $prod['cantidad']);
+            }
+            
+            foreach ($productos as $producto) {
+                $productoDB = DB::connection('easyerp_master')
+                    ->table('pedidofinal_precios')
+                    ->where('id', $producto['id'])
+                    ->first();
+                
+                if ($productoDB) {
+                    $cantidad = floatval($producto['quantity']);
+                    $precioUnitario = floatval($productoDB->precio_por_unidad ?? 0);
+                    
+                    DB::connection('easyerp_master')
+                        ->table('pedidofinal_detalle')
+                        ->insert([
+                            'request_id' => $newRequest->id,
+                            'app_id' => $validatedData['app_id'],
+                            'producto_id' => $productoDB->id,
+                            'producto_nombre' => $productoDB->producto,
+                            'categoria' => $productoDB->categoria ?? 'general',
+                            'cantidad' => $cantidad,
+                            'unidad_medida' => $productoDB->unidad_medida,
+                            'precio_unitario' => $precioUnitario,
+                            'subtotal' => $cantidad * $precioUnitario,
+                            'contact_name' => $validatedData['contact_name'],
+                            'status' => $validatedData['status'],
+                            'fecha_pedido' => now()
+                        ]);
+                }
+            }
+            
+            DB::commit();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Pedido Final creado con éxito',
+                'id' => $newRequest->id
+            ], 201);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear pedido: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function update(Request $request, $id)
     {
         $validatedData = $request->validate([
@@ -927,5 +1062,200 @@ class RequestsController extends Controller
         }
 
         return response()->json($query, 200);
+    }
+
+    /**
+     * Obtener historial de pedidos finales
+     * GET /api/local/pedidofinal/historial
+     */
+    public function getHistorialPedidos(Request $request)
+    {
+        try {
+            \Log::info('getHistorialPedidos: Iniciando consulta', $request->all());
+            
+            $query = DB::connection('easyerp_master')
+                ->table('pedidofinal_detalle');
+            
+            // Filtro por fechas (requerido)
+            if ($request->has('fecha_desde') && $request->has('fecha_hasta')) {
+                $fechaDesde = $request->input('fecha_desde') . ' 00:00:00';
+                $fechaHasta = $request->input('fecha_hasta') . ' 23:59:59';
+                $query->whereBetween('fecha_pedido', [$fechaDesde, $fechaHasta]);
+            }
+            
+            // Filtro por app_id (local)
+            if ($request->has('app_id') && $request->input('app_id') != 'todos') {
+                $query->where('app_id', $request->input('app_id'));
+            }
+            
+            // Filtro por categoría
+            if ($request->has('categoria') && $request->input('categoria') != 'todas') {
+                $query->where('categoria', $request->input('categoria'));
+            }
+            
+            // Filtro por producto específico
+            if ($request->has('producto_id')) {
+                $query->where('producto_id', $request->input('producto_id'));
+            }
+            
+            $pedidos = $query
+                ->select([
+                    'id',
+                    'request_id',
+                    'app_id',
+                    'producto_id',
+                    'producto_nombre',
+                    'categoria',
+                    'cantidad',
+                    'unidad_medida',
+                    'precio_unitario',
+                    'subtotal',
+                    'contact_name',
+                    'status',
+                    'fecha_pedido'
+                ])
+                ->orderBy('fecha_pedido', 'desc')
+                ->get();
+            
+            \Log::info('getHistorialPedidos: Registros encontrados', ['count' => $pedidos->count()]);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $pedidos,
+                'total' => $pedidos->count()
+            ], 200);
+            
+        } catch (\Exception $e) {
+            \Log::error('getHistorialPedidos: Error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener historial: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Reporte resumen de compras agrupado por producto
+     * GET /api/local/pedidofinal/reporte-productos
+     */
+    public function getReporteProductos(Request $request)
+    {
+        try {
+            $query = DB::connection('easyerp_master')
+                ->table('pedidofinal_detalle');
+            
+            // Filtros
+            if ($request->has('fecha_desde') && $request->has('fecha_hasta')) {
+                $fechaDesde = $request->input('fecha_desde') . ' 00:00:00';
+                $fechaHasta = $request->input('fecha_hasta') . ' 23:59:59';
+                $query->whereBetween('fecha_pedido', [$fechaDesde, $fechaHasta]);
+            }
+            
+            if ($request->has('app_id') && $request->input('app_id') != 'todos') {
+                $query->where('app_id', $request->input('app_id'));
+            }
+            
+            // Filtro por producto específico
+            if ($request->has('producto_id') && $request->input('producto_id') != 'todos') {
+                $query->where('producto_id', $request->input('producto_id'));
+            }
+            
+            // Filtro por producto específico
+            if ($request->has('producto_id') && $request->input('producto_id') != 'todos') {
+                $query->where('producto_id', $request->input('producto_id'));
+            }
+            
+            // Agrupar por producto
+            $reporte = $query
+                ->select([
+                    'producto_id',
+                    'producto_nombre',
+                    'categoria',
+                    'unidad_medida',
+                    DB::raw('SUM(cantidad) as total_cantidad'),
+                    DB::raw('AVG(precio_unitario) as precio_promedio'),
+                    DB::raw('SUM(subtotal) as total_gastado'),
+                    DB::raw('COUNT(DISTINCT request_id) as num_pedidos'),
+                    DB::raw('MIN(fecha_pedido) as primera_compra'),
+                    DB::raw('MAX(fecha_pedido) as ultima_compra')
+                ])
+                ->groupBy('producto_id', 'producto_nombre', 'categoria', 'unidad_medida')
+                ->orderBy('total_gastado', 'desc')
+                ->get();
+            
+            // Calcular totales generales
+            $totales = [
+                'total_productos' => $reporte->count(),
+                'total_general' => $reporte->sum('total_gastado'),
+                'total_pedidos' => $reporte->sum('num_pedidos')
+            ];
+            
+            return response()->json([
+                'success' => true,
+                'data' => $reporte,
+                'totales' => $totales
+            ], 200);
+            
+        } catch (\Exception $e) {
+            \Log::error('getReporteProductos: Error', ['message' => $e->getMessage()]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al generar reporte: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Reporte de compras por día (timeline)
+     * GET /api/local/pedidofinal/reporte-timeline
+     */
+    public function getReporteTimeline(Request $request)
+    {
+        try {
+            $query = DB::connection('easyerp_master')
+                ->table('pedidofinal_detalle');
+            
+            if ($request->has('fecha_desde') && $request->has('fecha_hasta')) {
+                $fechaDesde = $request->input('fecha_desde') . ' 00:00:00';
+                $fechaHasta = $request->input('fecha_hasta') . ' 23:59:59';
+                $query->whereBetween('fecha_pedido', [$fechaDesde, $fechaHasta]);
+            }
+            
+            if ($request->has('app_id') && $request->input('app_id') != 'todos') {
+                $query->where('app_id', $request->input('app_id'));
+            }
+            
+            // Filtro por producto específico
+            if ($request->has('producto_id') && $request->input('producto_id') != 'todos') {
+                $query->where('producto_id', $request->input('producto_id'));
+            }
+            
+            $timeline = $query
+                ->select([
+                    DB::raw('DATE(fecha_pedido) as fecha'),
+                    DB::raw('COUNT(DISTINCT request_id) as pedidos'),
+                    DB::raw('SUM(subtotal) as total'),
+                    DB::raw('COUNT(*) as items')
+                ])
+                ->groupBy(DB::raw('DATE(fecha_pedido)'))
+                ->orderBy('fecha', 'asc')
+                ->get();
+            
+            return response()->json([
+                'success' => true,
+                'data' => $timeline
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

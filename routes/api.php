@@ -19,6 +19,12 @@ use Illuminate\Support\Facades\Route;
 use App\Helpers\CurrentApp;
 use App\Aplication;
 
+// Version Tracking - Sistema de monitoreo de versiones por negocio
+Route::post('/track-version', 'VersionTrackingController@trackVersion');
+Route::get('/versions', 'VersionTrackingController@getVersions');
+Route::get('/versions/config', 'VersionTrackingController@getVersionConfig');
+Route::post('/versions/update-official', 'VersionTrackingController@updateOfficialVersion');
+
 Route::group(['middleware' => ['ApiSecurity']], function () {
   Route::post('/masive/consult-dte', 'SIIController@masiveConsultDTE');
   Route::group(['middleware' => ['AppSecurity']], function () {
@@ -316,6 +322,12 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::post('/local/products/updateStock/{id}', 'ProductController@updateStock'); 
           Route::get('/local/products/stockHistory', 'ProductController@getStockHistory'); 
           
+          // Precios centralizados para pedido final
+          Route::get('/local/precios-centralizados', 'ProductController@getPreciosCentralizados');
+          Route::post('/local/precios-centralizados', 'ProductController@createPrecioCentralizado');
+          Route::put('/local/precios-centralizados/{id}', 'ProductController@updatePrecioCentralizado');
+          Route::delete('/local/precios-centralizados/{id}', 'ProductController@deletePrecioCentralizado');
+          
           Route::get('/local/products/fagotto', 'Controllers_local\ProductsController@getProductsOfFagotto');
 //JC - 
           Route::post('app/local/products/sell', 'Controllers_local\ProductsController@getProductsOfSell');
@@ -612,6 +624,10 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::put('/local/request/voucher/{id}', 'Controllers_local\RequestsController@voucher');
           Route::put('/local/request/review/{id}', 'Controllers_local\RequestsController@review');
           Route::put('/local/request/hide/{app_id}/{id}', 'Controllers_local\RequestsController@hide');
+          
+          // Pedido Final - Sistema nuevo con precios centralizados
+          Route::post('/local/request/pedido-final', 'Controllers_local\RequestsController@storePedidoFinal');
+          
           //Facturar Pedido
           Route::post('/web/pedido/facturar', 'Controllers_local\RequestsController@facturarPedido'); 
           //Cancelar Factura (Nota de Crédito) - WEB
@@ -622,6 +638,17 @@ Route::group(['middleware' => ['AppSecurity']], function () {
 
           //Agregar en submodulo de cocina ????
           Route::get('/local/requests/approved', 'Controllers_local\RequestsController@approved');
+
+          // ---------------------------------------------PEDIDO FINAL STOCK--------------------------------------------------------------
+          // Gestión de stock para pedido final
+          Route::get('/local/pedidofinal/stock', 'Controllers_local\PedidoFinalStockController@getStock');
+          Route::put('/local/pedidofinal/stock/{id}', 'Controllers_local\PedidoFinalStockController@updateStock');
+          Route::get('/local/pedidofinal/stock/history', 'Controllers_local\PedidoFinalStockController@getStockHistory');
+          
+          // Reportes de pedido final
+          Route::get('/local/pedidofinal/historial', 'Controllers_local\RequestsController@getHistorialPedidos');
+          Route::get('/local/pedidofinal/reporte-productos', 'Controllers_local\RequestsController@getReporteProductos');
+          Route::get('/local/pedidofinal/reporte-timeline', 'Controllers_local\RequestsController@getReporteTimeline');
 
           // ---------------------------------------------REPOSTERIA--------------------------------------------------------------
           Route::get('/local/requests/reposteria', 'Controllers_local\RequestsController@indexReposteria');

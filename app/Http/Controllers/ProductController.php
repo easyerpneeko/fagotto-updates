@@ -221,4 +221,68 @@ class ProductController extends Controller
 
       return response()->json($changes, 200);
   }
+
+  /**
+   * Obtener precios centralizados desde pedidofinal_precios
+   * GET /api/local/precios-centralizados
+   */
+  public function getPreciosCentralizados()
+  {
+      try {
+          // Conectar a la base de datos maestra (easyerp)
+          $preciosCentralizados = DB::connection('easyerp_master')
+              ->table('pedidofinal_precios')
+              ->where('activo', 1)
+              ->orderBy('categoria')
+              ->orderBy('producto')
+              ->get();
+
+          return response()->json([
+              'success' => true,
+              'data' => $preciosCentralizados
+          ], 200);
+
+      } catch (\Exception $e) {
+          return response()->json([
+              'success' => false,
+              'message' => 'Error al obtener precios centralizados: ' . $e->getMessage()
+          ], 500);
+      }
+  }
+
+  /**
+   * Crear nuevo producto en pedidofinal_precios
+   * POST /api/local/precios-centralizados
+   */
+  public function createPrecioCentralizado(Request $request)
+  {
+      return response()->json([
+          'success' => false,
+          'message' => 'No tienes permisos para ejecutar esta acción ❤️'
+      ], 403);
+  }
+
+  /**
+   * Actualizar producto existente en pedidofinal_precios
+   * PUT /api/local/precios-centralizados/{id}
+   */
+  public function updatePrecioCentralizado(Request $request, $id)
+  {
+      return response()->json([
+          'success' => false,
+          'message' => 'No tienes permisos para ejecutar esta acción ❤️'
+      ], 403);
+  }
+
+  /**
+   * Eliminar producto de pedidofinal_precios
+   * DELETE /api/local/precios-centralizados/{id}
+   */
+  public function deletePrecioCentralizado($id)
+  {
+      return response()->json([
+          'success' => false,
+          'message' => 'No tienes permisos para ejecutar esta acción ❤️'
+      ], 403);
+  }
 }

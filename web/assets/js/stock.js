@@ -112,7 +112,7 @@ async function getProducts() {
                 const kilosTotales = products[index].kilos_totales;
                 const unidadVenta = products[index].unidad_venta || 0;
                 const categoria = (products[index].categoria || '').toLowerCase();
-                const nombreProducto = (products[index].name || '').toLowerCase();
+                const nombreProducto = (products[index].producto || '').toLowerCase();
                 
                 // Verificar si es una salsa (por categoría o nombre)
                 const esSalsa = categoria.includes('salsa') || nombreProducto.includes('salsa');
@@ -138,7 +138,7 @@ async function getProducts() {
                             <td class="text-muted"><b>${i}</b></td>
                             <td class="product-name">
                                 <i class="fas fa-box text-primary"></i>
-                                <span class="ms-2"><strong>${products[index].name}</strong></span>
+                                <span class="ms-2"><strong>${products[index].producto}</strong></span>
                             </td>
                             <td>
                                 <span class="badge bg-${stockClass} fs-6">
@@ -158,7 +158,7 @@ async function getProducts() {
                             </td>
                             <td class="text-center">
                                 <button class='btn btn-edit-stock btn-sm' 
-                                        onclick="openModalAddStock(${products[index].id}, ${stock}, '${products[index].name.replace(/'/g, "\\'")}')" 
+                                        onclick="openModalAddStock(${products[index].id}, ${stock}, '${products[index].producto.replace(/'/g, "\\'")}')" 
                                         data-stock="${stock}">
                                     <i class="fa-solid fa-edit"></i> Editar
                                 </button>
@@ -250,10 +250,21 @@ async function saveStock() {
                 method: 'POST',
             },
             {
-                stock_added: stockToAdd
+                _method: 'PUT',
+                stock: isAddMode ? stockToAdd : newTotalStock,
+                tipo: isAddMode ? 'agregar' : 'establecer',
+                user: _store().session.user().get("username") || 'Usuario'
             },
             function (request) {
                 console.log('Respuesta del servidor:', request);
+                
+                // Si hay error, mostrar detalle
+                if (request.error) {
+                    console.error('Error de validación:', request.message);
+                    alert('Error: ' + request.error + '\nDetalles: ' + JSON.stringify(request.message));
+                    return;
+                }
+                
                 alert(request.message || 'Stock actualizado correctamente');
                 getProducts();
                 getStockHistory();

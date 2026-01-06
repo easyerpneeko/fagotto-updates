@@ -261,7 +261,7 @@ class VersionTrackingController extends Controller
         // 3️⃣ ÚLTIMA OPCIÓN: Fallback hardcoded (package.json actual)
         \Log::warning('⚠️ Usando versión hardcoded como fallback');
         return [
-            'version' => '1.11.50', // ⚠️ ACTUALIZAR ESTO CUANDO CAMBIES package.json
+            'version' => '1.11.52', // ⚠️ ACTUALIZAR ESTO CUANDO CAMBIES package.json
             'source' => 'fallback_hardcoded',
             'timestamp' => now()
         ];
@@ -280,22 +280,26 @@ class VersionTrackingController extends Controller
                 'updated_by' => 'nullable|string'
             ]);
 
-            // Actualizar versión oficial
-            DB::table('system_config')
-                ->where('config_key', 'app_official_version')
-                ->update([
+            // Actualizar o crear versión oficial
+            DB::table('system_config')->updateOrInsert(
+                ['config_key' => 'app_official_version'],
+                [
                     'config_value' => $request->version,
-                    'updated_at' => now()
-                ]);
+                    'updated_at' => now(),
+                    'created_at' => now()
+                ]
+            );
 
             // Registrar quién actualizó
             if ($request->updated_by) {
-                DB::table('system_config')
-                    ->where('config_key', 'version_last_updated_by')
-                    ->update([
+                DB::table('system_config')->updateOrInsert(
+                    ['config_key' => 'version_last_updated_by'],
+                    [
                         'config_value' => $request->updated_by,
-                        'updated_at' => now()
-                    ]);
+                        'updated_at' => now(),
+                        'created_at' => now()
+                    ]
+                );
             }
 
             \Log::info('📝 Versión oficial actualizada a: ' . $request->version . ' por: ' . ($request->updated_by ?? 'unknown'));

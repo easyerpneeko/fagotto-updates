@@ -150,7 +150,7 @@ export default {
         
         const response = await fetch('https://api.github.com/repos/easyerpneeko/fagotto-updates/releases/latest', {
           headers: {
-            'Authorization': 'token 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',
+            'Authorization': 'token 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',
             'Accept': 'application/vnd.github.v3+json'
           }
         });
@@ -160,7 +160,9 @@ export default {
         }
         
         const release = await response.json();
-        const currentVersion = require('electron').remote.app.getVersion();
+        // Read version from package.json instead of Electron version
+        const packageJson = require('../../../package.json');
+        const currentVersion = packageJson.version;
         
         console.log('📊 Current version:', currentVersion);
         console.log('🆕 Latest version:', release.tag_name);

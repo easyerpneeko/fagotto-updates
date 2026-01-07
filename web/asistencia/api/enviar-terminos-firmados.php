@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-require_once '../config/database.php';
+require_once '../config.php';
 
 try {
     $input = json_decode(file_get_contents('php://input'), true);

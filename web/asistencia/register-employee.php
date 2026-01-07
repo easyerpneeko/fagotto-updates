@@ -60,6 +60,7 @@ try {
     
     // El nombre del negocio viene directamente de la sesión
     $localNombre = $session['negocio_nombre'];
+    $appId = $session['app_id'] ?? APP_ID; // Obtener app_id de la sesión o usar el del config
     
 } catch (Exception $e) {
     die('Error de conexión: ' . $e->getMessage());
@@ -740,27 +741,28 @@ try {
                     
                     try {
                         console.log('🚀 Iniciando registro en sistema...');
-                        console.log('📦 Datos a enviar:', {
-                            sessionId: this.sessionId,
-                            appId: this.appId,
-                            nombre: this.empleado.nombre,
-                            rut: this.empleado.rut,
-                            cargo: this.empleado.cargo,
-                            email: this.empleado.email,
-                            fotoSize: this.fotoCapturada ? this.fotoCapturada.length : 0,
-                            firmaSize: this.firmaDataURL ? this.firmaDataURL.length : 0
-                        });
                         
-                        // Enviar a backend PHP que llama a AWS Rekognition IndexFaces
-                        const response = await axios.post('api/registrar-rostro.php', {
+                        // Preparar datos a enviar
+                        const datosRegistro = {
                             sessionId: this.sessionId,
-                            appId: this.appId,
                             nombre: this.empleado.nombre,
                             rut: this.empleado.rut,
                             cargo: this.empleado.cargo,
                             email: this.empleado.email,
                             foto: this.fotoCapturada
+                        };
+                        
+                        console.log('📦 Datos a enviar:', {
+                            sessionId: datosRegistro.sessionId || '❌ VACÍO',
+                            nombre: datosRegistro.nombre || '❌ VACÍO',
+                            rut: datosRegistro.rut || '❌ VACÍO',
+                            cargo: datosRegistro.cargo || '❌ VACÍO',
+                            email: datosRegistro.email || '❌ VACÍO',
+                            fotoSize: datosRegistro.foto ? datosRegistro.foto.length : '❌ VACÍO'
                         });
+                        
+                        // Enviar a backend PHP que llama a AWS Rekognition IndexFaces
+                        const response = await axios.post('/api/registrar-rostro.php', datosRegistro);
                         
                         console.log('📨 Respuesta del servidor:', response.data);
                         
@@ -770,7 +772,7 @@ try {
                             console.log('📧 Enviando términos firmados al email...');
                             
                             // Enviar términos firmados por email
-                            const emailResponse = await axios.post('api/enviar-terminos-firmados.php', {
+                            const emailResponse = await axios.post('/api/enviar-terminos-firmados.php', {
                                 nombre: this.empleado.nombre,
                                 email: this.empleado.email,
                                 firma: this.firmaDataURL

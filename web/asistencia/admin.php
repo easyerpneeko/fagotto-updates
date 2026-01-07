@@ -553,7 +553,7 @@ try {
             const radio = document.getElementById(`radio-${appId}`).value;
             
             if (confirm(`¿Guardar cambios para ${appId}?`)) {
-                fetch('api/update-local.php', {
+                fetch('/api/update-local.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 

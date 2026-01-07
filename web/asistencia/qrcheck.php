@@ -476,7 +476,7 @@ try {
                     
                     try {
                         // Enviar a backend PHP que llama a AWS Rekognition
-                        const response = await axios.post('api/reconocimiento-facial.php', {
+                        const response = await axios.post('/api/reconocimiento-facial.php', {
                             sessionId: this.sessionId,
                             employeeId: this.empleadoSeleccionado.id,
                             foto: this.fotoCapturada,

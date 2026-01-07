@@ -788,7 +788,7 @@ if (!$token) {
                     
                     try {
                         // Enviar a backend PHP que indexa en AWS Rekognition
-                        const response = await axios.post('api/registrar-rostro.php', {
+                        const response = await axios.post('/api/registrar-rostro.php', {
                             employeeId: this.employeeId,
                             token: '<?php echo $token; ?>',
                             nombre: this.empleado.nombre,
@@ -800,14 +800,14 @@ if (!$token) {
                         
                         if (response.data.success) {
                             // Marcar token como usado
-                            await axios.post('api/marcar-token-usado.php', {
+                            await axios.post('/api/marcar-token-usado.php', {
                                 token: '<?php echo $token; ?>',
                                 employeeId: this.employeeId
                             });
                             
                             // Enviar términos firmados por correo
                             this.paso = 'enviando-terminos';
-                            await axios.post('api/enviar-terminos-firmados.php', {
+                            await axios.post('/api/enviar-terminos-firmados.php', {
                                 empleado: {
                                     nombre: this.empleado.nombre,
                                     rut: this.empleado.rut,

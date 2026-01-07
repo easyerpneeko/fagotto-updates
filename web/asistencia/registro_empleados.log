@@ -1,0 +1,162 @@
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] === INICIO DE PRUEBA DEL SISTEMA DE LOGS ===
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] Sistema iniciado correctamente
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] Verificando configuración | {"db_host":"posfagotto.cl","db_name":"easyerp","app_id":"AGU001"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] Simulando registro de empleado | {"nombre":"Juan Pérez Test","rut":"12345678-9","cargo":"Cajero"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] Conectando a base de datos...
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] Conexión a BD exitosa
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] Validando sesión | {"session_id":"REG-TEST-12345"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] Sesión validada correctamente | {"session_id":"REG-TEST-12345","app_id":"AGU001","expires_at":"2025-12-27 23:46:39"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] Verificando RUT duplicado | {"rut":"12345678-9"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] RUT disponible
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] Verificando email duplicado | {"email":"test@ejemplo.com"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] Email disponible
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] Generando ID de empleado...
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] ID generado | {"new_id":"EMP999"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] Iniciando indexación de rostro en AWS | {"employee_id":"EMP999"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [WARNING] Clase AWSRekognition no disponible, usando face_id mock
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] Rostro indexado correctamente | {"face_id":"FACE-EMP999"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] Insertando empleado en base de datos | {"id":"EMP999","nombre":"Juan Pérez Test","rut":"12345678-9","cargo":"Cajero","email":"test@ejemplo.com","face_id":"FACE-EMP999"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] Empleado insertado en BD correctamente | {"employee_id":"EMP999"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] Marcando sesión como usada | {"session_id":"REG-TEST-12345"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [SUCCESS] ✅ REGISTRO COMPLETADO EXITOSAMENTE | {"employee_id":"EMP999","nombre":"Juan Pérez Test","face_id":"FACE-EMP999"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [INFO] === SIMULANDO ERRORES COMUNES ===
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [ERROR] Datos incompletos en la petición | {"sessionId":"OK","appId":"❌ FALTA","nombre":"OK","rut":"OK","cargo":"❌ FALTA","email":"OK","foto":"OK"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [ERROR] Sesión inválida o expirada | {"session_id":"REG-EXPIRED-123"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [ERROR] RUT duplicado encontrado | {"rut":"98765432-1","existing_id":"EMP001","existing_nombre":"María González"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [ERROR] Email duplicado encontrado | {"email":"duplicado@ejemplo.com","existing_id":"EMP002","existing_nombre":"Pedro Silva"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [ERROR] Error PDO (Base de datos) | {"message":"SQLSTATE[42S02]: Base table or view not found","code":"42S02","file":"registrar-rostro.php","line":145}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [WARNING] Error al usar AWS Rekognition, usando face_id mock | {"error":"InvalidSignatureException: Signature expired","employee_id":"EMP888"}
+[27-Dec-2025 23:41:39 UTC] [2025-12-27 23:41:39] [ERROR] JSON inválido recibido | {"json_error":"Syntax error"}
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] Config cargado exitosamente
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] AWSRekognition cargado
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] === NUEVO INTENTO DE REGISTRO INICIADO ===
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] Request method | {"method":"POST"}
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] IP cliente | {"ip":"181.42.185.217"}
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] User Agent | {"ua":"Mozilla\/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit\/605.1.15 (KHTML, like Gecko) Version\/26.1 Mobile\/15E148 Safari\/604.1"}
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] Datos recibidos | {"sessionId":"REG1766879015194","appId":"AGU001","nombre":"Jimmy Arriagada","rut":"Jhuhiijjj","cargo":"Cajero","email":"jimmychristianzapata@gmail.com","foto_length":416415,"foto_prefix":"data:image\/jpeg;base64,\/9j\/4AA"}
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] Conectando a base de datos...
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] Intentando conectar a BD | {"host":"posfagotto.cl","port":"3306","database":"easyerp","user":"asistencias_remote"}
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] Conexión a BD exitosa
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] Conexión a BD exitosa
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] Validando sesión | {"session_id":"REG1766879015194"}
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] Sesión validada correctamente | {"session_id":"REG1766879015194","app_id":"AGU001","expires_at":"2025-12-28 23:43:35"}
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] Verificando RUT duplicado | {"rut":"Jhuhiijjj"}
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] RUT disponible
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] Verificando email duplicado | {"email":"jimmychristianzapata@gmail.com"}
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] Email disponible
+[27-Dec-2025 23:44:08 UTC] [2025-12-27 23:44:08] [INFO] Generando ID de empleado...
+[27-Dec-2025 23:44:09 UTC] [2025-12-27 23:44:09] [INFO] ID generado basado en último registro | {"last_id":"EMP001","new_id":"EMP002"}
+[27-Dec-2025 23:44:09 UTC] [2025-12-27 23:44:09] [INFO] Iniciando indexación de rostro en AWS | {"employee_id":"EMP002"}
+[27-Dec-2025 23:44:09 UTC] [2025-12-27 23:44:09] [INFO] Clase AWSRekognition disponible, intentando indexar...
+[27-Dec-2025 23:44:09 UTC] [2025-12-27 23:44:09] [INFO] Instancia de AWSRekognition creada
+[27-Dec-2025 23:44:09 UTC] [2025-12-27 23:44:09] [INFO] Resultado de AWS Rekognition | {"success":true,"faceId":"607d166a-7653-4cf1-956a-e4758427f842","confidence":99.99809265136719,"boundingBox":{"Width":0.4695521891117096,"Height":0.36571359634399414,"Left":0.28438669443130493,"Top":0.31699109077453613},"imageId":"ff337799-b185-3ab4-86eb-cf674b90305b"}
+[27-Dec-2025 23:44:09 UTC] [2025-12-27 23:44:09] [INFO] Rostro indexado correctamente | {"face_id":"607d166a-7653-4cf1-956a-e4758427f842"}
+[27-Dec-2025 23:44:09 UTC] [2025-12-27 23:44:09] [INFO] Insertando empleado en base de datos | {"id":"EMP002","nombre":"Jimmy Arriagada","rut":"Jhuhiijjj","cargo":"Cajero","email":"jimmychristianzapata@gmail.com","face_id":"607d166a-7653-4cf1-956a-e4758427f842"}
+[27-Dec-2025 23:44:10 UTC] [2025-12-27 23:44:10] [INFO] Empleado insertado en BD correctamente | {"employee_id":"EMP002"}
+[27-Dec-2025 23:44:10 UTC] [2025-12-27 23:44:10] [INFO] Marcando sesión como usada | {"session_id":"REG1766879015194"}
+[27-Dec-2025 23:44:10 UTC] [2025-12-27 23:44:10] [SUCCESS] ✅ REGISTRO COMPLETADO EXITOSAMENTE | {"employee_id":"EMP002","nombre":"Jimmy Arriagada","face_id":"607d166a-7653-4cf1-956a-e4758427f842"}
+[27-Dec-2025 23:44:10 UTC] [2025-12-27 23:44:10] [INFO] Enviando respuesta exitosa al cliente | {"success":true,"message":"Empleado registrado exitosamente","employee_id":"EMP002","face_id":"607d166a-7653-4cf1-956a-e4758427f842","confidence":100}
+[27-Dec-2025 23:48:02 UTC] [2025-12-27 23:48:02] [INFO] Config cargado exitosamente
+[27-Dec-2025 23:48:02 UTC] [2025-12-27 23:48:02] [INFO] AWSRekognition cargado
+[27-Dec-2025 23:48:02 UTC] [2025-12-27 23:48:02] [INFO] === NUEVO INTENTO DE REGISTRO INICIADO ===
+[27-Dec-2025 23:48:02 UTC] [2025-12-27 23:48:02] [INFO] Request method | {"method":"POST"}
+[27-Dec-2025 23:48:02 UTC] [2025-12-27 23:48:02] [INFO] IP cliente | {"ip":"181.42.185.217"}
+[27-Dec-2025 23:48:02 UTC] [2025-12-27 23:48:02] [INFO] User Agent | {"ua":"Mozilla\/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit\/605.1.15 (KHTML, like Gecko) Version\/26.1 Mobile\/15E148 Safari\/604.1"}
+[27-Dec-2025 23:48:02 UTC] [2025-12-27 23:48:02] [INFO] Datos recibidos | {"sessionId":"REG1766879245203","appId":"AGU001","nombre":"Jimmy Arriagada","rut":"17737264-1","cargo":"Operador","email":"jimmy@fagotto.cl","foto_length":408335,"foto_prefix":"data:image\/jpeg;base64,\/9j\/4AA"}
+[27-Dec-2025 23:48:02 UTC] [2025-12-27 23:48:02] [INFO] Conectando a base de datos...
+[27-Dec-2025 23:48:02 UTC] [2025-12-27 23:48:02] [INFO] Intentando conectar a BD | {"host":"posfagotto.cl","port":"3306","database":"easyerp","user":"asistencias_remote"}
+[27-Dec-2025 23:48:03 UTC] [2025-12-27 23:48:03] [INFO] Conexión a BD exitosa
+[27-Dec-2025 23:48:03 UTC] [2025-12-27 23:48:03] [INFO] Conexión a BD exitosa
+[27-Dec-2025 23:48:03 UTC] [2025-12-27 23:48:03] [INFO] Validando sesión | {"session_id":"REG1766879245203"}
+[27-Dec-2025 23:48:03 UTC] [2025-12-27 23:48:03] [INFO] Sesión validada correctamente | {"session_id":"REG1766879245203","app_id":"AGU001","expires_at":"2025-12-28 23:47:25"}
+[27-Dec-2025 23:48:03 UTC] [2025-12-27 23:48:03] [INFO] Verificando RUT duplicado | {"rut":"17737264-1"}
+[27-Dec-2025 23:48:03 UTC] [2025-12-27 23:48:03] [INFO] RUT disponible
+[27-Dec-2025 23:48:03 UTC] [2025-12-27 23:48:03] [INFO] Verificando email duplicado | {"email":"jimmy@fagotto.cl"}
+[27-Dec-2025 23:48:03 UTC] [2025-12-27 23:48:03] [INFO] Email disponible
+[27-Dec-2025 23:48:03 UTC] [2025-12-27 23:48:03] [INFO] Generando ID de empleado...
+[27-Dec-2025 23:48:03 UTC] [2025-12-27 23:48:03] [INFO] Primer empleado, ID generado | {"new_id":"EMP001"}
+[27-Dec-2025 23:48:03 UTC] [2025-12-27 23:48:03] [INFO] Iniciando indexación de rostro en AWS | {"employee_id":"EMP001"}
+[27-Dec-2025 23:48:03 UTC] [2025-12-27 23:48:03] [INFO] Clase AWSRekognition disponible, intentando indexar...
+[27-Dec-2025 23:48:03 UTC] [2025-12-27 23:48:03] [INFO] Instancia de AWSRekognition creada
+[27-Dec-2025 23:48:04 UTC] [2025-12-27 23:48:04] [INFO] Resultado de AWS Rekognition | {"success":true,"faceId":"3aa8b0e0-dc40-4ea0-bd5c-76c18e9ecac8","confidence":99.99923706054688,"boundingBox":{"Width":0.4259471595287323,"Height":0.34338322281837463,"Left":0.3016465902328491,"Top":0.3225310742855072},"imageId":"b1af495b-43c9-3b87-83a5-df6d5e946398"}
+[27-Dec-2025 23:48:04 UTC] [2025-12-27 23:48:04] [INFO] Rostro indexado correctamente | {"face_id":"3aa8b0e0-dc40-4ea0-bd5c-76c18e9ecac8"}
+[27-Dec-2025 23:48:04 UTC] [2025-12-27 23:48:04] [INFO] Insertando empleado en base de datos | {"id":"EMP001","nombre":"Jimmy Arriagada","rut":"17737264-1","cargo":"Operador","email":"jimmy@fagotto.cl","face_id":"3aa8b0e0-dc40-4ea0-bd5c-76c18e9ecac8"}
+[27-Dec-2025 23:48:05 UTC] [2025-12-27 23:48:05] [INFO] Empleado insertado en BD correctamente | {"employee_id":"EMP001"}
+[27-Dec-2025 23:48:05 UTC] [2025-12-27 23:48:05] [INFO] Marcando sesión como usada | {"session_id":"REG1766879245203"}
+[27-Dec-2025 23:48:05 UTC] [2025-12-27 23:48:05] [SUCCESS] ✅ REGISTRO COMPLETADO EXITOSAMENTE | {"employee_id":"EMP001","nombre":"Jimmy Arriagada","face_id":"3aa8b0e0-dc40-4ea0-bd5c-76c18e9ecac8"}
+[27-Dec-2025 23:48:05 UTC] [2025-12-27 23:48:05] [INFO] Enviando respuesta exitosa al cliente | {"success":true,"message":"Empleado registrado exitosamente","employee_id":"EMP001","face_id":"3aa8b0e0-dc40-4ea0-bd5c-76c18e9ecac8","confidence":100}
+[27-Dec-2025 23:48:05 UTC] [2025-12-27 23:48:05] [INFO] === INICIO ENVÍO DE TÉRMINOS FIRMADOS ===
+[27-Dec-2025 23:48:05 UTC] [2025-12-27 23:48:05] [INFO] Datos recibidos | {"nombre":"Jimmy Arriagada","email":"jimmy@fagotto.cl","tiene_firma":"SI"}
+[27-Dec-2025 23:48:05 UTC] [2025-12-27 23:48:05] [SUCCESS] Términos procesados correctamente | {"email":"jimmy@fagotto.cl"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] === INICIO DE PRUEBA DEL SISTEMA DE LOGS ===
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] Sistema iniciado correctamente
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] Verificando configuración | {"db_host":"posfagotto.cl","db_name":"easyerp","app_id":"AGU001"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] Simulando registro de empleado | {"nombre":"Juan Pérez Test","rut":"12345678-9","cargo":"Cajero"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] Conectando a base de datos...
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] Conexión a BD exitosa
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] Validando sesión | {"session_id":"REG-TEST-12345"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] Sesión validada correctamente | {"session_id":"REG-TEST-12345","app_id":"AGU001","expires_at":"2025-12-28 04:15:54"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] Verificando RUT duplicado | {"rut":"12345678-9"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] RUT disponible
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] Verificando email duplicado | {"email":"test@ejemplo.com"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] Email disponible
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] Generando ID de empleado...
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] ID generado | {"new_id":"EMP999"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] Iniciando indexación de rostro en AWS | {"employee_id":"EMP999"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [WARNING] Clase AWSRekognition no disponible, usando face_id mock
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] Rostro indexado correctamente | {"face_id":"FACE-EMP999"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] Insertando empleado en base de datos | {"id":"EMP999","nombre":"Juan Pérez Test","rut":"12345678-9","cargo":"Cajero","email":"test@ejemplo.com","face_id":"FACE-EMP999"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] Empleado insertado en BD correctamente | {"employee_id":"EMP999"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] Marcando sesión como usada | {"session_id":"REG-TEST-12345"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [SUCCESS] ✅ REGISTRO COMPLETADO EXITOSAMENTE | {"employee_id":"EMP999","nombre":"Juan Pérez Test","face_id":"FACE-EMP999"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [INFO] === SIMULANDO ERRORES COMUNES ===
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [ERROR] Datos incompletos en la petición | {"sessionId":"OK","appId":"❌ FALTA","nombre":"OK","rut":"OK","cargo":"❌ FALTA","email":"OK","foto":"OK"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [ERROR] Sesión inválida o expirada | {"session_id":"REG-EXPIRED-123"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [ERROR] RUT duplicado encontrado | {"rut":"98765432-1","existing_id":"EMP001","existing_nombre":"María González"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [ERROR] Email duplicado encontrado | {"email":"duplicado@ejemplo.com","existing_id":"EMP002","existing_nombre":"Pedro Silva"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [ERROR] Error PDO (Base de datos) | {"message":"SQLSTATE[42S02]: Base table or view not found","code":"42S02","file":"registrar-rostro.php","line":145}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [WARNING] Error al usar AWS Rekognition, usando face_id mock | {"error":"InvalidSignatureException: Signature expired","employee_id":"EMP888"}
+[28-Dec-2025 04:10:54 UTC] [2025-12-28 04:10:54] [ERROR] JSON inválido recibido | {"json_error":"Syntax error"}
+[29-Dec-2025 01:54:11 UTC] [2025-12-29 01:54:11] [INFO] Config cargado exitosamente
+[29-Dec-2025 01:54:11 UTC] [2025-12-29 01:54:11] [INFO] AWSRekognition cargado
+[29-Dec-2025 01:54:11 UTC] [2025-12-29 01:54:11] [INFO] === NUEVO INTENTO DE REGISTRO INICIADO ===
+[29-Dec-2025 01:54:11 UTC] [2025-12-29 01:54:11] [INFO] Request method | {"method":"POST"}
+[29-Dec-2025 01:54:11 UTC] [2025-12-29 01:54:11] [INFO] IP cliente | {"ip":"181.42.185.217"}
+[29-Dec-2025 01:54:11 UTC] [2025-12-29 01:54:11] [INFO] User Agent | {"ua":"Mozilla\/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit\/605.1.15 (KHTML, like Gecko) Version\/26.1 Mobile\/15E148 Safari\/604.1"}
+[29-Dec-2025 01:54:11 UTC] [2025-12-29 01:54:11] [INFO] Datos recibidos | {"sessionId":"REG1766973144769","appId":"","nombre":"Jimmy Arriagada","rut":"17737265-1","cargo":"Operador","email":"jimmy@fagotto.cl","foto_length":390895,"foto_prefix":"data:image\/jpeg;base64,\/9j\/4AA"}
+[29-Dec-2025 01:54:11 UTC] [2025-12-29 01:54:11] [ERROR] Datos incompletos en la petición | {"sessionId":"OK","appId":"❌ FALTA","nombre":"OK","rut":"OK","cargo":"OK","email":"OK","foto":"OK"}
+[29-Dec-2025 01:56:07 UTC] [2025-12-29 01:56:07] [INFO] === INICIO ENVÍO DE TÉRMINOS FIRMADOS ===
+[29-Dec-2025 01:56:07 UTC] [2025-12-29 01:56:07] [INFO] Datos recibidos | {"nombre":"Jimmy Arriagada","email":"jimmy@fagotto.cl","tiene_firma":"SI"}
+[29-Dec-2025 01:56:07 UTC] [2025-12-29 01:56:07] [SUCCESS] Términos procesados correctamente | {"email":"jimmy@fagotto.cl"}
+[29-Dec-2025 02:20:44 UTC] [2025-12-29 02:20:44] [INFO] === INICIO ENVÍO DE TÉRMINOS FIRMADOS ===
+[29-Dec-2025 02:20:44 UTC] [2025-12-29 02:20:44] [INFO] Datos recibidos | {"nombre":"Jimmy Arriagada","email":"jimmychristianzapata@gmail.com","tiene_firma":"SI"}
+[29-Dec-2025 02:20:44 UTC] [2025-12-29 02:20:44] [SUCCESS] Términos procesados correctamente | {"email":"jimmychristianzapata@gmail.com"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] === INICIO DE PRUEBA DEL SISTEMA DE LOGS ===
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] Sistema iniciado correctamente
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] Verificando configuración | {"db_host":"posfagotto.cl","db_name":"easyerp","app_id":"AGU001"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] Simulando registro de empleado | {"nombre":"Juan Pérez Test","rut":"12345678-9","cargo":"Cajero"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] Conectando a base de datos...
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] Conexión a BD exitosa
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] Validando sesión | {"session_id":"REG-TEST-12345"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] Sesión validada correctamente | {"session_id":"REG-TEST-12345","app_id":"AGU001","expires_at":"2026-01-02 20:09:50"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] Verificando RUT duplicado | {"rut":"12345678-9"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] RUT disponible
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] Verificando email duplicado | {"email":"test@ejemplo.com"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] Email disponible
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] Generando ID de empleado...
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] ID generado | {"new_id":"EMP999"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] Iniciando indexación de rostro en AWS | {"employee_id":"EMP999"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [WARNING] Clase AWSRekognition no disponible, usando face_id mock
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] Rostro indexado correctamente | {"face_id":"FACE-EMP999"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] Insertando empleado en base de datos | {"id":"EMP999","nombre":"Juan Pérez Test","rut":"12345678-9","cargo":"Cajero","email":"test@ejemplo.com","face_id":"FACE-EMP999"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] Empleado insertado en BD correctamente | {"employee_id":"EMP999"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] Marcando sesión como usada | {"session_id":"REG-TEST-12345"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [SUCCESS] ✅ REGISTRO COMPLETADO EXITOSAMENTE | {"employee_id":"EMP999","nombre":"Juan Pérez Test","face_id":"FACE-EMP999"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [INFO] === SIMULANDO ERRORES COMUNES ===
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [ERROR] Datos incompletos en la petición | {"sessionId":"OK","appId":"❌ FALTA","nombre":"OK","rut":"OK","cargo":"❌ FALTA","email":"OK","foto":"OK"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [ERROR] Sesión inválida o expirada | {"session_id":"REG-EXPIRED-123"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [ERROR] RUT duplicado encontrado | {"rut":"98765432-1","existing_id":"EMP001","existing_nombre":"María González"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [ERROR] Email duplicado encontrado | {"email":"duplicado@ejemplo.com","existing_id":"EMP002","existing_nombre":"Pedro Silva"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [ERROR] Error PDO (Base de datos) | {"message":"SQLSTATE[42S02]: Base table or view not found","code":"42S02","file":"registrar-rostro.php","line":145}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [WARNING] Error al usar AWS Rekognition, usando face_id mock | {"error":"InvalidSignatureException: Signature expired","employee_id":"EMP888"}
+[02-Jan-2026 20:04:50 America/Santiago] [2026-01-02 20:04:50] [ERROR] JSON inválido recibido | {"json_error":"Syntax error"}

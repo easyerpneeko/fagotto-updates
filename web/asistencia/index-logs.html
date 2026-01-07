@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Logs - Asistencias</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            border-radius: 15px;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            min-height: 150px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(240, 147, 251, 0.4);
+        }
+        
+        .btn-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .btn-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .btn-desc {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            text-align: center;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .info-box h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .info-box li {
+            padding: 8px 0;
+            color: #555;
+            display: flex;
+            align-items: start;
+            gap: 10px;
+        }
+        
+        .info-box li::before {
+            content: '✓';
+            color: #4caf50;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .alert {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+            color: #666;
+        }
+        
+        @media (max-width: 600px) {
+            .buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">📊</div>
+            <h1>Sistema de Logs</h1>
+            <p>Monitoreo en tiempo real del registro de empleados</p>
+        </div>
+        
+        <div class="alert alert-success">
+            <strong>✅ Sistema de Logs Instalado y Configurado</strong><br>
+            El sistema está listo para monitorear todos los intentos de registro de empleados.
+        </div>
+        
+        <div class="buttons">
+            <a href="ver-logs.html" class="btn btn-primary">
+                <div class="btn-icon">🔍</div>
+                <div class="btn-text">Ver Logs en Vivo</div>
+                <div class="btn-desc">Monitoreo en tiempo real</div>
+            </a>
+            
+            <a href="test-logs.php" class="btn btn-secondary">
+                <div class="btn-icon">🧪</div>
+                <div class="btn-text">Generar Logs de Prueba</div>
+                <div class="btn-desc">Crear logs de ejemplo</div>
+            </a>
+        </div>
+        
+        <div class="info-box">
+            <h3>📋 Características del sistema:</h3>
+            <ul>
+                <li>Actualización automática cada 2 segundos</li>
+                <li>Filtros por nivel: INFO, SUCCESS, WARNING, ERROR</li>
+                <li>Búsqueda de texto en logs</li>
+                <li>Pausar/Reanudar actualización automática</li>
+                <li>Limpiar logs con un clic</li>
+                <li>Ver hasta 500 líneas de historial</li>
+            </ul>
+        </div>
+        
+        <div class="info-box">
+            <h3>🔍 ¿Qué verás en los logs?</h3>
+            <ul>
+                <li>Cada intento de registro de empleado</li>
+                <li>Validaciones de RUT y email duplicados</li>
+                <li>Errores de sesión o expiración</li>
+                <li>Problemas de conexión a base de datos</li>
+                <li>Estado de indexación facial en AWS</li>
+                <li>Respuestas exitosas y fallidas</li>
+            </ul>
+        </div>
+        
+        <div class="alert">
+            <strong>💡 Consejo:</strong> Deja abierta la página de logs mientras registras empleados para detectar errores inmediatamente.
+        </div>
+        
+        <div class="footer">
+            <p><strong>Desarrollado para Fagotto</strong></p>
+            <p>Sistema de Asistencias con Reconocimiento Facial</p>
+        </div>
+    </div>
+</body>
+</html>

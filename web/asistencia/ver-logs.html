@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs en Tiempo Real - Registro de Empleados</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+        }
+        
+        .header {
+            background: #252526;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .header h1 {
+            color: #4ec9b0;
+            font-size: 1.5rem;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-refresh {
+            background: #4ec9b0;
+            color: #1e1e1e;
+        }
+        
+        .btn-refresh:hover {
+            background: #5fd3ba;
+        }
+        
+        .btn-clear {
+            background: #f48771;
+            color: #1e1e1e;
+        }
+        
+        .btn-clear:hover {
+            background: #ff9580;
+        }
+        
+        .btn-pause {
+            background: #ffc107;
+            color: #1e1e1e;
+        }
+        
+        .btn-pause:hover {
+            background: #ffd54f;
+        }
+        
+        .btn-pause.paused {
+            background: #28a745;
+        }
+        
+        .stats {
+            background: #252526;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stat-label {
+            color: #858585;
+            font-size: 0.8rem;
+        }
+        
+        .stat-value {
+            color: #4ec9b0;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .log-container {
+            background: #252526;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            padding: 10px;
+            margin-bottom: 5px;
+            border-left: 4px solid #858585;
+            border-radius: 3px;
+            background: #2d2d30;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .log-entry.INFO {
+            border-left-color: #4ec9b0;
+        }
+        
+        .log-entry.SUCCESS {
+            border-left-color: #4caf50;
+            background: #1a3d1f;
+        }
+        
+        .log-entry.WARNING {
+            border-left-color: #ffc107;
+            background: #3d341a;
+        }
+        
+        .log-entry.ERROR {
+            border-left-color: #f48771;
+            background: #3d1f1a;
+        }
+        
+        .log-timestamp {
+            color: #858585;
+            font-size: 0.85rem;
+            margin-right: 10px;
+        }
+        
+        .log-level {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .log-level.INFO {
+            background: #4ec9b0;
+            color: #1e1e1e;
+        }
+        
+        .log-level.SUCCESS {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .log-level.WARNING {
+            background: #ffc107;
+            color: #1e1e1e;
+        }
+        
+        .log-level.ERROR {
+            background: #f48771;
+            color: white;
+        }
+        
+        .log-message {
+            color: #d4d4d4;
+            margin-top: 5px;
+        }
+        
+        .log-data {
+            margin-top: 8px;
+            padding: 8px;
+            background: #1e1e1e;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            overflow-x: auto;
+        }
+        
+        .log-data pre {
+            color: #ce9178;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .no-logs {
+            text-align: center;
+            padding: 40px;
+            color: #858585;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        
+        .status-indicator.active {
+            background: #4caf50;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-indicator.paused {
+            background: #ffc107;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
+        .filter-bar {
+            background: #252526;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-bar label {
+            margin-right: 10px;
+            color: #858585;
+        }
+        
+        .filter-bar input {
+            padding: 5px 10px;
+            background: #2d2d30;
+            border: 1px solid #3e3e42;
+            color: #d4d4d4;
+            border-radius: 3px;
+        }
+        
+        .filter-bar select {
+            padding: 5px 10px;
+            background: #2d2d30;
+            border: 1px solid #3e3e42;
+            color: #d4d4d4;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>📊 Logs en Tiempo Real</h1>
+            <small style="color: #858585;">Registro de Empleados</small>
+        </div>
+        <div class="controls">
+            <button class="btn btn-refresh" onclick="refreshLogs()">🔄 Refrescar</button>
+            <button class="btn btn-pause" id="pauseBtn" onclick="togglePause()">
+                ⏸️ Pausar
+                <span class="status-indicator active" id="statusIndicator"></span>
+            </button>
+            <button class="btn btn-clear" onclick="clearLogs()">🗑️ Limpiar Log</button>
+        </div>
+    </div>
+    
+    <div class="stats">
+        <div class="stat">
+            <span class="stat-label">Total Líneas</span>
+            <span class="stat-value" id="totalLines">0</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Mostrando</span>
+            <span class="stat-value" id="showingLines">0</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Tamaño Archivo</span>
+            <span class="stat-value" id="fileSize">0 KB</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Última Actualización</span>
+            <span class="stat-value" id="lastUpdate">--:--:--</span>
+        </div>
+    </div>
+    
+    <div class="filter-bar">
+        <label>Filtrar por nivel:</label>
+        <select id="levelFilter" onchange="applyFilter()">
+            <option value="ALL">Todos</option>
+            <option value="INFO">INFO</option>
+            <option value="SUCCESS">SUCCESS</option>
+            <option value="WARNING">WARNING</option>
+            <option value="ERROR">ERROR</option>
+        </select>
+        
+        <label style="margin-left: 20px;">Buscar:</label>
+        <input type="text" id="searchBox" placeholder="Buscar en logs..." oninput="applyFilter()">
+        
+        <label style="margin-left: 20px;">Líneas:</label>
+        <select id="linesSelect" onchange="refreshLogs()">
+            <option value="50">50</option>
+            <option value="100" selected>100</option>
+            <option value="200">200</option>
+            <option value="500">500</option>
+        </select>
+    </div>
+    
+    <div class="log-container" id="logContainer">
+        <div class="no-logs">Cargando logs...</div>
+    </div>
+
+    <script>
+        let isPaused = false;
+        let autoRefreshInterval;
+        let allLogs = [];
+        
+        // Cargar logs al inicio
+        refreshLogs();
+        
+        // Auto-refresh cada 2 segundos
+        startAutoRefresh();
+        
+        function startAutoRefresh() {
+            autoRefreshInterval = setInterval(() => {
+                if (!isPaused) {
+                    refreshLogs(true); // true = silencioso, sin scroll
+                }
+            }, 2000);
+        }
+        
+        function togglePause() {
+            isPaused = !isPaused;
+            const btn = document.getElementById('pauseBtn');
+            const indicator = document.getElementById('statusIndicator');
+            
+            if (isPaused) {
+                btn.innerHTML = '▶️ Reanudar <span class="status-indicator paused" id="statusIndicator"></span>';
+                btn.classList.add('paused');
+                indicator.classList.remove('active');
+                indicator.classList.add('paused');
+            } else {
+                btn.innerHTML = '⏸️ Pausar <span class="status-indicator active" id="statusIndicator"></span>';
+                btn.classList.remove('paused');
+                indicator.classList.remove('paused');
+                indicator.classList.add('active');
+                refreshLogs();
+            }
+        }
+        
+        async function refreshLogs(silent = false) {
+            try {
+                const lines = document.getElementById('linesSelect').value;
+                const response = await fetch(`api/get-logs.php?lines=${lines}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    allLogs = data.logs;
+                    updateStats(data);
+                    applyFilter();
+                    
+                    if (!silent) {
+                        scrollToBottom();
+                    }
+                }
+            } catch (error) {
+                console.error('Error al cargar logs:', error);
+            }
+        }
+        
+        function applyFilter() {
+            const levelFilter = document.getElementById('levelFilter').value;
+            const searchText = document.getElementById('searchBox').value.toLowerCase();
+            
+            let filteredLogs = allLogs;
+            
+            // Filtrar por nivel
+            if (levelFilter !== 'ALL') {
+                filteredLogs = filteredLogs.filter(log => log.level === levelFilter);
+            }
+            
+            // Filtrar por búsqueda
+            if (searchText) {
+                filteredLogs = filteredLogs.filter(log => {
+                    const message = log.message.toLowerCase();
+                    const dataStr = log.data ? JSON.stringify(log.data).toLowerCase() : '';
+                    return message.includes(searchText) || dataStr.includes(searchText);
+                });
+            }
+            
+            renderLogs(filteredLogs);
+        }
+        
+        function renderLogs(logs) {
+            const container = document.getElementById('logContainer');
+            
+            if (logs.length === 0) {
+                container.innerHTML = '<div class="no-logs">No hay logs disponibles</div>';
+                return;
+            }
+            
+            container.innerHTML = logs.map(log => {
+                let dataHtml = '';
+                if (log.data) {
+                    dataHtml = `<div class="log-data"><pre>${JSON.stringify(log.data, null, 2)}</pre></div>`;
+                }
+                
+                return `
+                    <div class="log-entry ${log.level}">
+                        <span class="log-timestamp">${log.timestamp || 'N/A'}</span>
+                        <span class="log-level ${log.level}">${log.level}</span>
+                        <div class="log-message">${escapeHtml(log.message)}</div>
+                        ${dataHtml}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function updateStats(data) {
+            document.getElementById('totalLines').textContent = data.total_lines || 0;
+            document.getElementById('showingLines').textContent = data.showing_lines || 0;
+            document.getElementById('fileSize').textContent = formatFileSize(data.file_size || 0);
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+        
+        function scrollToBottom() {
+            const container = document.getElementById('logContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        async function clearLogs() {
+            if (!confirm('¿Estás seguro de que quieres limpiar todos los logs?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('api/get-logs.php?clear=true');
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Logs limpiados correctamente');
+                    refreshLogs();
+                }
+            } catch (error) {
+                console.error('Error al limpiar logs:', error);
+                alert('❌ Error al limpiar logs');
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

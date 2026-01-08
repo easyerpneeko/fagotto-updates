@@ -767,9 +767,13 @@ try {
                             
                             // Enviar términos firmados por email
                             const emailResponse = await axios.post('/api/enviar-terminos-firmados.php', {
-                                nombre: this.empleado.nombre,
-                                email: this.empleado.email,
-                                firma: this.firmaDataURL
+                                empleado: {
+                                    nombre: this.empleado.nombre,
+                                    email: this.empleado.email,
+                                    rut: this.empleado.rut
+                                },
+                                firma: this.firmaDataURL,
+                                fecha: new Date().toISOString().split('T')[0]
                             });
                             
                             console.log('📧 Respuesta email:', emailResponse.data);
@@ -809,3 +813,5 @@ try {
     </script>
 </body>
 </html>
+
+

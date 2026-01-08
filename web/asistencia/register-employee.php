@@ -12,32 +12,26 @@ header("Expires: 0");
 require_once 'config.php';
 
 $sessionId = $_GET['session'] ?? null;
-$negocioParam = $_GET['negocio'] ?? null;
 
-if (!$sessionId || !$negocioParam) {
-    die('Error: Parámetros inválidos (session y negocio requeridos)');
+if (!$sessionId) {
+    die('Error: Parámetro session requerido');
 }
 
-// Convertir el slug del negocio a nombre normal (ej: FAGOTTO_MANUEL_MONT → Fagotto Manuel Mont)
-$negocioNombre = str_replace('_', ' ', $negocioParam);
-
-// Validar sesión de registro
+// Validar sesión de registro (sin validar negocio primero)
 try {
     $pdo = getDB();
     $stmt = $pdo->prepare("
         SELECT * FROM asistencias_sessions 
         WHERE session_id = ? 
-        AND negocio_nombre = ?
         AND expires_at > NOW()
         AND used = 0
     ");
-    $stmt->execute([$sessionId, $negocioNombre]);
+    $stmt->execute([$sessionId]);
     $session = $stmt->fetch();
     
     if (!$session) {
         // Debug: Mostrar información útil
         $debugInfo = "<br><br>Session ID: $sessionId<br>";
-        $debugInfo .= "Negocio: $negocioNombre<br>";
         $debugInfo .= "Hora actual servidor: " . date('Y-m-d H:i:s') . "<br>";
         
         // Verificar si la sesión existe
@@ -47,7 +41,7 @@ try {
         
         if ($expiredSession) {
             $debugInfo .= "<br>Sesión encontrada pero:<br>";
-            $debugInfo .= "- Negocio en DB: " . $expiredSession['negocio_nombre'] . "<br>";
+            $debugInfo .= "- Negocio: " . $expiredSession['negocio_nombre'] . "<br>";
             $debugInfo .= "- Expira: " . $expiredSession['expires_at'] . "<br>";
             $debugInfo .= "- Usada: " . ($expiredSession['used'] ? 'Sí' : 'No') . "<br>";
         } else {

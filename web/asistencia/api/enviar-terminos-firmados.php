@@ -31,33 +31,65 @@ try {
     // Generar HTML del documento de términos
     $html = generarHTMLTerminos($empleado, $firma, $fecha);
     
-    // Guardar firma en el servidor (opcional)
-    $rutaFirma = '../uploads/firmas/' . $empleado['rut'] . '_' . time() . '.png';
-    $directorioFirmas = dirname($rutaFirma);
+    // Crear directorios si no existen
+    $timestamp = time();
+    $directorioFirmas = '../uploads/firmas';
+    $directorioTerminos = '../uploads/terminos';
+    
     if (!is_dir($directorioFirmas)) {
         mkdir($directorioFirmas, 0755, true);
     }
+    if (!is_dir($directorioTerminos)) {
+        mkdir($directorioTerminos, 0755, true);
+    }
     
-    // Decodificar y guardar la firma
+    // Guardar firma
+    $rutaFirma = $directorioFirmas . '/' . $empleado['rut'] . '_' . $timestamp . '.png';
     $firmaData = str_replace('data:image/png;base64,', '', $firma);
     $firmaData = str_replace(' ', '+', $firmaData);
     file_put_contents($rutaFirma, base64_decode($firmaData));
     
-    // Enviar correo
-    $enviado = enviarCorreoTerminos($empleado['email'], $empleado['nombre'], $html, $rutaFirma);
+    // Guardar HTML de términos
+    $rutaTerminos = $directorioTerminos . '/' . $empleado['rut'] . '_' . $timestamp . '.html';
+    file_put_contents($rutaTerminos, $html);
     
-    if ($enviado) {
-        // Actualizar BD con el email del empleado
-        $stmt = $pdo->prepare("UPDATE employees SET email = ? WHERE rut = ?");
-        $stmt->execute([$empleado['email'], $empleado['rut']]);
-        
-        echo json_encode([
-            'success' => true,
-            'message' => 'Términos enviados correctamente'
+    // Registrar aceptación en BD
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->prepare("
+            UPDATE asistencias_employees 
+            SET terminos_aceptados = 1,
+                terminos_fecha = NOW(),
+                terminos_archivo = ?,
+                firma_archivo = ?
+            WHERE rut = ?
+        ");
+        $stmt->execute([
+            basename($rutaTerminos),
+            basename($rutaFirma),
+            $empleado['rut']
         ]);
-    } else {
-        throw new Exception('Error al enviar correo');
+    } catch (Exception $dbError) {
+        error_log("⚠️ No se pudo actualizar BD (puede que no existan las columnas): " . $dbError->getMessage());
     }
+    
+    // Intentar enviar correo (opcional, no detiene el proceso si falla)
+    $emailEnviado = false;
+    try {
+        $emailEnviado = enviarCorreoTerminos($empleado['email'], $empleado['nombre'], $html, $rutaFirma);
+    } catch (Exception $emailError) {
+        error_log("⚠️ No se pudo enviar email: " . $emailError->getMessage());
+    }
+    
+    echo json_encode([
+        'success' => true,
+        'message' => 'Términos guardados correctamente',
+        'email_enviado' => $emailEnviado,
+        'archivos' => [
+            'firma' => basename($rutaFirma),
+            'terminos' => basename($rutaTerminos)
+        ]
+    ]);
     
 } catch (Exception $e) {
     http_response_code(500);

@@ -61,9 +61,17 @@ $cargo = $data['cargo'] ?? null;
 $email = $data['email'] ?? null;
 $foto = $data['foto'] ?? null;
 
+// Log más detallado de valores
+error_log("Validación de campos:");
+error_log("  sessionId: " . ($sessionId ? "'" . $sessionId . "'" : "NULL/EMPTY") . " (length: " . strlen($sessionId ?? '') . ")");
+error_log("  nombre: " . ($nombre ? "'" . $nombre . "'" : "NULL/EMPTY") . " (length: " . strlen($nombre ?? '') . ")");
+error_log("  rut: " . ($rut ? "'" . $rut . "'" : "NULL/EMPTY") . " (length: " . strlen($rut ?? '') . ")");
+error_log("  cargo: " . ($cargo ? "'" . $cargo . "'" : "NULL/EMPTY") . " (length: " . strlen($cargo ?? '') . ")");
+error_log("  email: " . ($email ? "'" . $email . "'" : "NULL/EMPTY") . " (length: " . strlen($email ?? '') . ")");
+error_log("  foto: " . ($foto ? "tiene " . strlen($foto) . " caracteres" : "NULL/EMPTY"));
+
 if (!$sessionId || !$nombre || !$rut || !$cargo || !$email || !$foto) {
-    http_response_code(400);
-    echo json_encode([
+    $errorDetail = [
         'success' => false,
         'message' => 'Datos incompletos',
         'missing' => [
@@ -73,8 +81,19 @@ if (!$sessionId || !$nombre || !$rut || !$cargo || !$email || !$foto) {
             'cargo' => $cargo ? 'OK' : 'FALTA',
             'email' => $email ? 'OK' : 'FALTA',
             'foto' => $foto ? 'OK' : 'FALTA'
+        ],
+        'received_data' => [
+            'sessionId' => substr($sessionId ?? '', 0, 20),
+            'nombre' => $nombre ?? 'null',
+            'rut' => $rut ?? 'null',
+            'cargo' => $cargo ?? 'null',
+            'email' => $email ?? 'null',
+            'foto_length' => $foto ? strlen($foto) : 0
         ]
-    ]);
+    ];
+    error_log("ERROR: Datos incompletos - " . json_encode($errorDetail));
+    http_response_code(400);
+    echo json_encode($errorDetail);
     exit;
 }
 

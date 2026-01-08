@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Debug - Asistencia</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; margin-bottom: 20px; text-align: center; }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #f0fff4;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Test de Registro</h1>
+        
+        <div class="form-group">
+            <label>Session ID</label>
+            <input type="text" id="sessionId" placeholder="REG1234567890">
+        </div>
+        
+        <div class="form-group">
+            <label>Nombre Completo</label>
+            <input type="text" id="nombre" placeholder="Juan Pérez">
+        </div>
+        
+        <div class="form-group">
+            <label>RUT</label>
+            <input type="text" id="rut" placeholder="12345678-9">
+        </div>
+        
+        <div class="form-group">
+            <label>Cargo</label>
+            <select id="cargo">
+                <option value="">Seleccionar...</option>
+                <option value="Operador">Operador</option>
+                <option value="Cajero">Cajero</option>
+                <option value="Encargado de local">Encargado de local</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="correo@ejemplo.com">
+        </div>
+        
+        <button onclick="testDebugAPI()">📤 Test Debug API</button>
+        <button onclick="testRegistroAPI()">🚀 Test Registro Completo</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Llenar con datos de prueba
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionId = urlParams.get('sid');
+            if (sessionId) {
+                document.getElementById('sessionId').value = sessionId;
+            }
+            
+            // Datos de ejemplo
+            document.getElementById('nombre').value = 'Juan Pérez Test';
+            document.getElementById('rut').value = '12345678-9';
+            document.getElementById('cargo').value = 'Operador';
+            document.getElementById('email').value = 'test@fagotto.cl';
+        };
+
+        function showLoading() {
+            document.getElementById('result').innerHTML = '<div class="loading"><div class="spinner"></div><p>Enviando...</p></div>';
+        }
+
+        function showResult(data, isError = false) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result ' + (isError ? 'error' : 'success');
+            resultDiv.textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function testDebugAPI() {
+            showLoading();
+            
+            const data = {
+                sessionId: document.getElementById('sessionId').value,
+                nombre: document.getElementById('nombre').value,
+                rut: document.getElementById('rut').value,
+                cargo: document.getElementById('cargo').value,
+                email: document.getElementById('email').value,
+                foto: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBD' // Foto de prueba corta
+            };
+
+            try {
+                const response = await axios.post('/api/debug-request.php', data);
+                showResult(response.data, false);
+            } catch (error) {
+                showResult({
+                    error: error.message,
+                    response: error.response ? error.response.data : null
+                }, true);
+            }
+        }
+
+        async function testRegistroAPI() {
+            showLoading();
+            
+            const data = {
+                sessionId: document.getElementById('sessionId').value,
+                nombre: document.getElementById('nombre').value,
+                rut: document.getElementById('rut').value,
+                cargo: document.getElementById('cargo').value,
+                email: document.getElementById('email').value,
+                foto: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCwAA' // Imagen 1x1 pixel en base64
+            };
+
+            console.log('Datos que se van a enviar:', data);
+
+            try {
+                const response = await axios.post('/api/registrar-rostro.php', data);
+                showResult(response.data, false);
+            } catch (error) {
+                console.error('Error completo:', error);
+                showResult({
+                    error: error.message,
+                    status: error.response ? error.response.status : 'N/A',
+                    statusText: error.response ? error.response.statusText : 'N/A',
+                    data: error.response ? error.response.data : null,
+                    config: {
+                        url: error.config ? error.config.url : 'N/A',
+                        method: error.config ? error.config.method : 'N/A'
+                    }
+                }, true);
+            }
+        }
+    </script>
+</body>
+</html>

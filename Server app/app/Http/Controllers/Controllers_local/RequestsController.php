@@ -615,6 +615,7 @@ class RequestsController extends Controller
                 if (isset($asingFolio)) {
                     if (!$asingFolio['success']) {
                         $query['response_folio'] = $asingFolio['content'];
+                        $query['sii_error'] = $asingFolio['content'];
                         if (isset($_request['ticket'])) {
                             return [$query, $asingFolio['code']];
                         } else {

@@ -57,8 +57,8 @@
                         </div>
                         <div class="col-lg-3 col-md-6 col-12 mt-3 mt-lg-0">
                             <div class="total-badge-responsive">
-                                <span class="total-label">Total:</span>
-                                <span class="total-value">${{ formatNumber(totalPedido) }}</span>
+                                <span class="total-label">TOTAL:</span>
+                                <span class="total-value">${{ formatNumber(totalConIVA) }}</span>
                             </div>
                         </div>
                     </div>
@@ -123,9 +123,24 @@
                             </div>
                         </div>
                         <div class="historial-card-footer">
-                            <div class="pedido-total">
-                                <span>Total:</span>
-                                <strong>${{ formatNumber(parseFloat(pedido.price)) }}</strong>
+                            <div class="historial-breakdown">
+                                <div class="historial-breakdown-row">
+                                    <span class="historial-breakdown-label">NETO:</span>
+                                    <span class="historial-breakdown-value">${{ formatNumber(calcularNetoHistorial(pedido)) }}</span>
+                                </div>
+                                <div class="historial-breakdown-row">
+                                    <span class="historial-breakdown-label">EXENTO:</span>
+                                    <span class="historial-breakdown-value">$0</span>
+                                </div>
+                                <div class="historial-breakdown-row">
+                                    <span class="historial-breakdown-label">I.V.A (19%):</span>
+                                    <span class="historial-breakdown-value">${{ formatNumber(calcularIVAHistorial(pedido)) }}</span>
+                                </div>
+                                <div class="historial-breakdown-separator"></div>
+                                <div class="historial-breakdown-row historial-breakdown-total">
+                                    <span class="historial-breakdown-label-total">💵 TOTAL:</span>
+                                    <span class="historial-breakdown-value-total">${{ formatNumber(calcularTotalHistorial(pedido)) }}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -158,10 +173,6 @@
                                 <i class="input-icon fas fa-user"></i>
                             </div>
                             <div class="form-group-modern">
-                                <input v-model="phone" type="text" placeholder="Número de teléfono*" class="form-control-modern">
-                                <i class="input-icon fas fa-phone"></i>
-                            </div>
-                            <div class="form-group-modern">
                                 <select v-model="paymode" class="form-control-modern select-modern">
                                     <option value="Metodo de pago" disabled>💳 Selecciona método de pago</option>
                                     <option v-for="paymode in paymodes" :value="paymode.name" :key="paymode.id">
@@ -170,9 +181,19 @@
                                 </select>
                                 <i class="input-icon fas fa-credit-card"></i>
                             </div>
-                            <div class="form-group-modern col-span-full">
-                                <textarea v-model="comment" rows="3" placeholder="Detalles adicionales del pedido*" class="form-control-modern textarea-modern"></textarea>
-                                <i class="input-icon fas fa-comment-alt"></i>
+                            <!-- Mensaje de advertencia sobre observaciones -->
+                            <div class="col-span-full">
+                                <div style="margin-top: 10px; padding: 15px 20px; background: linear-gradient(135deg, #fff3cd 0%, #ffe5a0 100%); border-radius: 12px; border-left: 5px solid #ff9800; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);">
+                                    <i class="fas fa-exclamation-triangle" style="color: #ff9800; font-size: 24px;"></i>
+                                    <div>
+                                        <div style="color: #856404; font-size: 16px; font-weight: 700; margin-bottom: 4px;">
+                                            ⚠️ Comentarios u Observaciones
+                                        </div>
+                                        <div style="color: #856404; font-size: 14px; font-weight: 500;">
+                                            Para agregar comentarios u observaciones sobre tu pedido, envíalos al correo electrónico
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -260,10 +281,31 @@
                             </div>
                         </div>
                         
-                        <div v-if="cantidadProductos > 0" class="price-summary mt-3 p-3" style="background: #f8f9fa; border-radius: 10px; border-left: 4px solid #28a745;">
-                            <div class="d-flex justify-content-between align-items-center" style="font-weight: 700; font-size: 1.2em;">
-                                <span>💵 Total Final:</span>
-                                <span class="text-success">${{ formatNumber(totalPedido) }}</span>
+                        <div v-if="cantidadProductos > 0" class="price-breakdown mt-3">
+                            <div class="breakdown-card">
+                                <div class="breakdown-header">
+                                    <i class="fas fa-calculator"></i>
+                                    <h4>RESUMEN DE COMPRA</h4>
+                                </div>
+                                <div class="breakdown-body">
+                                    <div class="breakdown-row">
+                                        <span class="breakdown-label">NETO:</span>
+                                        <span class="breakdown-value">${{ formatNumber(totalNeto) }}</span>
+                                    </div>
+                                    <div class="breakdown-row">
+                                        <span class="breakdown-label">EXENTO:</span>
+                                        <span class="breakdown-value">${{ formatNumber(totalExento) }}</span>
+                                    </div>
+                                    <div class="breakdown-row">
+                                        <span class="breakdown-label">I.V.A (19%):</span>
+                                        <span class="breakdown-value">${{ formatNumber(totalIVA) }}</span>
+                                    </div>
+                                    <div class="breakdown-separator"></div>
+                                    <div class="breakdown-row breakdown-total">
+                                        <span class="breakdown-label-total">💵 TOTAL:</span>
+                                        <span class="breakdown-value-total">${{ formatNumber(totalConIVA) }}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -461,9 +503,9 @@ export default {
             
             // Formulario
             name: '',
-            phone: '+56',
-            comment: '',
-            paymode: 'Transferencia',
+            phone: '', // No se usa pero se mantiene para compatibilidad
+            comment: '', // No se usa pero se mantiene para compatibilidad
+            paymode: 'Efectivo',
             
             // Datos de negocio
             app: null,
@@ -478,7 +520,6 @@ export default {
             
             // Opciones
             paymodes: [
-                { id: 1, name: 'Transferencia' },
                 { id: 2, name: 'Efectivo' },
                 { id: 3, name: 'Tarjeta' }
             ]
@@ -523,6 +564,23 @@ export default {
         // Cantidad de productos seleccionados
         cantidadProductos() {
             return this.productosCentralizados.filter(p => p.cantidad > 0).length;
+        },
+        
+        // Cálculos de totales
+        totalNeto() {
+            return this.totalPedido; // El total sin IVA
+        },
+        
+        totalExento() {
+            return 0; // Por ahora, todos los productos llevan IVA
+        },
+        
+        totalIVA() {
+            return Math.round(this.totalNeto * 0.19); // 19% de IVA
+        },
+        
+        totalConIVA() {
+            return this.totalNeto + this.totalIVA; // Total final con IVA
         },
         
         isValidName: {
@@ -736,14 +794,7 @@ export default {
                 this.$awn.alert("Ingresa tu nombre completo");
                 return false;
             }
-            if (!this.isValidPhone) {
-                this.$awn.alert("Ingresa un teléfono válido (+569XXXXXXXX)");
-                return false;
-            }
-            if (!this.isValidComment) {
-                this.$awn.alert("Agrega comentarios al pedido");
-                return false;
-            }
+            // Teléfono y comentario no son obligatorios desde el 8/01/2026
             if (!this.isValidPaymode) {
                 this.$awn.alert("Selecciona un método de pago");
                 return false;
@@ -797,14 +848,14 @@ export default {
             
             const data = {
                 contact_name: this.name,
-                contact_phone: this.phone,
+                contact_phone: this.phone || '+56900000000', // Valor por defecto si está vacío
                 paymode: this.paymode,
                 status: 'nuevo',
                 products: JSON.stringify(productosSeleccionados),
-                comment: this.comment,
-                price: this.totalPedido,
-                subtotal: this.totalPedido,
-                iva: 0,
+                comment: this.comment || 'Sin comentarios', // Texto por defecto si está vacío
+                price: this.totalConIVA, // Total final con IVA
+                subtotal: this.totalNeto, // Total neto sin IVA
+                iva: this.totalIVA, // IVA calculado
                 emergency: 0,
                 despacho: 0,
                 app_id: this.app.Id
@@ -814,7 +865,10 @@ export default {
             console.log('🔑 app_id tipo:', typeof this.app.Id, 'valor:', this.app.Id);
             
             var formData = new FormData();
-            for (let key in data) if (data[key]) formData.append(key, data[key]);
+            // Enviar todos los campos, incluso los vacíos
+            for (let key in data) {
+                formData.append(key, data[key] !== null && data[key] !== undefined ? data[key] : '');
+            }
             
             this.waitResponse = true;
             Loader.fullPage();
@@ -826,8 +880,8 @@ export default {
                 
                 // Limpiar formulario
                 this.name = this.me.fullname;
-                this.phone = "+56";
-                this.paymode = 'Transferencia';
+                this.phone = "";
+                this.paymode = 'Efectivo';
                 this.comment = "";
                 this.totalPedido = 0;
                 
@@ -840,7 +894,8 @@ export default {
                 await this.cargarHistorial();
                 this.mostrarHistorial = true;
             } else {
-                console.log(request.data);
+                console.log('❌ Error response:', request.data);
+                console.log('❌ Errors detail:', request.data.errors);
                 this.$awn.alert(request.data.message || 'Error al crear pedido');
             }
             this.waitResponse = false;
@@ -1002,6 +1057,41 @@ export default {
         
         formatNumber(number) {
             return FormatNumber.format(number);
+        },
+        
+        calcularNetoHistorial(pedido) {
+            // Si el pedido tiene subtotal guardado, usarlo como NETO
+            if (pedido.subtotal && parseFloat(pedido.subtotal) > 0) {
+                return parseFloat(pedido.subtotal);
+            }
+            
+            // Si no tiene subtotal, asumir que el price es el total con IVA incluido
+            // y calcular el neto: Neto = Total / 1.19
+            const total = parseFloat(pedido.price || 0);
+            const neto = total / 1.19;
+            
+            return Math.round(neto);
+        },
+        
+        calcularIVAHistorial(pedido) {
+            // Si el pedido tiene IVA guardado, usarlo
+            if (pedido.iva && parseFloat(pedido.iva) > 0) {
+                return parseFloat(pedido.iva);
+            }
+            
+            // Calcular el IVA basándose en el neto
+            const neto = this.calcularNetoHistorial(pedido);
+            const iva = Math.round(neto * 0.19);
+            
+            return iva;
+        },
+        
+        calcularTotalHistorial(pedido) {
+            // El total siempre es NETO + IVA
+            const neto = this.calcularNetoHistorial(pedido);
+            const iva = this.calcularIVAHistorial(pedido);
+            
+            return neto + iva;
         }
     }
 }
@@ -1411,8 +1501,79 @@ export default {
 
 .historial-card-footer {
     background: #f8f9fa;
-    padding: 15px 20px;
+    padding: 20px;
     border-top: 2px solid #e0e6ed;
+}
+
+.historial-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.historial-breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: white;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.historial-breakdown-row:hover {
+    background: #e9ecef;
+    transform: translateX(3px);
+}
+
+.historial-breakdown-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #2c3e50;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.historial-breakdown-value {
+    font-size: 15px;
+    font-weight: 800;
+    color: #495057;
+}
+
+.historial-breakdown-separator {
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, #667eea 50%, transparent 100%);
+    margin: 8px 0;
+    border-radius: 2px;
+}
+
+.historial-breakdown-row.historial-breakdown-total {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    padding: 12px 15px;
+    margin-top: 5px;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    border: none;
+}
+
+.historial-breakdown-row.historial-breakdown-total:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.historial-breakdown-label-total {
+    font-size: 16px;
+    font-weight: 900;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.historial-breakdown-value-total {
+    font-size: 22px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .pedido-total {
@@ -2088,6 +2249,206 @@ export default {
 /* Clase col-span-full para el textarea */
 .col-span-full {
     grid-column: 1 / -1;
+}
+
+/* ==================== DESGLOSE DE TOTALES ==================== */
+.total-badge-responsive {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    padding: 15px 30px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 20px rgba(40, 167, 69, 0.4);
+}
+
+.total-badge-responsive .total-label {
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: white;
+}
+
+.total-badge-responsive .total-value {
+    font-size: 28px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Desglose de Precios */
+.price-breakdown {
+    animation: slideInUp 0.5s ease;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.breakdown-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    border: 3px solid #e0e6ed;
+}
+
+.breakdown-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: white;
+}
+
+.breakdown-header i {
+    font-size: 24px;
+}
+
+.breakdown-header h4 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.breakdown-body {
+    padding: 25px;
+}
+
+.breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    margin-bottom: 12px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    transition: all 0.3s;
+}
+
+.breakdown-row:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.breakdown-label {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2c3e50;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.breakdown-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: #495057;
+}
+
+.breakdown-separator {
+    height: 3px;
+    background: linear-gradient(90deg, transparent 0%, #667eea 50%, transparent 100%);
+    margin: 20px 0;
+    border-radius: 2px;
+}
+
+.breakdown-row.breakdown-total {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    padding: 20px 25px;
+    margin-top: 15px;
+    margin-bottom: 0;
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+    border: none;
+}
+
+.breakdown-row.breakdown-total:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.5);
+}
+
+.breakdown-label-total {
+    font-size: 20px;
+    font-weight: 900;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.breakdown-value-total {
+    font-size: 32px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    animation: pulseValue 2s infinite;
+}
+
+@keyframes pulseValue {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* Responsive para desglose */
+@media (max-width: 768px) {
+    .breakdown-header h4 {
+        font-size: 16px;
+    }
+    
+    .breakdown-label {
+        font-size: 14px;
+    }
+    
+    .breakdown-value {
+        font-size: 18px;
+    }
+    
+    .breakdown-label-total {
+        font-size: 18px;
+    }
+    
+    .breakdown-value-total {
+        font-size: 26px;
+    }
+    
+    .breakdown-row {
+        padding: 12px 15px;
+    }
+    
+    /* Desglose en historial responsive */
+    .historial-breakdown-label {
+        font-size: 12px;
+    }
+    
+    .historial-breakdown-value {
+        font-size: 14px;
+    }
+    
+    .historial-breakdown-label-total {
+        font-size: 14px;
+    }
+    
+    .historial-breakdown-value-total {
+        font-size: 18px;
+    }
+    
+    .historial-breakdown-row {
+        padding: 8px 12px;
+    }
 }
 </style>
 

@@ -150,6 +150,11 @@ class ServicesSII {
     return [true, ['xml_string' => $xml_dte,'no_send_data' => 1]];
   }
   public static function processPedidoFactura_con_Data($pedido, $folio, $data) {
+    // Mapear observacion a comment para compatibilidad con StringXML
+    if (!isset($data['comment']) && isset($data['observacion'])) {
+        $data['comment'] = $data['observacion'];
+    }
+    
     // Obteniendo variables de entorno
     $environment_vars = ServicesSII::getEnvs(CurrentApp::App()->id);
     if(!$environment_vars) [false, 'Aplicacion no encontrada'];
@@ -232,6 +237,11 @@ class ServicesSII {
   }
 
   public static function processFactura_con_Data($sell, $folio, $data) {
+    // Mapear observacion a comment para compatibilidad con StringXML
+    if (!isset($data['comment']) && isset($data['observacion'])) {
+        $data['comment'] = $data['observacion'];
+    }
+    
     // Obteniendo variables de entorno
     $environment_vars = ServicesSII::getEnvs(CurrentApp::App()->id);
     if(!$environment_vars) [false, 'Aplicacion no encontrada'];
@@ -813,6 +823,11 @@ class ServicesSII {
 
   // -----------------------------------REPOSTERIA----------------------------------------
   public static function processPedidoReposteriaFactura_con_Data($pedido, $folio, $data) {
+    // Mapear observacion a comment para compatibilidad con StringXML
+    if (!isset($data['comment']) && isset($data['observacion'])) {
+        $data['comment'] = $data['observacion'];
+    }
+    
     // Obteniendo variables de entorno
     $environment_vars = ServicesSII::getEnvs(CurrentApp::App()->id);
     if(!$environment_vars) [false, 'Aplicacion no encontrada'];

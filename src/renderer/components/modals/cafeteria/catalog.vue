@@ -449,6 +449,13 @@
               <span>Amipass</span>
             </button>
             
+            <button v-if="settingEdenred" 
+              @click="viewTicket('edenred'); closePaymentModal()" 
+              class="payment-method-btn">
+              <i class="fas fa-utensils"></i>
+              <span>Edenred</span>
+            </button>
+            
             <button v-if="settingPedidosYa" 
               @click="viewTicket('pedidos_ya'); closePaymentModal()" 
               class="payment-method-btn">

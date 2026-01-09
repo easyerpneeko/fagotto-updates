@@ -122,7 +122,6 @@ class SIIController extends Controller
       $_request = $request->all();
 
       if(!$pedido){
-        // if(isset($_request['modal'])) return response()->json('Pedido no encontrado',400);
         return [
           'success' => false,
           'content' => 'Venta no encontrada',
@@ -130,10 +129,7 @@ class SIIController extends Controller
         ];
       }
 
-      // $client = Client::find($clientId);
-
       if (!$client){
-        // if(isset($_request['modal'])) return response()->json('El cliente es obligatorio para procesar una factura', 400);
         return [
           'success' => false,
           'content' => 'El cliente es obligatorio para procesar una factura',
@@ -162,25 +158,24 @@ class SIIController extends Controller
       // Verificando existencia de un folio
       $folio = Folio::whereNull('sell_id')->where('trash', 0)->where('type','factura')->first();
       if (!$folio){
-        // if(isset($_request['modal'])) return response()->json('No hay folios de factura disponibles',400);
         return [
           'success' => false,
           'content' => 'No hay folios de factura disponibles',
           'code' => 400,
         ];
       }
-      // dd($folio);
+      
       // Procesando DTE de factura
       $folioData = ServicesSII::processPedidoFactura_con_Data(
         $pedido, 
         $folio, 
         ['forma'=>$request['forma'], 
-        'comment'=>$request['comment'],
         'fecha_emision'=>$request['fecha_emision'],
         'fecha_vencimiento'=>$request['fecha_vencimiento'],
         'nro_transaccion'=>$request['nro_transaccion'],
-        'documento_referencia'=>$request['documento_referencia'],
-        'observacion'=>$request['observacion']]
+        'documento_referencia'=>isset($request['documento_referencia']) ? $request['documento_referencia'] : '',
+        'observacion'=>isset($request['observacion']) ? $request['observacion'] : 'Sin observaciones',
+        'comment'=>isset($request['comment']) ? $request['comment'] : (isset($request['observacion']) ? $request['observacion'] : 'Sin observaciones')]
       );
 
       if($folioData[1] == 'TVAL'){
@@ -300,12 +295,12 @@ class SIIController extends Controller
 
     // Procesando DTE de factura
     $folioData = ServicesSII::processFactura_con_Data($sell, $folio, ['forma'=>$request['forma'], 
-    'comment'=>$request['comment'],
     'fecha_emision'=>$request['fecha_emision'],
     'fecha_vencimiento'=>$request['fecha_vencimiento'],
     'nro_transaccion'=>$request['nro_transaccion'],
-    'documento_referencia'=>$request['documento_referencia'],
-    'observacion'=>$request['observacion']]);
+    'documento_referencia'=>isset($request['documento_referencia']) ? $request['documento_referencia'] : '',
+    'observacion'=>isset($request['observacion']) ? $request['observacion'] : 'Sin observaciones',
+    'comment'=>isset($request['comment']) ? $request['comment'] : (isset($request['observacion']) ? $request['observacion'] : 'Sin observaciones')]);
     if($folioData[1] == 'TVAL'){
       $folio->trash = 1;
       $folio->save();
@@ -838,12 +833,12 @@ class SIIController extends Controller
       $pedido, 
       $folio, 
       ['forma'=>$request['forma'], 
-      'comment'=>$request['comment'],
       'fecha_emision'=>$request['fecha_emision'],
       'fecha_vencimiento'=>$request['fecha_vencimiento'],
       'nro_transaccion'=>$request['nro_transaccion'],
-      'documento_referencia'=>$request['documento_referencia'],
-      'observacion'=>$request['observacion']]
+      'documento_referencia'=>isset($request['documento_referencia']) ? $request['documento_referencia'] : '',
+      'observacion'=>isset($request['observacion']) ? $request['observacion'] : 'Sin observaciones',
+      'comment'=>isset($request['comment']) ? $request['comment'] : (isset($request['observacion']) ? $request['observacion'] : 'Sin observaciones')]
     );
 
     if($folioData[1] == 'TVAL'){

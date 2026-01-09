@@ -69,7 +69,6 @@
 <style media="screen">
 *{
   margin: 0;
-  margin: 6px 2px;
   padding: 0px;
   word-wrap: break-word !important;
   word-break: break-all !important;
@@ -89,17 +88,21 @@ p{
 table {
   border-collapse: collapse;
   width: 100%;
+  margin: 0 !important;
 }
 th, td {
   text-align: left;
   border-bottom: 0.8px solid #c4c4c4;
+  margin: 0 !important;
 }
 td {
-  padding: 3px;
+  padding: 2px;
+  margin: 0 !important;
 }
 th {
-  padding: 5px;
-  padding-top: 3px;
+  padding: 3px;
+  padding-top: 2px;
+  margin: 0 !important;
 }
 /* font styles */
 .text-center{

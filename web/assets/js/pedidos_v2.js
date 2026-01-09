@@ -279,6 +279,7 @@ function verPedido(app_id, id) {
         
         // Hacer disponible globalmente para el PDF
         window.currentPedidoEsEmergencia = esEmergencia;
+        window.currentPedidoFecha = pedido.created_at; // 📅 Guardar fecha del pedido para la guía
 
         const products = JSON.parse(pedido.products);
         console.log("🔍 PRODUCTOS RECIBIDOS DE LA API:", products);
@@ -770,12 +771,39 @@ async function facturarPedido(){
         const formaPago = document.getElementById('forma_pago').value;
         const razonSocial = document.getElementById('razon_social').value;
         const direction = document.getElementById('direction').value;
-        const phone = document.getElementById('phone').value;
+        
+        // Asegurar que phone, observacion y nroTransaccion SIEMPRE sean strings
+        const phoneInput = document.getElementById('phone');
+        const phone = (phoneInput && phoneInput.value && phoneInput.value.trim() !== '') 
+            ? String(phoneInput.value).trim() 
+            : '000000000';  // Número por defecto como en la app
+        
         const giro = document.getElementById('giro').value;
         const city = document.getElementById('city').value;
         const comuna = document.getElementById('comuna').value;
-        const nroTransaccion = document.getElementById('nro_transaccion').value;
-        const observacion = document.getElementById('observacion').value;
+        
+        const nroTransaccionInput = document.getElementById('nro_transaccion');
+        const nroTransaccion = (nroTransaccionInput && nroTransaccionInput.value && nroTransaccionInput.value.trim() !== '') 
+            ? String(nroTransaccionInput.value).trim() 
+            : '0';  // 0 por defecto como en la app
+        
+        const observacionInput = document.getElementById('observacion');
+        const observacion = (observacionInput && observacionInput.value && observacionInput.value.trim() !== '') 
+            ? String(observacionInput.value).trim() 
+            : 'Sin observaciones';
+        
+        console.log('📋 DEBUG FACTURACION - Datos a enviar:', {
+            app_id: id,
+            pedido_id: pedido_id,
+            rut: rut,
+            razon_social: razonSocial,
+            phone: phone,
+            phone_type: typeof phone,
+            observacion: observacion,
+            observacion_type: typeof observacion,
+            nro_transaccion: nroTransaccion,
+            nro_transaccion_type: typeof nroTransaccion
+        });
 
         try {
             await __conection(
@@ -791,7 +819,7 @@ async function facturarPedido(){
 
                     rut: rut,
                     razon_social : razonSocial,
-                    phone : phone,
+                    phone : phone,  // Ya es string garantizado
                     direction : direction,
                     giro : giro,
                     city : city,
@@ -800,13 +828,48 @@ async function facturarPedido(){
                     fecha_emision:fechaEmision,
                     fecha_vencimiento:fechaVencimiento,
                     forma: formaPago,
-                    observacion: observacion,
-                    nro_transaccion: nroTransaccion
+                    observacion: observacion,  // Ya es string garantizado
+                    nro_transaccion: nroTransaccion  // Ya es string garantizado
                 },
                 function (request) {
-                    console.log(request);
-                    generatePDF(request.response_folio);
+                    console.log('📋 Respuesta facturación completa:', request);
+                    console.log('📋 dataEnviada99 (lo que recibió el backend):', request.dataEnviada99);
+                    
+                    // 🔍 DEBUG ULTRA DETALLADO - Ver TODAS las propiedades de la respuesta
+                    console.log('🔍 ANÁLISIS COMPLETO DE RESPUESTA:');
+                    console.log('  - ID:', request.id);
+                    console.log('  - response_folio:', request.response_folio);
+                    console.log('  - response_folio type:', typeof request.response_folio);
+                    console.log('  - Todas las keys:', Object.keys(request));
+                    console.log('  - JSON completo:', JSON.stringify(request, null, 2));
+                    
+                    // Buscar mensajes de error del backend
+                    if (request.error) console.error('🚨 ERROR DEL BACKEND:', request.error);
+                    if (request.message) console.log('📨 MENSAJE:', request.message);
+                    if (request.sii_error) console.error('🚨 ERROR SII:', request.sii_error);
+                    if (request.validation_error) console.error('🚨 ERROR VALIDACIÓN:', request.validation_error);
+                    
+                    // Validar que response_folio sea un string válido
+                    if (request.response_folio && typeof request.response_folio === 'string' && request.response_folio.length > 0) {
+                        console.log('✅ PDF recibido correctamente, generando...');
+                        generatePDF(request.response_folio);
+                        alert('✅ Factura generada exitosamente');
+                    } else {
+                        console.error('❌ Error: response_folio no es válido:', request.response_folio);
+                        console.error('📋 Tipo recibido:', typeof request.response_folio);
+                        
+                        // Verificar si la factura se creó pero no se generó el PDF
+                        if (request.id) {
+                            alert('⚠️ La factura se registró correctamente (ID: ' + request.id + '), pero no se pudo generar el PDF automáticamente. Puede consultarla más tarde.');
+                        } else {
+                            alert('❌ Error: No se pudo generar el PDF. El servidor no devolvió un documento válido.');
+                        }
+                    }
+                    
                     $('#clientCreate').modal('hide');
+                    
+                    // Recargar la lista de pedidos para reflejar los cambios
+                    getPedidos();
                 }
             );
     
@@ -822,36 +885,49 @@ async function facturarPedido(){
 
 
 async function generatePDF(base64PDF) {
-    // Cadena base64 del PDF
+    try {
+        // Validar que el parámetro sea un string
+        if (!base64PDF || typeof base64PDF !== 'string') {
+            console.error('❌ Error: base64PDF no es un string válido:', base64PDF);
+            alert('Error: No se pudo generar el PDF. Datos inválidos.');
+            return;
+        }
         
-    // Convertir la cadena base64 a binario
-    const binary = atob(base64PDF.replace(/\s/g, ''));
-    const len = binary.length;
-    const buffer = new ArrayBuffer(len);
-    const view = new Uint8Array(buffer);
-    for (let i = 0; i < len; i++) {
-        view[i] = binary.charCodeAt(i);
+        // Cadena base64 del PDF
+        // Convertir la cadena base64 a binario
+        const binary = atob(base64PDF.replace(/\s/g, ''));
+        const len = binary.length;
+        const buffer = new ArrayBuffer(len);
+        const view = new Uint8Array(buffer);
+        for (let i = 0; i < len; i++) {
+            view[i] = binary.charCodeAt(i);
+        }
+
+        // Crear un blob a partir del binario
+        const blob = new Blob([view], { type: 'application/pdf' });
+
+        // Generar un UUID
+        const uuid = crypto.randomUUID();
+
+        // Nombre del archivo con UUID
+        const fileName = `factura_${uuid}.pdf`;
+
+        // Crear un enlace y abrir el PDF en una nueva pestaña
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank'; // Esto abrirá el PDF en una nueva pestaña
+        a.download = fileName;
+        a.click();
+
+        // Revocar la URL del blob después de usarla
+        window.URL.revokeObjectURL(url);
+        
+        console.log('✅ PDF generado exitosamente:', fileName);
+    } catch (error) {
+        console.error('❌ Error generando PDF:', error);
+        alert('Error al generar el PDF: ' + error.message);
     }
-
-    // Crear un blob a partir del binario
-    const blob = new Blob([view], { type: 'application/pdf' });
-
-    // Generar un UUID
-    const uuid = crypto.randomUUID();
-
-    // Nombre del archivo con UUID
-    const fileName = `factura_${uuid}.pdf`;
-
-    // Crear un enlace y abrir el PDF en una nueva pestaÃ±a
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank'; // Esto abrirÃ¡ el PDF en una nueva pestaÃ±a
-    a.download = fileName;
-    a.click();
-
-    // Revocar la URL del blob despuÃ©s de usarla
-    window.URL.revokeObjectURL(url);
 }
 
 
@@ -1252,8 +1328,19 @@ async function imprimirPedidoPDF() {
         
         // Fecha actual (bien posicionada)
         pdf.setFont("helvetica", "normal");
-        const fechaActual = new Date().toLocaleDateString('es-CL');
-        pdf.text(fechaActual, margin + 125, startY + 8);
+        // Usar la fecha del pedido en lugar de la fecha actual
+        let fechaParaMostrar;
+        if (window.currentPedidoFecha) {
+            // Convertir la fecha del pedido a formato chileno
+            const fechaPedido = new Date(window.currentPedidoFecha);
+            fechaParaMostrar = fechaPedido.toLocaleDateString('es-CL');
+            console.log("📅 Usando fecha del pedido:", window.currentPedidoFecha, "->", fechaParaMostrar);
+        } else {
+            // Fallback a fecha actual si no está disponible
+            fechaParaMostrar = new Date().toLocaleDateString('es-CL');
+            console.log("⚠️ Fecha del pedido no disponible, usando fecha actual:", fechaParaMostrar);
+        }
+        pdf.text(fechaParaMostrar, margin + 125, startY + 8);
         
         // TABLA DE PRODUCTOS (MÁS COMPACTA)
         startY += 15; // Menos espacio

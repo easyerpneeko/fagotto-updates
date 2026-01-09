@@ -237,6 +237,12 @@ Route::group(['middleware' => ['AppSecurity']], function () {
   Route::get('/web/getAppCategories', 'ReportAplicationController@getAppCategories');
   Route::get('/web/getAppVentas', 'ReportAplicationController@getAppVentas');
   
+  // Metas por Local - Dashboard ventas
+  Route::get('/web/metas-locales', 'MetaLocalController@index');
+  Route::post('/web/metas-locales/store', 'MetaLocalController@store');
+  Route::get('/web/metas-locales/dashboard', 'MetaLocalController@getDashboard');
+  Route::get('/metas-locales/current', 'MetaLocalController@getCurrentLocalMeta');
+  
   // Administración de Salsas - EasyERP
   Route::get('/web/productos-salsas-easyerp', 'ReportAplicationController@getSalsasEasyERP');
   Route::post('/web/actualizar-producto-easyerp', 'ReportAplicationController@actualizarProductoEasyERP');

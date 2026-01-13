@@ -17,7 +17,7 @@
             <i class="fas fa-cash-register"></i>
           </div>
           <div class="title-text">
-            <h1>Arqueo de Cajaaaaaaaaaaaaaaa</h1>
+            <h1>Arqueo de Caja</h1>
           </div>
         </div>
         <div class="header-status">
@@ -340,6 +340,69 @@
       </div>
     </div>
 
+    <!-- Modal Informativo: Mejora de Inputs -->
+    <div v-if="mostrarModalMejoraInputs" class="modal-overlay" @click="cerrarModalMejoraInputs">
+      <div class="modal-content modal-info-mejora" @click.stop>
+        <div class="modal-header modal-header-success">
+          <i class="fas fa-check-circle icon-grande"></i>
+          <h3>✨ Sistema Mejorado</h3>
+          <div class="contador-lecturas">
+            📖 Lectura {{ contadorLecturaActual }} de 10
+          </div>
+        </div>
+        <div class="modal-body">
+          <div class="info-section">
+            <div class="problema-badge">
+              <i class="fas fa-bug"></i> Problema Solucionado
+            </div>
+            <p class="problema-descripcion">
+              Algunos cajeros reportaron que <strong>ocasionalmente los campos numéricos no respondían al teclado</strong>, 
+              requiriendo cerrar y abrir la aplicación.
+            </p>
+          </div>
+          
+          <div class="info-section">
+            <div class="solucion-badge">
+              <i class="fas fa-tools"></i> Solución Aplicada
+            </div>
+            <p class="solucion-descripcion">
+              Se optimizó el sistema de selección de campos con <strong>requestAnimationFrame</strong>, 
+              una tecnología más moderna y estable para aplicaciones Electron.
+            </p>
+          </div>
+
+          <div class="mejoras-list">
+            <div class="mejora-item">
+              <i class="fas fa-check-circle text-success"></i>
+              <span>Los campos ahora responden inmediatamente al escribir</span>
+            </div>
+            <div class="mejora-item">
+              <i class="fas fa-check-circle text-success"></i>
+              <span>No más bloqueos que requieran reiniciar la app</span>
+            </div>
+            <div class="mejora-item">
+              <i class="fas fa-check-circle text-success"></i>
+              <span>Navegación con Enter más fluida entre campos</span>
+            </div>
+            <div class="mejora-item">
+              <i class="fas fa-check-circle text-success"></i>
+              <span>Selección inteligente: solo en campos con valor previo</span>
+            </div>
+          </div>
+
+          <div class="nota-footer">
+            <i class="fas fa-info-circle"></i>
+            <span>Si experimentas algún problema, contacta a soporte técnico. soporte@fagotto.cl</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-primary btn-entendido" @click="cerrarModalMejoraInputs">
+            <i class="fas fa-thumbs-up me-2"></i>¡Entendido!
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal Monto Inicial -->
     <div v-if="mostrandoModalMontoInicial" class="modal-overlay" @click="enfocarInputInicial">
       <div class="modal-content" @click.stop>
@@ -357,7 +420,7 @@
             step="0.01"
             autofocus
             @keyup.enter="confirmarMontoInicial"
-            @focus="$event.target.select()"
+            @focus="safeSelectInput"
             ref="montoInicialInputRef"
           >
         </div>
@@ -542,6 +605,9 @@ export default {
       turnoActivo: false,
       cargandoTurno: false,
       
+      // Modal informativo de mejoras
+      mostrarModalMejoraInputs: false,
+      
       // Montos del turno
       montoInicialTurno: 0,
       montoFinalTurno: 0,
@@ -637,6 +703,14 @@ export default {
   computed: {
     me: { 
       get() { return this.$store.getters['main/user']; } 
+    },
+    
+    // Contador de lecturas del modal de mejora
+    contadorLecturaActual() {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return (parseInt(localStorage.getItem('arqueo_modal_mejora_inputs_contador')) || 0) + 1;
+      }
+      return 1;
     },
     
     diferenciaClass() {
@@ -782,6 +856,9 @@ export default {
     // Verificar si hay un turno activo antes de cargar otros datos
     this.verificarEstadoTurno();
     // NO cargamos el resumen del día hasta después de guardar
+    
+    // Mostrar modal informativo de mejora (solo una vez)
+    this.verificarMostrarModalMejora();
   },
 
   watch: {
@@ -1058,7 +1135,12 @@ export default {
         const input = this.$refs.montoInicialInputRef;
         if (input) {
           input.focus();
-          input.select(); // Selecciona todo el texto para facilitar escritura
+          // Usar requestAnimationFrame para evitar bloqueos en Electron
+          requestAnimationFrame(() => {
+            if (document.activeElement === input && input.value) {
+              input.select();
+            }
+          });
           return true;
         }
         return false;
@@ -1093,7 +1175,12 @@ export default {
             const nextInput = allInputs[currentIndex + 1];
             if (nextInput) {
               nextInput.focus();
-              nextInput.select();
+              // Usar requestAnimationFrame para evitar bloqueos
+              requestAnimationFrame(() => {
+                if (document.activeElement === nextInput && nextInput.value) {
+                  nextInput.select();
+                }
+              });
             }
           }
         });
@@ -1106,16 +1193,71 @@ export default {
     // Método seguro para seleccionar contenido de input
     selectInputContent(event) {
       try {
-        // Usar setTimeout para asegurar que el input esté listo
-        setTimeout(() => {
-          if (event.target && typeof event.target.select === 'function') {
-            event.target.select();
-          }
-        }, 10);
+        // Solo seleccionar si el input tiene contenido previo
+        // Esto evita bloqueos y permite escritura fluida
+        const input = event.target;
+        if (!input || typeof input.select !== 'function') return;
+        
+        // Si el input tiene valor, seleccionarlo para facilitar reemplazo
+        if (input.value && input.value !== '0') {
+          // RequestAnimationFrame es más seguro que setTimeout en Electron
+          requestAnimationFrame(() => {
+            if (document.activeElement === input) {
+              input.select();
+            }
+          });
+        }
       } catch (error) {
         // Silencioso - no romper la funcionalidad
       }
     },
+
+    // Método seguro para select inline (usado en @focus directo)
+    safeSelectInput(event) {
+      try {
+        const input = event.target;
+        if (!input || typeof input.select !== 'function') return;
+        
+        requestAnimationFrame(() => {
+          if (document.activeElement === input && input.value) {
+            input.select();
+          }
+        });
+      } catch (error) {
+        // Silencioso
+      }
+    },
+
+    // ==================== MODAL INFORMATIVO MEJORA ====================
+    verificarMostrarModalMejora() {
+      // Verificar cuántas veces se ha mostrado el modal
+      const vecesVisto = parseInt(localStorage.getItem('arqueo_modal_mejora_inputs_contador')) || 0;
+      
+      // Mostrar hasta 10 veces
+      if (vecesVisto < 10) {
+        // Mostrar modal después de 2 segundos para que no interrumpa carga inicial
+        setTimeout(() => {
+          this.mostrarModalMejoraInputs = true;
+        }, 2000);
+      }
+    },
+
+    cerrarModalMejoraInputs() {
+      this.mostrarModalMejoraInputs = false;
+      
+      // Incrementar contador de veces visto
+      const vecesVisto = parseInt(localStorage.getItem('arqueo_modal_mejora_inputs_contador')) || 0;
+      const nuevasVeces = vecesVisto + 1;
+      localStorage.setItem('arqueo_modal_mejora_inputs_contador', nuevasVeces.toString());
+      
+      console.log(`📢 Modal de mejora visto ${nuevasVeces}/10 veces`);
+      
+      // Si ya se vio 10 veces, marcar como completado
+      if (nuevasVeces >= 10) {
+        console.log('✅ Modal de mejora completado - no se mostrará más');
+      }
+    },
+    // ================================================================
 
     // Confirmar monto inicial
     confirmarMontoInicial() {
@@ -3027,6 +3169,181 @@ ${arqueo.observaciones || 'Sin observaciones'}
   transform: translateY(-2px);
   box-shadow: var(--shadow-large);
 }
+
+/* ==================== ESTILOS MODAL MEJORA INPUTS ==================== */
+.modal-info-mejora {
+  max-width: 600px;
+  animation: modalBounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes modalBounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(-100px);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 24px 32px;
+  margin: -32px -32px 24px -32px;
+  border-radius: 24px 24px 0 0;
+  text-align: center;
+}
+
+.modal-header-success .icon-grande {
+  font-size: 48px;
+  margin-bottom: 12px;
+  animation: checkPulse 1s ease-in-out;
+}
+
+@keyframes checkPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.modal-header-success h3 {
+  font-size: 24px;
+  font-weight: 800;
+  color: white !important;
+  margin: 0;
+}
+
+.contador-lecturas {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  margin-top: 12px;
+  display: inline-block;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.5px;
+}
+
+.info-section {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border-left: 4px solid;
+}
+
+.info-section:first-child {
+  border-left-color: #ef4444;
+}
+
+.info-section:nth-child(2) {
+  border-left-color: #10b981;
+}
+
+.problema-badge, .solucion-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.problema-badge {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.solucion-badge {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.problema-descripcion, .solucion-descripcion {
+  color: #475569 !important;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.mejoras-list {
+  margin: 20px 0;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+}
+
+.mejora-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  font-size: 14px;
+  color: #334155 !important;
+}
+
+.mejora-item i {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.mejora-item:not(:last-child) {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.text-success {
+  color: #10b981 !important;
+}
+
+.nota-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #fffbeb;
+  border-radius: 8px;
+  border: 1px solid #fef3c7;
+  margin-top: 20px;
+}
+
+.nota-footer i {
+  color: #f59e0b;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.nota-footer span {
+  color: #92400e !important;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.btn-entendido {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.btn-entendido:hover {
+  transform: scale(1.02);
+}
+/* ================================================================== */
 
 /* Utilidades */
 .me-1 { margin-right: 4px; }

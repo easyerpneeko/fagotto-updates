@@ -172,14 +172,10 @@
                                 <input v-model="name" type="text" placeholder="Tu nombre completo*" class="form-control-modern">
                                 <i class="input-icon fas fa-user"></i>
                             </div>
-                            <div class="form-group-modern">
-                                <select v-model="paymode" class="form-control-modern select-modern">
-                                    <option value="Metodo de pago" disabled>💳 Selecciona método de pago</option>
-                                    <option v-for="paymode in paymodes" :value="paymode.name" :key="paymode.id">
-                                        {{ paymode.name }}
-                                    </option>
-                                </select>
-                                <i class="input-icon fas fa-credit-card"></i>
+                            <!-- Método de pago fijo: Efectivo (sin opción de cambiar) -->
+                            <div class="form-group-modern" style="display: none;">
+                                <input v-model="paymode" type="text" readonly class="form-control-modern">
+                                <i class="input-icon fas fa-money-bill-wave"></i>
                             </div>
                             <!-- Mensaje de advertencia sobre observaciones -->
                             <div class="col-span-full">
@@ -596,7 +592,7 @@ export default {
             get() { return this.comment.length > 0 }
         },
         isValidPaymode: {
-            get() { return this.paymode !== 'Metodo de pago' }
+            get() { return this.paymode === 'Efectivo' } // Siempre será válido porque es fijo
         }
     },
     methods: {

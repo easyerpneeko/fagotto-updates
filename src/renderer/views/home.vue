@@ -1,30 +1,56 @@
 <template>
-  <div class="bg-home-gradient christmas-dark-home">
-    <!-- ❄️ Snow animations with accumulation -->
-    <div class="christmas-snow">
-      <div class="snow-flake" v-for="n in 50" :key="n" :style="{
-        left: (n * 2) + '%',
-        animationDelay: (n * 0.2) + 's',
-        animationDuration: (4 + Math.random() * 4) + 's'
-      }">❄</div>
+  <div class="bg-home-gradient summer-beach-home">
+    <!-- ☀️ Summer beach elements -->
+    <div class="summer-elements">
+      <div class="beach-element" v-for="n in 20" :key="'element-' + n" :style="{
+        left: (n * 4) + '%',
+        animationDelay: (n * 0.5) + 's',
+        animationDuration: (8 + Math.random() * 6) + 's'
+      }">
+        {{ n % 3 === 0 ? '⭐' : (n % 3 === 1 ? '🐚' : '🌟') }}
+      </div>
     </div>
 
-    <!-- Snow accumulation at bottom -->
-    <div class="snow-accumulation"></div>
+    <!-- Sun rays -->
+    <div class="sun-container">
+      <div class="sun">☀️</div>
+      <div class="sun-rays"></div>
+    </div>
+
+    <!-- Dolphin jumping -->
+    <div class="dolphin-container">
+      <div class="dolphin">🐬</div>
+      <div class="water-splash">💦</div>
+    </div>
+
+    <!-- Beach sand with umbrella -->
+    <div class="beach-sand">
+      <div class="beach-umbrella">
+        <div class="umbrella-top">🏖️</div>
+        <div class="umbrella-pole"></div>
+      </div>
+      
+      <!-- Beach people -->
+      <div class="beach-people">
+        <div class="person person-1">🏄‍♂️</div>
+        <div class="person person-2">🏊‍♀️</div>
+        <div class="person person-3">🤸‍♂️</div>
+      </div>
+    </div>
 
     <!-- Windshield wiper animation -->
     <div class="wiper-container">
       <div class="wiper"></div>
     </div>
 
-    <!-- New Year Message -->
-    <div class="christmas-message-float">
-      <div class="christmas-card">
-        <div class="card-ornament">🎊</div>
-        <h2 class="christmas-greeting-text">¡Feliz Año Nuevo 2026!</h2>
-        <p class="christmas-wish">Que este nuevo año traiga éxito, prosperidad y felicidad. 
-          ¡Feliz Año Nuevo desde Fagotto ERP! 🎉✨</p>
-        <div class="card-ornament bottom">🎆</div>
+    <!-- Summer Message -->
+    <div class="summer-message-float">
+      <div class="summer-card">
+        <div class="card-ornament">🏖️</div>
+        <h2 class="summer-greeting-text">¡Verano 2026! ☀️</h2>
+        <p class="summer-wish">Disfruta el sol, la playa y las buenas vibras. 
+          ¡Que tengas un verano increíble desde Fagotto ERP! 🌊🌴</p>
+        <div class="card-ornament bottom">🍹</div>
       </div>
     </div>
 
@@ -34,9 +60,9 @@
         <!-- Mensaje de Turno Requerido -->
         <div v-if="!turnoActivo" class="turno-required-overlay">
           <div class="turno-required-card text-center p-5">
-            <!-- New Year Title Header -->
-            <div class="christmas-header mb-4">
-              <h1 class="christmas-main-title">Happy New Year 2026</h1>
+            <!-- Summer Title Header -->
+            <div class="summer-header mb-4">
+              <h1 class="summer-main-title">Summer Vibes 2026 🌊</h1>
             </div>
 
             <div class="turno-icon-container mb-4">
@@ -106,6 +132,30 @@
             </h2>
             
             <div class="news-container">
+              
+              <!-- Noticia NUEVA: Versión 1.11.60 - Arreglos Críticos -->
+              <div class="news-panel news-panel-primary">
+                <div class="news-panel-header">
+                  <i class="fas fa-tools me-2"></i>
+                  <strong>Versión 1.11.60 - Correcciones Importantes</strong>
+                  <span class="news-panel-badge">ACTUALIZACIÓN</span>
+                </div>
+                <div class="news-panel-body">
+                  <p class="news-panel-text">
+                    <strong>🔧 Arqueo de Caja Mejorado:</strong> Corregido problema crítico donde los inputs no respondían al teclado, los cajeros ahora pueden digitar sin necesidad de reiniciar • 
+                    <strong>✨ Optimización de Inputs:</strong> Sistema de selección automática mejorado con tecnología requestAnimationFrame • 
+                    <strong>📋 Modal Educativo:</strong> Nueva notificación que explica las mejoras (se muestra 10 veces) • 
+                    <strong>💰 Pedidos Centralizados:</strong> Método de pago simplificado a solo Efectivo, eliminando errores de base de datos • 
+                    <strong>🏖️ Tema de Verano:</strong> Nueva interfaz visual con colores frescos y elementos playeros • 
+                    <strong>🎯 Noticias Legibles:</strong> Fondo gris en tarjetas de noticias para mejor contraste y lectura
+                  </p>
+                </div>
+                <div class="news-panel-footer">
+                  <i class="far fa-calendar-alt me-2"></i>12 de Enero, 2026 • 
+                  <i class="far fa-clock ms-2 me-2"></i>11:45 PM • 
+                  <strong style="color: #667eea;">Disponible ahora</strong>
+                </div>
+              </div>
               
               <!-- Noticia NUEVA: Versión 1.11.51 - Mejoras importantes -->
               <div class="news-panel news-panel-primary">
@@ -1009,8 +1059,21 @@ export default {
   min-height: 100vh;
 }
 
-/* Snow animation */
-.christmas-snow {
+/* Summer beach theme */
+.summer-beach-home {
+  background: linear-gradient(180deg, 
+    #87CEEB 0%,      /* Sky blue */
+    #B0E0E6 40%,     /* Powder blue */
+    #F0E68C 70%,     /* Sandy yellow */
+    #FFD700 100%     /* Golden sand */
+  );
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Summer floating elements */
+.summer-elements {
   position: fixed;
   top: 0;
   left: 0;
@@ -1020,114 +1083,276 @@ export default {
   z-index: 999;
 }
 
-.snow-flake {
+.beach-element {
   position: absolute;
   top: -10%;
-  color: #fff;
-  font-size: 1.2rem;
-  opacity: 0.8;
-  animation: snow-fall linear infinite;
+  font-size: 1.8rem;
+  opacity: 0.4;
+  animation: element-float linear infinite;
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.6));
 }
 
-@keyframes snow-fall {
+@keyframes element-float {
   0% {
-    transform: translateY(0) scale(0.5);
+    transform: translateY(0) translateX(0) rotate(0deg) scale(0.8);
+    opacity: 0.4;
   }
   50% {
-    transform: translateY(50vh) scale(1);
+    transform: translateY(50vh) translateX(30px) rotate(180deg) scale(1.2);
+    opacity: 0.6;
   }
   100% {
-    transform: translateY(100vh) scale(0.5);
+    transform: translateY(100vh) translateX(-30px) rotate(360deg) scale(0.5);
+    opacity: 0.2;
   }
 }
 
-/* Christmas Header */
-.christmas-header {
+/* Sun with rays - IZQUIERDA */
+.sun-container {
+  position: fixed;
+  top: 50px;
+  left: 80px;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.sun {
+  font-size: 5rem;
+  animation: sun-pulse 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
+}
+
+@keyframes sun-pulse {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
+  }
+  50% {
+    transform: scale(1.1) rotate(90deg);
+    filter: drop-shadow(0 0 50px rgba(255, 215, 0, 1));
+  }
+}
+
+.sun-rays {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+  animation: rays-rotate 20s linear infinite;
+}
+
+@keyframes rays-rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Dolphin jumping */
+.dolphin-container {
+  position: fixed;
+  bottom: 25%;
+  left: 35%;
+  z-index: 1001;
+  pointer-events: none;
+}
+
+.dolphin {
+  font-size: 4.5rem;
+  animation: dolphin-jump 4s ease-in-out infinite;
+  filter: drop-shadow(0 5px 15px rgba(0, 150, 255, 0.6));
+}
+
+@keyframes dolphin-jump {
+  0%, 100% {
+    transform: translateY(0) rotate(-15deg);
+  }
+  25% {
+    transform: translateY(-80px) rotate(-25deg);
+  }
+  50% {
+    transform: translateY(-120px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-80px) rotate(25deg);
+  }
+}
+
+.water-splash {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2rem;
+  animation: splash 4s ease-in-out infinite;
+  opacity: 0;
+}
+
+@keyframes splash {
+  0%, 20%, 80%, 100% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.5);
+  }
+  10%, 90% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.2);
+  }
+}
+
+/* Summer Header */
+.summer-header {
   margin-bottom: 30px;
 }
 
-.christmas-main-title {
-  font-family: 'Dancing Script', cursive;
+.summer-main-title {
+  font-family: 'Pacifico', cursive;
   font-size: 4rem;
   font-weight: 700;
-  color: hsl(210, 80%, 54%);
-  text-shadow: 0 4px 12px rgba(74, 144, 226, 0.5);
+  background: linear-gradient(45deg, #FF6B6B, #FFD93D, #6BCF7F);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
   margin: 0;
-  animation: title-glow 2s ease-in-out infinite alternate;
+  animation: summer-glow 3s ease-in-out infinite alternate;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
-@keyframes title-glow {
+@keyframes summer-glow {
   from {
-    text-shadow: 0 4px 12px rgba(74, 144, 226, 0.5);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)) brightness(1);
   }
   to {
-    text-shadow: 0 6px 20px rgba(74, 144, 226, 0.8), 0 0 30px rgba(74, 144, 226, 0.4);
+    filter: drop-shadow(0 4px 20px rgba(255, 215, 0, 0.6)) brightness(1.2);
   }
 }
 
-/* Update turno card for dark theme */
+/* Update turno card for summer theme */
 .turno-required-card {
-  background: linear-gradient(135deg, hsl(210, 24%, 12%) 0%, hsl(210, 24%, 8%) 100%) !important;
-  border: 2px solid hsl(210, 24%, 20%) !important;
-  color: hsl(210, 16%, 70%) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 250, 230, 0.95) 100%) !important;
+  border: 3px solid #FFD700 !important;
+  color: #333 !important;
+  box-shadow: 0 8px 32px rgba(255, 215, 0, 0.3) !important;
 }
 
 .turno-title {
-  color: hsl(210, 24%, 90%) !important;
+  color: #FF6B6B !important;
+  text-shadow: 0 2px 4px rgba(255, 107, 107, 0.2);
 }
 
 .turno-description {
-  color: hsl(210, 16%, 70%) !important;
+  color: #555 !important;
 }
 
 .admin-message {
-  background: rgba(74, 144, 226, 0.1) !important;
-  border: 1px solid hsl(210, 80%, 54%) !important;
-  color: hsl(210, 24%, 90%) !important;
+  background: linear-gradient(135deg, #FFE5B4 0%, #FFD93D 100%) !important;
+  border: 2px solid #FFA500 !important;
+  color: #8B4513 !important;
 }
 
 .benefit-item {
-  color: hsl(210, 16%, 70%) !important;
-  background: rgba(255, 255, 255, 0.05) !important;
+  color: #333 !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  border-left: 3px solid #6BCF7F;
 }
 
 .turno-note {
-  color: hsl(210, 16%, 60%) !important;
+  color: #666 !important;
 }
 
-/* Responsive navideño */
-@media (max-width: 768px) {
-  .christmas-main-title {
-    font-size: 2.5rem;
-  }
-  
-  .snow-flake {
-    font-size: 1rem;
-  }
-}
-
-/* Snow Accumulation Effect */
-.snow-accumulation {
+/* Beach sand with texture */
+.beach-sand {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 150px;
-  background: linear-gradient(to top, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
+  height: 180px;
+  background: 
+    repeating-linear-gradient(
+      90deg,
+      #F4A460 0px,
+      #DEB887 2px,
+      #F4A460 4px
+    ),
+    linear-gradient(to top, 
+      #D2691E 0%,
+      #F4A460 40%,
+      #FFE4B5 100%
+    );
   z-index: 998;
-  animation: snow-pile 20s ease-in-out infinite;
   pointer-events: none;
-  border-radius: 50% 50% 0 0;
+  box-shadow: inset 0 10px 30px rgba(0, 0, 0, 0.15);
 }
 
-@keyframes snow-pile {
+/* Beach umbrella */
+.beach-umbrella {
+  position: absolute;
+  right: 15%;
+  bottom: 60px;
+  z-index: 999;
+  animation: umbrella-sway 4s ease-in-out infinite;
+}
+
+@keyframes umbrella-sway {
   0%, 100% {
-    height: 120px;
-    opacity: 0.8;
+    transform: rotate(-3deg);
   }
   50% {
-    height: 180px;
-    opacity: 0.9;
+    transform: rotate(3deg);
+  }
+}
+
+.umbrella-top {
+  font-size: 6rem;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+  transform-origin: bottom center;
+}
+
+.umbrella-pole {
+  width: 4px;
+  height: 60px;
+  background: linear-gradient(to bottom, #8B4513 0%, #A0522D 100%);
+  margin: -20px auto 0;
+  border-radius: 2px;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive summer */
+@media (max-width: 768px) {
+  .summer-main-title {
+    font-size: 2.5rem;
+  }
+  
+  .beach-element {
+    font-size: 1.4rem;
+  }
+  
+  .sun-container {
+    top: 30px;
+    left: 30px;
+  }
+  
+  .sun {
+    font-size: 3rem;
+  }
+  
+  .sun-rays {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .beach-umbrella {
+    right: 10%;
+    bottom: 40px;
+  }
+  
+  .umbrella-top {
+    font-size: 4rem;
+  }
+  
+  .umbrella-pole {
+    height: 40px;
   }
 }
 
@@ -1184,41 +1409,46 @@ export default {
 }
 
 /* Christmas Floating Message */
-.christmas-message-float {
+/* Summer message float */
+.summer-message-float {
   position: fixed;
   top: 80px;
   right: 30px;
   z-index: 1001;
-  animation: float-message 6s ease-in-out infinite;
+  animation: float-summer 6s ease-in-out infinite;
 }
 
-@keyframes float-message {
+@keyframes float-summer {
   0%, 100% {
     transform: translateY(0) rotate(-2deg);
   }
   50% {
-    transform: translateY(-15px) rotate(2deg);
+    transform: translateY(-20px) rotate(2deg);
   }
 }
 
-.christmas-card {
-  background: linear-gradient(135deg, rgba(220, 38, 38, 0.95), rgba(185, 28, 28, 0.95));
+.summer-card {
+  background: linear-gradient(135deg, 
+    rgba(255, 193, 7, 0.95) 0%,
+    rgba(255, 152, 0, 0.95) 50%,
+    rgba(255, 87, 34, 0.95) 100%
+  );
   backdrop-filter: blur(10px);
-  border-radius: 20px;
+  border-radius: 25px;
   padding: 25px 30px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  border: 3px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 10px 40px rgba(255, 152, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  border: 3px solid rgba(255, 255, 255, 0.6);
   position: relative;
   max-width: 350px;
-  animation: card-glow 2s ease-in-out infinite alternate;
+  animation: summer-glow-card 3s ease-in-out infinite alternate;
 }
 
-@keyframes card-glow {
+@keyframes summer-glow-card {
   from {
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 0 20px rgba(220, 38, 38, 0.4);
+    box-shadow: 0 10px 40px rgba(255, 152, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 20px rgba(255, 193, 7, 0.5);
   }
   to {
-    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 30px rgba(220, 38, 38, 0.6);
+    box-shadow: 0 15px 50px rgba(255, 152, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 0 35px rgba(255, 193, 7, 0.8);
   }
 }
 
@@ -1226,61 +1456,62 @@ export default {
   font-size: 2.5rem;
   text-align: center;
   margin-bottom: 10px;
-  animation: ornament-spin 4s ease-in-out infinite;
+  animation: beach-bounce 3s ease-in-out infinite;
 }
 
 .card-ornament.bottom {
   margin-top: 10px;
   margin-bottom: 0;
-  animation-delay: 2s;
+  animation-delay: 1.5s;
 }
 
-@keyframes ornament-spin {
+@keyframes beach-bounce {
   0%, 100% {
-    transform: rotate(-10deg) scale(1);
+    transform: translateY(0) rotate(-5deg) scale(1);
   }
   50% {
-    transform: rotate(10deg) scale(1.1);
+    transform: translateY(-10px) rotate(5deg) scale(1.15);
   }
 }
 
-.christmas-greeting-text {
-  font-family: 'Dancing Script', cursive;
+.summer-greeting-text {
+  font-family: 'Pacifico', cursive;
   font-size: 2.2rem;
   font-weight: 700;
   color: #fff;
   margin: 0 0 12px 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 255, 255, 0.5);
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 255, 255, 0.6);
   text-align: center;
 }
 
-.christmas-wish {
+.summer-wish {
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.98);
   line-height: 1.6;
   margin: 0;
   text-align: center;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+  font-weight: 500;
 }
 
-/* Responsive additions */
+/* Responsive summer card */
 @media (max-width: 768px) {
-  .christmas-message-float {
+  .summer-message-float {
     top: 60px;
     right: 15px;
     left: 15px;
   }
 
-  .christmas-card {
+  .summer-card {
     max-width: 100%;
     padding: 20px;
   }
 
-  .christmas-greeting-text {
+  .summer-greeting-text {
     font-size: 1.8rem;
   }
 
-  .christmas-wish {
+  .summer-wish {
     font-size: 0.9rem;
   }
 
@@ -1326,11 +1557,12 @@ export default {
 
 /* Panel de noticia estilo w3.css mejorado */
 .news-panel {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(80, 80, 80, 0.85) 0%, rgba(60, 60, 60, 0.9) 100%);
+  backdrop-filter: blur(10px);
   border-left: 5px solid;
-  border-radius: 0;
+  border-radius: 12px;
   padding: 0;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
   overflow: hidden;
   width: 100%;
@@ -1338,18 +1570,19 @@ export default {
 
 .news-panel:hover {
   transform: translateX(5px);
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(135deg, rgba(90, 90, 90, 0.9) 0%, rgba(70, 70, 70, 0.95) 100%);
 }
 
 /* Variantes de color */
 .news-panel-primary {
   border-left-color: #667eea;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(80, 80, 80, 0.85) 0%, rgba(60, 60, 60, 0.9) 100%);
 }
 
 .news-panel-success {
   border-left-color: #22c55e;
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(80, 80, 80, 0.85) 0%, rgba(60, 60, 60, 0.9) 100%);
 }
 
 .news-panel-info {

@@ -148,4 +148,471 @@ class PedidoFinalStockController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Actualizar precio de un producto
+     * PUT /api/local/pedidofinal/precio/{id}
+     */
+    public function updatePrecio(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'precio_por_unidad' => 'required|numeric|min:0'
+            ]);
+
+            // Obtener el producto actual
+            $producto = DB::table('pedidofinal_precios')
+                ->where('id', $id)
+                ->first();
+
+            if (!$producto) {
+                return response()->json([
+                    'error' => 'Producto no encontrado'
+                ], 404);
+            }
+
+            $precioAnterior = $producto->precio_por_unidad ?? 0;
+            $precioNuevo = $request->precio_por_unidad;
+
+            // Actualizar precio del producto
+            DB::table('pedidofinal_precios')
+                ->where('id', $id)
+                ->update([
+                    'precio_por_unidad' => $precioNuevo
+                ]);
+
+            // Registrar en historial de precios
+            DB::table('pedidofinal_precio_history')->insert([
+                'producto_id' => $id,
+                'producto_nombre' => $producto->producto,
+                'precio_anterior' => $precioAnterior,
+                'precio_nuevo' => $precioNuevo,
+                'usuario' => $request->user ?? 'Sistema',
+                'fecha' => now()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Precio actualizado correctamente',
+                'data' => [
+                    'id' => $id,
+                    'producto' => $producto->producto,
+                    'precio_anterior' => $precioAnterior,
+                    'precio_nuevo' => $precioNuevo
+                ]
+            ], 200);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'error' => 'Datos inválidos',
+                'message' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al actualizar precio',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener historial de cambios de precio
+     * GET /api/local/pedidofinal/precio/history
+     */
+    public function getPrecioHistory(Request $request)
+    {
+        try {
+            $query = DB::table('pedidofinal_precio_history')
+                ->orderBy('fecha', 'desc')
+                ->orderBy('id', 'desc');
+
+            // Filtrar por producto si se proporciona
+            if ($request->has('producto_id')) {
+                $query->where('producto_id', $request->producto_id);
+            }
+
+            // Filtrar por fecha si se proporciona
+            if ($request->has('fecha_inicio')) {
+                $query->where('fecha', '>=', $request->fecha_inicio);
+            }
+
+            if ($request->has('fecha_fin')) {
+                $query->where('fecha', '<=', $request->fecha_fin . ' 23:59:59');
+            }
+
+            // Limitar resultados si se proporciona
+            $limit = $request->input('limit', 100);
+            $historial = $query->limit($limit)->get();
+
+            return response()->json($historial, 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al obtener historial de precios',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Actualizar nombre de un producto
+     * PUT /api/local/pedidofinal/nombre/{id}
+     */
+    public function updateNombre(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'producto' => 'required|string|max:100'
+            ]);
+
+            // Obtener el producto actual
+            $producto = DB::table('pedidofinal_precios')
+                ->where('id', $id)
+                ->first();
+
+            if (!$producto) {
+                return response()->json([
+                    'error' => 'Producto no encontrado'
+                ], 404);
+            }
+
+            $nombreAnterior = $producto->producto;
+            $nombreNuevo = $request->producto;
+
+            // Actualizar nombre del producto
+            DB::table('pedidofinal_precios')
+                ->where('id', $id)
+                ->update([
+                    'producto' => $nombreNuevo
+                ]);
+
+            // Registrar en historial de nombres
+            DB::table('pedidofinal_nombre_history')->insert([
+                'producto_id' => $id,
+                'nombre_anterior' => $nombreAnterior,
+                'nombre_nuevo' => $nombreNuevo,
+                'usuario' => $request->user ?? 'Sistema',
+                'fecha' => now()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Nombre del producto actualizado correctamente',
+                'data' => [
+                    'id' => $id,
+                    'nombre_anterior' => $nombreAnterior,
+                    'nombre_nuevo' => $nombreNuevo
+                ]
+            ], 200);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'error' => 'Datos inválidos',
+                'message' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al actualizar nombre',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener historial de cambios de nombre
+     * GET /api/local/pedidofinal/nombre/history
+     */
+    public function getNombreHistory(Request $request)
+    {
+        try {
+            $query = DB::table('pedidofinal_nombre_history')
+                ->orderBy('fecha', 'desc')
+                ->orderBy('id', 'desc');
+
+            // Filtrar por producto si se proporciona
+            if ($request->has('producto_id')) {
+                $query->where('producto_id', $request->producto_id);
+            }
+
+            // Filtrar por fecha si se proporciona
+            if ($request->has('fecha_inicio')) {
+                $query->where('fecha', '>=', $request->fecha_inicio);
+            }
+
+            if ($request->has('fecha_fin')) {
+                $query->where('fecha', '<=', $request->fecha_fin . ' 23:59:59');
+            }
+
+            // Limitar resultados si se proporciona
+            $limit = $request->input('limit', 100);
+            $historial = $query->limit($limit)->get();
+
+            return response()->json($historial, 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al obtener historial de nombres',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Actualizar múltiples campos de un producto (para Excel)
+     * PUT /api/local/pedidofinal/stock/update-all/{id}
+     */
+    public function updateAll(Request $request, $id)
+    {
+        try {
+            // Obtener el producto actual
+            $producto = DB::table('pedidofinal_precios')
+                ->where('id', $id)
+                ->first();
+
+            if (!$producto) {
+                return response()->json([
+                    'error' => 'Producto no encontrado'
+                ], 404);
+            }
+
+            // Preparar datos para actualizar
+            $datosActualizar = [];
+            $cambiosRealizados = [];
+
+            // Campos permitidos para actualizar
+            $camposPermitidos = [
+                'producto',
+                'categoria',
+                'stock',
+                'unidad_medida',
+                'unidad_venta',
+                'precio_por_unidad',
+                'activo'
+            ];
+
+            foreach ($camposPermitidos as $campo) {
+                if ($request->has($campo)) {
+                    $valorNuevo = $request->input($campo);
+                    $valorAnterior = $producto->$campo ?? null;
+                    
+                    // Solo actualizar si el valor cambió
+                    if ($valorNuevo != $valorAnterior) {
+                        $datosActualizar[$campo] = $valorNuevo;
+                        $cambiosRealizados[$campo] = [
+                            'anterior' => $valorAnterior,
+                            'nuevo' => $valorNuevo
+                        ];
+                    }
+                }
+            }
+
+            // Si hay cambios, actualizar
+            if (!empty($datosActualizar)) {
+                DB::table('pedidofinal_precios')
+                    ->where('id', $id)
+                    ->update($datosActualizar);
+
+                // Registrar cambios en historial
+                $usuario = $request->user ?? 'Sistema';
+                
+                foreach ($cambiosRealizados as $campo => $valores) {
+                    // Registrar según el tipo de cambio
+                    if ($campo === 'stock') {
+                        DB::table('pedidofinal_stock_history')->insert([
+                            'producto_id' => $id,
+                            'producto_nombre' => $datosActualizar['producto'] ?? $producto->producto,
+                            'stock_anterior' => $valores['anterior'],
+                            'stock_agregado' => $valores['nuevo'] - $valores['anterior'],
+                            'stock_nuevo' => $valores['nuevo'],
+                            'usuario' => $usuario,
+                            'fecha' => now()
+                        ]);
+                    } elseif ($campo === 'precio_por_unidad') {
+                        DB::table('pedidofinal_precio_history')->insert([
+                            'producto_id' => $id,
+                            'producto_nombre' => $datosActualizar['producto'] ?? $producto->producto,
+                            'precio_anterior' => $valores['anterior'],
+                            'precio_nuevo' => $valores['nuevo'],
+                            'usuario' => $usuario,
+                            'fecha' => now()
+                        ]);
+                    } elseif ($campo === 'producto') {
+                        DB::table('pedidofinal_nombre_history')->insert([
+                            'producto_id' => $id,
+                            'nombre_anterior' => $valores['anterior'],
+                            'nombre_nuevo' => $valores['nuevo'],
+                            'usuario' => $usuario,
+                            'fecha' => now()
+                        ]);
+                    }
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Producto actualizado correctamente',
+                'data' => [
+                    'id' => $id,
+                    'cambios' => $cambiosRealizados
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al actualizar producto',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Registrar stock reportado por un negocio
+     * POST /api/local/pedidofinal/stock-negocio
+     */
+    public function registrarStockPorNegocio(Request $request)
+    {
+        try {
+            $request->validate([
+                'id_producto' => 'required|integer',
+                'cantidad_reportada' => 'required|numeric',
+                'id_negocio' => 'nullable|integer',
+                'app_id' => 'nullable|string',
+                'nombre_negocio' => 'nullable|string',
+                'usuario' => 'nullable|string',
+                'observacion' => 'nullable|string'
+            ]);
+
+            // Obtener datos del producto
+            $producto = DB::table('pedidofinal_precios')
+                ->where('id', $request->id_producto)
+                ->first();
+
+            if (!$producto) {
+                return response()->json([
+                    'error' => 'Producto no encontrado'
+                ], 404);
+            }
+
+            // Insertar registro
+            $id = DB::table('pedidofinal_stock_por_negocio')->insertGetId([
+                'id_producto' => $request->id_producto,
+                'producto_nombre' => $producto->producto,
+                'id_negocio' => $request->id_negocio,
+                'app_id' => $request->app_id,
+                'nombre_negocio' => $request->nombre_negocio,
+                'cantidad_reportada' => $request->cantidad_reportada,
+                'unidad_medida' => $producto->unidad_medida,
+                'usuario' => $request->usuario ?? 'Sistema',
+                'observacion' => $request->observacion,
+                'fecha_registro' => now()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Stock registrado correctamente',
+                'data' => ['id' => $id]
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al registrar stock',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener historial de stock por negocio
+     * GET /api/local/pedidofinal/stock-negocio
+     * Parámetros opcionales: id_negocio, app_id, id_producto, fecha_desde, fecha_hasta
+     */
+    public function getStockPorNegocio(Request $request)
+    {
+        try {
+            $query = DB::table('pedidofinal_stock_por_negocio');
+
+            // Filtros
+            if ($request->has('id_negocio')) {
+                $query->where('id_negocio', $request->id_negocio);
+            }
+
+            if ($request->has('app_id')) {
+                $query->where('app_id', $request->app_id);
+            }
+
+            if ($request->has('id_producto')) {
+                $query->where('id_producto', $request->id_producto);
+            }
+
+            if ($request->has('nombre_negocio')) {
+                $query->where('nombre_negocio', 'LIKE', '%' . $request->nombre_negocio . '%');
+            }
+
+            if ($request->has('fecha_desde')) {
+                $query->where('fecha_registro', '>=', $request->fecha_desde);
+            }
+
+            if ($request->has('fecha_hasta')) {
+                $query->where('fecha_registro', '<=', $request->fecha_hasta . ' 23:59:59');
+            }
+
+            $registros = $query
+                ->orderBy('fecha_registro', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $registros,
+                'total' => $registros->count()
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al obtener historial',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener último stock reportado por cada negocio para cada producto
+     * GET /api/local/pedidofinal/stock-negocio/resumen
+     */
+    public function getResumenStockPorNegocio(Request $request)
+    {
+        try {
+            // Obtener el último registro de cada combinación negocio-producto
+            $resumen = DB::select("
+                SELECT 
+                    spn.*,
+                    p.categoria,
+                    p.precio_por_unidad
+                FROM pedidofinal_stock_por_negocio spn
+                INNER JOIN (
+                    SELECT 
+                        COALESCE(id_negocio, app_id) as negocio_key,
+                        id_producto,
+                        MAX(fecha_registro) as ultima_fecha
+                    FROM pedidofinal_stock_por_negocio
+                    GROUP BY COALESCE(id_negocio, app_id), id_producto
+                ) ultimo ON 
+                    COALESCE(spn.id_negocio, spn.app_id) = ultimo.negocio_key 
+                    AND spn.id_producto = ultimo.id_producto 
+                    AND spn.fecha_registro = ultimo.ultima_fecha
+                LEFT JOIN pedidofinal_precios p ON spn.id_producto = p.id
+                ORDER BY spn.nombre_negocio, spn.producto_nombre
+            ");
+
+            return response()->json([
+                'success' => true,
+                'data' => $resumen
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al obtener resumen',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

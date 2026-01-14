@@ -551,8 +551,29 @@ export default {
           badge: 'NUEVO'
         });
         
-        // Módulo Totem (Kiosko) - Solo administradores
+        // 📊 Módulo de Stock (Excel) - Solo administradores
         const isAdmin = this.isUserAdmin();
+        console.log('🔍 isAdmin:', isAdmin);
+        if (isAdmin) {
+          menu.push({
+            label: 'Stock (Excel)',
+            route: '/inicio/stock-excel',
+            icon: 'fas fa-table',
+            requiresTurno: false,
+            badge: 'ADMIN'
+          });
+          
+          menu.push({
+            label: 'Stock por Negocio',
+            route: '/inicio/stock-por-negocio',
+            icon: 'fas fa-store',
+            requiresTurno: false,
+            badge: 'ADMIN'
+          });
+          console.log('✅ Menús de admin agregados');
+        }
+        
+        // Módulo Totem (Kiosko) - Solo administradores
         if (isAdmin) {
           menu.push({
             label: 'Totem',

@@ -690,11 +690,45 @@
                     <div class="stock-header">
                         <h2>
                             <i class="fas fa-history"></i>
-                            Historial de Cambios
+                            Historial de Cambios de Stock
                         </h2>
                     </div>
                     <div class="card-body p-0">
                         <div id="history-container">
+                            <div class="loading-spinner">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card de historial de precios -->
+                <div class="stock-card mt-4">
+                    <div class="stock-header" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                        <h2>
+                            <i class="fas fa-dollar-sign"></i>
+                            Historial de Cambios de Precio
+                        </h2>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="history-price-container">
+                            <div class="loading-spinner">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card de historial de nombres -->
+                <div class="stock-card mt-4">
+                    <div class="stock-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <h2>
+                            <i class="fas fa-edit"></i>
+                            Historial de Cambios de Nombre
+                        </h2>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="history-name-container">
                             <div class="loading-spinner">
                                 <div class="spinner"></div>
                             </div>
@@ -777,6 +811,79 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal moderno para editar precio -->
+    <div class="modal fade modal-modern" id="editPriceModal" tabindex="-1" aria-labelledby="editPriceLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                    <h5 class="modal-title" id="editPriceLabel">
+                        <i class="fas fa-dollar-sign"></i> <span id="modal-price-title-text">Editar Precio por Unidad</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="precio_nuevo" class="form-label-modern">
+                            <i class="fas fa-money-bill-wave"></i> Nuevo precio por unidad:
+                        </label>
+                        <input type="number" id="precio_nuevo" class="form-control form-control-modern" 
+                               placeholder="Ingrese el nuevo precio" min="0" step="0.01">
+                        <small class="text-muted">Ingrese el precio en pesos chilenos (CLP)</small>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Precio actual:</strong> <span id="current-price-display">$0</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel-stock" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-save-stock" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);" onclick="savePrecio()">
+                        <i class="fas fa-save"></i> Actualizar Precio
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal moderno para editar nombre -->
+    <div class="modal fade modal-modern" id="editNameModal" tabindex="-1" aria-labelledby="editNameLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <h5 class="modal-title" id="editNameLabel">
+                        <i class="fas fa-edit"></i> Editar Nombre del Producto
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre_nuevo" class="form-label-modern">
+                            <i class="fas fa-tag"></i> Nuevo nombre del producto:
+                        </label>
+                        <input type="text" id="nombre_nuevo" class="form-control form-control-modern" 
+                               placeholder="Ingrese el nuevo nombre" maxlength="100">
+                        <small class="text-muted">Máximo 100 caracteres</small>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Nombre actual:</strong> <span id="current-name-display">-</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel-stock" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-save-stock" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" onclick="saveNombre()">
+                        <i class="fas fa-save"></i> Actualizar Nombre
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"
         integrity="sha384-uO3SXW5IuS1ZpFPKugNNWqTZRRglnUJK6UAZ/gxOX80nxEkN9NcGZTftn6RzhGWE"

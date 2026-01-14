@@ -211,6 +211,16 @@ const router = new Router({
           component: require('@/views/pedidofinal.vue').default,
           meta: { requiresTurno: false }
         },
+        {
+          path: 'stock-excel',
+          component: require('@/views/stock-excel.vue').default,
+          meta: { requiresTurno: false }
+        },
+        {
+          path: 'stock-por-negocio',
+          component: require('@/views/stock-por-negocio.vue').default,
+          meta: { requiresTurno: false }
+        },
       ]
     },
     // Ruta pública para mobile check-in (NO requiere autenticación)

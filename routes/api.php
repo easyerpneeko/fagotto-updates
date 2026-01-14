@@ -648,8 +648,25 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           // ---------------------------------------------PEDIDO FINAL STOCK--------------------------------------------------------------
           // Gestión de stock para pedido final
           Route::get('/local/pedidofinal/stock', 'Controllers_local\PedidoFinalStockController@getStock');
-          Route::put('/local/pedidofinal/stock/{id}', 'Controllers_local\PedidoFinalStockController@updateStock');
           Route::get('/local/pedidofinal/stock/history', 'Controllers_local\PedidoFinalStockController@getStockHistory');
+          
+          // Actualización masiva para Excel (DEBE IR ANTES de las rutas con {id})
+          Route::put('/local/pedidofinal/stock/update-all/{id}', 'Controllers_local\PedidoFinalStockController@updateAll');
+          
+          Route::put('/local/pedidofinal/stock/{id}', 'Controllers_local\PedidoFinalStockController@updateStock');
+          
+          // Gestión de precios para pedido final
+          Route::get('/local/pedidofinal/precio/history', 'Controllers_local\PedidoFinalStockController@getPrecioHistory');
+          Route::put('/local/pedidofinal/precio/{id}', 'Controllers_local\PedidoFinalStockController@updatePrecio');
+          
+          // Gestión de nombres para pedido final
+          Route::get('/local/pedidofinal/nombre/history', 'Controllers_local\PedidoFinalStockController@getNombreHistory');
+          Route::put('/local/pedidofinal/nombre/{id}', 'Controllers_local\PedidoFinalStockController@updateNombre');
+          
+          // Stock por negocio (tracking individual)
+          Route::post('/local/pedidofinal/stock-negocio', 'Controllers_local\PedidoFinalStockController@registrarStockPorNegocio');
+          Route::get('/local/pedidofinal/stock-negocio', 'Controllers_local\PedidoFinalStockController@getStockPorNegocio');
+          Route::get('/local/pedidofinal/stock-negocio/resumen', 'Controllers_local\PedidoFinalStockController@getResumenStockPorNegocio');
           
           // Reportes de pedido final
           Route::get('/local/pedidofinal/historial', 'Controllers_local\RequestsController@getHistorialPedidos');

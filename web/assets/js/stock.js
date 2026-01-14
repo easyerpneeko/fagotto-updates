@@ -2,6 +2,8 @@ $(document).ready(function () {
     // _name.text(_store().session.user().get("username")) //obtenemos el nombre del usuario
     getProducts();
     getStockHistory();
+    getPrecioHistory();
+    getNombreHistory();
 })
 
 // Mapeo de salsas a iconos
@@ -36,12 +38,23 @@ async function getData(startDate, endDate) {
     activateLoader();
     await getProducts();
     await getStockHistory();
+    await getPrecioHistory();
+    await getNombreHistory();
     desactivateLoader();
 }
 
 let productIdToUpdate = null;
 let currentStock = 0;
 let productNameToUpdate = '';
+
+// Variables para gestión de precio
+let productIdToUpdatePrice = null;
+let currentPrice = 0;
+let productNameToUpdatePrice = '';
+
+// Variables para gestión de nombre
+let productIdToUpdateName = null;
+let currentProductName = '';
 
 function openModalAddStock(productId, stock, productName = '') {
     productIdToUpdate = productId;
@@ -60,6 +73,39 @@ function openModalAddStock(productId, stock, productName = '') {
     document.getElementById('add-tab').click();
     
     $('#addStock').modal('show');
+}
+
+function openModalEditPrice(productId, precio, productName = '') {
+    productIdToUpdatePrice = productId;
+    currentPrice = precio;
+    productNameToUpdatePrice = productName;
+    
+    // Actualizar display
+    document.getElementById('current-price-display').textContent = new Intl.NumberFormat('es-CL', {
+        style: 'currency',
+        currency: 'CLP'
+    }).format(precio);
+    
+    // Establecer valor en input
+    document.getElementById('precio_nuevo').value = precio;
+    
+    // Actualizar título del modal
+    document.getElementById('modal-price-title-text').textContent = `Editar Precio - ${productName}`;
+    
+    $('#editPriceModal').modal('show');
+}
+
+function openModalEditName(productId, productName = '') {
+    productIdToUpdateName = productId;
+    currentProductName = productName;
+    
+    // Actualizar display
+    document.getElementById('current-name-display').textContent = productName;
+    
+    // Establecer valor en input
+    document.getElementById('nombre_nuevo').value = productName;
+    
+    $('#editNameModal').modal('show');
 }
 
 async function getProducts() {
@@ -83,22 +129,19 @@ async function getProducts() {
                                 <thead>
                                     <tr>
                                         <th scope="col" style="width: 5%;">#</th>
-                                        <th scope="col" style="width: 25%;">
+                                        <th scope="col" style="width: 30%;">
                                             <i class="fas fa-box-open"></i> Producto
                                         </th>
-                                        <th scope="col" style="width: 12%;">
+                                        <th scope="col" style="width: 15%;">
                                             <i class="fas fa-boxes"></i> Stock (Bolsas)
-                                        </th>
-                                        <th scope="col" style="width: 12%;">
-                                            <i class="fas fa-weight"></i> Kilos Totales
                                         </th>
                                         <th scope="col" style="width: 12%;">
                                             <i class="fas fa-balance-scale"></i> Unidad
                                         </th>
-                                        <th scope="col" style="width: 12%;">
+                                        <th scope="col" style="width: 15%;">
                                             <i class="fas fa-dollar-sign"></i> Precio
                                         </th>
-                                        <th scope="col" style="width: 12%;" class="text-center">
+                                        <th scope="col" style="width: 18%;" class="text-center">
                                             <i class="fas fa-edit"></i> Acciones
                                         </th>
                                     </tr>
@@ -108,37 +151,35 @@ async function getProducts() {
             for (const index in products) {
                 const stock = products[index].stock || 0;
                 const unidad = products[index].unidad_medida || 'unidad';
-                const precio = products[index].precio ? `$${parseFloat(products[index].precio).toLocaleString('es-CL')}` : 'N/A';
+                const precioPorUnidad = parseFloat(products[index].precio_por_unidad) || 0;
+                const precioFormateado = new Intl.NumberFormat('es-CL', {
+                    style: 'currency',
+                    currency: 'CLP'
+                }).format(precioPorUnidad);
                 const kilosTotales = products[index].kilos_totales;
                 const unidadVenta = products[index].unidad_venta || 0;
                 const categoria = (products[index].categoria || '').toLowerCase();
-                const nombreProducto = (products[index].producto || '').toLowerCase();
-                
-                // Verificar si es una salsa (por categoría o nombre)
-                const esSalsa = categoria.includes('salsa') || nombreProducto.includes('salsa');
+                const nombreProducto = products[index].producto || '';
                 
                 // Determinar color del badge según nivel de stock
                 let stockClass = 'success';
                 if (stock <= 5) stockClass = 'danger';
                 else if (stock <= 20) stockClass = 'warning';
                 
-                // Mostrar kilos totales SOLO si es salsa y tiene kilosTotales
-                let kilosDisplay = '';
-                if (esSalsa && kilosTotales) {
-                    kilosDisplay = `<span class="badge bg-info fs-6">
-                                        <i class="fas fa-weight-hanging"></i> ${kilosTotales.toLocaleString('es-CL')} kg
-                                    </span>
-                                    <br>
-                                    <small class="text-muted">(${stock} x ${unidadVenta}kg)</small>`;
-                } else {
-                    kilosDisplay = '<span class="text-muted">N/A</span>';
-                }
-                
                 fila += `<tr>
                             <td class="text-muted"><b>${i}</b></td>
                             <td class="product-name">
-                                <i class="fas fa-box text-primary"></i>
-                                <span class="ms-2"><strong>${products[index].producto}</strong></span>
+                                <div class="d-flex flex-column gap-1">
+                                    <div>
+                                        <i class="fas fa-box text-primary"></i>
+                                        <span class="ms-2"><strong>${nombreProducto}</strong></span>
+                                    </div>
+                                    <button class='btn btn-sm btn-outline-secondary' 
+                                            onclick="openModalEditName(${products[index].id}, '${nombreProducto.replace(/'/g, "\\'")}')"
+                                            style="padding: 0.2rem 0.5rem; font-size: 0.75rem; width: fit-content;">
+                                        <i class="fa-solid fa-pencil"></i> Editar Nombre
+                                    </button>
+                                </div>
                             </td>
                             <td>
                                 <span class="badge bg-${stockClass} fs-6">
@@ -146,21 +187,25 @@ async function getProducts() {
                                 </span>
                             </td>
                             <td>
-                                ${kilosDisplay}
-                            </td>
-                            <td>
                                 <span class="text-muted">
                                     <i class="fas fa-ruler"></i> ${unidad}
                                 </span>
                             </td>
                             <td>
-                                <span class="text-success fw-bold">${precio}</span>
+                                <div class="d-flex flex-column gap-1">
+                                    <span class="text-success fw-bold fs-6">${precioFormateado}</span>
+                                    <button class='btn btn-sm btn-outline-primary' 
+                                            onclick="openModalEditPrice(${products[index].id}, ${precioPorUnidad}, '${products[index].producto.replace(/'/g, "\\'")}')" 
+                                            style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">
+                                        <i class="fa-solid fa-dollar-sign"></i> Editar Precio
+                                    </button>
+                                </div>
                             </td>
                             <td class="text-center">
                                 <button class='btn btn-edit-stock btn-sm' 
                                         onclick="openModalAddStock(${products[index].id}, ${stock}, '${products[index].producto.replace(/'/g, "\\'")}')" 
                                         data-stock="${stock}">
-                                    <i class="fa-solid fa-edit"></i> Editar
+                                    <i class="fa-solid fa-boxes"></i> Editar Stock
                                 </button>
                             </td>
                         </tr>`;
@@ -268,6 +313,8 @@ async function saveStock() {
                 alert(request.message || 'Stock actualizado correctamente');
                 getProducts();
                 getStockHistory();
+                getPrecioHistory();
+                getNombreHistory();
                 $('#addStock').modal('hide');
             }
         );
@@ -383,4 +430,307 @@ async function getStockHistory() {
 // Mantener compatibilidad con función anterior
 async function addStock() {
     await saveStock();
+}
+
+// ============== FUNCIONES PARA GESTIÓN DE PRECIO ==============
+
+async function savePrecio() {
+    if (productIdToUpdatePrice === null) {
+        alert('No se ha seleccionado ningún producto.');
+        return;
+    }
+
+    const precioInput = document.getElementById('precio_nuevo');
+    const precioNuevo = parseFloat(precioInput.value);
+
+    if (isNaN(precioNuevo) || precioNuevo < 0) {
+        alert('Por favor, ingresa un precio válido (0 o mayor).');
+        return;
+    }
+
+    console.log('Actualizando precio:', {
+        productId: productIdToUpdatePrice,
+        precioAnterior: currentPrice,
+        precioNuevo: precioNuevo
+    });
+
+    try {
+        const response = await __conection(
+            {
+                url: generarURLApi(`/local/pedidofinal/precio/${productIdToUpdatePrice}`),
+                header: credentials(),
+                dev: true,
+                method: 'POST',
+            },
+            {
+                _method: 'PUT',
+                precio_por_unidad: precioNuevo,
+                user: _store().session.user().get("username") || 'Usuario'
+            },
+            function (request) {
+                console.log('Respuesta del servidor:', request);
+                
+                // Si hay error, mostrar detalle
+                if (request.error) {
+                    console.error('Error de validación:', request.message);
+                    alert('Error: ' + request.error + '\nDetalles: ' + JSON.stringify(request.message));
+                    return;
+                }
+                
+                alert(request.message || 'Precio actualizado correctamente');
+                getProducts();
+                getPrecioHistory();
+                getNombreHistory();
+                $('#editPriceModal').modal('hide');
+            }
+        );
+
+    } catch (error) {
+        console.error("Error actualizando precio:", error);
+        alert('Error al actualizar el precio. Por favor verifica tu conexión e intenta nuevamente.');
+    }
+}
+
+async function getPrecioHistory() {
+    const url = generarURLApi(`/local/pedidofinal/precio/history`);
+
+    await __conection({
+        url: url,
+        header: credentials(),
+        dev: true,
+        method: 'GET'
+    }, {}, function (request) {
+        let changes = request;
+        const historyPriceContainer = document.getElementById('history-price-container');
+        
+        if (!historyPriceContainer) {
+            console.log('Contenedor de historial de precios no encontrado');
+            return;
+        }
+        
+        historyPriceContainer.innerHTML = "";
+
+        if (changes.length > 0) {
+            let tabla = `<div class="table-responsive">
+                            <table class="history-table table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 20%;">Fecha y Hora</th>
+                                        <th style="width: 30%;">Producto</th>
+                                        <th style="width: 15%;">Usuario</th>
+                                        <th style="width: 17%;">Precio Anterior</th>
+                                        <th style="width: 17%;">Precio Nuevo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+            for (const change of changes) {
+                const date = new Date(change.fecha);
+                const formattedDate = date.toLocaleString('es-CL', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                const precioAnterior = new Intl.NumberFormat('es-CL', {
+                    style: 'currency',
+                    currency: 'CLP'
+                }).format(change.precio_anterior);
+
+                const precioNuevo = new Intl.NumberFormat('es-CL', {
+                    style: 'currency',
+                    currency: 'CLP'
+                }).format(change.precio_nuevo);
+
+                const diferencia = change.precio_nuevo - change.precio_anterior;
+                let changeClass = diferencia > 0 ? 'increase' : diferencia < 0 ? 'decrease' : 'set';
+                let changeIcon = diferencia > 0 ? '<i class="fas fa-arrow-up"></i>' : 
+                                diferencia < 0 ? '<i class="fas fa-arrow-down"></i>' : 
+                                '<i class="fas fa-equals"></i>';
+
+                tabla += `<tr>
+                            <td class="text-muted">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                ${formattedDate}
+                            </td>
+                            <td>
+                                <strong>${change.producto_nombre}</strong>
+                            </td>
+                            <td>
+                                <span class="user-badge">
+                                    <i class="fas fa-user"></i>
+                                    ${change.usuario || 'Sistema'}
+                                </span>
+                            </td>
+                            <td>
+                                <strong>${precioAnterior}</strong>
+                            </td>
+                            <td>
+                                <span class="change-badge ${changeClass}">
+                                    ${changeIcon} ${precioNuevo}
+                                </span>
+                            </td>
+                        </tr>`;
+            }
+
+            tabla += `</tbody>
+                        </table>
+                    </div>`;
+
+            historyPriceContainer.innerHTML = tabla;
+        } else {
+            historyPriceContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <h4>Sin historial de precios</h4>
+                    <p>Aún no hay cambios registrados en los precios</p>
+                </div>
+            `;
+        }
+    });
+}
+
+// ============== FUNCIONES PARA GESTIÓN DE NOMBRE ==============
+
+async function saveNombre() {
+    if (productIdToUpdateName === null) {
+        alert('No se ha seleccionado ningún producto.');
+        return;
+    }
+
+    const nombreInput = document.getElementById('nombre_nuevo');
+    const nombreNuevo = nombreInput.value.trim();
+
+    if (!nombreNuevo || nombreNuevo.length < 2) {
+        alert('Por favor, ingresa un nombre válido (mínimo 2 caracteres).');
+        return;
+    }
+
+    console.log('Actualizando nombre:', {
+        productId: productIdToUpdateName,
+        nombreAnterior: currentProductName,
+        nombreNuevo: nombreNuevo
+    });
+
+    try {
+        const response = await __conection(
+            {
+                url: generarURLApi(`/local/pedidofinal/nombre/${productIdToUpdateName}`),
+                header: credentials(),
+                dev: true,
+                method: 'POST',
+            },
+            {
+                _method: 'PUT',
+                producto: nombreNuevo,
+                user: _store().session.user().get("username") || 'Usuario'
+            },
+            function (request) {
+                console.log('Respuesta del servidor:', request);
+                
+                // Si hay error, mostrar detalle
+                if (request.error) {
+                    console.error('Error de validación:', request.message);
+                    alert('Error: ' + request.error + '\nDetalles: ' + JSON.stringify(request.message));
+                    return;
+                }
+                
+                alert(request.message || 'Nombre actualizado correctamente');
+                getProducts();
+                getNombreHistory();
+                $('#editNameModal').modal('hide');
+            }
+        );
+
+    } catch (error) {
+        console.error("Error actualizando nombre:", error);
+        alert('Error al actualizar el nombre. Por favor verifica tu conexión e intenta nuevamente.');
+    }
+}
+
+async function getNombreHistory() {
+    const url = generarURLApi(`/local/pedidofinal/nombre/history`);
+
+    await __conection({
+        url: url,
+        header: credentials(),
+        dev: true,
+        method: 'GET'
+    }, {}, function (request) {
+        let changes = request;
+        const historyNameContainer = document.getElementById('history-name-container');
+        
+        if (!historyNameContainer) {
+            console.log('Contenedor de historial de nombres no encontrado');
+            return;
+        }
+        
+        historyNameContainer.innerHTML = "";
+
+        if (changes.length > 0) {
+            let tabla = `<div class="table-responsive">
+                            <table class="history-table table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 20%;">Fecha y Hora</th>
+                                        <th style="width: 15%;">Usuario</th>
+                                        <th style="width: 32%;">Nombre Anterior</th>
+                                        <th style="width: 32%;">Nombre Nuevo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+            for (const change of changes) {
+                const date = new Date(change.fecha);
+                const formattedDate = date.toLocaleString('es-CL', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                tabla += `<tr>
+                            <td class="text-muted">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                ${formattedDate}
+                            </td>
+                            <td>
+                                <span class="user-badge">
+                                    <i class="fas fa-user"></i>
+                                    ${change.usuario || 'Sistema'}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-muted">
+                                    <i class="fas fa-arrow-right text-danger me-1"></i>
+                                    ${change.nombre_anterior}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-success fw-bold">
+                                    <i class="fas fa-arrow-left me-1"></i>
+                                    ${change.nombre_nuevo}
+                                </span>
+                            </td>
+                        </tr>`;
+            }
+
+            tabla += `</tbody>
+                        </table>
+                    </div>`;
+
+            historyNameContainer.innerHTML = tabla;
+        } else {
+            historyNameContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <h4>Sin historial de nombres</h4>
+                    <p>Aún no hay cambios registrados en los nombres de productos</p>
+                </div>
+            `;
+        }
+    });
 }

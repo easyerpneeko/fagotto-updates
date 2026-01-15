@@ -35,6 +35,12 @@
               <i class="fas fa-star"></i>
               <span>-10%</span>
             </div>
+            <!-- Indicador de descuento Turbus 10% -->
+            <div v-if="settingTurbus10" class="stats-badge" style="background: rgb(0, 51, 153); color: white;" 
+                 title="Turbus 10% de descuento disponible">
+              <i class="fas fa-bus"></i>
+              <span>-10%</span>
+            </div>
             <button type="button" class="btn-close" @click="closeModal(false)" aria-label="Close">
               <i class="fas fa-times"></i>
             </button>
@@ -484,6 +490,13 @@
               <span>Exclusivo Fagotto 10%</span>
             </button>
             
+            <button v-if="settingTurbus10" 
+              @click="viewTicket('turbus_10'); closePaymentModal()" 
+              class="payment-method-btn" style="background: rgb(0, 51, 153); color: white;">
+              <i class="fas fa-bus"></i>
+              <span>Turbus 10% DESC</span>
+            </button>
+            
             <button v-if="order_kitchen_pending == false" 
               @click="viewTicket('ticket'); closePaymentModal()" 
               class="payment-method-btn payment-ticket">
@@ -661,6 +674,23 @@ export default {
         // NO actualizar this.total aquí, se hará después de agregar la información especial
       }
       
+      // Si es Turbus 10% de descuento
+      if (val === 'turbus_10') {
+        // Calcular el 10% de descuento
+        const originalTotal = this.total;
+        const tenPercentDiscount = originalTotal * 0.10;
+        const totalWithDiscount = originalTotal - tenPercentDiscount;
+        
+        // Confirmar con el usuario
+        const confirmMessage = `¿Confirmar venta con Turbus 10% de descuento?\n\nTotal original: $${this.formatNumber(originalTotal)}\n10% descuento: -$${this.formatNumber(tenPercentDiscount)}\nTotal final: $${this.formatNumber(totalWithDiscount)}`;
+        
+        if (!confirm(confirmMessage)) {
+          return false;
+        }
+        
+        // NO actualizar this.total aquí, se hará después de agregar la información especial
+      }
+      
       // Si es Uber, confirmar que se genere boleta SII
       if (val === 'uber') {
         const confirmMessage = `¿Confirmar venta con Uber Eats?\n\nSe generará una boleta del SII\nTotal: $${this.formatNumber(this.total)}`;
@@ -729,6 +759,29 @@ export default {
           paymentType: 'fagotto_10',
           method: 'Exclusivo Fagotto 10%',
           description: 'Descuento exclusivo de Fagotto del 10% aplicado al total',
+          originalTotal: originalTotal,
+          discountAmount: tenPercentDiscount,
+          finalTotal: totalWithDiscount,
+          discountPercentage: 10,
+          date: new Date().toISOString(),
+          enabled: true
+        };
+        
+        // Actualizar el total con el descuento para el procesamiento
+        this.total = totalWithDiscount;
+        this.ticketData.total = totalWithDiscount;
+      }
+      
+      // Si es Turbus 10% de descuento
+      if (val === 'turbus_10') {
+        const originalTotal = this.total;
+        const tenPercentDiscount = originalTotal * 0.10;
+        const totalWithDiscount = originalTotal - tenPercentDiscount;
+        
+        this.ticketData.specialPayment = {
+          paymentType: 'turbus_10',
+          method: 'Turbus 10%',
+          description: 'Descuento Turbus del 10% aplicado al total',
           originalTotal: originalTotal,
           discountAmount: tenPercentDiscount,
           finalTotal: totalWithDiscount,
@@ -814,6 +867,13 @@ export default {
         // 🎯 FAGOTTO 10%: Generar boleta SII con descuento
         this.typeCreateTicket = 'boleta';
         console.log('🎯 FAGOTTO 10% - Configurado para generar boleta SII:', {
+          typeCreateTicket: this.typeCreateTicket,
+          specialPayment: this.ticketData.specialPayment
+        });
+      } else if (val === 'turbus_10') {
+        // 🚌 TURBUS 10%: Generar boleta SII con descuento
+        this.typeCreateTicket = 'boleta';
+        console.log('🚌 TURBUS 10% - Configurado para generar boleta SII:', {
           typeCreateTicket: this.typeCreateTicket,
           specialPayment: this.ticketData.specialPayment
         });
@@ -1676,6 +1736,13 @@ export default {
       get() {
         if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
         return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.fagotto_10');
+      }
+    },
+    
+    settingTurbus10: {
+      get() {
+        if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+        return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.turbus_10');
       }
     },
     

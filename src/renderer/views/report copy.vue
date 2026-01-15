@@ -406,7 +406,9 @@ export default {
         {key:'convenio_empresa',label:'Convenio Empresa', value:true},
         {key:'pedidos_ya',label:'Pedidos Ya', value:true},
         {key:'pluxee',label:'Pluxee', value:true},
-        {key:'banco_chile_20',label:'Banco De Chile 20%', value:true}
+        {key:'banco_chile_20',label:'Banco De Chile 20%', value:true},
+        {key:'fagotto_10',label:'Exclusivo Fagotto 10%', value:true},
+        {key:'turbus_10',label:'Turbus 10%', value:true}
       ]
     }
   },
@@ -844,6 +846,7 @@ export default {
     settingPluxee:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.pluxee') } },
     settingBancoChile20:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.banco_chile_20') } },
     settingFagotto10:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.fagotto_10') } },
+    settingTurbus10:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.turbus_10') } },
 
     getCounters: {
       get(){
@@ -887,6 +890,7 @@ export default {
             if(this.settingPluxee) this.listCounter.push( ['Pluxee', '$'+this.formatNumber(String(request.pluxee))]);
             if(this.settingBancoChile20) this.listCounter.push( ['Banco De Chile 20%', '$'+this.formatNumber(String(request.banco_chile_20))]);
             if(this.settingFagotto10) this.listCounter.push( ['Exclusivo Fagotto 10%', '$'+this.formatNumber(String(request.fagotto_10))]);
+            if(this.settingTurbus10) this.listCounter.push( ['Turbus 10%', '$'+this.formatNumber(String(request.turbus_10))]);
             
           }
           if(this.fastSellInstalled){

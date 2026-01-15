@@ -214,7 +214,7 @@ class ReportsController extends Controller
         'fastSell', 'boleta', 'factura', 'noSii', 'amipass', 'rappi', 'uber', 'junaeb', 
         'multicaja', 'edenred', 'sodexo', 'convenio_empresa', 'debito', 'credito', 
         'transferencia', 'cheque', 'banco', 'pluxee', 'pedidos_ya', 'guia_despacho', 
-        'banco_chile_20', 'nota_de_credito', 'efectivo'
+        'banco_chile_20', 'fagotto_10', 'turbus_10', 'nota_de_credito', 'efectivo'
     ];
     
     foreach ($paymentMethods as $method) {
@@ -249,6 +249,8 @@ class ReportsController extends Controller
         'pedidos_ya' => 0,
         'pluxee' => 0,
         'banco_chile_20' => 0,
+        'fagotto_10' => 0,
+        'turbus_10' => 0,
         'guia_despacho' => 0,
         'fastSells' => 0,
         'noSii' => 0,
@@ -279,7 +281,8 @@ class ReportsController extends Controller
       'pluxee' => ['modulos.ventas.submodulos.sii.ajustes.pluxee', ['pluxee']],
       'guia_despacho' => ['modulos.ventas.submodulos.sii.ajustes.guia_despacho', ['guia_despacho']],
       'banco_chile_20' => ['modulos.ventas.submodulos.sii.ajustes.banco_chile_20', ['banco_chile_20']],
-      'fagotto_10' => ['modulos.ventas.submodulos.sii.ajustes.fagotto_10', ['fagotto_10']]
+      'fagotto_10' => ['modulos.ventas.submodulos.sii.ajustes.fagotto_10', ['fagotto_10']],
+      'turbus_10' => ['modulos.ventas.submodulos.sii.ajustes.turbus_10', ['turbus_10']]
     ];
     
     // 🔍 DEBUG: Verificar configuración de Uber
@@ -392,6 +395,18 @@ class ReportsController extends Controller
       // Esto evita que se cuente como boleta cuando en realidad es una venta de plataforma
       $counted = false;
       foreach ($ajustes as $key => $config) {
+          // 🔍 DEBUG: Ver Turbus 10%
+          if ($key === 'turbus_10' && (in_array($venta->other_type, $config[1]) || in_array($venta->paymode, $config[1]))) {
+              \Log::info('🚌 DEBUG - Venta Turbus 10% detectada:', [
+                  'venta_id' => $venta->id,
+                  'other_type' => $venta->other_type,
+                  'paymode' => $venta->paymode,
+                  'type_sell' => $venta->type_sell,
+                  'total' => $venta->total,
+                  'config_habilitado' => CurrentApp::ConfStr($config[0]) ? 'SI' : 'NO'
+              ]);
+          }
+          
           // 🔍 DEBUG ULTRA: Ver qué pasa con cada método de pago
           if ($key === 'uber' && (stripos($venta->other_type, 'uber') !== false || stripos($venta->paymode, 'uber') !== false)) {
               \Log::info('🔍 DEBUG ULTRA - Procesando venta Uber:', [
@@ -414,7 +429,20 @@ class ReportsController extends Controller
                   $counters[$key] += $venta->total;
                   $counted = true;
                   
-                  // 🚨 DEBUG: Log específico para Uber
+                  // � DEBUG: Log específico para Turbus 10%
+                  if ($key === 'turbus_10') {
+                      \Log::info('✅ TURBUS 10% ENCONTRADO Y SUMADO EN REPORTE:', [
+                          'venta_id' => $venta->id,
+                          'other_type' => $venta->other_type,
+                          'paymode' => $venta->paymode,
+                          'type_sell' => $venta->type_sell,
+                          'total' => $venta->total,
+                          'tiene_folio' => $venta->sell_folio ? 'SI' : 'NO',
+                          'contador_turbus_10_actual' => $counters['turbus_10']
+                      ]);
+                  }
+                  
+                  // �🚨 DEBUG: Log específico para Uber
                   if ($key === 'uber') {
                       \Log::info('✅ UBER ENCONTRADO Y SUMADO EN REPORTE:', [
                           'venta_id' => $venta->id,

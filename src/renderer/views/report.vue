@@ -410,6 +410,8 @@ export default {
         {key:'pedidos_ya',label:'Pedidos Ya', value:true},
         {key:'pluxee',label:'Pluxee', value:true},
         {key:'banco_chile_20',label:'Banco De Chile 20%', value:true},
+        {key:'fagotto_10',label:'Exclusivo Fagotto 10%', value:true},
+        {key:'turbus_10',label:'Turbus 10%', value:true},
 
       ]
     }
@@ -854,6 +856,7 @@ export default {
     settingPluxee:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.pluxee') } },
     settingBancoChile20:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.banco_chile_20') } },
     settingFagotto10:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.fagotto_10') } },
+    settingTurbus10:{ get(){ return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.turbus_10') } },
 
 
     getCounters: {
@@ -904,7 +907,8 @@ export default {
             // 10. Exclusivo Fagotto 10%
             if(this.settingFagotto10) this.listCounter.push( ['Exclusivo Fagotto 10%', '$'+this.formatNumber(String(request.fagotto_10))]);
             
-
+            // 11. Turbus 10%
+            if(this.settingTurbus10) this.listCounter.push( ['Turbus 10%', '$'+this.formatNumber(String(request.turbus_10))]);
             
             // 12. Uber Eats
             this.listCounter.push(['Uber Eats', '$'+this.formatNumber(String(request.uber))]);

@@ -168,6 +168,7 @@ export default {
           && this.type_sell != 'junaeb'
           && this.type_sell != 'banco_chile_20'
           && this.type_sell != 'fagotto_10'
+          && this.type_sell != 'turbus_10'
           && this.type_sell != 'halloween_20'
           && this.type_sell != 'pluxee'
           && this.type_sell != 'pedidos_ya'
@@ -199,6 +200,7 @@ export default {
           && this.type_sell != 'junaeb'
           && this.type_sell != 'banco_chile_20'
           && this.type_sell != 'fagotto_10'
+          && this.type_sell != 'turbus_10'
           && this.type_sell != 'halloween_20'
           && this.type_sell != 'pluxee'
           && this.type_sell != 'pedidos_ya'
@@ -238,7 +240,14 @@ export default {
         console.log('✅ FAGOTTO 10% - Datos enviados:', this.value.specialPayment);
       }
 
-
+      if (this.type_sell == 'turbus_10') {
+        thing.set('other_type', 'turbus_10');
+        // Agregar información especial del pago Turbus 10%
+        if (this.value.specialPayment) {
+          thing.append('special_payment_info', JSON.stringify(this.value.specialPayment));
+        }
+        console.log('✅ TURBUS 10% - Datos enviados:', this.value.specialPayment);
+      }
 
       // 🚀 DETECTAR UBER: Si typeCreateTicket es 'boleta' pero viene desde Uber
       if (this.typeCreateTicket === 'boleta' && this.value.paymentMethod === 'uber_eats') {
@@ -461,7 +470,7 @@ export default {
       // Iniciando peticion
       try {
         //Si es debito mando la data a otro endpoint
-        if(this.type_sell=='other' ||this.type_sell=='transferencia' ||this.type_sell=='rappi' ||this.type_sell=='junaeb' ||this.type_sell=='uber' ||this.type_sell=='credito' || this.type_sell=='amipass' || this.type_sell=='banco_chile_20' || this.type_sell=='pluxee' || this.type_sell=='pedidos_ya'){
+        if(this.type_sell=='other' ||this.type_sell=='transferencia' ||this.type_sell=='rappi' ||this.type_sell=='junaeb' ||this.type_sell=='uber' ||this.type_sell=='credito' || this.type_sell=='amipass' || this.type_sell=='banco_chile_20' || this.type_sell=='fagotto_10' || this.type_sell=='turbus_10' || this.type_sell=='pluxee' || this.type_sell=='pedidos_ya'){
           var request = await this.$store.dispatch("sells/newTicket", thing);
           console.log("RESPUESTA DE LA APIII CREARTICKET",request);
         }else{
@@ -619,12 +628,33 @@ export default {
   watch:{
     value(value){
       this.jsonTable.items = value.products;
+      
+      // 🎯 AUTO-DETECTAR MÉTODOS DE PAGO ESPECIALES CON DESCUENTO
+      if (value.specialPayment && value.specialPayment.paymentType) {
+        const paymentType = value.specialPayment.paymentType;
+        
+        // Si es un pago con descuento (banco_chile_20, fagotto_10, turbus_10)
+        if (['banco_chile_20', 'fagotto_10', 'turbus_10'].includes(paymentType)) {
+          this.type_sell = paymentType;
+          console.log(`✅ AUTO-DETECTADO - type_sell establecido a: ${paymentType}`);
+        }
+      }
     },
     typeCreateTicket(val){
       if(val == 'ticket'){
         this.createTicket(false, true);
       }else if(val != false){
-        this.createTicketSell(val);
+        // 🎯 NO sobrescribir type_sell si ya está establecido por specialPayment
+        if (!this.type_sell || !['banco_chile_20', 'fagotto_10', 'turbus_10'].includes(this.type_sell)) {
+          this.createTicketSell(val);
+        } else {
+          console.log(`⚠️ type_sell YA establecido a ${this.type_sell}, no sobrescribir con ${val}`);
+          // Si ya tiene type_sell especial, solo llamar directamente a createTicket
+          if(this.ticket_sell){
+            if(this.clientsInstaller && val == 'factura') $('#clientCreate1').modal('show');
+            else this.createTicket(false, false);
+          }
+        }
       }
       $('#createTicket').modal('hide');
     },

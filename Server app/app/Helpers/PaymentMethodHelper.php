@@ -23,6 +23,8 @@ class PaymentMethodHelper
         'pedidos_ya' => 'Pedidos Ya',
         'pluxee' => 'Pluxee',
         'banco_chile_20' => 'Banco Chile 20%',
+        'fagotto_10' => 'Fagotto 10%',
+        'turbus_10' => 'Turbus 10%',
     ];
 
     const INVOICE_TYPES = [
@@ -95,7 +97,9 @@ class PaymentMethodHelper
             'uber',
             'pedidos_ya',
             'pluxee',
-            'banco_chile_20'
+            'banco_chile_20',
+            'fagotto_10',
+            'turbus_10'
         ];
     }
 
@@ -131,6 +135,8 @@ class PaymentMethodHelper
             case 'sodexo':
             case 'pluxee':
             case 'banco_chile_20':
+            case 'fagotto_10':
+            case 'turbus_10':
                 return 6; // Tarjeta alimentación/servicio
             case 'rappi':
             case 'uber':
@@ -170,7 +176,9 @@ class PaymentMethodHelper
             'pedidos_ya' => 'modulos.ventas.submodulos.sii.ajustes.pedidos_ya',
             'pluxee' => 'modulos.ventas.submodulos.sii.ajustes.pluxee',
             'guia_despacho' => 'modulos.ventas.submodulos.sii.ajustes.guia_despacho',
-            'banco_chile_20' => 'modulos.ventas.submodulos.sii.ajustes.banco_chile_20'
+            'banco_chile_20' => 'modulos.ventas.submodulos.sii.ajustes.banco_chile_20',
+            'fagotto_10' => 'modulos.ventas.submodulos.sii.ajustes.fagotto_10',
+            'turbus_10' => 'modulos.ventas.submodulos.sii.ajustes.turbus_10'
         ];
         
         // Verificar qué métodos están configurados

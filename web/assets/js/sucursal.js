@@ -4622,9 +4622,12 @@ function calculateSauceKPIs(productos) {
     let fettucine = 0;
     let bigoli = 0;
     let quesoExtra = 0;
+    let focaccias = 0;
+    let focacciasDesglose = {}; // Objeto para contar focaccias por nombre
     
     productos.forEach(producto => {
         const nombreLower = (producto.name || '').toLowerCase();
+        const nombreOriginal = producto.name || '';
         const cantidad = parseInt(producto.quantity) || 1;
         
         // Salsa Extra (categoría Extras - salsas vendidas solas, sin pasta)
@@ -4659,13 +4662,81 @@ function calculateSauceKPIs(productos) {
         if (nombreLower === 'queso extra' || nombreLower.includes('queso extra')) {
             quesoExtra += cantidad;
         }
+        
+        // Focaccias - contador general y desglose por nombre
+        if (nombreLower.includes('focaccia')) {
+            focaccias += cantidad;
+            
+            // Agregar al desglose
+            if (!focacciasDesglose[nombreOriginal]) {
+                focacciasDesglose[nombreOriginal] = 0;
+            }
+            focacciasDesglose[nombreOriginal] += cantidad;
+        }
     });
     
-    // Actualizar UI
+    // Actualizar UI - Totales
     document.getElementById('sauceExtraTotal').textContent = salsaExtra;
     document.getElementById('fettucineTotal').textContent = fettucine;
     document.getElementById('bigoliTotal').textContent = bigoli;
     document.getElementById('quesoExtraTotal').textContent = quesoExtra;
+    document.getElementById('focacciasTotal').textContent = focaccias;
+    
+    // Actualizar tabla de desglose de focaccias
+    renderFocacciasBreakdown(focacciasDesglose);
+}
+
+// Renderizar tabla de desglose de focaccias
+function renderFocacciasBreakdown(focacciasDesglose) {
+    const tbody = document.getElementById('focacciasBreakdownBody');
+    
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    // Convertir a array y ordenar por cantidad (mayor a menor)
+    const focacciasArray = Object.entries(focacciasDesglose).sort((a, b) => b[1] - a[1]);
+    
+    if (focacciasArray.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="2" class="text-center text-muted py-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No se vendieron focaccias en este período
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // Generar filas
+    focacciasArray.forEach(([nombre, cantidad]) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td style="font-weight: 500;">
+                <i class="fas fa-bread-slice me-2" style="color: #fcb69f;"></i>
+                ${nombre}
+            </td>
+            <td style="text-align: center; font-weight: 600; color: #fcb69f;">
+                ${cantidad}
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    // Agregar fila de total
+    const totalCantidad = focacciasArray.reduce((sum, [_, cant]) => sum + cant, 0);
+    const rowTotal = document.createElement('tr');
+    rowTotal.style.backgroundColor = '#fff3e0';
+    rowTotal.innerHTML = `
+        <td style="font-weight: 700; text-align: right;">
+            TOTAL FOCACCIAS:
+        </td>
+        <td style="text-align: center; font-weight: 700; color: #f57c00;">
+            ${totalCantidad}
+        </td>
+    `;
+    tbody.appendChild(rowTotal);
 }
 
 // Renderizar tabla de mapa de calor

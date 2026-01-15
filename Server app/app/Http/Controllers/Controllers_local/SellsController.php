@@ -98,6 +98,11 @@ class SellsController extends Controller
     if (isset($_request['other_type']) && in_array($_request['other_type'], ['uber_eats', 'uber', 'rappi', 'pedidos_ya'])) {
         $_request['paymode'] = $_request['other_type'];
     }
+    
+    // 🎯 FIX DESCUENTOS ESPECIALES: Si es Banco Chile 20%, Fagotto 10% o Turbus 10%, setear paymode
+    if (isset($_request['other_type']) && in_array($_request['other_type'], ['banco_chile_20', 'fagotto_10', 'turbus_10'])) {
+        $_request['paymode'] = $_request['other_type'];
+    }
 
     // Creando venta
     $sell = Sell::createSell($_request);
@@ -280,6 +285,11 @@ class SellsController extends Controller
         $_request['paymode'] = 'fagotto_10';
     }
 
+    // 🚌 FIX TURBUS 10%: Si es Turbus 10%, setear paymode correcto
+    if (isset($_request['other_type']) && $_request['other_type'] === 'turbus_10') {
+        $_request['paymode'] = 'turbus_10';
+    }
+
     // Creando venta
     $sell = Sell::createSell($_request);
     if (!$sell) {
@@ -408,7 +418,7 @@ class SellsController extends Controller
 
       // Condiciones de impresión específicas para métodos other_type que requieren doble impresión
       if (isset($_request['other_type']) && !$requiresSpecialPrint) {
-        $methodsRequiringDoubleprint = ['amipass', 'banco_chile_20', 'pluxee', 'pedidos_ya', 'uber_eats'];
+        $methodsRequiringDoubleprint = ['amipass', 'banco_chile_20', 'fagotto_10', 'turbus_10', 'pluxee', 'pedidos_ya', 'uber_eats'];
         
         if (in_array($_request['other_type'], $methodsRequiringDoubleprint)) {
           // Imprimir boleta local para métodos que la requieren
@@ -773,7 +783,7 @@ class SellsController extends Controller
 
             // Condiciones de impresión específicas para métodos other_type que requieren doble impresión
             if (isset($_request['other_type']) && !$requiresSpecialPrint) {
-                $methodsRequiringDoubleprint = ['amipass', 'banco_chile_20', 'pluxee', 'pedidos_ya', 'uber_eats'];
+                $methodsRequiringDoubleprint = ['amipass', 'banco_chile_20', 'fagotto_10', 'turbus_10', 'pluxee', 'pedidos_ya', 'uber_eats'];
                 
                 if (in_array($_request['other_type'], $methodsRequiringDoubleprint)) {
                     // Imprimir boleta local para métodos que la requieren

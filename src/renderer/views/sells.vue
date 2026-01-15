@@ -313,6 +313,9 @@ export default {
         'pedidos_ya': '🍕 PedidosYa',
         'cornershop': '🛒 Cornershop',
         'ifood': '🍔 iFood',
+        'banco_chile_20': '🏦 Banco Chile 20%',
+        'fagotto_10': '⭐ Fagotto 10%',
+        'turbus_10': '🚌 Turbus 10%',
         'otro': '❓ Otro'
       };
       return displays[type && type.toLowerCase()] || type || 'N/A';

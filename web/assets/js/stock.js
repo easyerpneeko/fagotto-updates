@@ -118,7 +118,8 @@ async function getProducts() {
         dev: true,
         method: 'GET'
     }, {}, function (request) {
-        let products = request;
+        // Manejar respuesta con formato { success: true, data: [] }
+        let products = request.data || request || [];
         const tablasContainer = document.getElementById('tablas-container');
         tablasContainer.innerHTML = "";
         let i = 1;

@@ -1572,19 +1572,23 @@ class RequestsController extends Controller
     public function getStockNegocioResumen(Request $request)
     {
         try {
+            // SEGURIDAD: Cada negocio solo puede ver su propio stock
+            $currentAppId = CurrentApp::App()->id;
+            
             $idNegocio = $request->input('id_negocio');
-            $appId = $request->input('app_id');
+            $appId = $request->input('app_id', $currentAppId); // Usar app actual si no se especifica
+            
+            // FORZAR: Siempre filtrar por el negocio actual
+            $appId = $currentAppId;
             
             // Obtener el registro más reciente de cada producto
             $subQuery = DB::table('pedidofinal_stock_por_negocio as sub')
                 ->select('id_producto', DB::raw('MAX(fecha_registro) as max_fecha'))
+                ->where('app_id', $appId) // FILTRO OBLIGATORIO
                 ->groupBy('id_producto');
             
             if ($idNegocio) {
                 $subQuery->where('id_negocio', $idNegocio);
-            }
-            if ($appId) {
-                $subQuery->where('app_id', $appId);
             }
             
             $query = DB::table('pedidofinal_stock_por_negocio as main')
@@ -1603,13 +1607,11 @@ class RequestsController extends Controller
                 ->joinSub($subQuery, 'latest', function ($join) {
                     $join->on('main.id_producto', '=', 'latest.id_producto')
                          ->on('main.fecha_registro', '=', 'latest.max_fecha');
-                });
+                })
+                ->where('main.app_id', $appId); // FILTRO OBLIGATORIO POR SEGURIDAD
             
             if ($idNegocio) {
                 $query->where('main.id_negocio', $idNegocio);
-            }
-            if ($appId) {
-                $query->where('main.app_id', $appId);
             }
             
             $stock = $query->get();
@@ -1633,8 +1635,14 @@ class RequestsController extends Controller
     public function getStockNegocioHistorial(Request $request)
     {
         try {
+            // SEGURIDAD: Cada negocio solo puede ver su propio stock
+            $currentAppId = CurrentApp::App()->id;
+            
             $idNegocio = $request->input('id_negocio');
-            $appId = $request->input('app_id');
+            $appId = $request->input('app_id', $currentAppId); // Usar app actual si no se especifica
+            
+            // FORZAR: Siempre filtrar por el negocio actual
+            $appId = $currentAppId;
             
             $query = DB::table('pedidofinal_stock_por_negocio')
                 ->select(
@@ -1650,13 +1658,11 @@ class RequestsController extends Controller
                     'observacion',
                     'fecha_registro'
                 )
+                ->where('app_id', $appId) // FILTRO OBLIGATORIO POR SEGURIDAD
                 ->orderBy('fecha_registro', 'desc');
             
             if ($idNegocio) {
                 $query->where('id_negocio', $idNegocio);
-            }
-            if ($appId) {
-                $query->where('app_id', $appId);
             }
             
             $historial = $query->get();

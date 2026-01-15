@@ -617,6 +617,16 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::post('/local/pedidofinal/stock-negocio', 'Controllers_local\RequestsController@storeStockNegocio');
           Route::get('/local/pedidofinal/stock', 'Controllers_local\RequestsController@getStock');
           
+          // Historial de cambios (usado por web/pages/stock.html)
+          Route::get('/local/pedidofinal/stock/history', 'Controllers_local\RequestsController@getPedidoFinalStockHistory');
+          Route::get('/local/pedidofinal/precio/history', 'Controllers_local\RequestsController@getPedidoFinalPrecioHistory');
+          Route::get('/local/pedidofinal/nombre/history', 'Controllers_local\RequestsController@getPedidoFinalNombreHistory');
+          
+          // Actualizar stock, precio y nombre (usado por web/pages/stock.html)
+          Route::post('/local/pedidofinal/stock/{id}', 'Controllers_local\RequestsController@updatePedidoFinalStock');
+          Route::post('/local/pedidofinal/precio/{id}', 'Controllers_local\RequestsController@updatePedidoFinalPrecio');
+          Route::post('/local/pedidofinal/nombre/{id}', 'Controllers_local\RequestsController@updatePedidoFinalNombre');
+          
           Route::put('/local/request/{id}', 'Controllers_local\RequestsController@update');
           Route::delete('/local/request/{id}', 'Controllers_local\RequestsController@remove');
           Route::put('/local/request/decline/{app_id}/{id}', 'Controllers_local\RequestsController@decline');

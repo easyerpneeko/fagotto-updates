@@ -1194,6 +1194,127 @@ class RequestsController extends Controller
     }
 
     /**
+     * Actualizar precio de un producto en pedidofinal_precios
+     */
+    public function updatePedidoFinalPrecio(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'precio_nuevo' => 'required|numeric|min:0',
+        ]);
+
+        try {
+            $producto = DB::table('easyerp.pedidofinal_precios')
+                ->where('id', $id)
+                ->first();
+
+            if (!$producto) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Producto no encontrado'
+                ], 404);
+            }
+
+            $precioAnterior = $producto->precio_por_unidad ?? 0;
+            $precioNuevo = $validatedData['precio_nuevo'];
+
+            // Actualizar precio
+            DB::table('easyerp.pedidofinal_precios')
+                ->where('id', $id)
+                ->update(['precio_por_unidad' => $precioNuevo]);
+
+            // Registrar el cambio en historial
+            try {
+                DB::table('easyerp.pedidofinal_precio_history')
+                    ->insert([
+                        'producto_id' => $id,
+                        'producto_nombre' => $producto->producto,
+                        'precio_anterior' => $precioAnterior,
+                        'precio_nuevo' => $precioNuevo,
+                        'usuario' => Auth::check() ? Auth::user()->name : 'Sistema',
+                        'fecha' => now(),
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo registrar en historial de precios: ' . $e->getMessage());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Precio actualizado correctamente',
+                'precio_anterior' => $precioAnterior,
+                'precio_nuevo' => $precioNuevo
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar precio: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Actualizar nombre de un producto en pedidofinal_precios
+     */
+    public function updatePedidoFinalNombre(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'nombre_nuevo' => 'required|string|max:255',
+        ]);
+
+        try {
+            $producto = DB::table('easyerp.pedidofinal_precios')
+                ->where('id', $id)
+                ->first();
+
+            if (!$producto) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Producto no encontrado'
+                ], 404);
+            }
+
+            $nombreAnterior = $producto->producto ?? '';
+            $nombreNuevo = $validatedData['nombre_nuevo'];
+
+            // Actualizar nombre
+            DB::table('easyerp.pedidofinal_precios')
+                ->where('id', $id)
+                ->update(['producto' => $nombreNuevo]);
+
+            // Registrar el cambio en historial
+            try {
+                DB::table('easyerp.pedidofinal_nombre_history')
+                    ->insert([
+                        'producto_id' => $id,
+                        'nombre_anterior' => $nombreAnterior,
+                        'nombre_nuevo' => $nombreNuevo,
+                        'usuario' => Auth::check() ? Auth::user()->name : 'Sistema',
+                        'fecha' => now(),
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo registrar en historial de nombres: ' . $e->getMessage());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Nombre actualizado correctamente',
+                'nombre_anterior' => $nombreAnterior,
+                'nombre_nuevo' => $nombreNuevo
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar nombre: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Obtener historial de cambios de stock
      */
     public function getPedidoFinalStockHistory()

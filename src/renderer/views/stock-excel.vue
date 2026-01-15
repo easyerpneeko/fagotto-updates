@@ -99,7 +99,8 @@ export default {
       cambiosPendientes: [],
       loading: false,
       saving: false,
-      ultimaActualizacion: '-'
+      ultimaActualizacion: '-',
+      appInfo: null
     };
   },
   computed: {
@@ -107,10 +108,21 @@ export default {
       return this.cambiosPendientes.length > 0;
     }
   },
-  mounted() {
+  async mounted() {
+    await this.cargarAppInfo();
     this.cargarDatos();
   },
   methods: {
+    async cargarAppInfo() {
+      try {
+        const request = await this.$store.dispatch('main/refreshData', '?slim');
+        this.appInfo = request.data;
+        console.log('✅ App info cargada:', this.appInfo);
+      } catch (error) {
+        console.error('❌ Error cargando app info:', error);
+      }
+    },
+    
     async cargarDatos() {
       this.loading = true;
       try {
@@ -123,7 +135,12 @@ export default {
         console.log('🔍 request.data:', request.data);
         console.log('🔍 Es array?', Array.isArray(request.data));
         
-        if (request.ok || request.success) {
+        // Detectar formato de respuesta correctamente
+        const isSuccess = request.ok === true || 
+                         request.success === true || 
+                         (request.data && request.data.success === true);
+        
+        if (isSuccess) {
           let data = null;
           
           if (Array.isArray(request.data)) {
@@ -141,15 +158,30 @@ export default {
           
           if (data && data.length > 0) {
             // 2. Obtener el último stock reportado por este negocio
-            const app = this.$store.state.app || {};
-            const appId = app.app_id || null;
-            const idNegocio = app.Id || null;
+            const app = this.appInfo || {};
+            const appId = app.app_id || app.appId || app.Id || app.id || null;
+            const idNegocio = app.Id || app.id || null;
             
+            // Construir URL con parámetros de filtro
             let urlStock = BaseUrl.getUrl('api/local/pedidofinal/stock-negocio/resumen');
+            if (idNegocio) {
+              urlStock += `?id_negocio=${idNegocio}`;
+              if (appId) {
+                urlStock += `&app_id=${appId}`;
+              }
+            } else if (appId) {
+              urlStock += `?app_id=${appId}`;
+            }
+            
+            console.log('📊 Cargando stock de negocio:', { idNegocio, appId, urlStock });
             const stockRequest = await Connection.request('get', urlStock);
             
             let stockPorNegocio = {};
-            if (stockRequest.ok || stockRequest.success) {
+            const isStockSuccess = stockRequest.ok === true || 
+                                  stockRequest.success === true || 
+                                  (stockRequest.data && stockRequest.data.success === true);
+            
+            if (isStockSuccess) {
               const stockData = Array.isArray(stockRequest.data) ? stockRequest.data : 
                                (stockRequest.data && Array.isArray(stockRequest.data.data) ? stockRequest.data.data : []);
               
@@ -217,12 +249,23 @@ export default {
       let errores = 0;
       
       try {
-        // Obtener información del negocio actual
-        const app = this.$store.state.app || {};
-        const idNegocio = app.Id || null;
-        const nombreNegocio = app.Name || 'Sin nombre';
-        const appId = app.app_id || null;
+        // Obtener información del negocio actual desde appInfo
+        const app = this.appInfo || {};
+        
+        console.log('🔍 DEBUG APP COMPLETO:', JSON.stringify(app, null, 2));
+        console.log('🔍 KEYS DE APP:', Object.keys(app));
+        
+        const idNegocio = app.Id || app.id || null;
+        const nombreNegocio = app.Name || app.name || 'Sin nombre';
+        const appId = app.app_id || app.appId || app.Id || app.id || null;
         const usuario = localStorage.getItem('username') || 'Sistema';
+        
+        console.log('🔍 DEBUG APP INFO:', {
+          idNegocio: idNegocio,
+          nombreNegocio: nombreNegocio,
+          appId: appId,
+          usuario: usuario
+        });
         
         for (const cambio of this.cambiosPendientes) {
           try {
@@ -231,19 +274,40 @@ export default {
               const producto = this.productos.find(p => p.id === cambio.id);
               
               if (producto) {
+                // Preparar datos - solo incluir campos que no sean null
+                const payload = {
+                  id_producto: parseInt(cambio.id),
+                  producto_nombre: producto.producto || 'Sin nombre',
+                  cantidad_reportada: parseFloat(cambio.cambios.stock),
+                  unidad_medida: producto.unidad_medida || 'kg',
+                  observacion: 'Actualización de stock desde Stock (Excel)'
+                };
+                
+                // Solo agregar campos opcionales si tienen valor
+                if (idNegocio !== null) {
+                  payload.id_negocio = parseInt(idNegocio);
+                }
+                if (appId !== null) {
+                  payload.app_id = String(appId);
+                }
+                if (nombreNegocio && nombreNegocio !== 'Sin nombre') {
+                  payload.nombre_negocio = nombreNegocio;
+                }
+                if (usuario) {
+                  payload.usuario = usuario;
+                }
+                
+                console.log('🚀 Enviando datos:', payload);
+                
                 // Registrar en historial por negocio
                 let url = BaseUrl.getUrl('api/local/pedidofinal/stock-negocio');
-                const request = await Connection.request('post', url, {
-                  id_producto: cambio.id,
-                  cantidad_reportada: cambio.cambios.stock,
-                  id_negocio: idNegocio,
-                  app_id: appId,
-                  nombre_negocio: nombreNegocio,
-                  usuario: usuario,
-                  observacion: 'Actualización de stock desde Stock (Excel)'
-                });
+                const request = await Connection.request('post', url, payload);
                 
-                if (request.ok || request.success) {
+                const isSaveSuccess = request.ok === true || 
+                                     request.success === true || 
+                                     (request.data && request.data.success === true);
+                
+                if (isSaveSuccess) {
                   exitosos++;
                 } else {
                   errores++;

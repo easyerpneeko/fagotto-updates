@@ -1403,4 +1403,270 @@ class RequestsController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Obtener resumen de stock por negocio
+     */
+    public function getStockNegocioResumen(Request $request)
+    {
+        try {
+            $idNegocio = $request->input('id_negocio');
+            $appId = $request->input('app_id');
+            
+            // Obtener el registro más reciente de cada producto
+            $subQuery = DB::table('pedidofinal_stock_por_negocio as sub')
+                ->select('id_producto', DB::raw('MAX(fecha_registro) as max_fecha'))
+                ->groupBy('id_producto');
+            
+            if ($idNegocio) {
+                $subQuery->where('id_negocio', $idNegocio);
+            }
+            if ($appId) {
+                $subQuery->where('app_id', $appId);
+            }
+            
+            $query = DB::table('pedidofinal_stock_por_negocio as main')
+                ->select(
+                    'main.id_producto', 
+                    'main.producto_nombre',
+                    'main.cantidad_reportada', 
+                    'main.unidad_medida',
+                    'main.id_negocio', 
+                    'main.app_id', 
+                    'main.nombre_negocio',
+                    'main.usuario',
+                    'main.observacion',
+                    'main.fecha_registro'
+                )
+                ->joinSub($subQuery, 'latest', function ($join) {
+                    $join->on('main.id_producto', '=', 'latest.id_producto')
+                         ->on('main.fecha_registro', '=', 'latest.max_fecha');
+                });
+            
+            if ($idNegocio) {
+                $query->where('main.id_negocio', $idNegocio);
+            }
+            if ($appId) {
+                $query->where('main.app_id', $appId);
+            }
+            
+            $stock = $query->get();
+            
+            return response()->json([
+                'success' => true,
+                'data' => $stock
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener historial completo de stock por negocio
+     */
+    public function getStockNegocioHistorial(Request $request)
+    {
+        try {
+            $idNegocio = $request->input('id_negocio');
+            $appId = $request->input('app_id');
+            
+            $query = DB::table('pedidofinal_stock_por_negocio')
+                ->select(
+                    'id',
+                    'id_producto', 
+                    'producto_nombre',
+                    'cantidad_reportada', 
+                    'unidad_medida',
+                    'id_negocio', 
+                    'app_id', 
+                    'nombre_negocio',
+                    'usuario',
+                    'observacion',
+                    'fecha_registro'
+                )
+                ->orderBy('fecha_registro', 'desc');
+            
+            if ($idNegocio) {
+                $query->where('id_negocio', $idNegocio);
+            }
+            if ($appId) {
+                $query->where('app_id', $appId);
+            }
+            
+            $historial = $query->get();
+            
+            return response()->json([
+                'success' => true,
+                'data' => $historial
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Registrar stock de un negocio (similar a cómo ArqueoCaja guarda datos)
+     */
+    public function storeStockNegocio(Request $request)
+    {
+        try {
+            // 🔧 LEER DIRECTAMENTE EL RAW BODY
+            $rawBody = file_get_contents('php://input');
+            
+            // Parsear manualmente si es URL-encoded
+            $data = [];
+            if (!empty($rawBody)) {
+                parse_str($rawBody, $data);
+            }
+            
+            // Si parse_str no funcionó, intentar con request->all()
+            if (empty($data)) {
+                $data = $request->all();
+            }
+            
+            \Log::info('✅ storeStockNegocio DATOS PARSEADOS', [
+                'data_parseado' => $data,
+                'tiene_id_negocio' => isset($data['id_negocio']),
+                'tiene_app_id' => isset($data['app_id']),
+                'tiene_nombre_negocio' => isset($data['nombre_negocio']),
+                'raw_body' => $rawBody
+            ]);
+            
+            if (empty($data)) {
+                return response()->json([
+                    'error' => 'No se recibieron datos',
+                    'message' => 'El servidor no pudo leer los datos enviados',
+                    'debug' => [
+                        'raw_body' => $rawBody,
+                        'content_type' => $request->header('Content-Type'),
+                        'method' => $request->method()
+                    ]
+                ], 400);
+            }
+            
+            // ✅ VALIDAR
+            $validator = \Validator::make($data, [
+                'id_producto' => 'required|integer',
+                'producto_nombre' => 'required|string|max:100',
+                'cantidad_reportada' => 'required|numeric|min:0',
+                'unidad_medida' => 'nullable|string|max:50',
+                'id_negocio' => 'nullable|integer',
+                'app_id' => 'nullable|string|max:50',
+                'nombre_negocio' => 'nullable|string|max:255',
+                'usuario' => 'nullable|string|max:100',
+                'observacion' => 'nullable|string'
+            ]);
+            
+            if ($validator->fails()) {
+                \Log::error('❌ Validación fallida:', [
+                    'errors' => $validator->errors(),
+                    'data_received' => $data
+                ]);
+                return response()->json([
+                    'error' => 'Error al registrar stock',
+                    'message' => 'The given data was invalid.',
+                    'errors' => $validator->errors(),
+                    'data_sent' => $data
+                ], 422);
+            }
+            
+            $validated = $validator->validated();
+            
+            \Log::info('✅ Validación exitosa', ['validated' => $validated]);
+
+            // Verificar si ya existe un registro para este producto y negocio (tomar el más reciente)
+            $existing = DB::table('pedidofinal_stock_por_negocio')
+                ->where('id_producto', $validated['id_producto'])
+                ->where(function($q) use ($validated) {
+                    if (isset($validated['id_negocio'])) {
+                        $q->where('id_negocio', $validated['id_negocio']);
+                    }
+                    if (isset($validated['app_id'])) {
+                        $q->where('app_id', $validated['app_id']);
+                    }
+                })
+                ->orderBy('fecha_registro', 'desc')
+                ->first();
+
+            if ($existing) {
+                // Actualizar existente
+                DB::table('pedidofinal_stock_por_negocio')
+                    ->where('id', $existing->id)
+                    ->update([
+                        'cantidad_reportada' => $validated['cantidad_reportada'],
+                        'nombre_negocio' => $validated['nombre_negocio'] ?? $existing->nombre_negocio,
+                        'usuario' => $validated['usuario'] ?? $existing->usuario,
+                        'observacion' => $validated['observacion'] ?? $existing->observacion,
+                        'fecha_registro' => now()
+                    ]);
+
+                $id = $existing->id;
+            } else {
+                // Crear nuevo
+                $id = DB::table('pedidofinal_stock_por_negocio')->insertGetId([
+                    'id_producto' => $validated['id_producto'],
+                    'producto_nombre' => $validated['producto_nombre'],
+                    'cantidad_reportada' => $validated['cantidad_reportada'],
+                    'unidad_medida' => $validated['unidad_medida'] ?? 'kg',
+                    'id_negocio' => $validated['id_negocio'] ?? null,
+                    'app_id' => $validated['app_id'] ?? null,
+                    'nombre_negocio' => $validated['nombre_negocio'] ?? null,
+                    'usuario' => $validated['usuario'] ?? null,
+                    'observacion' => $validated['observacion'] ?? null,
+                    'fecha_registro' => now()
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Stock registrado correctamente',
+                'id' => $id
+            ], 200);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'error' => 'Error al registrar stock',
+                'message' => $e->getMessage(),
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Error en storeStockNegocio: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Error al registrar stock',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener productos base (para stock-excel.vue)
+     */
+    public function getStock(Request $request)
+    {
+        try {
+            $productos = DB::table('pedidofinal_precios')
+                ->select('id', 'producto', 'precio_por_unidad', 'unidad_medida')
+                ->orderBy('producto', 'asc')
+                ->get();
+            
+            return response()->json([
+                'success' => true,
+                'data' => $productos
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

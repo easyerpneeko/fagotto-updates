@@ -611,6 +611,12 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::get('/local/pedidofinal/reporte-productos', 'Controllers_local\RequestsController@getReporteProductos');
           Route::get('/local/pedidofinal/reporte-timeline', 'Controllers_local\RequestsController@getReporteTimeline');
           
+          // Stock por negocio
+          Route::get('/local/pedidofinal/stock-negocio/resumen', 'Controllers_local\RequestsController@getStockNegocioResumen');
+          Route::get('/local/pedidofinal/stock-negocio', 'Controllers_local\RequestsController@getStockNegocioHistorial');
+          Route::post('/local/pedidofinal/stock-negocio', 'Controllers_local\RequestsController@storeStockNegocio');
+          Route::get('/local/pedidofinal/stock', 'Controllers_local\RequestsController@getStock');
+          
           Route::put('/local/request/{id}', 'Controllers_local\RequestsController@update');
           Route::delete('/local/request/{id}', 'Controllers_local\RequestsController@remove');
           Route::put('/local/request/decline/{app_id}/{id}', 'Controllers_local\RequestsController@decline');

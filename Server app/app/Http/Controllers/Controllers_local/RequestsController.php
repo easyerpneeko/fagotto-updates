@@ -1129,7 +1129,8 @@ class RequestsController extends Controller
     public function updatePedidoFinalStock(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'stock_added' => 'required|numeric', // Puede ser positivo o negativo
+            'stock' => 'required|numeric',
+            'tipo' => 'nullable|string|in:agregar,establecer',
         ]);
 
         try {
@@ -1145,7 +1146,17 @@ class RequestsController extends Controller
             }
 
             $stockAnterior = $producto->stock ?? 0;
-            $nuevoStock = $stockAnterior + $validatedData['stock_added'];
+            $tipo = $validatedData['tipo'] ?? 'agregar';
+            
+            if ($tipo === 'establecer') {
+                // Modo establecer: el valor es el stock final
+                $nuevoStock = $validatedData['stock'];
+                $stockAgregado = $nuevoStock - $stockAnterior;
+            } else {
+                // Modo agregar: el valor se suma al stock actual
+                $stockAgregado = $validatedData['stock'];
+                $nuevoStock = $stockAnterior + $stockAgregado;
+            }
 
             if ($nuevoStock < 0) {
                 return response()->json([
@@ -1166,7 +1177,7 @@ class RequestsController extends Controller
                         'producto_id' => $id,
                         'producto_nombre' => $producto->producto,
                         'stock_anterior' => $stockAnterior,
-                        'stock_agregado' => $validatedData['stock_added'],
+                        'stock_agregado' => $stockAgregado,
                         'stock_nuevo' => $nuevoStock,
                         'usuario' => Auth::check() ? Auth::user()->name : 'Sistema',
                         'fecha' => now(),
@@ -1199,7 +1210,7 @@ class RequestsController extends Controller
     public function updatePedidoFinalPrecio(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'precio_nuevo' => 'required|numeric|min:0',
+            'precio_por_unidad' => 'required|numeric|min:0',
         ]);
 
         try {
@@ -1215,7 +1226,7 @@ class RequestsController extends Controller
             }
 
             $precioAnterior = $producto->precio_por_unidad ?? 0;
-            $precioNuevo = $validatedData['precio_nuevo'];
+            $precioNuevo = $validatedData['precio_por_unidad'];
 
             // Actualizar precio
             DB::table('easyerp.pedidofinal_precios')
@@ -1260,7 +1271,7 @@ class RequestsController extends Controller
     public function updatePedidoFinalNombre(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'nombre_nuevo' => 'required|string|max:255',
+            'producto' => 'required|string|max:255',
         ]);
 
         try {
@@ -1276,7 +1287,7 @@ class RequestsController extends Controller
             }
 
             $nombreAnterior = $producto->producto ?? '';
-            $nombreNuevo = $validatedData['nombre_nuevo'];
+            $nombreNuevo = $validatedData['producto'];
 
             // Actualizar nombre
             DB::table('easyerp.pedidofinal_precios')

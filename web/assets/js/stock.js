@@ -110,7 +110,7 @@ function openModalEditName(productId, productName = '') {
 
 async function getProducts() {
     var url = "";
-    url = generarURLApi(`/local/pedidofinal/stock`);
+    url = generarURLApi(`/web/pedidofinal/stock`);
 
     await __conection({
         url: url,
@@ -290,7 +290,7 @@ async function saveStock() {
     try {
         const response = await __conection(
             {
-                url: generarURLApi(`/local/pedidofinal/stock/${productIdToUpdate}`),
+                url: generarURLApi(`/web/pedidofinal/stock/${productIdToUpdate}`),
                 header: credentials(),
                 dev: true,
                 method: 'POST',
@@ -327,7 +327,7 @@ async function saveStock() {
 }
 
 async function getStockHistory() {
-    const url = generarURLApi(`/local/pedidofinal/stock/history`);
+    const url = generarURLApi(`/web/pedidofinal/stock/history`);
 
     await __conection({
         url: url,
@@ -458,7 +458,7 @@ async function savePrecio() {
     try {
         const response = await __conection(
             {
-                url: generarURLApi(`/local/pedidofinal/precio/${productIdToUpdatePrice}`),
+                url: generarURLApi(`/web/pedidofinal/precio/${productIdToUpdatePrice}`),
                 header: credentials(),
                 dev: true,
                 method: 'POST',
@@ -493,7 +493,7 @@ async function savePrecio() {
 }
 
 async function getPrecioHistory() {
-    const url = generarURLApi(`/local/pedidofinal/precio/history`);
+    const url = generarURLApi(`/web/pedidofinal/precio/history`);
 
     await __conection({
         url: url,
@@ -618,7 +618,7 @@ async function saveNombre() {
     try {
         const response = await __conection(
             {
-                url: generarURLApi(`/local/pedidofinal/nombre/${productIdToUpdateName}`),
+                url: generarURLApi(`/web/pedidofinal/nombre/${productIdToUpdateName}`),
                 header: credentials(),
                 dev: true,
                 method: 'POST',
@@ -652,7 +652,7 @@ async function saveNombre() {
 }
 
 async function getNombreHistory() {
-    const url = generarURLApi(`/local/pedidofinal/nombre/history`);
+    const url = generarURLApi(`/web/pedidofinal/nombre/history`);
 
     await __conection({
         url: url,

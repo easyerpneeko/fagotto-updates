@@ -228,6 +228,15 @@ Route::group(['middleware' => ['AppSecurity']], function () {
   Route::get('/web/productos-salsas-easyerp', 'ReportAplicationController@getSalsasEasyERP');
   Route::post('/web/actualizar-producto-easyerp', 'ReportAplicationController@actualizarProductoEasyERP');
   
+  // Stock management (web/pages/stock.html) - Gestión de inventario pedidofinal_precios
+  Route::get('/web/pedidofinal/stock', 'Controllers_local\RequestsController@getStock');
+  Route::get('/web/pedidofinal/stock/history', 'Controllers_local\RequestsController@getPedidoFinalStockHistory');
+  Route::post('/web/pedidofinal/stock/{id}', 'Controllers_local\RequestsController@updatePedidoFinalStock');
+  Route::get('/web/pedidofinal/precio/history', 'Controllers_local\RequestsController@getPedidoFinalPrecioHistory');
+  Route::post('/web/pedidofinal/precio/{id}', 'Controllers_local\RequestsController@updatePedidoFinalPrecio');
+  Route::get('/web/pedidofinal/nombre/history', 'Controllers_local\RequestsController@getPedidoFinalNombreHistory');
+  Route::post('/web/pedidofinal/nombre/{id}', 'Controllers_local\RequestsController@updatePedidoFinalNombre');
+  
   //Cobros
   Route::get('/web/getDenominaciones', 'CobrosController@getDenominaciones');
   Route::get('/web/getCobros', 'CobrosController@getCobros');
@@ -622,10 +631,10 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::get('/local/pedidofinal/precio/history', 'Controllers_local\RequestsController@getPedidoFinalPrecioHistory');
           Route::get('/local/pedidofinal/nombre/history', 'Controllers_local\RequestsController@getPedidoFinalNombreHistory');
           
-          // Actualizar stock, precio y nombre (usado por web/pages/stock.html)
-          Route::post('/local/pedidofinal/stock/{id}', 'Controllers_local\RequestsController@updatePedidoFinalStock');
-          Route::post('/local/pedidofinal/precio/{id}', 'Controllers_local\RequestsController@updatePedidoFinalPrecio');
-          Route::post('/local/pedidofinal/nombre/{id}', 'Controllers_local\RequestsController@updatePedidoFinalNombre');
+          // Actualizar stock, precio y nombre (usado por web/pages/stock.html) - MUST BE BEFORE other routes
+          Route::match(['post', 'put'], '/local/pedidofinal/stock/{id}', 'Controllers_local\RequestsController@updatePedidoFinalStock');
+          Route::match(['post', 'put'], '/local/pedidofinal/precio/{id}', 'Controllers_local\RequestsController@updatePedidoFinalPrecio');
+          Route::match(['post', 'put'], '/local/pedidofinal/nombre/{id}', 'Controllers_local\RequestsController@updatePedidoFinalNombre');
           
           Route::put('/local/request/{id}', 'Controllers_local\RequestsController@update');
           Route::delete('/local/request/{id}', 'Controllers_local\RequestsController@remove');

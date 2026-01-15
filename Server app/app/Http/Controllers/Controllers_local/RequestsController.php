@@ -1207,7 +1207,37 @@ class RequestsController extends Controller
             return response()->json($historial, 200);
         } catch (\Exception $e) {
             // Si la tabla no existe, devolver array vacío
-            \Log::warning('Error al obtener historial: ' . $e->getMessage());
+            \Log::warning('Error al obtener historial de stock: ' . $e->getMessage());
+            return response()->json([], 200);
+        }
+    }
+
+    public function getPedidoFinalPrecioHistory()
+    {
+        try {
+            $historial = DB::table('easyerp.pedidofinal_precio_history')
+                ->orderBy('fecha', 'desc')
+                ->limit(100)
+                ->get();
+
+            return response()->json($historial, 200);
+        } catch (\Exception $e) {
+            \Log::warning('Error al obtener historial de precios: ' . $e->getMessage());
+            return response()->json([], 200);
+        }
+    }
+
+    public function getPedidoFinalNombreHistory()
+    {
+        try {
+            $historial = DB::table('easyerp.pedidofinal_nombre_history')
+                ->orderBy('fecha', 'desc')
+                ->limit(100)
+                ->get();
+
+            return response()->json($historial, 200);
+        } catch (\Exception $e) {
+            \Log::warning('Error al obtener historial de nombres: ' . $e->getMessage());
             return response()->json([], 200);
         }
     }
@@ -1653,7 +1683,7 @@ class RequestsController extends Controller
     {
         try {
             $productos = DB::table('pedidofinal_precios')
-                ->select('id', 'producto', 'precio_por_unidad', 'unidad_medida')
+                ->select('id', 'producto', 'stock', 'precio_por_unidad', 'unidad_medida')
                 ->orderBy('producto', 'asc')
                 ->get();
             

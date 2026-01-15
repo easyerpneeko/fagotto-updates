@@ -623,9 +623,10 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::get('/local/pedidofinal/nombre/history', 'Controllers_local\RequestsController@getPedidoFinalNombreHistory');
           
           // Actualizar stock, precio y nombre (usado por web/pages/stock.html)
-          Route::post('/local/pedidofinal/stock/{id}', 'Controllers_local\RequestsController@updatePedidoFinalStock');
-          Route::post('/local/pedidofinal/precio/{id}', 'Controllers_local\RequestsController@updatePedidoFinalPrecio');
-          Route::post('/local/pedidofinal/nombre/{id}', 'Controllers_local\RequestsController@updatePedidoFinalNombre');
+          // Usamos match() para aceptar tanto POST como PUT ya que el frontend envía _method: 'PUT'
+          Route::match(['post', 'put'], '/local/pedidofinal/stock/{id}', 'Controllers_local\RequestsController@updatePedidoFinalStock');
+          Route::match(['post', 'put'], '/local/pedidofinal/precio/{id}', 'Controllers_local\RequestsController@updatePedidoFinalPrecio');
+          Route::match(['post', 'put'], '/local/pedidofinal/nombre/{id}', 'Controllers_local\RequestsController@updatePedidoFinalNombre');
           
           Route::put('/local/request/{id}', 'Controllers_local\RequestsController@update');
           Route::delete('/local/request/{id}', 'Controllers_local\RequestsController@remove');

@@ -1,0 +1,20 @@
+# ========================================
+# VARIABLES DE ENTORNO PARA STRIPE
+# Agregar al archivo .env del servidor
+# ========================================
+
+# Stripe API Keys (TEST MODE)
+STRIPE_PUBLIC_KEY=pk_test_51S3BHPFNtapawwcc7NVpsrKSslDEg3vlb1Ff2ypCKfcASOgU7Wnm88OWzHhVaWVg0NK6AAnC3GzXNFWGIUfOhZ2O00iygdnMsT
+STRIPE_SECRET_KEY=sk_test_51S3BHPFNtapawwcciTH5eFkHIc7VIUZp1Vh7KKWlEj71OxLGJrhSggrTXbNy7TIkTdQP4IZwXRdCW13nu06cd55v00ooRfYidR
+
+# Stripe Webhook Secret (generar en dashboard de Stripe)
+# STRIPE_WEBHOOK_SECRET=whsec_tu_webhook_secret_aqui
+
+# ========================================
+# INSTRUCCIONES:
+# 1. Conectarse al servidor: ssh root@posfagotto.cl
+# 2. Abrir el archivo .env: nano /var/www/html/.env (o la ruta donde esté tu proyecto Laravel)
+# 3. Agregar estas líneas al final del archivo
+# 4. Guardar y salir (Ctrl+O, Enter, Ctrl+X)
+# 5. Limpiar cache de config: php artisan config:clear
+# ========================================

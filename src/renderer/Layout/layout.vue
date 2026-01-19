@@ -640,6 +640,14 @@ export default {
             requiresTurno: true
           })
         }
+
+        // Módulo de Recetario
+        menu.push({
+          label: 'Recetario',
+          route: '/inicio/recetario',
+          icon: 'fas fa-book-open',
+          requiresTurno: false
+        });
         
         // 👹 Módulo de Registro de Asistencia
         menu.push({

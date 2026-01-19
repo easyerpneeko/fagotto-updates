@@ -82,6 +82,10 @@ Route::group(['middleware' => ['JwtMiddleware']], function () {
   Route::put('/product/{id}/toggle-trash', 'ProductController@toggleTrash');
   Route::get('/products', 'ProductController@index');
   Route::get('/products/sell', 'ProductController@getProductsOfSell');
+  
+  // Merchise System - Productos y modifiers (NUEVO CONTROLLER)
+  Route::get('/merchise/products', 'MerchiseController@getProducts');
+  Route::get('/merchise/products/{sku}/modifiers', 'MerchiseController@getModifiers');
 
   // Descuentos por Sucursal y Producto
   Route::get('/discounts', 'Controllers_local\ProductDiscountController@index');

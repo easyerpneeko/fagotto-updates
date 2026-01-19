@@ -37,6 +37,11 @@ Route::post('/cobros', 'Controllers_local\PaymentsController@notifyPago');
 Route::post('/cupones/validar', 'CuponController@validar');
 Route::post('/cupones/aplicar', 'CuponController@aplicar');
 
+// Stripe Payment - Procesamiento de pagos
+Route::post('/stripe/create-payment-intent', 'Controllers_local\StripePaymentController@createPaymentIntent');
+Route::post('/stripe/confirm-payment', 'Controllers_local\StripePaymentController@confirmPayment');
+Route::post('/stripe/webhook', 'Controllers_local\StripePaymentController@webhook');
+
 // Metas Locales (acceso público desde web dashboard)
 Route::get('/web/metas-locales', 'MetaLocalController@index');
 Route::post('/web/metas-locales/store', 'MetaLocalController@store');
@@ -98,6 +103,18 @@ Route::group(['middleware' => ['JwtMiddleware']], function () {
   // Ingredientes Globales
   Route::put('/ingredient/{id}', 'GlobalIngredientController@update');
   Route::get('/ingredients', 'GlobalIngredientController@index');
+
+  // Recetas Globales (BD Maestra)
+  Route::get('/recetas', 'RecetaController@index');
+  Route::get('/recetas/{id}', 'RecetaController@show');
+  Route::post('/recetas', 'RecetaController@store');
+  Route::put('/recetas/{id}', 'RecetaController@update');
+  Route::delete('/recetas/{id}', 'RecetaController@destroy');
+  
+  // Asociar recetas a productos (usa app_id del negocio)
+  Route::post('/recetas/{recetaId}/asociar-producto', 'RecetaController@asociarProducto');
+  Route::delete('/recetas/{recetaId}/desasociar-producto/{productId}', 'RecetaController@desasociarProducto');
+  Route::get('/productos/{productId}/receta', 'RecetaController@getRecetaDelProducto');
 
   // Folios
   Route::post('/folios/{id}', 'SIIController@readXML');

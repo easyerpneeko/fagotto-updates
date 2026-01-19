@@ -133,6 +133,19 @@
                     <i class="fas fa-chevron-right"></i>
                   </div>
                 </button>
+                
+                <!-- Botón especial Test -->
+                <button 
+                  @click="openTestMerchise()"
+                  class="category-item-center category-special category-test">
+                  <div class="category-icon">
+                    <i class="fas fa-flask"></i>
+                  </div>
+                  <span class="category-name">Test</span>
+                  <div class="category-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                  </div>
+                </button>
               </div>
             </div>
 
@@ -355,6 +368,7 @@
       @changeValue="changeValue"
       @closeModal="closeModal" />
     <venta-copas @addCopa="handleAddCopa" />
+    <test-merchise ref="testMerchise" :cart="cart" @addMerchise="handleAddMerchise" />
     
     <!-- Modal de métodos de pago -->
     <div v-show="showPaymentModal" :key="`payment-modal-${ticketComponentKey}`" class="payment-modal-overlay" @click="closePaymentModal">
@@ -517,6 +531,7 @@ import cardProductOrders from '@/components/cards/card_product_orders.vue';
 import ticket from '@/components/modals/cafeteria/createTicket.vue';
 import modalVerify from '@/components/modals/verifyDelete.vue';
 import ventaCopas from '@/components/modals/cafeteria/ventaCopas.vue';
+import testMerchise from '@/components/modals/cafeteria/testMerchise.vue';
 
 // Helpers y plugins
 import ConfigHelper from '@/helpers/ConfigHelper.js';
@@ -588,6 +603,7 @@ export default {
     ticket,
     customTable,
     ventaCopas,
+    testMerchise,
   },
   mounted() {
     //HavePermission
@@ -1116,6 +1132,11 @@ export default {
       $('#modalVentaCopas').modal('show');
     },
 
+    // Abrir modal de Test Merchise
+    openTestMerchise() {
+      this.$refs.testMerchise.openModal();
+    },
+
     // Manejar adición de copa desde modal ventaCopas
     handleAddCopa(copaData) {
       console.log('🍦 Datos recibidos de ventaCopas:', copaData);
@@ -1158,6 +1179,46 @@ export default {
       
       // NO cerrar el modal - dejar que ventaCopas.vue lo maneje
       // $('#modalVentaCopas').modal('hide');
+    },
+
+    // Manejar adición de producto merchise desde modal testMerchise
+    handleAddMerchise(merchiseData) {
+      console.log('🍕 Datos recibidos de testMerchise:', merchiseData);
+      
+      // Determinar si es un producto simple o con modifiers
+      const isSimpleProduct = merchiseData.type === 'merchise_product';
+      
+      if (isSimpleProduct) {
+        // Producto simple sin modifiers
+        this.quantityAdd({
+          id: merchiseData.id,
+          name: merchiseData.name,
+          price: parseFloat(merchiseData.price),
+          promo_price: null,
+          quantity: 1,
+          prices: [{ price: parseFloat(merchiseData.price) }],
+          cecina: false,
+          is_merchise: true
+        });
+      } else {
+        // Producto con modifiers personalizados
+        this.quantityAdd({
+          id: merchiseData.id,
+          name: merchiseData.name,
+          price: parseFloat(merchiseData.price),
+          promo_price: null,
+          quantity: 1,
+          prices: [{ price: parseFloat(merchiseData.price) }],
+          cecina: false,
+          is_merchise: true,
+          merchise_details: {
+            base_product: merchiseData.base_product,
+            modifiers: merchiseData.modifiers
+          }
+        });
+      }
+
+      console.log('✅ Producto merchise agregado al carrito');
     },
 
     search(input) {
@@ -1826,7 +1887,17 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
+/* Botón especial Test */
+.category-test {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+}
+
+.category-test:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(245, 87, 108, 0.3) !important;
+}
+</style><style>
 @import '../../../css/catalog-modal.css';
 </style>
 

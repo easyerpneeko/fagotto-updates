@@ -90,8 +90,14 @@
                             <div class="pedido-numero">
                                 <i class="fas fa-hashtag"></i> {{ pedido.id }}
                             </div>
-                            <div class="pedido-status" :class="'status-' + pedido.status">
-                                {{ pedido.status }}
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <div class="pedido-status" :class="'status-' + pedido.status">
+                                    {{ pedido.status }}
+                                </div>
+                                <div v-if="pedido.payment_status" class="payment-badge" :class="'payment-' + pedido.payment_status">
+                                    <i class="fas" :class="pedido.payment_status === 'paid' ? 'fa-check-circle' : pedido.payment_status === 'failed' ? 'fa-times-circle' : 'fa-clock'"></i>
+                                    {{ pedido.payment_status === 'paid' ? 'Pagado' : pedido.payment_status === 'failed' ? 'Pago fallido' : 'Pendiente pago' }}
+                                </div>
                             </div>
                         </div>
                         <div class="historial-card-body">
@@ -142,6 +148,13 @@
                                     <span class="historial-breakdown-value-total">${{ formatNumber(calcularTotalHistorial(pedido)) }}</span>
                                 </div>
                             </div>
+                            
+                            <!-- Botón de pago si está pendiente -->
+                            <div v-if="pedido.payment_status === 'pending' || !pedido.payment_status" class="historial-actions" style="margin-top: 1rem;">
+                                <button @click="pagarPedidoExistente(pedido)" class="btn-pagar-historial" style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                    <i class="fas fa-credit-card"></i> Pagar Ahora - ${{ formatNumber(calcularTotalHistorial(pedido)) }}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -171,6 +184,11 @@
                             <div class="form-group-modern">
                                 <input v-model="name" type="text" placeholder="Tu nombre completo*" class="form-control-modern">
                                 <i class="input-icon fas fa-user"></i>
+                            </div>
+                            <!-- Campo WhatsApp -->
+                            <div class="form-group-modern">
+                                <input v-model="whatsapp" type="text" placeholder="WhatsApp (+56912345678)*" class="form-control-modern" maxlength="12">
+                                <i class="input-icon fab fa-whatsapp"></i>
                             </div>
                             <!-- Método de pago fijo: Efectivo (sin opción de cambiar) -->
                             <div class="form-group-modern" style="display: none;">
@@ -270,9 +288,9 @@
                                 <span class="products-badge">{{ cantidadProductos }}</span>
                             </div>
                             <div class="action-buttons">
-                                <button @click="newRequest" class="btn-modern btn-success-modern" :disabled="waitResponse || totalPedido === 0">
-                                    <i class="fas fa-check-circle"></i>
-                                    {{ waitResponse ? 'Enviando...' : 'Finalizar Pedido' }}
+                                <button @click="abrirModalPago" class="btn-modern btn-success-modern" :disabled="waitResponse || totalPedido === 0">
+                                    <i class="fas fa-credit-card"></i>
+                                    {{ waitResponse ? 'Procesando...' : 'Pagar y Finalizar' }}
                                 </button>
                             </div>
                         </div>
@@ -304,6 +322,116 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Pago con Linkyfi -->
+        <div class="modal fade" id="modalPagoStripe" tabindex="-1" role="dialog" data-backdrop="static">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content" style="border-radius: 15px; overflow: hidden;">
+                    <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+                        <h5 class="modal-title">
+                            <i class="fas fa-credit-card"></i> Procesar Pago
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" :disabled="processingPayment">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" style="padding: 2rem;">
+                        <div v-if="!processingPayment">
+                            <!-- Resumen del pedido -->
+                            <div class="payment-summary" style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+                                <h6 style="margin-bottom: 1rem; color: #495057; font-weight: 700;">
+                                    <i class="fas fa-shopping-cart"></i> Detalle del Pedido
+                                </h6>
+                                
+                                <!-- Lista de productos -->
+                                <div style="max-height: 200px; overflow-y: auto; margin-bottom: 1rem; padding-right: 0.5rem;">
+                                    <div v-if="pedidoAPagar">
+                                        <!-- Productos del pedido existente -->
+                                        <div v-for="(producto, index) in parseProducts(pedidoAPagar.products)" :key="index" 
+                                             style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #dee2e6;">
+                                            <div style="flex: 1;">
+                                                <div style="font-weight: 600; color: #333;">{{ producto.name }}</div>
+                                                <div style="font-size: 0.85rem; color: #6c757d;">{{ producto.quantity }}x ${{ formatNumber(producto.price) }}</div>
+                                            </div>
+                                            <div style="font-weight: 700; color: #667eea;">
+                                                ${{ formatNumber(parseFloat(producto.price) * parseInt(producto.quantity)) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-else>
+                                        <!-- Productos del carrito nuevo -->
+                                        <div v-for="producto in productosCentralizados.filter(p => p.cantidad > 0)" :key="producto.id" 
+                                             style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #dee2e6;">
+                                            <div style="flex: 1;">
+                                                <div style="font-weight: 600; color: #333;">{{ producto.producto }}</div>
+                                                <div style="font-size: 0.85rem; color: #6c757d;">{{ producto.cantidad }}x ${{ formatNumber(producto.precio_por_unidad) }}</div>
+                                            </div>
+                                            <div style="font-weight: 700; color: #667eea;">
+                                                ${{ formatNumber(producto.cantidad * producto.precio_por_unidad) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Totales -->
+                                <div style="border-top: 2px solid #dee2e6; padding-top: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #6c757d;">
+                                        <span>Subtotal ({{ modalCantidadProductos }} productos):</span>
+                                        <span>${{ formatNumber(modalTotalNeto) }}</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #6c757d;">
+                                        <span>IVA (19%):</span>
+                                        <span>${{ formatNumber(modalTotalIVA) }}</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.3rem; color: #667eea; margin-top: 0.75rem;">
+                                        <span>TOTAL A PAGAR:</span>
+                                        <span>${{ formatNumber(modalTotalConIVA) }} CLP</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Datos del cliente -->
+                            <div class="mb-3">
+                                <label style="font-weight: 600; color: #495057; margin-bottom: 0.5rem;">
+                                    <i class="fas fa-user"></i> Nombre
+                                </label>
+                                <input v-model="name" type="text" class="form-control" placeholder="Tu nombre" readonly style="background: #f8f9fa;">
+                            </div>
+
+                            <div class="mb-3">
+                                <label style="font-weight: 600; color: #495057; margin-bottom: 0.5rem;">
+                                    <i class="fab fa-whatsapp"></i> WhatsApp (para confirmación)
+                                </label>
+                                <input v-model="whatsapp" type="text" class="form-control" placeholder="+56912345678" required>
+                            </div>
+
+                            <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; border-left: 4px solid #2196f3; margin-top: 1rem;">
+                                <small style="color: #1976d2;">
+                                    <i class="fas fa-lock"></i> Serás redirigido a Linkyfi para completar tu pago de forma segura.
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Procesando pago -->
+                        <div v-else style="text-align: center; padding: 2rem;">
+                            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="sr-only">Procesando...</span>
+                            </div>
+                            <h5 style="margin-top: 1rem; color: #495057;">Preparando pago...</h5>
+                            <p style="color: #6c757d;">Serás redirigido a la página de pago.</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #dee2e6; padding: 1rem 2rem;" v-if="!processingPayment">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 8px;">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button @click="procesarPago" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 8px; padding: 0.5rem 2rem; font-weight: 600; font-size: 1.05rem;">
+                            <i class="fas fa-dollar-sign"></i> Pagar ${{ formatNumber(modalTotalConIVA) }}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -466,6 +594,8 @@
 <script>
 import Loader from '@/helpers/Loader';
 import FormatNumber from '@/helpers/FormatNumber.js';
+import BaseUrl from '@/helpers/baseUrl';
+import Connection from '@/helpers/Connection';
 import moment from 'moment';
 
 export default {
@@ -499,9 +629,10 @@ export default {
             
             // Formulario
             name: '',
+            whatsapp: '',
             phone: '', // No se usa pero se mantiene para compatibilidad
             comment: '', // No se usa pero se mantiene para compatibilidad
-            paymode: 'Efectivo',
+            paymode: 'Tarjeta', // Cambiado a Tarjeta porque ahora requiere pago
             
             // Datos de negocio
             app: null,
@@ -510,6 +641,13 @@ export default {
             // Control
             submitted: false,
             waitResponse: false,
+            
+            // Pago Stripe
+            showPaymentModal: false,
+            processingPayment: false,
+            url_linkify: 'https://app.linkify.cl/pay/QXyLMKgplXOzBJl/remote/',
+            url_payment: '',
+            pedidoAPagar: null, // Pedido existente que se va a pagar desde historial
             
             // Totales
             totalPedido: 0,
@@ -577,6 +715,35 @@ export default {
         
         totalConIVA() {
             return this.totalNeto + this.totalIVA; // Total final con IVA
+        },
+        
+        // Computed properties para el modal de pago (dinámicas según si es pedido existente o nuevo)
+        modalCantidadProductos() {
+            if (this.pedidoAPagar) {
+                return this.parseProducts(this.pedidoAPagar.products).length;
+            }
+            return this.cantidadProductos;
+        },
+        
+        modalTotalNeto() {
+            if (this.pedidoAPagar) {
+                return this.calcularNetoHistorial(this.pedidoAPagar);
+            }
+            return this.totalNeto;
+        },
+        
+        modalTotalIVA() {
+            if (this.pedidoAPagar) {
+                return this.calcularIVAHistorial(this.pedidoAPagar);
+            }
+            return this.totalIVA;
+        },
+        
+        modalTotalConIVA() {
+            if (this.pedidoAPagar) {
+                return this.calcularTotalHistorial(this.pedidoAPagar);
+            }
+            return this.totalConIVA;
         },
         
         isValidName: {
@@ -802,6 +969,212 @@ export default {
             return true;
         },
         
+        // ========================================
+        // MÉTODOS DE PAGO CON LINKYFI
+        // ========================================
+        
+        abrirModalPago() {
+            if (!this.validar_form()) {
+                return;
+            }
+            
+            this.pedidoAPagar = null; // Limpiar pedido existente
+            
+            // Abrir modal
+            $('#modalPagoStripe').modal('show');
+        },
+        
+        pagarPedidoExistente(pedido) {
+            // Guardar el pedido que se va a pagar
+            this.pedidoAPagar = pedido;
+            
+            // Prellenar datos
+            this.name = pedido.contact_name;
+            this.whatsapp = pedido.whatsapp || pedido.contact_phone || '';
+            
+            // Abrir modal
+            $('#modalPagoStripe').modal('show');
+        },
+        
+        async procesarPago() {
+            if (!this.whatsapp) {
+                this.$awn.alert('Por favor ingresa tu número de WhatsApp para recibir la confirmación');
+                return;
+            }
+            
+            this.processingPayment = true;
+            
+            try {
+                // Verificar si es pedido existente o nuevo
+                if (this.pedidoAPagar) {
+                    // Es un pedido existente, generar URL de pago y abrir Linkyfi
+                    // Usar el ID del request directamente
+                    const requestId = this.pedidoAPagar.payment ? this.pedidoAPagar.payment.id : this.pedidoAPagar.id;
+                    this.url_payment = this.url_linkify + this.app.Id + 'i' + requestId;
+                    
+                    console.log('💳 Abriendo Linkyfi para pedido existente:', this.url_payment);
+                    
+                    // Abrir URL de pago en navegador externo
+                    const { shell } = require('electron');
+                    shell.openExternal(this.url_payment);
+                    
+                    // Enviar mensaje de WhatsApp con detalles del pedido
+                    this.enviarNotificacionWhatsApp(this.pedidoAPagar, this.url_payment);
+                    
+                    // Cerrar modal
+                    $('#modalPagoStripe').modal('hide');
+                    this.$awn.info('Se ha abierto la página de pago y WhatsApp con los detalles.', {
+                        labels: { info: 'PAGO PENDIENTE' }
+                    });
+                } else {
+                    // Es un pedido nuevo, crearlo primero con status_payment='impagado'
+                    const pedidoCreado = await this.crearPedidoSinPago();
+                    
+                    console.log('📦 Pedido creado:', pedidoCreado);
+                    
+                    if (pedidoCreado && pedidoCreado.id) {
+                        // Generar URL de pago usando el ID del request directamente
+                        this.url_payment = this.url_linkify + this.app.Id + 'i' + pedidoCreado.id;
+                        
+                        console.log('💳 Abriendo Linkyfi para pedido nuevo:', this.url_payment);
+                        
+                        // Abrir URL de pago en navegador externo
+                        const { shell } = require('electron');
+                        shell.openExternal(this.url_payment);
+                        
+                        // Enviar mensaje de WhatsApp con detalles del pedido
+                        this.enviarNotificacionWhatsApp(pedidoCreado, this.url_payment);
+                        
+                        // Cerrar modal
+                        $('#modalPagoStripe').modal('hide');
+                        this.$awn.info('Pedido creado. Se ha abierto la página de pago y WhatsApp con los detalles.', {
+                            labels: { info: 'PAGO PENDIENTE' }
+                        });
+                        
+                        // Recargar historial para ver el pedido pendiente
+                        await this.cargarHistorial();
+                        this.mostrarHistorial = true;
+                    } else {
+                        throw new Error('No se pudo crear el pedido correctamente');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('❌ Error procesando pago:', error);
+                this.$awn.alert('Error al procesar el pago: ' + error.message);
+            } finally {
+                this.processingPayment = false;
+                this.pedidoAPagar = null; // Limpiar pedido temporal
+            }
+        },
+        
+        async crearPedidoSinPago() {
+            // Crear pedido con status_payment='impagado' para Linkyfi
+            // Filtrar solo productos con cantidad > 0
+            const productosSeleccionados = this.productosCentralizados
+                .filter(p => p.cantidad > 0)
+                .map(p => ({
+                    id: p.id,
+                    name: p.producto,
+                    quantity: p.cantidad,
+                    price: p.precio_por_unidad,
+                    unidad_medida: p.unidad_medida,
+                    unidad_venta: p.unidad_venta,
+                    vasos: 0
+                }));
+            
+            const data = {
+                contact_name: this.name,
+                contact_phone: this.whatsapp,
+                whatsapp: this.whatsapp,
+                paymode: 'Transferencia',
+                payment_status: 'impagado',
+                status: 'nuevo', // Queda pendiente hasta que se pague
+                products: JSON.stringify(productosSeleccionados),
+                comment: this.comment || 'Pedido pendiente de pago',
+                price: this.totalConIVA,
+                subtotal: this.totalNeto,
+                iva: this.totalIVA,
+                emergency: 0,
+                despacho: 0,
+                app_id: this.app.Id
+            };
+            
+            var formData = new FormData();
+            for (let key in data) {
+                formData.append(key, data[key] !== null && data[key] !== undefined ? data[key] : '');
+            }
+            
+            Loader.fullPage();
+            let request = await this.$store.dispatch('requests/newRequestPedidoFinal', formData);
+            Loader.hide();
+            
+            if (request.success) {
+                console.log('✅ Pedido creado con status_payment=impagado:', request.data);
+                return request.data; // Retornar el pedido con payment.id
+            } else {
+                throw new Error(request.message || 'Error al crear el pedido');
+            }
+        },
+        
+        enviarNotificacionWhatsApp(pedido, urlPago) {
+            // Obtener lista de productos
+            let productosTexto = '';
+            let productos = [];
+            
+            if (pedido && pedido.products) {
+                // Es un pedido existente
+                productos = this.parseProducts(pedido.products);
+            } else {
+                // Es un pedido nuevo
+                productos = this.productosCentralizados.filter(p => p.cantidad > 0);
+            }
+            
+            // Construir lista de productos
+            productos.forEach((prod, index) => {
+                const nombre = prod.name || prod.producto;
+                const cantidad = prod.quantity || prod.cantidad;
+                const precio = prod.price || prod.precio_por_unidad;
+                const subtotal = cantidad * precio;
+                productosTexto += `${index + 1}. ${nombre}\n   ${cantidad}x $${this.formatNumber(precio)} = $${this.formatNumber(subtotal)}\n`;
+            });
+            
+            // Calcular totales
+            const totalNeto = pedido ? this.calcularNetoHistorial(pedido) : this.totalNeto;
+            const totalIVA = pedido ? this.calcularIVAHistorial(pedido) : this.totalIVA;
+            const totalConIVA = pedido ? this.calcularTotalHistorial(pedido) : this.totalConIVA;
+            
+            // Crear mensaje de WhatsApp con detalles completos
+            const mensaje = `🛒 *Nuevo Pedido - ${this.app.Name || 'Fagotto'}*\n\n` +
+                `👤 Cliente: ${this.name}\n` +
+                `📱 Teléfono: ${this.whatsapp}\n` +
+                `📅 Fecha: ${new Date().toLocaleString('es-CL')}\n\n` +
+                `📦 *PRODUCTOS:*\n${productosTexto}\n` +
+                `💰 *RESUMEN:*\n` +
+                `   Subtotal: $${this.formatNumber(totalNeto)}\n` +
+                `   IVA (19%): $${this.formatNumber(totalIVA)}\n` +
+                `   ━━━━━━━━━━━━━━━━\n` +
+                `   *TOTAL: $${this.formatNumber(totalConIVA)} CLP*\n\n` +
+                `🔗 *Link de Pago:*\n${urlPago}\n\n` +
+                `⏳ *Estado:* Pendiente de pago\n\n` +
+                `Por favor, completa el pago para confirmar tu pedido. ¡Gracias! 😊`;
+            
+            const mensajeCodificado = encodeURIComponent(mensaje);
+            const numeroLimpio = this.whatsapp.replace(/[^\d]/g, '');
+            const linkWhatsApp = `https://wa.me/${numeroLimpio}?text=${mensajeCodificado}`;
+            
+            console.log('📱 Enviando WhatsApp con detalles del pedido:', linkWhatsApp);
+            
+            // Abrir WhatsApp en navegador externo
+            const { shell } = require('electron');
+            setTimeout(() => {
+                shell.openExternal(linkWhatsApp);
+            }, 1500);
+        },
+        
+        // ========================================
+        // MÉTODO ORIGINAL (YA NO SE USA DIRECTAMENTE)
+        // ========================================
         async newRequest() {
             this.submitted = true;
             if (!this.validar_form()) {
@@ -1424,6 +1797,54 @@ export default {
 .status-cancelado {
     background: #e74c3c;
     color: white;
+}
+
+/* Badge de estado de pago */
+.payment-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.payment-badge i {
+    font-size: 10px;
+}
+
+.payment-pending {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.payment-paid {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.payment-failed {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Botón de pagar en historial */
+.btn-pagar-historial {
+    transition: all 0.3s ease;
+}
+
+.btn-pagar-historial:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-pagar-historial:active {
+    transform: translateY(0);
 }
 
 .historial-card-body {

@@ -221,6 +221,11 @@ const router = new Router({
           component: require('@/views/stock-por-negocio.vue').default,
           meta: { requiresTurno: false }
         },
+        {
+          path: 'recetario',
+          component: require('@/views/recetario.vue').default,
+          meta: { requiresTurno: false }
+        },
       ]
     },
     // Ruta pública para mobile check-in (NO requiere autenticación)

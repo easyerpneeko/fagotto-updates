@@ -150,6 +150,9 @@ class SellsController extends Controller
     // return response()->json($request, 400);
     $_request = $request->all();
     $_request['fast_sell'] = 0;
+    
+    // ✅ COLACIÓN: Definir database para tabla colaciones_retiros
+    $database2 = Config::get('database.connections.mysql_local.database');
 
     $validaciones = [
       'total' => 'required',
@@ -248,10 +251,11 @@ class SellsController extends Controller
 
     $items = json_decode($_request['products']);
     foreach ($items as $item) {
-      // ✅ FIX MERCHISE: Saltear validación si es producto merchise
+      // ✅ FIX MERCHISE Y COLACIÓN: Saltear validación si es producto merchise o colación
       $is_merchise = isset($item->is_merchise) && $item->is_merchise === true;
+      $is_colacion = isset($item->is_colacion) && $item->is_colacion === true;
       
-      if (!$is_merchise) {
+      if (!$is_merchise && !$is_colacion) {
         $product = Product::find($item->id);
         if (!$product) {
           if (isset($_request['ticket'])) return "Producto no encontrado";
@@ -360,10 +364,11 @@ class SellsController extends Controller
 
     // Creando cada columna en la pivote de cada producto por cada venta
     foreach ($items as $item) {
-      // ✅ FIX MERCHISE: Saltear validación de producto si es merchise
+      // ✅ FIX MERCHISE Y COLACIÓN: Saltear validación de producto si es merchise o colación
       $is_merchise = isset($item->is_merchise) && $item->is_merchise === true;
+      $is_colacion = isset($item->is_colacion) && $item->is_colacion === true;
       
-      if (!$is_merchise) {
+      if (!$is_merchise && !$is_colacion) {
         $product = Product::find($item->id);
         if (!$product) {
           if (isset($_request['ticket'])) return "Producto no encontrado";
@@ -408,6 +413,18 @@ class SellsController extends Controller
         ]);
       }
       
+      // ✅ COLACIÓN: Guardar nombre del producto en description_sii si es colación
+      $is_colacion = isset($item->is_colacion) && $item->is_colacion === true;
+      if ($is_colacion && isset($item->name)) {
+        $newProductSell['description_sii'] = $item->name;
+        $newProductSell['product'] = 0; // ID 0 para colaciones (columna NOT NULL)
+        \Log::info('✅ COLACIÓN - Guardando description_sii:', [
+          'product_id' => $item->id,
+          'name' => $item->name,
+          'empleado' => $item->empleado_retira ?? 'NO SET'
+        ]);
+      }
+      
       \Log::info('🔍 MERCHISE - newProductSell antes de crear:', $newProductSell);
       
       if (CurrentApp::ConfStr('modulos.ventas.ajustes.permitir_ganancia')) {
@@ -419,8 +436,44 @@ class SellsController extends Controller
         else return response()->json("Error del servidor", 500);
       }
       
-      // ✅ FIX MERCHISE: Solo actualizar stock si NO es producto merchise
-      if (!$is_merchise && CurrentApp::ConfStr('modulos.productos.ajustes.permitir_stock')) {
+      // ✅ COLACIÓN: Guardar registro de retiro si es colación
+      $is_colacion = isset($item->is_colacion) && $item->is_colacion === true;
+      if ($is_colacion && isset($item->empleado_retira)) {
+        \Log::info('🍝 INTENTANDO GUARDAR COLACIÓN:', [
+          'database' => $database2,
+          'sell_id' => $sell->id,
+          'product_sell_id' => $created->id,
+          'empleado' => $item->empleado_retira,
+          'pasta' => $item->colacion_details->pasta ?? null,
+          'salsa' => $item->colacion_details->salsa ?? null
+        ]);
+        try {
+          DB::table($database2 . '.colaciones_retiros')->insert([
+            'sell_id' => $sell->id,
+            'product_sell_id' => $created->id,
+            'empleado_nombre' => $item->empleado_retira,
+            'pasta' => $item->colacion_details->pasta ?? null,
+            'salsa' => $item->colacion_details->salsa ?? null,
+            'fecha_retiro' => now()
+          ]);
+          \Log::info('✅✅✅ COLACIÓN GUARDADA EXITOSAMENTE EN DB:', [
+            'empleado' => $item->empleado_retira,
+            'producto' => $item->name,
+            'sell_id' => $sell->id,
+            'tabla' => $database2 . '.colaciones_retiros'
+          ]);
+        } catch (\Exception $e) {
+          \Log::error('❌❌❌ ERROR GUARDANDO COLACIÓN:', [
+            'error' => $e->getMessage(),
+            'empleado' => $item->empleado_retira,
+            'line' => $e->getLine(),
+            'file' => $e->getFile()
+          ]);
+        }
+      }
+      
+      // ✅ FIX MERCHISE Y COLACIÓN: Solo actualizar stock si NO es producto merchise o colación
+      if (!$is_merchise && !$is_colacion && CurrentApp::ConfStr('modulos.productos.ajustes.permitir_stock')) {
         $product->stock = (float) $product->stock - $item->quantity;
         if (!$product->save()) {
           if (isset($_request['ticket'])) return 'Error en la base de datos';
@@ -449,9 +502,29 @@ class SellsController extends Controller
         if (isset($_request['other_type'])) $query['response_folio_other'] = $_request['other_type'];
       }
 
+      // ✅ COLACIÓN: Verificar si todos los productos son colaciones ANTES de imprimir
+      $allColaciones = true;
+      foreach ($items as $item) {
+        if (!isset($item->is_colacion) || $item->is_colacion !== true) {
+          $allColaciones = false;
+          break;
+        }
+      }
+      
+      \Log::info('🍝 COLACIÓN CHECK PDF:', [
+        'allColaciones' => $allColaciones,
+        'total_items' => count($items),
+        'sell_id' => $sell->id
+      ]);
+
       if (CurrentApp::ConfStr('modulos.ventas.submodulos.sii.ajustes.boleta_local') && !isset($_request['type_sell'])) {
-        // impresion de boleta con formato SII (regulacion)
-        $query['response_folio'] = $this->printPDF($request, $sell->id, true, true);
+        // impresion de boleta con formato SII (regulacion) - NO imprimir si son todas colaciones
+        if (!$allColaciones) {
+          \Log::info('📄 IMPRIMIENDO PDF para venta: ' . $sell->id);
+          $query['response_folio'] = $this->printPDF($request, $sell->id, true, true);
+        } else {
+          \Log::info('🚫 NO SE IMPRIME PDF - Son todas colaciones, venta: ' . $sell->id);
+        }
       }
 
       // Variables para controlar impresión y evitar duplicados
@@ -460,7 +533,9 @@ class SellsController extends Controller
 
       if (isset($_request['type_sell'])) {
         if ($_request['type_sell'] == "other" || $_request['type_sell'] == "rappi" || $_request['type_sell'] == "junaeb" || $_request['type_sell'] == "uber" || $_request['type_sell'] == "transferencia" || $_request['type_sell'] == "credito") {
-          $query['response_folio'] = $this->printPDF($request, $sell->id, true, true);
+          if (!$allColaciones) { // Solo imprimir si NO son todas colaciones
+            $query['response_folio'] = $this->printPDF($request, $sell->id, true, true);
+          }
           $requiresSpecialPrint = true;
           $printedMethods[] = $_request['type_sell'];
         }
@@ -472,7 +547,7 @@ class SellsController extends Controller
         
         if (in_array($_request['other_type'], $methodsRequiringDoubleprint)) {
           // Imprimir boleta local para métodos que la requieren
-          if (CurrentApp::ConfStr('modulos.ventas.submodulos.sii.ajustes.boleta_local')) {
+          if (CurrentApp::ConfStr('modulos.ventas.submodulos.sii.ajustes.boleta_local') && !$allColaciones) {
             $query['response_folio'] = $this->printPDF($request, $sell->id, true, true);
           }
           // Marcar que se imprimió un método específico

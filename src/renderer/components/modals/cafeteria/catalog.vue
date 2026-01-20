@@ -134,6 +134,19 @@
                   </div>
                 </button>
                 
+                <!-- Botón Colación -->
+                <button 
+                  @click="openColacion()"
+                  class="category-item-center category-special category-colacion">
+                  <div class="category-icon">
+                    <i class="fas fa-utensils"></i>
+                  </div>
+                  <span class="category-name">Colación</span>
+                  <div class="category-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                  </div>
+                </button>
+                
                 <!-- Botón especial Test -->
                 <button 
                   @click="openTestMerchise()"
@@ -369,6 +382,7 @@
       @closeModal="closeModal" />
     <venta-copas @addCopa="handleAddCopa" />
     <test-merchise ref="testMerchise" :cart="jsonTable" @addMerchise="handleAddMerchise" />
+    <colacion ref="colacion" @addColacion="handleAddColacion" />
     
     <!-- Modal de métodos de pago -->
     <div v-show="showPaymentModal" :key="`payment-modal-${ticketComponentKey}`" class="payment-modal-overlay" @click="closePaymentModal">
@@ -532,6 +546,7 @@ import ticket from '@/components/modals/cafeteria/createTicket.vue';
 import modalVerify from '@/components/modals/verifyDelete.vue';
 import ventaCopas from '@/components/modals/cafeteria/ventaCopas.vue';
 import testMerchise from '@/components/modals/cafeteria/testMerchise.vue';
+import colacion from '@/components/modals/cafeteria/colacion.vue';
 
 // Helpers y plugins
 import ConfigHelper from '@/helpers/ConfigHelper.js';
@@ -604,6 +619,7 @@ export default {
     customTable,
     ventaCopas,
     testMerchise,
+    colacion,
   },
   mounted() {
     //HavePermission
@@ -1161,6 +1177,11 @@ export default {
       this.$refs.testMerchise.openModal();
     },
 
+    // Abrir modal de Colación
+    openColacion() {
+      this.$refs.colacion.openModal();
+    },
+
     // Manejar adición de copa desde modal ventaCopas
     handleAddCopa(copaData) {
       console.log('🍦 Datos recibidos de ventaCopas:', copaData);
@@ -1245,6 +1266,31 @@ export default {
       }
 
       console.log('✅ Producto merchise agregado al carrito');
+    },
+
+    // Manejar adición de colación desde modal colacion
+    handleAddColacion(colacionData) {
+      console.log('🍝 Datos recibidos de colacion:', colacionData);
+      
+      // Agregar colación al carrito con precio $0
+      this.quantityAdd({
+        id: colacionData.id,
+        name: colacionData.name,
+        price: 0, // GRATIS
+        promo_price: null,
+        quantity: 1,
+        prices: [{ precio: 0 }],
+        cecina: false,
+        ganancia: 0,
+        is_colacion: true, // Flag importante
+        empleado_retira: colacionData.empleado_retira,
+        colacion_details: {
+          pasta: colacionData.pasta,
+          salsa: colacionData.salsa
+        }
+      });
+
+      console.log('✅ Colación agregada al carrito para:', colacionData.empleado_retira);
     },
 
     search(input) {
@@ -1950,6 +1996,16 @@ export default {
 .category-test:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(245, 87, 108, 0.3) !important;
+}
+
+/* Botón especial Colación */
+.category-colacion {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important;
+}
+
+.category-colacion:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4) !important;
 }
 </style><style>
 @import '../../../css/catalog-modal.css';

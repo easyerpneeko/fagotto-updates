@@ -29,31 +29,69 @@
                 <div class="spinner"></div>
                 <p>Cargando productos...</p>
               </div>
+
+              <!-- Buscador -->
+              <div v-show="!loading && products.length > 0" class="search-container">
+                <div class="search-box">
+                  <i class="fas fa-search search-icon"></i>
+                  <input 
+                    v-model="searchQuery" 
+                    type="text" 
+                    placeholder="Buscar productos..."
+                    class="search-input"
+                  />
+                  <button 
+                    v-if="searchQuery" 
+                    @click="searchQuery = ''"
+                    class="clear-search">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <div v-if="searchQuery && filteredProducts.length === 0" class="no-results">
+                  <i class="fas fa-search-minus"></i>
+                  <p>No se encontraron productos con "{{ searchQuery }}"</p>
+                </div>
+              </div>
               
               <div v-show="!loading && products.length === 0" class="empty-state">
                 <i class="fas fa-box-open"></i>
                 <p>No hay productos disponibles</p>
               </div>
               
-              <div v-show="!loading && products.length > 0" class="products-grid">
-                <div 
-                  v-for="product in products" 
-                  :key="product.id" 
-                  @click="selectProduct(product)"
-                  class="product-card">
-                  <div v-if="product.image" class="product-image">
-                    <img :src="product.image" :alt="product.name" />
+              <div v-show="!loading && products.length > 0 && filteredProducts.length > 0" class="products-grid">
+                <!-- Agrupar por secciones -->
+                <div v-for="sectionName in sectionNames" :key="sectionName" class="section-group">
+                  <div 
+                    class="section-header" 
+                    :style="{ 
+                      borderColor: getSectionColor(sectionName),
+                      color: getSectionColor(sectionName)
+                    }">
+                    <i :class="getSectionIcon(sectionName)" class="section-icon"></i>
+                    <span class="section-title">{{ sectionName }}</span>
+                    <span class="section-count">({{ productsBySection[sectionName].length }})</span>
                   </div>
-                  <div v-else class="product-icon">
-                    <i class="fas fa-pizza-slice"></i>
-                  </div>
-                  <div class="product-info">
-                    <h5 class="product-name">{{ product.name }}</h5>
-                    <p v-if="product.description" class="product-description">{{ product.description }}</p>
-                    <p class="product-price">${{ formatNumber(product.price) }}</p>
-                  </div>
-                  <div class="product-arrow">
-                    <i class="fas fa-chevron-right"></i>
+                  <div class="section-products">
+                    <div 
+                      v-for="product in productsBySection[sectionName]" 
+                      :key="product.id" 
+                      @click="selectProduct(product)"
+                      class="product-card">
+                      <div v-if="product.image" class="product-image">
+                        <img :src="product.image" :alt="product.name" />
+                      </div>
+                      <div v-else class="product-icon">
+                        <i class="fas fa-pizza-slice"></i>
+                      </div>
+                      <div class="product-info">
+                        <h5 class="product-name">{{ product.name }}</h5>
+                        <p v-if="product.description" class="product-description">{{ product.description }}</p>
+                        <p class="product-price">${{ formatNumber(product.price) }}</p>
+                      </div>
+                      <div class="product-arrow">
+                        <i class="fas fa-chevron-right"></i>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -86,7 +124,7 @@
               </div>
 
               <div v-else class="modifiers-container">
-                <div v-for="modifier in modifiers" :key="modifier.id" class="modifier-group">
+                <div v-for="modifier in modifiers" :key="modifier.id + '-' + reactivityKey" class="modifier-group">
                   <div class="modifier-header">
                     <h5 class="modifier-name">
                       {{ modifier.name }}
@@ -106,17 +144,45 @@
                     <div 
                       v-for="option in modifier.options" 
                       :key="option.id"
-                      @click="toggleOption(modifier, option)"
-                      :class="['option-item', { 'selected': isOptionSelected(modifier.id, option.id) }]">
-                      <div class="option-check">
-                        <i :class="[
-                          'fas', 
-                          isOptionSelected(modifier.id, option.id) ? 'fa-check-circle' : 'fa-circle'
-                        ]"></i>
+                      :class="['option-item', { 'selected': getOptionQuantity(modifier.id, option.id) > 0 }]">
+                      <div class="option-content" @click="toggleOption(modifier, option)">
+                        <div class="option-check">
+                          <i :class="[
+                            'fas', 
+                            getOptionQuantity(modifier.id, option.id) > 0 ? 'fa-check-circle' : 'fa-circle'
+                          ]"></i>
+                          <span v-if="getOptionQuantity(modifier.id, option.id) > 1" class="qty-badge">
+                            x{{ getOptionQuantity(modifier.id, option.id) }}
+                          </span>
+                        </div>
+                        <div class="option-info">
+                          <span class="option-name">
+                            {{ option.name }}
+                            <span v-if="getOptionQuantity(modifier.id, option.id) > 1" class="qty-inline">
+                              (x{{ getOptionQuantity(modifier.id, option.id) }})
+                            </span>
+                          </span>
+                          <span v-if="option.price > 0" class="option-price">+${{ formatNumber(option.price) }}</span>
+                        </div>
                       </div>
-                      <div class="option-content">
-                        <span class="option-name">{{ option.name }}</span>
-                        <span v-if="option.price > 0" class="option-price">+${{ formatNumber(option.price) }}</span>
+                      
+                      <!-- Selector de cantidad solo para max_selections > 1 -->
+                      <div 
+                        v-if="modifier.max_selections > 1 && getOptionQuantity(modifier.id, option.id) > 0" 
+                        class="quantity-selector">
+                        <button 
+                          @click.stop="decreaseQuantity(modifier, option)" 
+                          class="btn-qty"
+                          :disabled="getOptionQuantity(modifier.id, option.id) <= 1">
+                          <i class="fas fa-minus"></i>
+                        </button>
+                        <span class="qty-value">{{ getOptionQuantity(modifier.id, option.id) }}</span>
+                        <button 
+                          @click.stop="increaseQuantity(modifier, option)" 
+                          class="btn-qty"
+                          :disabled="getTotalSelections(modifier.id) >= modifier.max_selections">
+                          <i class="fas fa-plus"></i>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -163,8 +229,83 @@ export default {
       selectedProduct: null,
       showModifiers: false,
       modifiers: [],
-      selectedOptions: {}
+      selectedOptions: {}, // { modifierId: { optionId: quantity } }
+      reactivityKey: 0,
+      searchQuery: ''
     };
+  },
+  computed: {
+    // Filtrar productos por búsqueda
+    filteredProducts() {
+      if (!this.searchQuery) {
+        return this.products;
+      }
+      const query = this.searchQuery.toLowerCase();
+      return this.products.filter(product => {
+        return product.name.toLowerCase().includes(query) ||
+               (product.description && product.description.toLowerCase().includes(query));
+      });
+    },
+    // Agrupar productos por sección
+    productsBySection() {
+      const grouped = {};
+      this.filteredProducts.forEach(product => {
+        // Intentar obtener section_name, si no existe, mapear por section_id
+        let sectionName = product.section_name;
+        
+        if (!sectionName) {
+          // Fallback: mapear por section_id
+          const sectionMap = {
+            1: 'Pasta',
+            2: 'Combos',
+            3: 'Para compartir',
+            4: 'Sandwichis',
+            5: 'Family Party'
+          };
+          sectionName = sectionMap[product.section_id] || 'Sin categoría';
+        }
+        
+        if (!grouped[sectionName]) {
+          grouped[sectionName] = [];
+        }
+        grouped[sectionName].push(product);
+      });
+      return grouped;
+    },
+    // Obtener nombres de secciones ordenadas
+    sectionNames() {
+      return Object.keys(this.productsBySection).sort((a, b) => {
+        // Orden personalizado
+        const order = ['Pasta', 'Combos', 'Para compartir', 'Sandwichis', 'Family Party'];
+        return order.indexOf(a) - order.indexOf(b);
+      });
+    },
+    // Obtener icono según categoría
+    getSectionIcon() {
+      return (sectionName) => {
+        const icons = {
+          'Pasta': 'fas fa-pizza-slice',
+          'Combos': 'fas fa-box',
+          'Para compartir': 'fas fa-users',
+          'Sandwichis': 'fas fa-bread-slice',
+          'Family Party': 'fas fa-gift'
+        };
+        return icons[sectionName] || 'fas fa-utensils';
+      };
+    },
+    // Obtener color según categoría
+    getSectionColor() {
+      return (sectionName) => {
+        const colors = {
+          'Pasta': '#667eea',
+          'Combos': '#f093fb',
+          'Para compartir': '#4facfe',
+          'Sandwichis': '#fa709a',
+          'Family Party': '#feca57'
+        };
+        return colors[sectionName] || '#667eea';
+      };
+    }
   },
   methods: {
     formatNumber(value) {
@@ -178,7 +319,8 @@ export default {
       console.log('📦 Estado después de cargar:', {
         loading: this.loading,
         productsLength: this.products.length,
-        selectedProduct: this.selectedProduct
+        selectedProduct: this.selectedProduct,
+        firstProduct: this.products[0]
       });
     },
 
@@ -248,10 +390,10 @@ export default {
           this.modifiers = response.data.data;
           console.log('✅ Modifiers cargados:', this.modifiers);
           
-          // Inicializar selectedOptions
+          // Inicializar selectedOptions con estructura de cantidad
           this.selectedOptions = {};
           this.modifiers.forEach(modifier => {
-            this.selectedOptions[modifier.id] = [];
+            this.selectedOptions[modifier.id] = {}; // { optionId: quantity }
           });
         }
       } catch (error) {
@@ -267,53 +409,135 @@ export default {
     },
 
     toggleOption(modifier, option) {
+      console.log('🔄 toggleOption llamado:', { modifier: modifier.name, option: option.name });
+      
       const modifierId = modifier.id;
       const optionId = option.id;
       
       if (!this.selectedOptions[modifierId]) {
-        this.selectedOptions[modifierId] = [];
+        this.$set(this.selectedOptions, modifierId, {});
       }
 
-      const currentSelections = this.selectedOptions[modifierId];
-      const isSelected = currentSelections.find(o => o.id === optionId);
+      const currentQty = this.selectedOptions[modifierId][optionId] || 0;
+      console.log('📊 Current qty:', currentQty);
 
-      if (isSelected) {
-        // Deseleccionar
-        this.selectedOptions[modifierId] = currentSelections.filter(o => o.id !== optionId);
-      } else {
-        // Verificar max_selections
-        if (currentSelections.length >= modifier.max_selections) {
-          if (modifier.max_selections === 1) {
-            // Comportamiento radio: reemplazar
-            this.selectedOptions[modifierId] = [option];
+      if (currentQty > 0) {
+        // Si max_selections > 1, incrementar en vez de deseleccionar
+        if (modifier.max_selections > 1) {
+          const totalSelections = this.getTotalSelections(modifierId);
+          const canIncrease = totalSelections < modifier.max_selections;
+          
+          if (canIncrease) {
+            // Incrementar la cantidad de esta misma opción
+            this.$set(this.selectedOptions[modifierId], optionId, currentQty + 1);
+            this.reactivityKey++; // Forzar reactividad
+            console.log('➕ Incrementado a:', currentQty + 1);
           } else {
             if (this.$parent.$awn) {
-              this.$parent.$awn.warning(`Solo puedes seleccionar ${modifier.max_selections} opciones`);
+              this.$parent.$awn.warning(`Ya alcanzaste el máximo de ${modifier.max_selections} selecciones`);
             }
+            console.log('⚠️ Máximo alcanzado, no se puede incrementar más');
+          }
+        } else {
+          // Para max_selections = 1, deseleccionar
+          this.$set(this.selectedOptions[modifierId], optionId, 0);
+          this.reactivityKey++; // Forzar reactividad
+          console.log('❌ Deseleccionado');
+        }
+      } else {
+        // Seleccionar con cantidad 1
+        const totalSelections = this.getTotalSelections(modifierId);
+        console.log('📈 Total selections:', totalSelections, 'max:', modifier.max_selections);
+        
+        if (totalSelections >= modifier.max_selections) {
+          if (modifier.max_selections === 1) {
+            // Comportamiento radio: limpiar todas las opciones primero
+            Object.keys(this.selectedOptions[modifierId]).forEach(key => {
+              this.$set(this.selectedOptions[modifierId], key, 0);
+            });
+            // Luego seleccionar esta
+            this.$set(this.selectedOptions[modifierId], optionId, 1);
+            this.reactivityKey++; // Forzar reactividad
+            console.log('✅ Seleccionado (radio mode)');
+          } else {
+            if (this.$parent.$awn) {
+              this.$parent.$awn.warning(`Ya alcanzaste el máximo de ${modifier.max_selections} selecciones`);
+            }
+            console.log('⚠️ Máximo alcanzado');
             return;
           }
         } else {
-          // Agregar
-          this.selectedOptions[modifierId].push(option);
+          // Agregar con cantidad 1
+          this.$set(this.selectedOptions[modifierId], optionId, 1);
+          this.reactivityKey++; // Forzar reactividad
+          console.log('✅ Seleccionado con cantidad 1');
         }
       }
+      
+      console.log('🔍 Selected options:', JSON.stringify(this.selectedOptions));
+    },
 
-      // Force update
-      this.$forceUpdate();
+    increaseQuantity(modifier, option) {
+      const modifierId = modifier.id;
+      const optionId = option.id;
+      const currentQty = this.selectedOptions[modifierId][optionId] || 0;
+      const totalSelections = this.getTotalSelections(modifierId);
+      
+      if (totalSelections >= modifier.max_selections) {
+        if (this.$parent.$awn) {
+          this.$parent.$awn.warning(`Máximo ${modifier.max_selections} selecciones`);
+        }
+        return;
+      }
+      
+      this.$set(this.selectedOptions[modifierId], optionId, currentQty + 1);
+      this.reactivityKey++; // Forzar reactividad
+    },
+
+    decreaseQuantity(modifier, option) {
+      const modifierId = modifier.id;
+      const optionId = option.id;
+      const currentQty = this.selectedOptions[modifierId][optionId] || 0;
+      
+      if (currentQty > 1) {
+        this.$set(this.selectedOptions[modifierId], optionId, currentQty - 1);
+      } else {
+        this.$set(this.selectedOptions[modifierId], optionId, 0);
+      }
+      this.reactivityKey++; // Forzar reactividad
+    },
+
+    getOptionQuantity(modifierId, optionId) {
+      if (!this.selectedOptions[modifierId]) return 0;
+      return this.selectedOptions[modifierId][optionId] || 0;
+    },
+
+    getTotalSelections(modifierId) {
+      if (!this.selectedOptions[modifierId]) return 0;
+      return Object.values(this.selectedOptions[modifierId]).reduce((sum, qty) => sum + qty, 0);
     },
 
     isOptionSelected(modifierId, optionId) {
-      if (!this.selectedOptions[modifierId]) return false;
-      return this.selectedOptions[modifierId].some(o => o.id === optionId);
+      return this.getOptionQuantity(modifierId, optionId) > 0;
     },
 
     calculateTotal() {
       let total = parseFloat(this.selectedProduct.price);
       
+      // Recorrer cada modifier y sumar precio * cantidad
       for (let modifierId in this.selectedOptions) {
-        this.selectedOptions[modifierId].forEach(option => {
-          total += parseFloat(option.price);
-        });
+        const modifier = this.modifiers.find(m => m.id == modifierId);
+        if (!modifier) continue;
+        
+        for (let optionId in this.selectedOptions[modifierId]) {
+          const quantity = this.selectedOptions[modifierId][optionId];
+          if (quantity > 0) {
+            const option = modifier.options.find(o => o.id == optionId);
+            if (option) {
+              total += parseFloat(option.price) * quantity;
+            }
+          }
+        }
       }
       
       return total;
@@ -323,11 +547,12 @@ export default {
       console.log('🛒 Agregando producto merchise sin modifiers:', this.selectedProduct);
       
       const productData = {
-        id: this.selectedProduct.id,
+        id: Date.now().toString(), // ID simple con timestamp
         name: this.selectedProduct.name,
         price: parseFloat(this.selectedProduct.price),
         quantity: 1,
         type: 'merchise_product',
+        sku: this.selectedProduct.id, // Guardar SKU original
         description: this.selectedProduct.description || ''
       };
       
@@ -346,8 +571,8 @@ export default {
       // Validar modifiers requeridos
       for (let modifier of this.modifiers) {
         if (modifier.required) {
-          const selections = this.selectedOptions[modifier.id] || [];
-          if (selections.length < modifier.min_selections) {
+          const totalSelections = this.getTotalSelections(modifier.id);
+          if (totalSelections < modifier.min_selections) {
             if (this.$parent.$awn) {
               this.$parent.$awn.warning(`Debes seleccionar al menos ${modifier.min_selections} opción(es) en "${modifier.name}"`);
             }
@@ -366,9 +591,26 @@ export default {
       const modifierNames = [];
       
       for (let modifierId in this.selectedOptions) {
-        const selections = this.selectedOptions[modifierId];
-        if (selections.length > 0) {
-          modifierNames.push(selections.map(s => s.name).join(', '));
+        const modifier = this.modifiers.find(m => m.id == modifierId);
+        if (!modifier) continue;
+        
+        const optionNames = [];
+        for (let optionId in this.selectedOptions[modifierId]) {
+          const quantity = this.selectedOptions[modifierId][optionId];
+          if (quantity > 0) {
+            const option = modifier.options.find(o => o.id == optionId);
+            if (option) {
+              if (quantity > 1) {
+                optionNames.push(`${option.name} x${quantity}`);
+              } else {
+                optionNames.push(option.name);
+              }
+            }
+          }
+        }
+        
+        if (optionNames.length > 0) {
+          modifierNames.push(optionNames.join(', '));
         }
       }
       
@@ -378,11 +620,12 @@ export default {
 
       // Construir producto con modifiers
       const productData = {
-        id: `${this.selectedProduct.id}_${Date.now()}`,
+        id: Date.now().toString(), // ID simple con timestamp
         name: fullName,
         price: parseFloat(totalPrice),
         quantity: 1,
         type: 'merchise_custom',
+        sku: this.selectedProduct.id, // Guardar SKU original aquí
         base_product: {
           id: this.selectedProduct.id,
           name: this.selectedProduct.name,
@@ -485,17 +728,121 @@ export default {
 
 /* Body */
 .test-body {
-  padding: 20px 30px 100px 30px;
-  min-height: 500px;
-  max-height: 70vh;
-  overflow-y: auto;
+  padding: 20px 30px 150px 30px;
+  min-height: 400px;
+  max-height: 65vh;
+  overflow-y: scroll !important;
   background: #f8f9fa;
+}
+
+/* Scrollbar personalizado */
+.test-body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.test-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.test-body::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.test-body::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 /* Products View */
 .products-view {
   width: 100%;
   height: 100%;
+}
+
+/* Search Container */
+.search-container {
+  margin-bottom: 25px;
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.search-box:focus-within {
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  border-color: #667eea;
+  transform: translateY(-2px);
+}
+
+.search-icon {
+  position: absolute;
+  left: 18px;
+  color: #667eea;
+  font-size: 18px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.search-input {
+  width: 100%;
+  padding: 15px 50px 15px 50px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  background: transparent;
+  outline: none;
+  color: #333;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.clear-search {
+  position: absolute;
+  right: 15px;
+  background: #f0f0f0;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #666;
+}
+
+.clear-search:hover {
+  background: #667eea;
+  color: white;
+  transform: rotate(90deg);
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.no-results i {
+  font-size: 48px;
+  margin-bottom: 15px;
+  color: #ddd;
+}
+
+.no-results p {
+  font-size: 16px;
+  margin: 0;
 }
 
 /* Loading State */
@@ -536,9 +883,69 @@ export default {
 
 /* Products Grid */
 .products-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Section Group */
+.section-group {
+  width: 100%;
+  margin-bottom: 40px;
+}
+
+.section-header {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  padding: 15px 20px;
+  border-left: 5px solid;
+  background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+
+.section-header:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.section-icon {
+  font-size: 26px;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.8);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.section-title {
+  flex: 1;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.section-count {
+  font-size: 16px;
+  font-weight: 600;
+  opacity: 0.7;
+  background: rgba(255,255,255,0.6);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.section-products {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 15px;
+  margin-bottom: 20px;
 }
 
 .product-card {
@@ -738,11 +1145,11 @@ export default {
 .option-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   padding: 12px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
-  cursor: pointer;
   transition: all 0.3s ease;
 }
 
@@ -756,16 +1163,47 @@ export default {
   background: #f0f3ff;
 }
 
+.option-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
 .option-check {
   font-size: 20px;
   color: #ccc;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.qty-badge {
+  background: #667eea;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  position: absolute;
+  top: -8px;
+  right: -12px;
+}
+
+.qty-inline {
+  color: #667eea;
+  font-weight: 700;
+  font-size: 14px;
+  margin-left: 5px;
 }
 
 .option-item.selected .option-check {
   color: #667eea;
 }
 
-.option-content {
+.option-info {
   flex: 1;
   display: flex;
   justify-content: space-between;
@@ -786,6 +1224,50 @@ export default {
   color: #666;
   font-weight: 600;
   font-size: 14px;
+}
+
+/* Quantity Selector */
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f5f5f5;
+  padding: 5px 10px;
+  border-radius: 8px;
+}
+
+.btn-qty {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: #667eea;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 12px;
+}
+
+.btn-qty:hover:not(:disabled) {
+  background: #5568d3;
+  transform: scale(1.05);
+}
+
+.btn-qty:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.qty-value {
+  min-width: 25px;
+  text-align: center;
+  font-weight: 600;
+  color: #667eea;
+  font-size: 16px;
 }
 
 /* Footer */

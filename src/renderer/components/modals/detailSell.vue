@@ -541,9 +541,12 @@ export default {
       }
     },
     dataDetail(value) {
+      console.log('🔍 detailSell - dataDetail recibido:', value);
+      console.log('🔍 detailSell - products:', value.products);
       this.jsonTable.items = value.products;
       if (value.products) {
         for (var i = 0; i < this.jsonTable.items.length; i++) {
+          console.log('🔍 detailSell - producto ' + i + ':', this.jsonTable.items[i]);
           var subtotal = this.jsonTable.items[i].unitary_price * this.jsonTable.items[i].quantity;
           this.jsonTable.items[i].totalPrice = subtotal.toString();
         }

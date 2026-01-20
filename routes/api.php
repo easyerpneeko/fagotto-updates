@@ -638,6 +638,9 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           // Pedido Final - Sistema nuevo con precios centralizados
           Route::post('/local/request/pedido-final', 'Controllers_local\RequestsController@storePedidoFinal');
           
+          // Envío de WhatsApp via Twilio
+          Route::post('/local/send-whatsapp', 'Controllers_local\WhatsAppController@sendWhatsApp');
+          
           //Facturar Pedido
           Route::post('/web/pedido/facturar', 'Controllers_local\RequestsController@facturarPedido'); 
           //Cancelar Factura (Nota de Crédito) - WEB

@@ -368,7 +368,7 @@
       @changeValue="changeValue"
       @closeModal="closeModal" />
     <venta-copas @addCopa="handleAddCopa" />
-    <test-merchise ref="testMerchise" :cart="cart" @addMerchise="handleAddMerchise" />
+    <test-merchise ref="testMerchise" :cart="jsonTable" @addMerchise="handleAddMerchise" />
     
     <!-- Modal de métodos de pago -->
     <div v-show="showPaymentModal" :key="`payment-modal-${ticketComponentKey}`" class="payment-modal-overlay" @click="closePaymentModal">
@@ -735,11 +735,21 @@ export default {
       }
 
       // Datos basicos
+      console.log('🔍 ANTES DE ASIGNAR ticketData:');
+      console.log('🔍 this.total:', this.total);
+      console.log('🔍 this.productoSend:', this.productoSend);
+      console.log('🔍 this.gananciaTotal:', this.gananciaTotal);
+      
       this.ticketData = {
         products: this.productoSend,
         total: this.total,
         gananciaTotal: this.gananciaTotal
       }
+      
+      console.log('🔍 ticketData CONSTRUIDO:', this.ticketData);
+      console.log('🔍 ticketData.total:', this.ticketData.total);
+      console.log('🔍 ticketData.products:', this.ticketData.products);
+      console.log('🔍 ticketData completo:', JSON.stringify(this.ticketData, null, 2));
       
       // Si es el método de pago especial con 20%, agregar información extra para reportes
       if (val === 'banco_chile_20') {
@@ -820,7 +830,21 @@ export default {
 
       console.log('SEARCH ticketData', this.ticketData);
 
-      if (this.board && this.board.waiter && this.board.waiter.id) {
+      // Verificar si todos los productos son de merchise (venta directa sin mesa)
+      const todosProductosMerchise = this.productoSend.every(p => p.is_merchise === true);
+      
+      console.log('🔍 Verificando tipo de venta:');
+      console.log('🔍 todosProductosMerchise:', todosProductosMerchise);
+      console.log('🔍 this.board:', this.board);
+      console.log('🔍 this.onlyWaiter:', this.onlyWaiter);
+
+      if (todosProductosMerchise) {
+        // Venta directa de merchise - sin mesa
+        this.ticketData.board_id = null;
+        // Usar mesero si está disponible, sino null (venta directa)
+        this.ticketData.waiter_id = this.onlyWaiter || null;
+        console.log('✅ Venta merchise: board_id=null, waiter_id=' + this.ticketData.waiter_id);
+      } else if (this.board && this.board.waiter && this.board.waiter.id) {
         // Si hay una mesa seleccionada y un mesero en dicha mesa
         this.ticketData.board_id = this.board.id;
         this.ticketData.waiter_id = this.board.waiter.id;
@@ -1196,8 +1220,9 @@ export default {
           price: parseFloat(merchiseData.price),
           promo_price: null,
           quantity: 1,
-          prices: [{ price: parseFloat(merchiseData.price) }],
+          prices: [{ precio: parseFloat(merchiseData.price) }],
           cecina: false,
+          ganancia: 0,
           is_merchise: true
         });
       } else {
@@ -1208,8 +1233,9 @@ export default {
           price: parseFloat(merchiseData.price),
           promo_price: null,
           quantity: 1,
-          prices: [{ price: parseFloat(merchiseData.price) }],
+          prices: [{ precio: parseFloat(merchiseData.price) }],
           cecina: false,
+          ganancia: 0,
           is_merchise: true,
           merchise_details: {
             base_product: merchiseData.base_product,
@@ -1268,6 +1294,9 @@ export default {
 
     //Agregar producto
     addProductQuantity(i, data) {
+      console.log('🔍 addProductQuantity - data recibido:', data);
+      console.log('🔍 data.price:', data.price, 'data.quantity:', data.quantity);
+      
       // El subtotal es la cantidad actual por el nuevo precio que le envio (#subtotal)
       if(this.promo_active){
         data.subtotal = parseFloat(data.quantity) * parseFloat(data.promo_price);
@@ -1276,6 +1305,9 @@ export default {
       }else{
         data.subtotal = parseFloat(data.quantity) * parseFloat(data.price);
       }
+      
+      console.log('🔍 después de calcular subtotal:', data.subtotal);
+      
       // Si la ganancia esta instalada, agrego la ganancia ✅
       if (this.gananciaInstalled) {
         if (!data.ganancia) data.ganancia = 0; //Esto antes era (this.gananciaInstalled && data.ganancia); pero creo asi es mas correcto -feredev
@@ -1283,8 +1315,13 @@ export default {
       }
       this.productoSend.push(data);
       this.jsonTable.items = this.productoSend;
+      
+      console.log('🔍 antes de calculatePlus, productoSend[i]:', this.productoSend[i]);
+      
       // Ejecuto #calculatePlus ✅
       this.calculatePlus(i, data, (this.priceUnitaryInstalled) ? true : false);
+      
+      console.log('🔍 después de calculatePlus, productoSend[i]:', this.productoSend[i]);
     },
 
     quantityAdd(data) { //#fere-warp1
@@ -1462,8 +1499,20 @@ export default {
 
     // Calculate plus //#fere-warp1
     calculatePlus(index, data, unitary_price = false) {
+      console.log('🔍 calculatePlus INICIO - index:', index, 'data:', data);
+      
       // Obtengo el producto
       var productActual = Object.assign({}, this.products.find(element => element.id == data.id));
+      
+      console.log('🔍 productActual encontrado:', productActual);
+      
+      // Si el producto no existe en this.products (ej: productos merchise), usar productoSend directamente
+      if (!productActual || !productActual.id) {
+        console.log('⚠️ Producto no encontrado en this.products, usando productoSend[index]');
+        productActual = Object.assign({}, this.productoSend[index]);
+        console.log('🔍 productActual después de fallback:', productActual);
+      }
+      
       console.log(this.promo_active);
       
       if(this.promo_active){
@@ -1546,6 +1595,8 @@ export default {
         }
         // <FINALIZACION DE RECORRIDO DE LOS PRECIOS VARIANTES>
       } else { // No recorro los precios variantes si no que uso un solo precio...
+        console.log('🔍 Sin precios variantes - productActual.price:', productActual.price, 'productActual.ganancia:', productActual.ganancia);
+        
         if(this.promo_active){
           this.addGainSubTotalVariantPrice(index, data.cecina, productActual.promo_price, cantidad, productActual.ganancia);
         }else{
@@ -1566,12 +1617,14 @@ export default {
     },
     calculateTotal() {
       console.log("calculandoo totalll");
+      console.log("🔍 productoSend completo:", this.productoSend);
       this.total = 0;
       this.gananciaTotal = 0;
       for (var i = 0; i < this.productoSend.length; i++) {
         var price = 0;
         var ganancia = 0;
         price = this.productoSend[i].subtotal;
+        console.log(`🔍 Producto ${i}: subtotal = ${this.productoSend[i].subtotal}, price = ${price}`);
         this.total = parseFloat(this.total) + parseFloat(price);
 
         if (this.gananciaInstalled) {
@@ -1579,6 +1632,7 @@ export default {
           this.gananciaTotal = this.gananciaTotal + parseFloat(ganancia);
         }
       }
+      console.log(`🔍 Total final calculado: ${this.total}`);
     },
 
     FunctionBlurInputEditable(prod) {

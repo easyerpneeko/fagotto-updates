@@ -623,6 +623,9 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::post('/local/request', 'Controllers_local\RequestsController@store');
           Route::post('/local/request/pedido-final', 'Controllers_local\RequestsController@storePedidoFinal');
           
+          // Envío de WhatsApp via Twilio
+          Route::post('/local/send-whatsapp', 'Controllers_local\WhatsAppController@sendWhatsApp');
+          
           // Reportes e historial de pedido final
           Route::get('/local/pedidofinal/historial', 'Controllers_local\RequestsController@getHistorialPedidos');
           Route::get('/local/pedidofinal/reporte-productos', 'Controllers_local\RequestsController@getReporteProductos');

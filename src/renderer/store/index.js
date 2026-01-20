@@ -13,6 +13,8 @@ import reports from './reports';
 import expenses from './expenses';
 //Pedidos
 import requests from './requests';
+//Notificaciones (WhatsApp via Twilio)
+import notifications from './notifications';
 //Operaciones
 import operations from './operations';
 //Devoluciones
@@ -44,6 +46,7 @@ export default new Vuex.Store({
     reports,
     expenses,
     requests,
+    notifications,
     operations,
     devolutions,
     arqueo,

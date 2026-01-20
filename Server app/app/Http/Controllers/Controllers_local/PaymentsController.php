@@ -19,7 +19,7 @@ class PaymentsController extends Controller
     function checkHash()
     {
         $verification_hash = $_SERVER["HTTP_X_LINKIFY_CONFIRMATION"];
-        $secret = "K85NAo1F7ZAjiJOAbmKyDTDkV3tzYmOJTWRDR0OBX7CMPZh8eYu2p6oWEPtq1YDT";
+        $secret = "7caHQN5rWdNVyhPm6dO1OUBZzYuVdu4ocTZjqFQOBYEpst1RlZVTgGPAI7VG7isM";
 
         switch ($_SERVER["REQUEST_METHOD"]) {
             case "GET":

@@ -403,7 +403,7 @@ export default {
             review: '',
             // transaccion: '',
             voucherFile: null,
-            url_linkify: 'https://app.linkify.cl/pay/QXyLMKgplXOzBJl/remote/',
+            url_linkify: 'https://app.linkify.cl/pay/0GEVx3vk2gmqe9r/remote/',
             url_payment: '',
             totalPrice: 0,
             date: moment().format('YYYY-MM-DD HH:mm:ss'),

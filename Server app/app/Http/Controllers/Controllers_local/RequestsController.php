@@ -275,12 +275,26 @@ class RequestsController extends Controller
                 }
             }
             
+            // Crear registro de Payment para Linkify
+            $newPayment = new Payment();
+            $newPayment->amount = $validatedData['price'] ?? 0;
+            $newPayment->description = 'Monto a cancelar para el pedido # ' . $newRequest->id;
+            $newPayment->currency = 'CLP';
+            $newPayment->contact = null;
+            $newPayment->extra_data = null;
+            $newPayment->transfers = null;
+            $newPayment->request_id = $newRequest->id;
+            $newPayment->save();
+            
+            // Cargar la relación payment en el request
+            $newRequest->load('payment');
+            
             DB::commit();
             
             return response()->json([
                 'success' => true,
                 'message' => 'Pedido Final creado con éxito',
-                'id' => $newRequest->id
+                'data' => $newRequest  // Retornar el pedido completo con payment
             ], 201);
             
         } catch (\Exception $e) {

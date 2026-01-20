@@ -4,8 +4,23 @@ import BaseUrl from '../../helpers/baseUrl.js';
 export async function newTicket(context, data) {
   let url = BaseUrl.getUrl('api/local/ticket');
   console.log("ticket before send: ",data)
+  
+  // 🔍 DEBUG: Ver contenido completo del FormData
+  console.log('🔍 FORMDATA COMPLETO:');
+  for (let pair of data.entries()) {
+    console.log('  ' + pair[0] + ': ' + pair[1]);
+  }
+  
   const request = await Connection.request('post', url, data);
   console.log("ticket data:",request)
+  
+  // 🔍 DEBUG: Si hay error, mostrar detalles
+  if (!request.success) {
+    console.error('❌ Error al crear ticket:', JSON.stringify(request, null, 2));
+    console.error('❌ Status:', request.status);
+    console.error('❌ Data:', JSON.stringify(request.data, null, 2));
+  }
+  
   return request;
 }
 export async function editTicket(context, data) {

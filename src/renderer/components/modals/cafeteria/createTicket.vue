@@ -115,10 +115,21 @@ export default {
         products: JSON.stringify(productsForBackend),
         total: this.deFormatNumber(this.value.total, false),
         gananciaTotal: (this.gananciaInstalled) ? this.deFormatNumber(this.value.gananciaTotal,false) : 0,
-        waiter_id: this.value.waiter_id,
-        board_id: this.value.board_id,
         paymode: this.type_sell
       };
+
+      // ✅ Para ventas merchise sin mesa: enviar 0 en vez de null
+      if (this.value.waiter_id !== null && this.value.waiter_id !== undefined) {
+        data.waiter_id = this.value.waiter_id;
+      } else {
+        data.waiter_id = 0; // Venta directa sin mesero
+      }
+      
+      if (this.value.board_id !== null && this.value.board_id !== undefined) {
+        data.board_id = this.value.board_id;
+      } else {
+        data.board_id = 0; // Venta directa sin mesa
+      }
 
       if (this.ticket_description) {      
         data.description = this.value.description;
@@ -182,6 +193,16 @@ export default {
         }
       
       for (let key in data) if (data[key]) thing.append(key, data[key]);
+      
+      // ✅ Solo agregar board_id y waiter_id si tienen valores reales (no null)
+      // Para ventas merchise directas, NO se agregan (el backend los maneja como opcionales)
+      if (this.value.waiter_id !== null && this.value.waiter_id !== undefined && this.value.waiter_id !== 0) {
+        thing.append('waiter_id', this.value.waiter_id);
+      }
+      
+      if (this.value.board_id !== null && this.value.board_id !== undefined && this.value.board_id !== 0) {
+        thing.append('board_id', this.value.board_id);
+      }
 
       
       if(this.other_type != null && this.other_type != ''){
@@ -484,7 +505,10 @@ export default {
 
       // Verificando respuesta
       if (!request.success) {
-        this.$awn.alert(request.data);
+        // 🔍 Mostrar error como string para evitar problema con vue-awesome-notifications
+        const errorMsg = typeof request.data === 'string' ? request.data : JSON.stringify(request.data);
+        console.error('❌ ERROR COMPLETO:', errorMsg);
+        this.$awn.alert(errorMsg);
         return false;
       }
 

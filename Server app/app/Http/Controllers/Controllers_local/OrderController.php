@@ -54,9 +54,9 @@ class OrderController extends Controller
       $validaciones = [
         'total'     => 'required',
         'products'  => 'required',
-        'waiter_id' => 'required',
+        'waiter_id' => 'nullable', // Permitir ventas merchise sin mesero
         // Si el modo garzon NO esta activado, la mesa es obligatoria, por el contrario si esta activado, deja de ser obligatoria
-        'board_id'  => (!CurrentApp::ConfStr('modulos.cafeteria.submodulos.garzon_mode')) ? 'required' : '',
+        'board_id'  => (!CurrentApp::ConfStr('modulos.cafeteria.submodulos.garzon_mode')) ? 'nullable' : '', // Permitir ventas merchise sin mesa
       ];
     }
 
@@ -77,6 +77,10 @@ class OrderController extends Controller
 
     if (CurrentApp::ConfStr('modulos.cafeteria')) {
 
+      // Inicializar variables
+      $waiter = null;
+      $board = null;
+
       // Verificando existencia de la mesa y que no este ocupada (Si es que se envio una mesa)
       if (isset($_request['board_id']) && $_request['board_id']) {
         $board = Board::find($_request['board_id']);
@@ -85,9 +89,11 @@ class OrderController extends Controller
         if ($verifyStateBoard) return response()->json("La mesa seleccionada ya se encuentra ocupada", 404);
       }
 
-      // Verificando existencia del mesero
-      $waiter = Waiter::find($_request['waiter_id']);
-      if (!$waiter) return response()->json("Mesero no encontrado", 404);
+      // Verificando existencia del mesero (solo si se envió waiter_id)
+      if (isset($_request['waiter_id']) && $_request['waiter_id']) {
+        $waiter = Waiter::find($_request['waiter_id']);
+        if (!$waiter) return response()->json("Mesero no encontrado", 404);
+      }
     }
 
     // Creando orden
@@ -121,9 +127,21 @@ class OrderController extends Controller
       'ticket' => $b64Doc
     ];
 
+    // 🐛 DEBUG: Verificar condiciones para crear sell
+    \Log::info('🔍 OrderController - CONDICIONES SELL:', [
+      'ticket_isset' => isset($_request['ticket']),
+      'ticket_value' => $_request['ticket'] ?? 'NO SET',
+      'config_ticket_sell' => CurrentApp::ConfStr('modulos.cafeteria.ajustes.ticket_sell'),
+      'order_id' => $order->id
+    ]);
+
     if (isset($_request['ticket']) && CurrentApp::ConfStr('modulos.cafeteria.ajustes.ticket_sell')) {
+      \Log::info('✅ OrderController - CREANDO SELL para order_id: ' . $order->id);
       $sells = new SellsController();
       $result['order'] = $sells->newSell($request, $order->id);
+      \Log::info('✅ OrderController - SELL CREADO:', ['result' => $result['order']]);
+    } else {
+      \Log::warning('❌ OrderController - NO SE CREÓ SELL (condición no cumplida)');
     }
 
     HistoryCoffeHelper::create('coffe_order_on-create', 'Se ha creado la orden ' . $order->id, $order);

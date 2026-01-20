@@ -248,21 +248,26 @@ class SellsController extends Controller
 
     $items = json_decode($_request['products']);
     foreach ($items as $item) {
-      $product = Product::find($item->id);
-      if (!$product) {
-        if (isset($_request['ticket'])) return "Producto no encontrado";
-        else return response()->json("Producto no encontrado", 404);
-      }
-      // if (CurrentApp::ConfStr('modulos.productos.ajustes.permitir_stock')){
-      //   if ($product->stock < $item->quantity){
-      //     if(isset($_request['ticket'])) return "No hay suficiente stock";
-      //     else return response()->json("No hay suficiente stock",400);
-      //   }
-      // }
-      if (CurrentApp::ConfStr('modulos.productos.ajustes.permitir_cantidad_minima')) {
-        if ($product->min_quantity > $item->quantity) {
-          if (isset($_request['ticket'])) return "El producto " . $product->name . " permite comprar minimo " . $product->min_quantity . " productos";
-          else return response()->json("El producto " . $product->name . " permite comprar minimo " . $product->min_quantity . " productos", 400);
+      // ✅ FIX MERCHISE: Saltear validación si es producto merchise
+      $is_merchise = isset($item->is_merchise) && $item->is_merchise === true;
+      
+      if (!$is_merchise) {
+        $product = Product::find($item->id);
+        if (!$product) {
+          if (isset($_request['ticket'])) return "Producto no encontrado";
+          else return response()->json("Producto no encontrado", 404);
+        }
+        // if (CurrentApp::ConfStr('modulos.productos.ajustes.permitir_stock')){
+        //   if ($product->stock < $item->quantity){
+        //     if(isset($_request['ticket'])) return "No hay suficiente stock";
+        //     else return response()->json("No hay suficiente stock",400);
+        //   }
+        // }
+        if (CurrentApp::ConfStr('modulos.productos.ajustes.permitir_cantidad_minima')) {
+          if ($product->min_quantity > $item->quantity) {
+            if (isset($_request['ticket'])) return "El producto " . $product->name . " permite comprar minimo " . $product->min_quantity . " productos";
+            else return response()->json("El producto " . $product->name . " permite comprar minimo " . $product->min_quantity . " productos", 400);
+          }
         }
       }
     }
@@ -290,8 +295,27 @@ class SellsController extends Controller
         $_request['paymode'] = 'turbus_10';
     }
 
+    // ✅ FIX MERCHISE: Asegurar que order_id esté en el request para ventas desde ticket
+    if ($order_id) {
+        $_request['order_id'] = $order_id;
+        \Log::info('✅ SellsController - ORDER_ID AGREGADO:', ['order_id' => $order_id]);
+    } else {
+        \Log::warning('⚠️ SellsController - NO HAY ORDER_ID');
+    }
+
+    \Log::info('🔍 SellsController - $_request ANTES DE createSell:', [
+      'order_id' => $_request['order_id'] ?? 'NO SET',
+      'total' => $_request['total'] ?? 'NO SET',
+      'paymode' => $_request['paymode'] ?? 'NO SET'
+    ]);
+
     // Creando venta
     $sell = Sell::createSell($_request);
+    
+    \Log::info('🔍 SellsController - SELL CREADO:', [
+      'sell_id' => $sell ? $sell->id : 'NULL',
+      'sell_order_id' => $sell ? $sell->order_id : 'NULL'
+    ]);
     if (!$sell) {
       if (isset($_request['ticket'])) return "Error del servidor";
       else return response()->json("Error del servidor", 500);
@@ -336,11 +360,17 @@ class SellsController extends Controller
 
     // Creando cada columna en la pivote de cada producto por cada venta
     foreach ($items as $item) {
-      $product = Product::find($item->id);
-      if (!$product) {
-        if (isset($_request['ticket'])) return "Producto no encontrado";
-        else return response()->json("Producto no encontrado", 404);
+      // ✅ FIX MERCHISE: Saltear validación de producto si es merchise
+      $is_merchise = isset($item->is_merchise) && $item->is_merchise === true;
+      
+      if (!$is_merchise) {
+        $product = Product::find($item->id);
+        if (!$product) {
+          if (isset($_request['ticket'])) return "Producto no encontrado";
+          else return response()->json("Producto no encontrado", 404);
+        }
       }
+      
       $price = floatval($item->price);
 
       if(isset($item->product_promo) && $item->product_promo){
@@ -361,6 +391,25 @@ class SellsController extends Controller
         "product" =>  $item->id,
         "sell"  =>  $sell->id,
       ];
+      
+      // ✅ FIX MERCHISE: Guardar nombre del producto en description_sii si es merchise
+      if ($is_merchise && isset($item->name)) {
+        $newProductSell['description_sii'] = $item->name;
+        \Log::info('✅ MERCHISE - Guardando description_sii:', [
+          'product_id' => $item->id,
+          'name' => $item->name,
+          'is_merchise' => $is_merchise
+        ]);
+      } else {
+        \Log::info('⚠️ MERCHISE - NO guardando description_sii:', [
+          'is_merchise' => $is_merchise,
+          'has_name' => isset($item->name),
+          'name' => $item->name ?? 'NO SET'
+        ]);
+      }
+      
+      \Log::info('🔍 MERCHISE - newProductSell antes de crear:', $newProductSell);
+      
       if (CurrentApp::ConfStr('modulos.ventas.ajustes.permitir_ganancia')) {
         $newProductSell['gananciaTotal'] =  $item->ganancia;
       }
@@ -369,8 +418,9 @@ class SellsController extends Controller
         if (isset($_request['ticket'])) return "Error del servidor";
         else return response()->json("Error del servidor", 500);
       }
-      if (CurrentApp::ConfStr('modulos.productos.ajustes.permitir_stock')) {
-
+      
+      // ✅ FIX MERCHISE: Solo actualizar stock si NO es producto merchise
+      if (!$is_merchise && CurrentApp::ConfStr('modulos.productos.ajustes.permitir_stock')) {
         $product->stock = (float) $product->stock - $item->quantity;
         if (!$product->save()) {
           if (isset($_request['ticket'])) return 'Error en la base de datos';
@@ -856,9 +906,13 @@ class SellsController extends Controller
       $productSells = DB::table($database2 . '.products_sells')
         ->where('products_sells.sell', $sell->id)
         ->leftJoin($database2 . '.products', 'products.id', 'products_sells.product')
-        ->select('products_sells.id', 'products_sells.price as totalPrice', 'products_sells.quantity', 'products_sells.unitary_price', 'products.name')
+        ->select('products_sells.id', 'products_sells.price as totalPrice', 'products_sells.quantity', 'products_sells.unitary_price', 'products.name', 'products_sells.description_sii')
         ->get();
       foreach ($productSells as $productSell) {
+        // ✅ FIX MERCHISE: Usar description_sii si el nombre del producto no existe
+        if (empty($productSell->name) && !empty($productSell->description_sii)) {
+          $productSell->name = $productSell->description_sii;
+        }
         $products[] = $productSell;
       }
       $sell->products = $products;
@@ -988,11 +1042,28 @@ class SellsController extends Controller
       $productSells = DB::table($database2 . '.products_sells')
         ->where('products_sells.sell', $sell->id)
         ->leftJoin($database2 . '.products', 'products.id', 'products_sells.product')
-        ->select('products_sells.id', 'products_sells.price as totalPrice', 'products_sells.quantity', 'products_sells.unitary_price', 'products.name')
+        ->select('products_sells.id', 'products_sells.price as totalPrice', 'products_sells.quantity', 'products_sells.unitary_price', 'products.name', 'products_sells.description_sii')
         ->get();
+      
+      \Log::info('🔍 MERCHISE DEBUG - Sell ID: ' . $sell->id);
+      \Log::info('🔍 MERCHISE DEBUG - ProductSells encontrados: ' . $productSells->count());
+      
       foreach ($productSells as $productSell) {
+        \Log::info('🔍 MERCHISE DEBUG - Producto:', [
+          'id' => $productSell->id,
+          'name' => $productSell->name,
+          'description_sii' => $productSell->description_sii
+        ]);
+        
+        // ✅ FIX MERCHISE: Usar description_sii si el nombre del producto no existe
+        if (empty($productSell->name) && !empty($productSell->description_sii)) {
+          $productSell->name = $productSell->description_sii;
+          \Log::info('✅ MERCHISE DEBUG - Nombre corregido a: ' . $productSell->name);
+        }
         $products[] = $productSell;
       }
+      
+      \Log::info('🔍 MERCHISE DEBUG - Total productos agregados: ' . count($products));
       $sell->products = $products;
 
       if (CurrentApp::ConfStr('modulos.ventas.submodulos.clientes')) {
@@ -1082,9 +1153,13 @@ class SellsController extends Controller
       $productSells = DB::table($database2 . '.products_sells')
         ->where('products_sells.sell', $sell->id)
         ->leftJoin($database2 . '.products', 'products.id', 'products_sells.product')
-        ->select('products_sells.price as totalPrice', 'products_sells.quantity', 'products_sells.unitary_price', 'products.name')
+        ->select('products_sells.price as totalPrice', 'products_sells.quantity', 'products_sells.unitary_price', 'products.name', 'products_sells.description_sii')
         ->get();
       foreach ($productSells as $productSell) {
+        // ✅ FIX MERCHISE: Usar description_sii si el nombre del producto no existe
+        if (empty($productSell->name) && !empty($productSell->description_sii)) {
+          $productSell->name = $productSell->description_sii;
+        }
         $products[] = $productSell;
       }
       $sell->products = $products;
@@ -1170,7 +1245,7 @@ class SellsController extends Controller
     $productSells = DB::table($database2 . '.products_sells')
       ->where('products_sells.sell', $pquery->id)
       ->leftJoin($database2 . '.products', 'products.id', 'products_sells.product')
-      ->select('products_sells.id', 'products_sells.price as totalPrice', 'products_sells.quantity', 'products.name', 'products_sells.unitary_price')
+      ->select('products_sells.id', 'products_sells.price as totalPrice', 'products_sells.quantity', 'products.name', 'products_sells.unitary_price', 'products_sells.description_sii')
       ->get();
 
     foreach ($productSells as $productSell) {
@@ -1186,6 +1261,10 @@ class SellsController extends Controller
       $number = str_replace(',00', '', $number);
       $productSell->totalPrice = $number;*/
 
+      // ✅ FIX MERCHISE: Usar description_sii si el nombre del producto no existe
+      if (empty($productSell->name) && !empty($productSell->description_sii)) {
+        $productSell->name = $productSell->description_sii;
+      }
       $products[] = $productSell;
     }
     $pquery->products = $products;

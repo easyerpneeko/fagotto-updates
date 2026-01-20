@@ -615,6 +615,7 @@ export default {
             productosCentralizados: [],
             loadingProducts: false,
             stockRefreshInterval: null, // Timer para actualizar stock
+            historialRefreshInterval: null, // Timer para actualizar historial
             
             // Administración de productos
             productoEditando: {
@@ -632,7 +633,7 @@ export default {
             whatsapp: '',
             phone: '', // No se usa pero se mantiene para compatibilidad
             comment: '', // No se usa pero se mantiene para compatibilidad
-            paymode: 'Tarjeta', // Cambiado a Tarjeta porque ahora requiere pago
+            paymode: 'Efectivo', // Por defecto Efectivo
             
             // Datos de negocio
             app: null,
@@ -645,7 +646,7 @@ export default {
             // Pago Stripe
             showPaymentModal: false,
             processingPayment: false,
-            url_linkify: 'https://app.linkify.cl/pay/QXyLMKgplXOzBJl/remote/',
+            url_linkify: 'https://app.linkify.cl/pay/0GEVx3vk2gmqe9r/remote/',
             url_payment: '',
             pedidoAPagar: null, // Pedido existente que se va a pagar desde historial
             
@@ -673,11 +674,17 @@ export default {
         }
         // Iniciar actualización automática de stock cada 10 segundos
         this.iniciarActualizacionStock();
+        // Iniciar actualización automática de historial cada 15 segundos
+        this.iniciarActualizacionHistorial();
     },
     beforeDestroy() {
         // Limpiar el intervalo cuando se destruye el componente
         if (this.stockRefreshInterval) {
             clearInterval(this.stockRefreshInterval);
+        }
+        // Limpiar el intervalo de historial
+        if (this.historialRefreshInterval) {
+            clearInterval(this.historialRefreshInterval);
         }
     },
     computed: {
@@ -828,6 +835,25 @@ export default {
             }, 10000); // 10 segundos
             
             console.log('🔄 Actualización automática de stock iniciada (cada 10s)');
+        },
+        
+        iniciarActualizacionHistorial() {
+            // Actualizar historial cada 15 segundos solo si está visible y hay pedidos pendientes
+            this.historialRefreshInterval = setInterval(async () => {
+                if (this.mostrarHistorial && this.app && this.app.Id) {
+                    // Verificar si hay pedidos pendientes de pago
+                    const hayPendientes = this.historialPedidos.some(p => 
+                        p.payment_status !== 'paid' && p.payment_status !== 'pagado'
+                    );
+                    
+                    if (hayPendientes) {
+                        console.log('🔄 Actualizando historial (hay pagos pendientes)...');
+                        await this.cargarHistorial();
+                    }
+                }
+            }, 15000); // 15 segundos
+            
+            console.log('🔄 Actualización automática de historial iniciada (cada 15s)');
         },
         
         async actualizarStockSilencioso() {
@@ -1007,48 +1033,49 @@ export default {
             try {
                 // Verificar si es pedido existente o nuevo
                 if (this.pedidoAPagar) {
-                    // Es un pedido existente, generar URL de pago y abrir Linkyfi
-                    // Usar el ID del request directamente
+                    // Es un pedido existente, generar URL de pago
                     const requestId = this.pedidoAPagar.payment ? this.pedidoAPagar.payment.id : this.pedidoAPagar.id;
                     this.url_payment = this.url_linkify + this.app.Id + 'i' + requestId;
                     
-                    console.log('💳 Abriendo Linkyfi para pedido existente:', this.url_payment);
+                    console.log('💳 URL de pago generada:', this.url_payment);
                     
-                    // Abrir URL de pago en navegador externo
-                    const { shell } = require('electron');
-                    shell.openExternal(this.url_payment);
-                    
-                    // Enviar mensaje de WhatsApp con detalles del pedido
-                    this.enviarNotificacionWhatsApp(this.pedidoAPagar, this.url_payment);
+                    // NO abrir Linkify, solo enviar WhatsApp automáticamente
+                    await this.enviarNotificacionWhatsApp(this.pedidoAPagar, this.url_payment);
                     
                     // Cerrar modal
                     $('#modalPagoStripe').modal('hide');
-                    this.$awn.info('Se ha abierto la página de pago y WhatsApp con los detalles.', {
-                        labels: { info: 'PAGO PENDIENTE' }
+                    this.$awn.success('✅ WhatsApp enviado correctamente con el link de pago.', {
+                        labels: { success: 'MENSAJE ENVIADO' }
                     });
                 } else {
                     // Es un pedido nuevo, crearlo primero con status_payment='impagado'
-                    const pedidoCreado = await this.crearPedidoSinPago();
+                    const response = await this.crearPedidoSinPago();
                     
-                    console.log('📦 Pedido creado:', pedidoCreado);
+                    console.log('📦 Response completo:', response);
                     
-                    if (pedidoCreado && pedidoCreado.id) {
-                        // Generar URL de pago usando el ID del request directamente
-                        this.url_payment = this.url_linkify + this.app.Id + 'i' + pedidoCreado.id;
+                    // El backend retorna {success, message, data}, el pedido está en response.data
+                    const pedidoCreado = response && response.data ? response.data : null;
+                    
+                    console.log('📦 Pedido extraído:', pedidoCreado);
+                    console.log('📦 Payment del pedido:', pedidoCreado ? pedidoCreado.payment : 'NO PAYMENT');
+                    
+                    // Obtener el ID del payment
+                    const paymentId = pedidoCreado && pedidoCreado.payment && pedidoCreado.payment.id;
+                    console.log('📦 paymentId extraído:', paymentId);
+                    
+                    if (pedidoCreado && paymentId) {
+                        // Generar URL de pago usando el ID del PAYMENT (no del request)
+                        this.url_payment = this.url_linkify + this.app.Id + 'i' + paymentId;
                         
-                        console.log('💳 Abriendo Linkyfi para pedido nuevo:', this.url_payment);
+                        console.log('💳 URL de pago generada:', this.url_payment);
                         
-                        // Abrir URL de pago en navegador externo
-                        const { shell } = require('electron');
-                        shell.openExternal(this.url_payment);
-                        
-                        // Enviar mensaje de WhatsApp con detalles del pedido
-                        this.enviarNotificacionWhatsApp(pedidoCreado, this.url_payment);
+                        // NO abrir Linkify, solo enviar WhatsApp automáticamente
+                        await this.enviarNotificacionWhatsApp(pedidoCreado, this.url_payment);
                         
                         // Cerrar modal
                         $('#modalPagoStripe').modal('hide');
-                        this.$awn.info('Pedido creado. Se ha abierto la página de pago y WhatsApp con los detalles.', {
-                            labels: { info: 'PAGO PENDIENTE' }
+                        this.$awn.success('✅ Pedido creado y WhatsApp enviado correctamente.', {
+                            labels: { success: 'PEDIDO CREADO' }
                         });
                         
                         // Recargar historial para ver el pedido pendiente
@@ -1117,7 +1144,7 @@ export default {
             }
         },
         
-        enviarNotificacionWhatsApp(pedido, urlPago) {
+        async enviarNotificacionWhatsApp(pedido, urlPago) {
             // Obtener lista de productos
             let productosTexto = '';
             let productos = [];
@@ -1161,15 +1188,43 @@ export default {
             
             const mensajeCodificado = encodeURIComponent(mensaje);
             const numeroLimpio = this.whatsapp.replace(/[^\d]/g, '');
-            const linkWhatsApp = `https://wa.me/${numeroLimpio}?text=${mensajeCodificado}`;
             
-            console.log('📱 Enviando WhatsApp con detalles del pedido:', linkWhatsApp);
+            console.log('📱 Enviando WhatsApp automáticamente via Twilio...');
             
-            // Abrir WhatsApp en navegador externo
-            const { shell } = require('electron');
-            setTimeout(() => {
-                shell.openExternal(linkWhatsApp);
-            }, 1500);
+            // Validar que haya número de WhatsApp
+            if (!this.whatsapp || this.whatsapp.trim() === '') {
+                console.warn('⚠️ No hay número de WhatsApp ingresado');
+                this.$awn.warning('No se ingresó número de WhatsApp para enviar el mensaje');
+                return;
+            }
+            
+            // Enviar mensaje automáticamente via Twilio
+            try {
+                console.log('📤 Datos a enviar:', {
+                    to: this.whatsapp,
+                    message_length: mensaje.length,
+                    pedido_id: pedido ? pedido.id : null
+                });
+                
+                const response = await this.$store.dispatch('notifications/sendWhatsApp', {
+                    to: this.whatsapp,
+                    message: mensaje,
+                    pedido_id: pedido ? pedido.id : null
+                });
+                
+                if (response.success) {
+                    this.$awn.success('✅ WhatsApp enviado correctamente a ' + this.whatsapp, {
+                        labels: { success: 'MENSAJE ENVIADO' },
+                        durations: { success: 5000 }
+                    });
+                    console.log('✅ WhatsApp enviado via Twilio:', response.data);
+                } else {
+                    throw new Error(response.message || 'Error al enviar WhatsApp');
+                }
+            } catch (error) {
+                console.error('❌ Error enviando WhatsApp:', error);
+                this.$awn.alert('Error al enviar WhatsApp: ' + error.message);
+            }
         },
         
         // ========================================

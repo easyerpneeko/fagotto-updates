@@ -126,6 +126,12 @@ class PaymentsController extends Controller
                 //Si el monto del pago es igual al cobro LINKIFY devuelve 'exact'
                 if($datos['completeness'] == 'exact'){
                     $pedido->status_payment='pagado';
+                    $pedido->payment_status='paid'; // También actualizar payment_status para el frontend
+                    $cobro->status = 'pagado'; // Actualizar estado del pago
+                    $cobro->save(); // Guardar el cobro
+                    $message = 'aprobado (linkify)';
+                }else{
+                    $message = 'pendiente (linkify)';
                 }
     
                 $pedido->save();
@@ -140,7 +146,7 @@ class PaymentsController extends Controller
     
                 return response()->json([
                     'status' => 'accepted',
-                    'message' => 'Pago verificado correctamente',
+                    'message' => $message,
                     // 'redirect' => 'http://154.38.171.1/',
                     'restart' => false
                 ]);

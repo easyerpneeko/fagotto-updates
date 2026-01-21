@@ -38,7 +38,7 @@ class WhatsAppController extends Controller
             // Credenciales de Twilio
             $sid = 'AC6bc40244fd40581717f54f24b32c7f74';
             $token = '5d704d4eba111718bc4c501a858d948b';
-            $twilioWhatsApp = 'whatsapp:+14155238886';
+            $twilioWhatsApp = 'whatsapp:+18582953672';
 
             // Limpiar número de destino (quitar espacios, guiones, etc)
             $toNumber = preg_replace('/[^0-9+]/', '', $validatedData['to']);

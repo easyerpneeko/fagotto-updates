@@ -16,6 +16,8 @@ class Requests extends Model
         'invoice_type',
         'voucher',
         'status',
+        'status_payment',
+        'payment_status',
         'price',
         'subtotal',
         'iva',

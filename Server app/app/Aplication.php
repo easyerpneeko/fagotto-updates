@@ -59,7 +59,8 @@ class Aplication extends Model
     'expiration',
     'environment_vars',
     'init_money',
-    'init_money_expiration'
+    'init_money_expiration',
+    'whatsapp_default'
   ];
 
   public function database()

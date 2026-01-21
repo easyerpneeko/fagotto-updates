@@ -751,3 +751,10 @@ Route::group(['middleware' => ['AppSecurity','JwtMiddleware']], function () {
   });
 });
 
+// ========== FLOW - RUTAS PÚBLICAS (Sin middleware AppSecurity) ==========
+// Flow no puede enviar headers personalizados en redirects del navegador
+Route::post('/local/flow/create-payment', 'Controllers_local\FlowController@createPayment')->middleware(['AppSecurity']);
+Route::post('/local/flow/confirm', 'Controllers_local\FlowController@confirmPayment'); // Webhook (no necesita AppSecurity)
+Route::match(['get', 'post'], '/local/flow/return', 'Controllers_local\FlowController@returnPayment'); // Return page (no necesita AppSecurity)
+
+

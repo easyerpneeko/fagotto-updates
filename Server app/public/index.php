@@ -54,7 +54,7 @@ $app = require_once __DIR__.'/../bootstrap/app.php';
 */
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: *');
-header('Access-Control-Allow-Headers: X-Requested-With, x-authorization, Authorization, X-CSRF-TOKEN, x-csrf-token, csrf-token, App-Key, x-socket-id, X-SOCKET-ID');
+header('Access-Control-Allow-Headers: X-Requested-With, Content-Type, x-authorization, Authorization, X-CSRF-TOKEN, x-csrf-token, csrf-token, App-Key, x-socket-id, X-SOCKET-ID');
 
 $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
 

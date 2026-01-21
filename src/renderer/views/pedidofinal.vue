@@ -409,9 +409,99 @@
                                 <input v-model="whatsapp" type="text" class="form-control" placeholder="+56912345678" required>
                             </div>
 
-                            <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; border-left: 4px solid #2196f3; margin-top: 1rem;">
+                            <!-- Selección de método de pago -->
+                            <div class="mb-4">
+                                <label style="font-weight: 700; color: #495057; margin-bottom: 1rem; font-size: 1.1rem;">
+                                    <i class="fas fa-credit-card"></i> Método de Pago
+                                </label>
+                                
+                                <!-- Opción 1: Transferencia (Linkify) -->
+                                <div @click="metodoPagoSeleccionado = 'linkify'" 
+                                     :style="{
+                                         border: metodoPagoSeleccionado === 'linkify' ? '3px solid #28a745' : '2px solid #dee2e6',
+                                         background: metodoPagoSeleccionado === 'linkify' ? '#f1f8f4' : 'white',
+                                         padding: '1.5rem',
+                                         borderRadius: '10px',
+                                         marginBottom: '1rem',
+                                         cursor: 'pointer',
+                                         transition: 'all 0.3s'
+                                     }"
+                                     class="payment-option">
+                                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                                        <div style="display: flex; align-items: center; gap: 1rem;">
+                                            <div style="width: 40px; height: 40px; background: #28a745; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-university" style="color: white; font-size: 1.2rem;"></i>
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: 700; color: #333; font-size: 1.1rem;">Transferencia Bancaria</div>
+                                                <div style="font-size: 0.9rem; color: #6c757d;">A través de Linkify - Sin comisión adicional</div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 1.3rem; font-weight: 700; color: #28a745;">
+                                                ${{ formatNumber(modalTotalConIVA) }}
+                                            </div>
+                                            <div style="font-size: 0.85rem; color: #28a745; font-weight: 600;">
+                                                <i class="fas fa-check-circle"></i> GRATIS
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Opción 2: Tarjeta (Flow) -->
+                                <div @click="metodoPagoSeleccionado = 'flow'" 
+                                     :style="{
+                                         border: metodoPagoSeleccionado === 'flow' ? '3px solid #667eea' : '2px solid #dee2e6',
+                                         background: metodoPagoSeleccionado === 'flow' ? '#f0f3ff' : 'white',
+                                         padding: '1.5rem',
+                                         borderRadius: '10px',
+                                         cursor: 'pointer',
+                                         transition: 'all 0.3s'
+                                     }"
+                                     class="payment-option">
+                                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                                        <div style="display: flex; align-items: center; gap: 1rem;">
+                                            <div style="width: 40px; height: 40px; background: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-credit-card" style="color: white; font-size: 1.2rem;"></i>
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: 700; color: #333; font-size: 1.1rem;">Tarjeta Crédito/Débito</div>
+                                                <div style="font-size: 0.9rem; color: #6c757d;">Pago inmediato con Flow.cl</div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 1.3rem; font-weight: 700; color: #667eea;">
+                                                ${{ formatNumber(totalConComisionFlow) }}
+                                            </div>
+                                            <div style="font-size: 0.85rem; color: #ff9800; font-weight: 600;">
+                                                + {{ comisionFlow }}% comisión
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="!metodoPagoSeleccionado" style="background: #fff3cd; padding: 1rem; border-radius: 8px; border-left: 4px solid #ffc107; margin-bottom: 1rem;">
+                                <small style="color: #856404;">
+                                    <i class="fas fa-exclamation-triangle"></i> Por favor selecciona un método de pago
+                                </small>
+                            </div>
+
+                            <div v-if="metodoPagoSeleccionado === 'linkify'" style="background: #e3f2fd; padding: 1rem; border-radius: 8px; border-left: 4px solid #2196f3; margin-bottom: 1rem;">
                                 <small style="color: #1976d2;">
-                                    <i class="fas fa-lock"></i> Serás redirigido a Linkyfi para completar tu pago de forma segura.
+                                    <i class="fas fa-lock"></i> Serás redirigido a Linkify para completar tu transferencia bancaria de forma segura.
+                                </small>
+                            </div>
+
+                            <div v-if="metodoPagoSeleccionado === 'linkify'" style="text-align: center;">
+                                <button @click="abrirAyudaTransferencia" type="button" class="btn btn-info" style="border-radius: 8px; padding: 0.5rem 1.5rem; font-weight: 600;">
+                                    <i class="fas fa-question-circle"></i> ¿Cómo hacer una transferencia?
+                                </button>
+                            </div>
+
+                            <div v-if="metodoPagoSeleccionado === 'flow'" style="background: #e8eaf6; padding: 1rem; border-radius: 8px; border-left: 4px solid #667eea;">
+                                <small style="color: #5e35b1;">
+                                    <i class="fas fa-shield-alt"></i> Serás redirigido a Flow.cl para pagar con tu tarjeta de forma segura.
                                 </small>
                             </div>
                         </div>
@@ -429,8 +519,55 @@
                         <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 8px;">
                             <i class="fas fa-times"></i> Cancelar
                         </button>
-                        <button @click="procesarPago" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 8px; padding: 0.5rem 2rem; font-weight: 600; font-size: 1.05rem;">
-                            <i class="fas fa-dollar-sign"></i> Pagar ${{ formatNumber(modalTotalConIVA) }}
+                        <button @click="procesarPago" 
+                                :disabled="!metodoPagoSeleccionado"
+                                class="btn btn-primary" 
+                                :style="{
+                                    background: metodoPagoSeleccionado === 'flow' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    padding: '0.5rem 2rem',
+                                    fontWeight: '600',
+                                    fontSize: '1.05rem',
+                                    opacity: !metodoPagoSeleccionado ? 0.5 : 1,
+                                    cursor: !metodoPagoSeleccionado ? 'not-allowed' : 'pointer'
+                                }">
+                            <i class="fas fa-dollar-sign"></i> 
+                            Pagar ${{ formatNumber(metodoPagoSeleccionado === 'flow' ? totalConComisionFlow : modalTotalConIVA) }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Ayuda para Transferencias -->
+        <div class="modal fade" id="modalAyudaTransferencia" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                <div class="modal-content" style="border-radius: 15px;">
+                    <div class="modal-header" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none;">
+                        <h5 class="modal-title">
+                            <i class="fas fa-graduation-cap"></i> ¿Cómo hacer una transferencia bancaria?
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" style="padding: 0;">
+                        <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+                            <iframe 
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                                src="https://www.youtube.com/embed/KHUNZqKNP5w?si=KuZsuzU6scXoU2_I" 
+                                title="YouTube video player" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                referrerpolicy="strict-origin-when-cross-origin" 
+                                allowfullscreen>
+                            </iframe>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #dee2e6;">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 8px;">
+                            <i class="fas fa-times"></i> Cerrar
                         </button>
                     </div>
                 </div>
@@ -650,6 +787,10 @@ export default {
             url_payment: '',
             pedidoAPagar: null, // Pedido existente que se va a pagar desde historial
             
+            // Método de pago seleccionado
+            metodoPagoSeleccionado: null, // 'linkify' o 'flow'
+            comisionFlow: 3.18, // Comisión Flow en porcentaje
+            
             // Totales
             totalPedido: 0,
             
@@ -751,6 +892,13 @@ export default {
                 return this.calcularTotalHistorial(this.pedidoAPagar);
             }
             return this.totalConIVA;
+        },
+        
+        // Total con comisión de Flow (3.18%)
+        totalConComisionFlow() {
+            const total = this.modalTotalConIVA;
+            const comision = total * (this.comisionFlow / 100);
+            return Math.round(total + comision);
         },
         
         isValidName: {
@@ -1023,7 +1171,17 @@ export default {
         },
         
         async procesarPago() {
-            if (!this.whatsapp) {
+            // Validar que haya seleccionado un método de pago
+            if (!this.metodoPagoSeleccionado) {
+                this.$awn.alert('Por favor selecciona un método de pago');
+                return;
+            }
+            
+            // Si el local tiene whatsapp_default configurado, usarlo automáticamente
+            if (this.app && this.app.whatsapp_default) {
+                this.whatsapp = this.app.whatsapp_default;
+                console.log('📱 Usando WhatsApp del local:', this.whatsapp);
+            } else if (!this.whatsapp) {
                 this.$awn.alert('Por favor ingresa tu número de WhatsApp para recibir la confirmación');
                 return;
             }
@@ -1031,67 +1189,169 @@ export default {
             this.processingPayment = true;
             
             try {
-                // Verificar si es pedido existente o nuevo
-                if (this.pedidoAPagar) {
-                    // Es un pedido existente, generar URL de pago
-                    const requestId = this.pedidoAPagar.payment ? this.pedidoAPagar.payment.id : this.pedidoAPagar.id;
-                    this.url_payment = this.url_linkify + this.app.Id + 'i' + requestId;
-                    
-                    console.log('💳 URL de pago generada:', this.url_payment);
-                    
-                    // NO abrir Linkify, solo enviar WhatsApp automáticamente
-                    await this.enviarNotificacionWhatsApp(this.pedidoAPagar, this.url_payment);
-                    
-                    // Cerrar modal
-                    $('#modalPagoStripe').modal('hide');
-                    this.$awn.success('✅ WhatsApp enviado correctamente con el link de pago.', {
-                        labels: { success: 'MENSAJE ENVIADO' }
-                    });
-                } else {
-                    // Es un pedido nuevo, crearlo primero con status_payment='impagado'
-                    const response = await this.crearPedidoSinPago();
-                    
-                    console.log('📦 Response completo:', response);
-                    
-                    // El backend retorna {success, message, data}, el pedido está en response.data
-                    const pedidoCreado = response && response.data ? response.data : null;
-                    
-                    console.log('📦 Pedido extraído:', pedidoCreado);
-                    console.log('📦 Payment del pedido:', pedidoCreado ? pedidoCreado.payment : 'NO PAYMENT');
-                    
-                    // Obtener el ID del payment
-                    const paymentId = pedidoCreado && pedidoCreado.payment && pedidoCreado.payment.id;
-                    console.log('📦 paymentId extraído:', paymentId);
-                    
-                    if (pedidoCreado && paymentId) {
-                        // Generar URL de pago usando el ID del PAYMENT (no del request)
-                        this.url_payment = this.url_linkify + this.app.Id + 'i' + paymentId;
-                        
-                        console.log('💳 URL de pago generada:', this.url_payment);
-                        
-                        // NO abrir Linkify, solo enviar WhatsApp automáticamente
-                        await this.enviarNotificacionWhatsApp(pedidoCreado, this.url_payment);
-                        
-                        // Cerrar modal
-                        $('#modalPagoStripe').modal('hide');
-                        this.$awn.success('✅ Pedido creado y WhatsApp enviado correctamente.', {
-                            labels: { success: 'PEDIDO CREADO' }
-                        });
-                        
-                        // Recargar historial para ver el pedido pendiente
-                        await this.cargarHistorial();
-                        this.mostrarHistorial = true;
-                    } else {
-                        throw new Error('No se pudo crear el pedido correctamente');
-                    }
+                if (this.metodoPagoSeleccionado === 'linkify') {
+                    // Proceso con Linkify (transferencia)
+                    await this.procesarPagoLinkify();
+                } else if (this.metodoPagoSeleccionado === 'flow') {
+                    // Proceso con Flow (tarjeta)
+                    await this.procesarPagoFlow();
                 }
-                
             } catch (error) {
                 console.error('❌ Error procesando pago:', error);
                 this.$awn.alert('Error al procesar el pago: ' + error.message);
             } finally {
                 this.processingPayment = false;
                 this.pedidoAPagar = null; // Limpiar pedido temporal
+                this.metodoPagoSeleccionado = null; // Resetear método de pago
+            }
+        },
+        
+        async procesarPagoLinkify() {
+            // Verificar si es pedido existente o nuevo
+            if (this.pedidoAPagar) {
+                // Es un pedido existente, generar URL de pago
+                const requestId = this.pedidoAPagar.payment ? this.pedidoAPagar.payment.id : this.pedidoAPagar.id;
+                this.url_payment = this.url_linkify + this.app.Id + 'i' + requestId;
+                
+                console.log('💳 URL de pago Linkify generada:', this.url_payment);
+                
+                // NO abrir Linkify, solo enviar WhatsApp automáticamente
+                await this.enviarNotificacionWhatsApp(this.pedidoAPagar, this.url_payment);
+                
+                // Cerrar modal
+                $('#modalPagoStripe').modal('hide');
+                this.$awn.success('✅ WhatsApp enviado correctamente con el link de pago.', {
+                    labels: { success: 'MENSAJE ENVIADO' }
+                });
+            } else {
+                // Es un pedido nuevo, crearlo primero con status_payment='impagado'
+                const response = await this.crearPedidoSinPago();
+                
+                console.log('📦 Response completo:', response);
+                
+                // El backend retorna {success, message, data}, el pedido está en response.data
+                const pedidoCreado = response && response.data ? response.data : null;
+                
+                console.log('📦 Pedido extraído:', pedidoCreado);
+                console.log('📦 Payment del pedido:', pedidoCreado ? pedidoCreado.payment : 'NO PAYMENT');
+                
+                // Obtener el ID del payment
+                const paymentId = pedidoCreado && pedidoCreado.payment && pedidoCreado.payment.id;
+                console.log('📦 paymentId extraído:', paymentId);
+                
+                if (pedidoCreado && paymentId) {
+                    // Generar URL de pago usando el ID del PAYMENT (no del request)
+                    this.url_payment = this.url_linkify + this.app.Id + 'i' + paymentId;
+                    
+                    console.log('💳 URL de pago Linkify generada:', this.url_payment);
+                    
+                    // NO abrir Linkify, solo enviar WhatsApp automáticamente
+                    await this.enviarNotificacionWhatsApp(pedidoCreado, this.url_payment);
+                    
+                    // Cerrar modal
+                    $('#modalPagoStripe').modal('hide');
+                    this.$awn.success('✅ Pedido creado y WhatsApp enviado correctamente.', {
+                        labels: { success: 'PEDIDO CREADO' }
+                    });
+                    
+                    // Recargar historial para ver el pedido pendiente
+                    await this.cargarHistorial();
+                    this.mostrarHistorial = true;
+                } else {
+                    throw new Error('No se pudo crear el pedido correctamente');
+                }
+            }
+        },
+        
+        async procesarPagoFlow() {
+            // Crear o obtener el pedido
+            let pedido = this.pedidoAPagar;
+            let paymentId = null;
+            
+            if (!pedido) {
+                // Crear pedido nuevo
+                const response = await this.crearPedidoSinPago();
+                pedido = response && response.data ? response.data : null;
+                
+                if (!pedido || !pedido.payment || !pedido.payment.id) {
+                    throw new Error('No se pudo crear el pedido correctamente');
+                }
+            }
+            
+            paymentId = pedido.payment ? pedido.payment.id : null;
+            
+            if (!paymentId) {
+                throw new Error('No se encontró el ID del pago');
+            }
+            
+            console.log('💳 Creando pago Flow...');
+            
+            // Calcular el monto con comisión Flow
+            const montoTotal = this.totalConComisionFlow;
+            
+            // Validar monto mínimo de Flow (350 CLP)
+            if (montoTotal < 350) {
+                this.$awn.alert('El monto mínimo para pago con tarjeta es $350 CLP. Total con comisión: $' + Math.round(montoTotal));
+                throw new Error('El monto mínimo para Flow es 350 CLP. Monto actual: ' + Math.round(montoTotal) + ' CLP');
+            }
+            
+            // Crear pago en Flow
+            const url = BaseUrl.getUrl('api/local/flow/create-payment');
+            console.log('🌐 URL Flow:', url);
+            
+            const flowResponse = await Connection.fetch(url, 'POST', {
+                amount: montoTotal,
+                subject: `Pedido #${pedido.id} - Fagotto`,
+                email: this.me.email || 'cliente@fagotto.cl',
+                pedido_id: pedido.id,
+                payment_id: paymentId
+            }, null, false);
+            
+            console.log('✅ Respuesta Flow completa:', flowResponse);
+            console.log('✅ flowResponse.ok:', flowResponse.ok);
+            console.log('✅ flowResponse.data:', flowResponse.data);
+            console.log('✅ Tipo de flowResponse.data:', typeof flowResponse.data);
+            console.log('✅ Claves de flowResponse.data:', flowResponse.data ? Object.keys(flowResponse.data) : 'null');
+            
+            // Intentar diferentes estructuras posibles
+            let flowData = null;
+            
+            if (flowResponse.data) {
+                // Opción 1: flowResponse.data.data (doble anidación)
+                if (flowResponse.data.data) {
+                    flowData = flowResponse.data.data;
+                    console.log('📦 Usando flowResponse.data.data');
+                }
+                // Opción 2: flowResponse.data directamente
+                else if (flowResponse.data.url || flowResponse.data.token) {
+                    flowData = flowResponse.data;
+                    console.log('📦 Usando flowResponse.data directamente');
+                }
+            }
+            
+            console.log('✅ flowData final:', flowData);
+            
+            if (flowResponse.ok && flowData && flowData.url && flowData.token) {
+                // Enviar WhatsApp con link de Flow
+                const flowUrl = flowData.url + '?token=' + flowData.token;
+                
+                // Enviar automáticamente por Twilio (igual que Linkify)
+                await this.enviarNotificacionWhatsApp(pedido, flowUrl);
+                
+                // Cerrar modal
+                $('#modalPagoStripe').modal('hide');
+                this.$awn.success('✅ Link de pago enviado por WhatsApp.', {
+                    labels: { success: 'PAGO FLOW' }
+                });
+                
+                // Recargar historial
+                await this.cargarHistorial();
+                this.mostrarHistorial = true;
+            } else {
+                console.error('❌ Estructura de respuesta incorrecta:', flowResponse);
+                console.error('❌ flowData:', flowData);
+                const errorMsg = flowResponse.data && flowResponse.data.message ? flowResponse.data.message : 'Respuesta inválida';
+                throw new Error('No se pudo crear el pago en Flow: ' + errorMsg);
             }
         },
         
@@ -1184,12 +1444,20 @@ export default {
                 `   *TOTAL: $${this.formatNumber(totalConIVA)} CLP*\n\n` +
                 `🔗 *Link de Pago:*\n${urlPago}\n\n` +
                 `⏳ *Estado:* Pendiente de pago\n\n` +
+                `❓ *¿Cómo hacer una transferencia?*\n` +
+                `📹 Video tutorial: https://youtu.be/KHUNZqKNP5w\n\n` +
                 `Por favor, completa el pago para confirmar tu pedido. ¡Gracias! 😊`;
             
             const mensajeCodificado = encodeURIComponent(mensaje);
             const numeroLimpio = this.whatsapp.replace(/[^\d]/g, '');
             
             console.log('📱 Enviando WhatsApp automáticamente via Twilio...');
+            
+            // Si el local tiene whatsapp_default configurado, usarlo automáticamente
+            if (this.app && this.app.whatsapp_default) {
+                this.whatsapp = this.app.whatsapp_default;
+                console.log('📱 Usando WhatsApp del local:', this.whatsapp);
+            }
             
             // Validar que haya número de WhatsApp
             if (!this.whatsapp || this.whatsapp.trim() === '') {
@@ -1225,6 +1493,68 @@ export default {
                 console.error('❌ Error enviando WhatsApp:', error);
                 this.$awn.alert('Error al enviar WhatsApp: ' + error.message);
             }
+        },
+        
+        enviarPorWhatsAppWeb(pedido, urlPago) {
+            // Obtener lista de productos
+            let productosTexto = '';
+            let productos = [];
+            
+            if (pedido && pedido.products) {
+                // Es un pedido existente
+                productos = this.parseProducts(pedido.products);
+            } else {
+                // Es un pedido nuevo
+                productos = this.productosCentralizados.filter(p => p.cantidad > 0);
+            }
+            
+            // Construir lista de productos
+            productos.forEach((prod, index) => {
+                const nombre = prod.name || prod.producto;
+                const cantidad = prod.quantity || prod.cantidad;
+                const precio = prod.price || prod.precio_por_unidad;
+                const subtotal = cantidad * precio;
+                productosTexto += `${index + 1}. ${nombre}\n   ${cantidad}x $${this.formatNumber(precio)} = $${this.formatNumber(subtotal)}\n`;
+            });
+            
+            // Calcular totales
+            const totalNeto = pedido ? this.calcularNetoHistorial(pedido) : this.totalNeto;
+            const totalIVA = pedido ? this.calcularIVAHistorial(pedido) : this.totalIVA;
+            const totalConIVA = pedido ? this.calcularTotalHistorial(pedido) : this.totalConIVA;
+            
+            // Crear mensaje de WhatsApp con detalles completos
+            const mensaje = `🛒 *Nuevo Pedido - ${this.app.Name || 'Fagotto'}*\n\n` +
+                `👤 Cliente: ${this.name}\n` +
+                `📱 Teléfono: ${this.whatsapp}\n` +
+                `📅 Fecha: ${new Date().toLocaleString('es-CL')}\n\n` +
+                `📦 *PRODUCTOS:*\n${productosTexto}\n` +
+                `💰 *RESUMEN:*\n` +
+                `   Subtotal: $${this.formatNumber(totalNeto)}\n` +
+                `   IVA (19%): $${this.formatNumber(totalIVA)}\n` +
+                `   ━━━━━━━━━━━━━━━━\n` +
+                `   *TOTAL: $${this.formatNumber(totalConIVA)} CLP*\n\n` +
+                `🔗 *Link de Pago:*\n${urlPago}\n\n` +
+                `⏳ *Estado:* Pendiente de pago\n\n` +
+                `❓ *¿Cómo hacer una transferencia?*\n` +
+                `📹 Video tutorial: https://youtu.be/KHUNZqKNP5w\n\n` +
+                `Por favor, completa el pago para confirmar tu pedido. ¡Gracias! 😊`;
+            
+            // Codificar mensaje para URL
+            const mensajeCodificado = encodeURIComponent(mensaje);
+            const numeroLimpio = this.whatsapp.replace(/[^\d]/g, '');
+            
+            // Construir URL de wa.me
+            const waUrl = `https://wa.me/${numeroLimpio}?text=${mensajeCodificado}`;
+            
+            console.log('📱 Abriendo WhatsApp Web con wa.me');
+            console.log('🔗 URL:', waUrl);
+            
+            // Abrir WhatsApp Web
+            window.open(waUrl, '_blank');
+            
+            this.$awn.success('✅ WhatsApp abierto. Envía el mensaje al cliente.', {
+                labels: { success: 'WHATSAPP WEB' }
+            });
         },
         
         // ========================================
@@ -1370,6 +1700,10 @@ export default {
         
         abrirAdminProductos() {
             $('#modalAdminProductos').modal('show');
+        },
+        
+        abrirAyudaTransferencia() {
+            $('#modalAyudaTransferencia').modal('show');
         },
         
         nuevoProducto() {

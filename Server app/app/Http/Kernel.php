@@ -70,6 +70,7 @@ class Kernel extends HttpKernel
         'Config' => \App\Http\Middleware\ConfigMiddleware::class,
         'HavePermission' => \App\Http\Middleware\HavePermission::class,
         'ApiSecurity' => \App\Http\Middleware\ApiSecurity::class,
+        'FlowCors' => \App\Http\Middleware\FlowCors::class,
     ];
 
     /**

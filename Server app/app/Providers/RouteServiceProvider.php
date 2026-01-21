@@ -77,4 +77,17 @@ class RouteServiceProvider extends ServiceProvider
              ->namespace($this->namespace)
              ->group(base_path('routes/api.php'));
     }
+    
+    /**
+     * Define the "flow" routes for the application.
+     *
+     * These routes bypass api middleware to avoid CORS conflicts.
+     *
+     * @return void
+     */
+    protected function mapFlowRoutes()
+    {
+        Route::namespace($this->namespace)
+             ->group(base_path('routes/flow.php'));
+    }
 }

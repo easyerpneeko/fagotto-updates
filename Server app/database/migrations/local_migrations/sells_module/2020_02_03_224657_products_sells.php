@@ -21,7 +21,7 @@ class ProductsSells extends Migration
         $table->string('quantity');
         $table->decimal('unitary_price', 16,2);
 
-        $table->bigInteger('product')->unsigned();
+        $table->bigInteger('product')->unsigned()->nullable();
         $table->foreign('product')->references('id')->on('products');
 
         $table->bigInteger('sell')->unsigned()->nullable();

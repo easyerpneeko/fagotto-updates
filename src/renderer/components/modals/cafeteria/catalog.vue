@@ -122,7 +122,7 @@
                 
                 <!-- Botón especial Gelateria -->
                 <button 
-                  v-if="gelateriaActive"
+                  v-if="settingGelateria"
                   @click="openGelateria()"
                   class="category-item-center category-special">
                   <div class="category-icon">
@@ -147,14 +147,15 @@
                   </div>
                 </button>
                 
-                <!-- Botón especial Test -->
+                <!-- Botón Merchise -->
                 <button 
+                  v-if="settingMerchise"
                   @click="openTestMerchise()"
-                  class="category-item-center category-special category-test">
+                  class="category-item-center category-special category-merchise">
                   <div class="category-icon">
-                    <i class="fas fa-flask"></i>
+                    <i class="fas fa-utensils"></i>
                   </div>
-                  <span class="category-name">Test</span>
+                  <span class="category-name">Merchise</span>
                   <div class="category-arrow">
                     <i class="fas fa-chevron-right"></i>
                   </div>
@@ -1830,6 +1831,20 @@ export default {
       get() {
         if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
         return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.cheque');
+      }
+    },
+
+    settingMerchise: {
+      get() {
+        if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+        return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.merchise');
+      }
+    },
+
+    settingGelateria: {
+      get() {
+        if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+        return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.gelateria');
       }
     },
 

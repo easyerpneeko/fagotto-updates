@@ -400,6 +400,7 @@ class SellsController extends Controller
       // ✅ FIX MERCHISE: Guardar nombre del producto en description_sii si es merchise
       if ($is_merchise && isset($item->name)) {
         $newProductSell['description_sii'] = $item->name;
+        $newProductSell['product'] = null; // NULL para merchise (no existe en tabla products)
         \Log::info('✅ MERCHISE - Guardando description_sii:', [
           'product_id' => $item->id,
           'name' => $item->name,
@@ -417,7 +418,7 @@ class SellsController extends Controller
       $is_colacion = isset($item->is_colacion) && $item->is_colacion === true;
       if ($is_colacion && isset($item->name)) {
         $newProductSell['description_sii'] = $item->name;
-        $newProductSell['product'] = 0; // ID 0 para colaciones (columna NOT NULL)
+        $newProductSell['product'] = null; // NULL para colaciones (no existe en tabla products)
         \Log::info('✅ COLACIÓN - Guardando description_sii:', [
           'product_id' => $item->id,
           'name' => $item->name,

@@ -93,6 +93,10 @@ Route::group(['middleware' => ['JwtMiddleware']], function () {
   Route::get('/products', 'ProductController@index');
   Route::get('/products/sell', 'ProductController@getProductsOfSell');
 
+  // Merchise System - Productos y modifiers
+  Route::get('/merchise/products', 'MerchiseController@getProducts');
+  Route::get('/merchise/products/{sku}/modifiers', 'MerchiseController@getModifiers');
+
   // Productos del reposteria admin
   Route::post('/product/reposteria', 'ProductReposteriaController@store');
   Route::put('/product/reposteria/{id}', 'ProductReposteriaController@update');

@@ -119,8 +119,9 @@ INSERT INTO merchise_items (sku, name, description, price, section_id, image, or
 ('bbc2d11b-bf78-4d03-93ce-443f722c688a', 'Noquis 2 Salsa', 'Eligie 2 salsa de las 5 opciones', 6390, 1, '', 113),
 ('30449ade-d202-4372-b2dd-d4edf2c901a5', 'Noquis Fritos 2 Salsa', 'Eligie 2 salsa de las 5 opciones', 6390, 1, '', 114);
 
--- SECCIÓN 2: COMBOS (8 productos) - Orden: 200-299
+-- SECCIÓN 2: COMBOS (9 productos) - Orden: 200-299
 INSERT INTO merchise_items (sku, name, description, price, section_id, image, orden) VALUES
+('aba45499-8957-48b3-8c54-d63e06033b96', 'Pasta Bigoli con Salsa Cheddar + Bebida Lata', 'Pasta bigoli al dente con cremosa salsa cheddar. Sabor intenso, textura perfecta y un plato ideal para los amantes del queso.', 5990, 2, '', 200),
 ('52ef85a9-1e80-4e19-ba18-e1b75fa680d5', 'Pasta Bigoli + Bebida Lata', 'Eligie 1 salsa de las 5 opciones+ elige 1 bebida de las 4', 6990, 2, '', 201),
 ('b534f8c8-09d5-4a96-8309-bcaf4726bc87', 'Pasta Fettuccine + Bebida Lata', 'Eligie 1 salsa de las 5 opciones+ elige 1 bebida de las 4', 6990, 2, '', 202),
 ('854a57e8-a8c9-475c-b913-5c1736c26daf', 'Noquis 1 Salsa + Bebida Lata', 'Eligie 1 salsa de las 5 opciones+ elige 1 bebida de las 4', 6990, 2, '', 203),
@@ -138,21 +139,19 @@ INSERT INTO merchise_items (sku, name, description, price, section_id, image, or
 
 -- SECCIÓN 4: SANDWICHIS (8 productos) - Orden: 400-499
 INSERT INTO merchise_items (sku, name, description, price, section_id, image, orden) VALUES
-('1326ad45-8ad7-4beb-aa25-a35382466b44', 'Ciabatta Pesto', 'Pan de masa madre artesanal de parmesano, albahaca, tomate cherry y mozzarella.', 2990, 4, '', 401),
-('cd44537d-6e49-4dde-8219-36a52c25c9e3', 'Ciabatta Pollo', 'Pan de masa madre con pollo grillado y pimentón asado.', 2990, 4, '', 402),
-('a11aa8b6-1c17-468d-aee7-96016d72ef1c', 'Ciabatta Salami', 'Pan de masa madre con salami italiano, queso crema y tomate seco.', 2990, 4, '', 403),
-('f066e015-390a-4bcd-a3d5-de9b5e4fbdd3', 'Ciabatta Alleato', 'Pan de masa madre con jamón serrano y queso manchego.', 2990, 4, '', 404),
-('eb387c0a-3532-44a2-b09e-a3f9f1054d90', 'Ciabatta Pesto + Bebida Lata', 'Pan de masa madre artesanal de parmesano, albahaca, tomate cherry y mozzarella.', 3990, 4, '', 411),
-('fd0b6de8-a70a-4233-bc0c-f6d46ae55b20', 'Ciabatta Pollo + Bebida Lata', 'Pan de masa madre con pollo grillado y pimentón asado.', 3990, 4, '', 412),
-('80cdfc7a-a0ad-42b0-bc2f-e5048d8f2ad3', 'Ciabatta Salami + Bebida Lata', 'Pan de masa madre con salami italiano, queso crema y tomate seco.', 3990, 4, '', 413),
-('6ab91854-33ce-464a-9ace-e8622bb1feda', 'Ciabatta Alleato + Bebida Lata', 'Pan de masa madre con jamón serrano y queso manchego.', 3990, 4, '', 414);
+('1326ad45-8ad7-4beb-aa25-a35382466b44', 'Ciabatta Pesto', 'Pan de masa madre artesanal de parmesano, albahaca, tomate cherry y mozzarella.', 3590, 4, '', 401),
+('a11aa8b6-1c17-468d-aee7-96016d72ef1c', 'Ciabatta Salami', 'Pan de masa madre con salami italiano, queso crema y tomate seco.', 3590, 4, '', 402),
+('f066e015-390a-4bcd-a3d5-de9b5e4fbdd3', 'Ciabatta Alleato', 'Pan de masa madre con jamón serrano y queso manchego.', 2990, 4, '', 403),
+('eb387c0a-3532-44a2-b09e-a3f9f1054d90', 'Ciabatta Pesto + Bebida Lata', 'Pan de masa madre artesanal de parmesano, albahaca, tomate cherry y mozzarella.', 4990, 4, '', 411),
+('80cdfc7a-a0ad-42b0-bc2f-e5048d8f2ad3', 'Ciabatta Salami + Bebida Lata', 'Pan de masa madre con salami italiano, queso crema y tomate seco.', 4990, 4, '', 412),
+('6ab91854-33ce-464a-9ace-e8622bb1feda', 'Ciabatta Alleato + Bebida Lata', 'Pan de masa madre con jamón serrano y queso manchego.', 4590, 4, '', 413);
 
 -- SECCIÓN 5: FAMILY PARTY (4 productos) - Orden: 500-599
 INSERT INTO merchise_items (sku, name, description, price, section_id, image, orden) VALUES
-('821988d3-8b21-46cc-b731-cbe83b5f943a', 'Fontana 2 Salsa', '', 7590, 5, '', 501),
-('2efdc598-b812-4004-b6ac-3337c9374097', 'Fontana 2 Salsas + Bebida Familiar', '', 9900, 5, '', 502),
-('9de96de0-60e8-49ca-b7c2-9a05a7401e42', '2 pastas a eleccion +2 ciabatta + Bebida Familiar', '', 16990, 5, '', 503),
-('7e2e01cc-e13a-4f55-a4fe-cfdbad46b68d', '2 Ciabattas+ 1 Noquis frito + 2 Pastas', '', 10990, 5, '', 504);
+('821988d3-8b21-46cc-b731-cbe83b5f943a', 'Fontana 2 Salsa', 'Elige dos tipos de pasta y dos salsas para compartir y disfrutar variedad.', 7590, 5, '', 501),
+('2efdc598-b812-4004-b6ac-3337c9374097', 'Fontana 2 Salsas + Bebida Familiar', 'Dos tipos de pasta con dos salsas y bebida familiar. Ideal para compartir en casa.', 9900, 5, '', 502),
+('9de96de0-60e8-49ca-b7c2-9a05a7401e42', '2 pastas a eleccion +2 ciabatta + Bebida Familiar', 'Dos pastas con salsas, dos ciabattas y bebida familiar. Completo y perfecto para compartir.', 16990, 5, '', 503),
+('7e2e01cc-e13a-4f55-a4fe-cfdbad46b68d', '2 Ciabattas+ 1 Noquis frito + 2 Pastas', 'Dos ciabattas, ñoquis fritos con salsa y dos pastas con salsas. Ideal para compartir variedad.', 16990, 5, '', 504);
 
 -- ========================================
 -- PASO 4: INSERTAR MODIFICADORES (3 grupos)
@@ -362,6 +361,18 @@ SELECT id, 3 FROM merchise_items WHERE sku IN (
     '37615b6b-eb7f-48b8-87e6-3a5f9f3ae7c1'   -- Noquis Fritos 2 Salsa + Bebida Lata
 );
 
+-- COMBO Pasta Bigoli Cheddar + Bebida (solo bebida, salsa cheddar fija)
+INSERT INTO merchise_item_modifiers (item_id, modifier_id)
+SELECT id, 3 FROM merchise_items WHERE sku = 'aba45499-8957-48b3-8c54-d63e06033b96';  -- LATA_1
+
+-- CIABATTAS con BEBIDA (solo bebida)
+INSERT INTO merchise_item_modifiers (item_id, modifier_id)
+SELECT id, 3 FROM merchise_items WHERE sku IN (
+    'eb387c0a-3532-44a2-b09e-a3f9f1054d90',  -- Ciabatta Pesto + Bebida Lata
+    '80cdfc7a-a0ad-42b0-bc2f-e5048d8f2ad3',  -- Ciabatta Salami + Bebida Lata
+    '6ab91854-33ce-464a-9ace-e8622bb1feda'   -- Ciabatta Alleato + Bebida Lata
+);
+
 -- PARA_COMPARTIR: 2 Pastas a eleccion + 2 bebida (4 modifiers: tipo pasta 1, salsa 1, tipo pasta 2, salsa 2, 2 bebidas)
 INSERT INTO merchise_item_modifiers (item_id, modifier_id)
 SELECT id, 5 FROM merchise_items WHERE sku = '6d034018-7da5-42c1-a4f7-1a0cefe0c61a';  -- PASTA_TIPO_1
@@ -428,6 +439,35 @@ SELECT id, 12 FROM merchise_items WHERE sku = '101abbd4-52df-4084-afb8-6cf5ab916
 INSERT INTO merchise_item_modifiers (item_id, modifier_id)
 SELECT id, 13 FROM merchise_items WHERE sku = '101abbd4-52df-4084-afb8-6cf5ab91617f';  -- BEBIDA_FAMILIAR
 
+-- FAMILY_PARTY: Fontana 2 Salsa (2 tipos pasta + 2 salsas)
+INSERT INTO merchise_item_modifiers (item_id, modifier_id)
+SELECT id, 5 FROM merchise_items WHERE sku = '821988d3-8b21-46cc-b731-cbe83b5f943a';  -- PASTA_TIPO_1
+
+INSERT INTO merchise_item_modifiers (item_id, modifier_id)
+SELECT id, 6 FROM merchise_items WHERE sku = '821988d3-8b21-46cc-b731-cbe83b5f943a';  -- SALSA_PASTA_1
+
+INSERT INTO merchise_item_modifiers (item_id, modifier_id)
+SELECT id, 7 FROM merchise_items WHERE sku = '821988d3-8b21-46cc-b731-cbe83b5f943a';  -- PASTA_TIPO_2
+
+INSERT INTO merchise_item_modifiers (item_id, modifier_id)
+SELECT id, 8 FROM merchise_items WHERE sku = '821988d3-8b21-46cc-b731-cbe83b5f943a';  -- SALSA_PASTA_2
+
+-- FAMILY_PARTY: Fontana 2 Salsas + Bebida Familiar (2 tipos pasta + 2 salsas + bebida)
+INSERT INTO merchise_item_modifiers (item_id, modifier_id)
+SELECT id, 5 FROM merchise_items WHERE sku = '2efdc598-b812-4004-b6ac-3337c9374097';  -- PASTA_TIPO_1
+
+INSERT INTO merchise_item_modifiers (item_id, modifier_id)
+SELECT id, 6 FROM merchise_items WHERE sku = '2efdc598-b812-4004-b6ac-3337c9374097';  -- SALSA_PASTA_1
+
+INSERT INTO merchise_item_modifiers (item_id, modifier_id)
+SELECT id, 7 FROM merchise_items WHERE sku = '2efdc598-b812-4004-b6ac-3337c9374097';  -- PASTA_TIPO_2
+
+INSERT INTO merchise_item_modifiers (item_id, modifier_id)
+SELECT id, 8 FROM merchise_items WHERE sku = '2efdc598-b812-4004-b6ac-3337c9374097';  -- SALSA_PASTA_2
+
+INSERT INTO merchise_item_modifiers (item_id, modifier_id)
+SELECT id, 13 FROM merchise_items WHERE sku = '2efdc598-b812-4004-b6ac-3337c9374097';  -- BEBIDA_FAMILIAR
+
 -- ========================================
 -- VERIFICACIÓN
 -- ========================================
@@ -474,11 +514,14 @@ FROM merchise_item_modifiers;
 -- ========================================
 -- RESULTADO ESPERADO:
 -- - 5 secciones
--- - 31 productos
--- - 3 modificadores (SALSA_1, SALSA_2, LATA_1)
--- - 10 opciones (6 salsas + 4 bebidas)
--- - 16 productos con modificadores:
+-- - 29 productos (8 pasta, 9 combos, 3 para compartir, 6 sandwichis, 4 family party)
+-- - 13 modificadores (SALSA_1, SALSA_2, LATA_1, LATA_2, PASTA_TIPO_1-4, SALSA_PASTA_1-4, BEBIDA_FAMILIAR)
+-- - 18 opciones (6 salsas + 4 bebidas lata + 4 tipos pasta + 4 bebidas familiares)
+-- - Productos con modificadores:
 --   * 8 PASTA: 4 con SALSA_1, 4 con SALSA_2
---   * 8 COMBOS: 4 con SALSA_1+LATA_1, 4 con SALSA_2+LATA_1
--- - 15 productos simples sin modificadores (PARA_COMPARTIR, SANDWICHIS, FAMILY_PARTY)
+--   * 9 COMBOS: 1 con LATA_1, 4 con SALSA_1+LATA_1, 4 con SALSA_2+LATA_1
+--   * 3 CIABATTAS con LATA_1
+--   * 3 PARA_COMPARTIR con selectores complejos
+--   * 2 FAMILY_PARTY con selectores complejos
+-- - Productos simples sin modificadores: 3 ciabattas, 2 family party complejos
 -- ========================================

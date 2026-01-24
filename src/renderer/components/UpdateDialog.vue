@@ -150,7 +150,7 @@ export default {
         
         const response = await fetch('https://api.github.com/repos/easyerpneeko/fagotto-updates/releases/latest', {
           headers: {
-            'Authorization': 'token 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',
+            'Authorization': 'token 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',
             'Accept': 'application/vnd.github.v3+json'
           }
         });
@@ -179,13 +179,20 @@ export default {
         } else {
           console.log('✅ App is up to date');
           this.updateState = 'checking';
+          this.showUpdateDialog = false; // No mostrar diálogo si está actualizado
         }
         
       } catch (error) {
         console.error('❌ Error checking for updates:', error);
         this.errorMessage = error.message;
         this.updateState = 'error';
-        this.showUpdateDialog = true;
+        // Solo mostrar error si no es 401 (autorización) o 404 (no encontrado)
+        if (error.message.includes('401') || error.message.includes('404')) {
+          console.log('⚠️ Error de autorización o no encontrado, ignorando...');
+          this.showUpdateDialog = false;
+        } else {
+          this.showUpdateDialog = true;
+        }
       }
     },
     

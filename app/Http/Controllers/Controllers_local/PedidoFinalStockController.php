@@ -581,36 +581,177 @@ class PedidoFinalStockController extends Controller
     public function getResumenStockPorNegocio(Request $request)
     {
         try {
-            // Obtener el último registro de cada combinación negocio-producto
-            $resumen = DB::select("
-                SELECT 
-                    spn.*,
-                    p.categoria,
-                    p.precio_por_unidad
-                FROM pedidofinal_stock_por_negocio spn
-                INNER JOIN (
-                    SELECT 
-                        COALESCE(id_negocio, app_id) as negocio_key,
-                        id_producto,
-                        MAX(fecha_registro) as ultima_fecha
-                    FROM pedidofinal_stock_por_negocio
-                    GROUP BY COALESCE(id_negocio, app_id), id_producto
-                ) ultimo ON 
-                    COALESCE(spn.id_negocio, spn.app_id) = ultimo.negocio_key 
-                    AND spn.id_producto = ultimo.id_producto 
-                    AND spn.fecha_registro = ultimo.ultima_fecha
-                LEFT JOIN pedidofinal_precios p ON spn.id_producto = p.id
-                ORDER BY spn.nombre_negocio, spn.producto_nombre
-            ");
+            // SOLUCIÓN SIMPLE: Traer todos los registros y agrupar en PHP
+            $todosLosRegistros = DB::table('pedidofinal_stock_por_negocio')
+                ->leftJoin('pedidofinal_precios as p', 'pedidofinal_stock_por_negocio.id_producto', '=', 'p.id')
+                ->select(
+                    'pedidofinal_stock_por_negocio.*',
+                    'p.categoria',
+                    'p.precio_por_unidad'
+                )
+                ->orderBy('pedidofinal_stock_por_negocio.fecha_registro', 'desc')
+                ->get();
+
+            \Log::info('🔍 DEBUG - Total registros en tabla: ' . $todosLosRegistros->count());
+            
+            // Agrupar en PHP para obtener el último por negocio-producto
+            $resumen = [];
+            $yaVistos = [];
+            
+            foreach ($todosLosRegistros as $registro) {
+                $negocioId = $registro->id_negocio ?? $registro->app_id ?? 'null';
+                $productoId = $registro->id_producto;
+                $key = "{$negocioId}_{$productoId}";
+                
+                // Solo agregar si no hemos visto esta combinación
+                if (!isset($yaVistos[$key])) {
+                    $resumen[] = $registro;
+                    $yaVistos[$key] = true;
+                    \Log::info("   ✅ Agregado: {$registro->nombre_negocio} - {$registro->producto_nombre}");
+                }
+            }
+
+            \Log::info('🔍 Resumen Stock por Negocio - Total en resumen: ' . count($resumen));
 
             return response()->json([
                 'success' => true,
-                'data' => $resumen
+                'data' => $resumen,
+                'total' => count($resumen),
+                'debug_total_registros' => $todosLosRegistros->count()
             ], 200);
 
         } catch (\Exception $e) {
+            \Log::error('❌ Error en getResumenStockPorNegocio: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             return response()->json([
                 'error' => 'Error al obtener resumen',
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
+    }
+
+    /**
+     * ADMIN: Obtener último stock reportado por cada negocio para cada producto
+     * SIN filtro por llave - Ver todos los negocios
+     * GET /api/local/admin/pedidofinal/stock-negocio/resumen
+     */
+    public function getResumenStockPorNegocioAdmin(Request $request)
+    {
+        try {
+            \Log::info('🔓 ADMIN: getResumenStockPorNegocioAdmin - Sin filtro de llave');
+            \Log::info('🔍 ADMIN: Request headers: ' . json_encode($request->headers->all()));
+            
+            // Usar DB:: normal en vez de connection('master')
+            $todosLosRegistros = DB::table('pedidofinal_stock_por_negocio')
+                ->leftJoin('pedidofinal_precios as p', 'pedidofinal_stock_por_negocio.id_producto', '=', 'p.id')
+                ->select(
+                    'pedidofinal_stock_por_negocio.*',
+                    'p.categoria',
+                    'p.precio_por_unidad'
+                )
+                ->orderBy('pedidofinal_stock_por_negocio.fecha_registro', 'desc')
+                ->get();
+
+            \Log::info('🔍 ADMIN - Total registros en DB: ' . $todosLosRegistros->count());
+            
+            // Agrupar en PHP para obtener el último por negocio-producto
+            $resumen = [];
+            $yaVistos = [];
+            
+            foreach ($todosLosRegistros as $registro) {
+                $negocioId = $registro->id_negocio ?? $registro->app_id ?? 'null';
+                $productoId = $registro->id_producto;
+                $key = "{$negocioId}_{$productoId}";
+                
+                if (!isset($yaVistos[$key])) {
+                    $resumen[] = $registro;
+                    $yaVistos[$key] = true;
+                }
+            }
+
+            \Log::info('✅ ADMIN - Total en resumen: ' . count($resumen));
+
+            return response()->json([
+                'success' => true,
+                'data' => $resumen,
+                'total' => count($resumen)
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('❌ Error en getResumenStockPorNegocioAdmin: ' . $e->getMessage());
+            \Log::error('❌ Error trace: ' . $e->getTraceAsString());
+            return response()->json([
+                'success' => false,
+                'error' => 'Error al obtener resumen',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * ADMIN: Obtener historial completo de stock por negocio
+     * SIN filtro por llave - Ver todos los negocios
+     * GET /api/local/admin/pedidofinal/stock-negocio
+     */
+    public function getStockPorNegocioAdmin(Request $request)
+    {
+        try {
+            \Log::info('🔓 ADMIN: getStockPorNegocioAdmin - Sin filtro de llave');
+            \Log::info('🔍 ADMIN: Request headers: ' . json_encode($request->headers->all()));
+            
+            // Usar DB:: normal en vez de connection('master')
+            $query = DB::table('pedidofinal_stock_por_negocio')
+                ->leftJoin('pedidofinal_precios as p', 'pedidofinal_stock_por_negocio.id_producto', '=', 'p.id')
+                ->select(
+                    'pedidofinal_stock_por_negocio.*',
+                    'p.categoria',
+                    'p.precio_por_unidad'
+                );
+
+            // Aplicar filtros si existen
+            if ($request->has('id_negocio')) {
+                $query->where('id_negocio', $request->id_negocio);
+            }
+
+            if ($request->has('app_id')) {
+                $query->where('app_id', $request->app_id);
+            }
+
+            if ($request->has('id_producto')) {
+                $query->where('id_producto', $request->id_producto);
+            }
+
+            if ($request->has('nombre_negocio')) {
+                $query->where('nombre_negocio', 'LIKE', '%' . $request->nombre_negocio . '%');
+            }
+
+            if ($request->has('fecha_desde')) {
+                $query->where('fecha_registro', '>=', $request->fecha_desde);
+            }
+
+            if ($request->has('fecha_hasta')) {
+                $query->where('fecha_registro', '<=', $request->fecha_hasta . ' 23:59:59');
+            }
+
+            $registros = $query
+                ->orderBy('fecha_registro', 'desc')
+                ->get();
+
+            \Log::info('✅ ADMIN - Total registros encontrados: ' . $registros->count());
+
+            return response()->json([
+                'success' => true,
+                'data' => $registros,
+                'total' => $registros->count()
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('❌ Error en getStockPorNegocioAdmin: ' . $e->getMessage());
+            \Log::error('❌ Error trace: ' . $e->getTraceAsString());
+            return response()->json([
+                'success' => false,
+                'error' => 'Error al obtener historial',
                 'message' => $e->getMessage()
             ], 500);
         }

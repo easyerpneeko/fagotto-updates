@@ -32,7 +32,7 @@
             <tr>
               <th class="col-id">#</th>
               <th class="col-nombre">Producto</th>
-              <th class="col-unidad">Unidad Medida</th>
+              <th class="col-tipo">Tipo</th>
               <th class="col-stock">Stock</th>
               <th class="col-precio">Precio Unitario</th>
             </tr>
@@ -45,18 +45,30 @@
               <!-- Producto -->
               <td class="col-nombre">{{ producto.producto }}</td>
               
-              <!-- Unidad Medida -->
-              <td class="col-unidad">{{ producto.unidad_medida }}</td>
+              <!-- Tipo de medida -->
+              <td class="col-tipo">
+                <select 
+                  v-model="producto.tipo_medida" 
+                  @change="onTipoChange(producto)"
+                  class="cell-select"
+                  disabled
+                >
+                  <option value="kilos">Kilos</option>
+                  <option value="litros">Litros</option>
+                  <option value="unidades">Unidades</option>
+                </select>
+              </td>
               
               <!-- Stock -->
               <td class="col-stock editable">
                 <input 
-                  type="number" 
-                  v-model.number="producto.stock" 
-                  @input="marcarModificado(producto.id, 'stock', producto.stock)"
+                  type="text" 
+                  v-model="producto.stock" 
+                  @blur="validarStock(producto)"
+                  @keypress="validarTecla($event, producto)"
                   class="cell-input text-right"
-                  step="0.01"
-                  min="0"
+                  :placeholder="producto.tipo_medida === 'kilos' ? 'Ej: 3.45' : 'Ej: 5'"
+                  inputmode="decimal"
                 />
               </td>
               
@@ -196,8 +208,9 @@ export default {
             // 3. Asignar productos con el stock del negocio (o 0 si no hay)
             this.productos = data.map(p => ({
               ...p,
-              stock: stockPorNegocio[p.id] || 0
-            }));
+              stock: stockPorNegocio[p.id] || 0,
+              tipo_medida: this.detectarTipoMedida(p.unidad_medida) // Auto-detectar tipo inicial
+            })).sort((a, b) => a.id - b.id); // Ordenar por ID del 1 al final
             
             this.productosOriginales = JSON.parse(JSON.stringify(this.productos));
             this.cambiosPendientes = [];
@@ -345,7 +358,112 @@ export default {
     },
     
     formatearPrecio(precio) {
-      return parseFloat(precio).toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return parseFloat(precio).toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    },
+    
+    permiteDecimales(unidadMedida) {
+      if (!unidadMedida) return false;
+      const unidad = unidadMedida.toLowerCase().trim();
+      // Permite decimales si contiene: kg, kilo, kilos, lt, litro, litros
+      return unidad.includes('kg') || 
+             unidad.includes('kilo') || 
+             unidad.includes('lt') || 
+             unidad.includes('litro') ||
+             unidad.includes('bolsa') && (unidad.includes('k') || unidad.includes('2'));
+    },
+
+    detectarTipoMedida(unidadMedida) {
+      // Auto-detectar basado en el nombre de la unidad
+      if (!unidadMedida) return 'unidades';
+      
+      const unidad = String(unidadMedida).toLowerCase().trim();
+      
+      // Detectar LITROS
+      if (unidad.includes('litro') || unidad.includes('lt') || unidad.includes('ml')) {
+        return 'litros';
+      }
+      
+      // Detectar KILOS
+      if (unidad.includes('kg') || unidad.includes('kilo') || unidad.includes('gr') || unidad.includes('bolsa') && unidad.includes('k')) {
+        return 'kilos';
+      }
+      
+      // Por defecto: UNIDADES
+      return 'unidades';
+    },
+
+    onTipoChange(producto) {
+      // Cuando cambia el tipo, validar nuevamente el stock
+      this.validarStock(producto);
+    },
+    
+    validarTecla(event, producto) {
+      const key = event.key;
+      const value = producto.stock ? producto.stock.toString() : '';
+      
+      // Permitir: números, backspace, delete, tab, escape, enter
+      if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(key)) {
+        return true;
+      }
+      
+      // Permitir punto decimal SOLO si es tipo kilos
+      if (key === '.' || key === ',') {
+        // Bloquear si NO es kilos
+        if (producto.tipo_medida !== 'kilos') {
+          event.preventDefault();
+          return false;
+        }
+        // Bloquear si ya existe un punto o coma
+        if (value.includes('.') || value.includes(',')) {
+          event.preventDefault();
+          return false;
+        }
+        // Permitir el punto/coma
+        return true;
+      }
+      
+      // Solo permitir números
+      if (!/[0-9]/.test(key)) {
+        event.preventDefault();
+        return false;
+      }
+    },
+    
+    validarStock(producto) {
+      let valor = producto.stock ? producto.stock.toString() : '0';
+      
+      // Reemplazar coma por punto
+      valor = valor.replace(',', '.');
+      
+      // Remover caracteres no válidos
+      valor = valor.replace(/[^0-9.]/g, '');
+      
+      // Evitar múltiples puntos
+      const partes = valor.split('.');
+      if (partes.length > 2) {
+        valor = partes[0] + '.' + partes.slice(1).join('');
+      }
+      
+      // Convertir a número
+      let numero = parseFloat(valor) || 0;
+      
+      // Solo KILOS permite decimales, litros y unidades son enteros
+      if (producto.tipo_medida === 'kilos') {
+        // Limitar a 2 decimales para kilos
+        numero = Math.round(numero * 100) / 100;
+      } else {
+        // Redondear a entero para litros y unidades
+        numero = Math.round(numero);
+      }
+      
+      // Asegurar que no sea negativo
+      if (numero < 0) numero = 0;
+      
+      // Actualizar el valor
+      producto.stock = numero;
+      
+      // Marcar como modificado
+      this.marcarModificado(producto.id, 'stock', numero);
     }
   }
 };
@@ -532,8 +650,8 @@ export default {
   max-width: 280px;
 }
 
-.col-unidad {
-  width: 120px;
+.col-tipo {
+  width: 140px;
 }
 
 .col-stock {

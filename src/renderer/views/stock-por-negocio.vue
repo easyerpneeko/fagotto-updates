@@ -97,8 +97,8 @@
               <th>Negocio</th>
               <th>Producto</th>
               <th>Categoría</th>
+              <th>Tipo</th>
               <th>Stock Actual</th>
-              <th>Unidad</th>
               <th>Última Actualización</th>
               <th>Usuario</th>
             </tr>
@@ -111,10 +111,15 @@
               </td>
               <td>{{ item.producto_nombre }}</td>
               <td>{{ item.categoria || '-' }}</td>
-              <td class="cantidad-cell">
-                <span class="cantidad">{{ formatearNumero(item.cantidad_reportada) }}</span>
+              <td>
+                <span class="badge-tipo" :class="getTipoClass(item.unidad_medida)">
+                  {{ getTipoTexto(item.unidad_medida) }}
+                </span>
               </td>
-              <td>{{ item.unidad_medida }}</td>
+              <td class="cantidad-cell">
+                <span class="cantidad">{{ formatearCantidad(item.cantidad_reportada, item.unidad_medida) }}</span>
+                <small class="unidad-text">{{ item.unidad_medida }}</small>
+              </td>
               <td>{{ formatearFecha(item.fecha_registro) }}</td>
               <td>{{ item.usuario }}</td>
             </tr>
@@ -136,8 +141,8 @@
               <th>Fecha</th>
               <th>Negocio</th>
               <th>Producto</th>
+              <th>Tipo</th>
               <th>Cantidad</th>
-              <th>Unidad</th>
               <th>Usuario</th>
               <th>Observación</th>
             </tr>
@@ -150,10 +155,15 @@
                 <small v-if="item.app_id">({{ item.app_id }})</small>
               </td>
               <td>{{ item.producto_nombre }}</td>
-              <td class="cantidad-cell">
-                <span class="cantidad">{{ formatearNumero(item.cantidad_reportada) }}</span>
+              <td>
+                <span class="badge-tipo" :class="getTipoClass(item.unidad_medida)">
+                  {{ getTipoTexto(item.unidad_medida) }}
+                </span>
               </td>
-              <td>{{ item.unidad_medida }}</td>
+              <td class="cantidad-cell">
+                <span class="cantidad">{{ formatearCantidad(item.cantidad_reportada, item.unidad_medida) }}</span>
+                <small class="unidad-text">{{ item.unidad_medida }}</small>
+              </td>
               <td>{{ item.usuario }}</td>
               <td>{{ item.observacion || '-' }}</td>
             </tr>
@@ -333,6 +343,74 @@ export default {
         fecha_desde: '',
         fecha_hasta: ''
       };
+    },
+    
+    detectarTipoMedida(unidadMedida) {
+      if (!unidadMedida) return 'unidades';
+      const unidad = String(unidadMedida).toLowerCase().trim();
+      
+      if (unidad.includes('litro') || unidad.includes('lt') || unidad.includes('ml')) {
+        return 'litros';
+      }
+      if (unidad.includes('kg') || unidad.includes('kilo') || unidad.includes('gr') || unidad.includes('bolsa') && unidad.includes('k')) {
+        return 'kilos';
+      }
+      return 'unidades';
+    },
+
+    getTipoTexto(unidadMedida) {
+      const tipo = this.detectarTipoMedida(unidadMedida);
+      return tipo.charAt(0).toUpperCase() + tipo.slice(1);
+    },
+
+    getTipoClass(unidadMedida) {
+      return `tipo-${this.detectarTipoMedida(unidadMedida)}`;
+    },
+
+    formatearCantidad(cantidad, unidadMedida) {
+      const tipo = this.detectarTipoMedida(unidadMedida);
+      const num = parseFloat(cantidad) || 0;
+      
+      // Solo kilos permite decimales
+      if (tipo === 'kilos') {
+        return num.toFixed(2);
+      }
+      // Litros y unidades son enteros
+      return Math.round(num).toString();
+    },
+    
+    detectarTipoMedida(unidadMedida) {
+      if (!unidadMedida) return 'unidades';
+      const unidad = String(unidadMedida).toLowerCase().trim();
+      
+      if (unidad.includes('litro') || unidad.includes('lt') || unidad.includes('ml')) {
+        return 'litros';
+      }
+      if (unidad.includes('kg') || unidad.includes('kilo') || unidad.includes('gr') || unidad.includes('bolsa') && unidad.includes('k')) {
+        return 'kilos';
+      }
+      return 'unidades';
+    },
+
+    getTipoTexto(unidadMedida) {
+      const tipo = this.detectarTipoMedida(unidadMedida);
+      return tipo.charAt(0).toUpperCase() + tipo.slice(1);
+    },
+
+    getTipoClass(unidadMedida) {
+      return `tipo-${this.detectarTipoMedida(unidadMedida)}`;
+    },
+
+    formatearCantidad(cantidad, unidadMedida) {
+      const tipo = this.detectarTipoMedida(unidadMedida);
+      const num = parseFloat(cantidad) || 0;
+      
+      // Solo kilos permite decimales
+      if (tipo === 'kilos') {
+        return num.toFixed(2);
+      }
+      // Litros y unidades son enteros
+      return Math.round(num).toString();
     },
     
     formatearNumero(num) {
@@ -586,7 +664,44 @@ export default {
 .cantidad-cell {
   text-align: right;
   font-weight: 600;
-  color: #2e7d32;
+}
+
+.cantidad-cell .cantidad {
+  font-size: 1.1rem;
+  color: #2c3e50;
+  display: block;
+}
+
+.cantidad-cell .unidad-text {
+  display: block;
+  font-size: 0.75rem;
+  color: #95a5a6;
+  font-weight: normal;
+  margin-top: 0.2rem;
+}
+
+.badge-tipo {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-tipo.tipo-kilos {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.badge-tipo.tipo-litros {
+  background: #e0f7fa;
+  color: #0097a7;
+}
+
+.badge-tipo.tipo-unidades {
+  background: #f3e5f5;
+  color: #7b1fa2;
 }
 
 .no-data {

@@ -130,6 +130,7 @@
 import ConfigHelper from '@/helpers/ConfigHelper';
 import Loader from '@/helpers/Loader';
 import autoUpdate from '../../components/autoUpdate.vue';
+import packageJson from '../../../../package.json';
 const fs = require('fs');
 const { remote } = require('electron');
 export default {
@@ -172,12 +173,12 @@ export default {
           this.appVersion = response.data.version;
           console.log('✅ Versión oficial cargada:', this.appVersion);
         } else {
-          // Fallback
-          this.appVersion = '1.11.50';
+          // Fallback a package.json
+          this.appVersion = packageJson.version;
         }
       } catch (error) {
         console.log('⚠️ No se pudo obtener la versión oficial, usando fallback:', error);
-        this.appVersion = '1.11.50';
+        this.appVersion = packageJson.version;
       }
     },
     async sendLogin() {

@@ -49,10 +49,26 @@ class WhatsAppController extends Controller
             // Limpiar número de destino (quitar espacios, guiones, etc)
             $toNumber = preg_replace('/[^0-9+]/', '', $validatedData['to']);
             
-            // Si no empieza con +, agregar +56 (Chile)
-            if (substr($toNumber, 0, 1) !== '+') {
+            // Normalizar formato del número
+            if (substr($toNumber, 0, 1) === '+') {
+                // Ya tiene +, usar tal cual
+                $toNumber = $toNumber;
+            } elseif (substr($toNumber, 0, 2) === '56' && strlen($toNumber) === 11) {
+                // Formato: 56949939922 (código país + 9 dígitos)
+                $toNumber = '+' . $toNumber;
+            } elseif (strlen($toNumber) === 9) {
+                // Formato: 949939922 (solo número chileno)
+                $toNumber = '+56' . $toNumber;
+            } else {
+                // Otros casos, asumir que necesita +56
                 $toNumber = '+56' . $toNumber;
             }
+            
+            \Log::info('📱 Número formateado:', [
+                'original' => $validatedData['to'],
+                'limpio' => preg_replace('/[^0-9+]/', '', $validatedData['to']),
+                'final' => $toNumber
+            ]);
             
             // Formato WhatsApp
             $toWhatsApp = 'whatsapp:' . $toNumber;

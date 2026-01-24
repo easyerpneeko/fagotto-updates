@@ -202,18 +202,29 @@ export default {
     isUserAdmin() {
       try {
         const userRoleID = this.$store.state.main.user.role;
+        console.log('🔍 DEBUG isUserAdmin - userRoleID:', userRoleID);
+        
         const config = ConfigHelper.Config(true);
+        console.log('🔍 DEBUG isUserAdmin - config:', config);
+        
         if (!config || !config.TypeUsers) return false;
         
         const userRole = config.TypeUsers.find((type) => type.id === userRoleID);
+        console.log('🔍 DEBUG isUserAdmin - userRole:', userRole);
+        
         if (!userRole) return false;
         
         const permissions = (typeof userRole.permission === 'string' && userRole.permission !== null) 
           ? JSON.parse(userRole.permission) 
           : userRole.permission;
         
+        console.log('🔍 DEBUG isUserAdmin - permissions:', permissions);
+        
         // Si permissions es null, el usuario tiene todos los permisos (es administrador)
-        return permissions === null || permissions === 'null';
+        const isAdmin = permissions === null || permissions === 'null';
+        console.log('🔍 DEBUG isUserAdmin - RESULTADO:', isAdmin);
+        
+        return isAdmin;
       } catch (error) {
         console.error('Error verificando rol admin:', error);
         return false;
@@ -551,29 +562,24 @@ export default {
           badge: 'NUEVO'
         });
         
-        // 📊 Módulo de Stock (Excel) - Solo administradores
+        // 📊 Módulo de Stock (Excel) - Visible para cajeros
+        menu.push({
+          label: 'Stock (Excel)',
+          route: '/inicio/stock-excel',
+          icon: 'fas fa-table',
+          requiresTurno: false
+        });
+        
+        menu.push({
+          label: 'Stock por Negocio',
+          route: '/inicio/stock-por-negocio',
+          icon: 'fas fa-store',
+          requiresTurno: false
+        });
+        
+        // Módulos solo para administradores
         const isAdmin = this.isUserAdmin();
         console.log('🔍 isAdmin:', isAdmin);
-        if (isAdmin) {
-          menu.push({
-            label: 'Stock (Excel)',
-            route: '/inicio/stock-excel',
-            icon: 'fas fa-table',
-            requiresTurno: false,
-            badge: 'ADMIN'
-          });
-          
-          menu.push({
-            label: 'Stock por Negocio',
-            route: '/inicio/stock-por-negocio',
-            icon: 'fas fa-store',
-            requiresTurno: false,
-            badge: 'ADMIN'
-          });
-          console.log('✅ Menús de admin agregados');
-        }
-        
-        // Módulo Totem (Kiosko) - Solo administradores
         if (isAdmin) {
           menu.push({
             label: 'Totem',
@@ -582,6 +588,7 @@ export default {
             requiresTurno: false,
             badge: 'ADMIN'
           });
+          console.log('✅ Menús de admin agregados');
         }
         
         // ❌ DESHABILITADO - Uber Eats
@@ -641,22 +648,27 @@ export default {
           })
         }
 
-        // Módulo de Recetario
-        menu.push({
-          label: 'Recetario',
-          route: '/inicio/recetario',
-          icon: 'fas fa-book-open',
-          requiresTurno: false
-        });
+        // Módulo de Recetario - Solo administradores
+        if (isAdmin) {
+          menu.push({
+            label: 'Recetario',
+            route: '/inicio/recetario',
+            icon: 'fas fa-book-open',
+            requiresTurno: false,
+            badge: 'ADMIN'
+          });
+        }
         
-        // 👹 Módulo de Registro de Asistencia
-        menu.push({
-          label: 'Registro Asistencia',
-          route: '/inicio/registro-asistencia',
-          icon: 'fas fa-user-secret',
-          requiresTurno: false,
-          badge: 'NEW'
-        });
+        // 👹 Módulo de Registro de Asistencia - Solo administradores
+        if (isAdmin) {
+          menu.push({
+            label: 'Registro Asistencia',
+            route: '/inicio/registro-asistencia',
+            icon: 'fas fa-user-secret',
+            requiresTurno: false,
+            badge: 'ADMIN'
+          });
+        }
 
         // Admin Carnets - OCULTO
         // menu.push({

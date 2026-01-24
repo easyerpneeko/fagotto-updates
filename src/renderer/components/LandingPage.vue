@@ -111,6 +111,7 @@
 import ConfigHelper from '../helpers/ConfigHelper.js';
 import Loader from '@/helpers/Loader';
 import autoUpdate from '../components/autoUpdate.vue';
+import packageJson from '../../../package.json';
 
 const remote = require('electron').remote;
 const Inputmask = require('inputmask');
@@ -126,7 +127,7 @@ export default {
       w: remote.getCurrentWindow(),
       waitResponse: false,
       appInProduction: process.env.NODE_ENV,
-      appVersion: '1.11.50'
+      appVersion: packageJson.version
     }
   },
   props:['version'],
@@ -188,11 +189,11 @@ export default {
           this.appVersion = response.data.version;
           console.log('✅ Versión oficial cargada:', this.appVersion);
         } else {
-          this.appVersion = '1.11.50';
+          this.appVersion = packageJson.version;
         }
       } catch (error) {
         console.log('⚠️ No se pudo obtener la versión oficial, usando fallback:', error);
-        this.appVersion = '1.11.50';
+        this.appVersion = packageJson.version;
       }
     },
     async sendSerial(){

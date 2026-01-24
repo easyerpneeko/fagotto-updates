@@ -1177,11 +1177,7 @@ export default {
                 return;
             }
             
-            // Si el local tiene whatsapp_default configurado, usarlo automáticamente
-            if (this.app && this.app.whatsapp_default) {
-                this.whatsapp = this.app.whatsapp_default;
-                console.log('📱 Usando WhatsApp del local:', this.whatsapp);
-            } else if (!this.whatsapp) {
+            if (!this.whatsapp) {
                 this.$awn.alert('Por favor ingresa tu número de WhatsApp para recibir la confirmación');
                 return;
             }
@@ -1453,12 +1449,6 @@ export default {
             
             console.log('📱 Enviando WhatsApp automáticamente via Twilio...');
             
-            // Si el local tiene whatsapp_default configurado, usarlo automáticamente
-            if (this.app && this.app.whatsapp_default) {
-                this.whatsapp = this.app.whatsapp_default;
-                console.log('📱 Usando WhatsApp del local:', this.whatsapp);
-            }
-            
             // Validar que haya número de WhatsApp
             if (!this.whatsapp || this.whatsapp.trim() === '') {
                 console.warn('⚠️ No hay número de WhatsApp ingresado');
@@ -1602,7 +1592,8 @@ export default {
             
             const data = {
                 contact_name: this.name,
-                contact_phone: this.phone || '+56900000000', // Valor por defecto si está vacío
+                contact_phone: this.whatsapp,
+                whatsapp: this.whatsapp,
                 paymode: this.paymode,
                 status: 'nuevo',
                 products: JSON.stringify(productosSeleccionados),

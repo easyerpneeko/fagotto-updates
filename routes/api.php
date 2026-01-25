@@ -675,6 +675,10 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::get('/local/pedidofinal/stock-negocio', 'Controllers_local\PedidoFinalStockController@getStockPorNegocio');
           Route::get('/local/pedidofinal/stock-negocio/resumen', 'Controllers_local\PedidoFinalStockController@getResumenStockPorNegocio');
           
+          // ===== RUTAS ADMIN PARA STOCK POR NEGOCIO (SIN FILTRO DE LLAVE) =====
+          Route::get('/local/admin/pedidofinal/stock-negocio/resumen', 'Controllers_local\PedidoFinalStockController@getResumenStockPorNegocioAdmin');
+          Route::get('/local/admin/pedidofinal/stock-negocio', 'Controllers_local\PedidoFinalStockController@getStockPorNegocioAdmin');
+          
           // Reportes de pedido final
           Route::get('/local/pedidofinal/historial', 'Controllers_local\RequestsController@getHistorialPedidos');
           Route::get('/local/pedidofinal/reporte-productos', 'Controllers_local\RequestsController@getReporteProductos');
@@ -721,13 +725,6 @@ Route::group(['middleware' => ['AppSecurity']], function () {
 
   });
 
-});
-
-// ============ RUTAS ADMIN DE STOCK (SIN FILTRO POR LLAVE) ============
-// Estas rutas NO usan CurrentApp, permiten ver todos los negocios
-Route::group(['middleware' => ['JwtMiddleware']], function () {
-  Route::get('/local/admin/pedidofinal/stock-negocio/resumen', 'Controllers_local\PedidoFinalStockController@getResumenStockPorNegocioAdmin');
-  Route::get('/local/admin/pedidofinal/stock-negocio', 'Controllers_local\PedidoFinalStockController@getStockPorNegocioAdmin');
 });
 
 // ============ RUTAS SIMPLES DE UBER EATS ============

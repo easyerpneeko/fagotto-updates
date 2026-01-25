@@ -322,19 +322,29 @@ export default {
                 
                 if (isSaveSuccess) {
                   exitosos++;
+                  console.log(`✅ Stock guardado - ID: ${cambio.id}, Producto: ${producto.producto}`);
                 } else {
                   errores++;
+                  console.error(`❌ Error guardando - ID: ${cambio.id}, Producto: ${producto.producto}`, request);
+                  
+                  // Mostrar el mensaje de error específico
+                  if (request.data && request.data.message) {
+                    this.$awn.alert(`Error en ${producto.producto}: ${request.data.message}`);
+                  }
+                  if (request.data && request.data.errors) {
+                    console.error('Errores de validación:', request.data.errors);
+                  }
                 }
               }
             }
           } catch (error) {
-            console.error(`Error guardando stock del producto ${cambio.id}:`, error);
+            console.error(`❌ Error guardando stock del producto ${cambio.id}:`, error);
             errores++;
           }
         }
         
         if (exitosos > 0) {
-          this.$awn.success(`${exitosos} stock(s) registrado(s) correctamente`);
+          this.$awn.success(`${exitosos} stock(s) actualizado(s) correctamente`);
         }
         
         if (errores > 0) {

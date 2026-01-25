@@ -1700,39 +1700,15 @@ class RequestsController extends Controller
     public function storeStockNegocio(Request $request)
     {
         try {
-            // 🔧 LEER DIRECTAMENTE EL RAW BODY
-            $rawBody = file_get_contents('php://input');
+            // Obtener todos los datos del request
+            $data = $request->all();
             
-            // Parsear manualmente si es URL-encoded
-            $data = [];
-            if (!empty($rawBody)) {
-                parse_str($rawBody, $data);
-            }
-            
-            // Si parse_str no funcionó, intentar con request->all()
-            if (empty($data)) {
-                $data = $request->all();
-            }
-            
-            \Log::info('✅ storeStockNegocio DATOS PARSEADOS', [
-                'data_parseado' => $data,
+            \Log::info('✅ storeStockNegocio DATOS RECIBIDOS', [
+                'data' => $data,
                 'tiene_id_negocio' => isset($data['id_negocio']),
                 'tiene_app_id' => isset($data['app_id']),
-                'tiene_nombre_negocio' => isset($data['nombre_negocio']),
-                'raw_body' => $rawBody
+                'tiene_nombre_negocio' => isset($data['nombre_negocio'])
             ]);
-            
-            if (empty($data)) {
-                return response()->json([
-                    'error' => 'No se recibieron datos',
-                    'message' => 'El servidor no pudo leer los datos enviados',
-                    'debug' => [
-                        'raw_body' => $rawBody,
-                        'content_type' => $request->header('Content-Type'),
-                        'method' => $request->method()
-                    ]
-                ], 400);
-            }
             
             // ✅ VALIDAR
             $validator = \Validator::make($data, [
@@ -1741,7 +1717,7 @@ class RequestsController extends Controller
                 'cantidad_reportada' => 'required|numeric|min:0',
                 'unidad_medida' => 'nullable|string|max:50',
                 'id_negocio' => 'nullable|integer',
-                'app_id' => 'nullable|string|max:50',
+                'app_id' => 'nullable',
                 'nombre_negocio' => 'nullable|string|max:255',
                 'usuario' => 'nullable|string|max:100',
                 'observacion' => 'nullable|string'
@@ -1765,7 +1741,7 @@ class RequestsController extends Controller
             \Log::info('✅ Validación exitosa', ['validated' => $validated]);
 
             // Verificar si ya existe un registro para este producto y negocio (tomar el más reciente)
-            $existing = DB::table('pedidofinal_stock_por_negocio')
+            $existing = DB::connection('easyerp')->table('pedidofinal_stock_por_negocio')
                 ->where('id_producto', $validated['id_producto'])
                 ->where(function($q) use ($validated) {
                     if (isset($validated['id_negocio'])) {
@@ -1780,7 +1756,7 @@ class RequestsController extends Controller
 
             if ($existing) {
                 // Actualizar existente
-                DB::table('pedidofinal_stock_por_negocio')
+                DB::connection('easyerp')->table('pedidofinal_stock_por_negocio')
                     ->where('id', $existing->id)
                     ->update([
                         'cantidad_reportada' => $validated['cantidad_reportada'],
@@ -1793,7 +1769,7 @@ class RequestsController extends Controller
                 $id = $existing->id;
             } else {
                 // Crear nuevo
-                $id = DB::table('pedidofinal_stock_por_negocio')->insertGetId([
+                $id = DB::connection('easyerp')->table('pedidofinal_stock_por_negocio')->insertGetId([
                     'id_producto' => $validated['id_producto'],
                     'producto_nombre' => $validated['producto_nombre'],
                     'cantidad_reportada' => $validated['cantidad_reportada'],
@@ -1834,7 +1810,7 @@ class RequestsController extends Controller
     public function getStock(Request $request)
     {
         try {
-            $productos = DB::table('pedidofinal_precios')
+            $productos = DB::connection('easyerp')->table('pedidofinal_precios')
                 ->select('id', 'producto', 'stock', 'precio_por_unidad', 'unidad_medida')
                 ->orderBy('producto', 'asc')
                 ->get();

@@ -72,19 +72,28 @@ export default class Connection {
 
     if (!headers) {
       headers = {};
-      // 🔧 IMPORTANTE: Para FormData, NO establecer Content-Type manualmente
-      // El navegador lo establece automáticamente con el boundary correcto
-      if (!isFormData) {
-        headers['Content-Type'] = 'application/x-www-form-urlencoded';
-      }
-      headers = { ...headers, ...headerAuth };
     }
+    
+    // 🔧 IMPORTANTE: Para FormData, NO establecer Content-Type manualmente
+    // El navegador lo establece automáticamente con el boundary correcto
+    if (!isFormData && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
+    
+    headers = { ...headers, ...headerAuth };
 
 
 
     let myInit = { method, headers, mode: 'cors', cache: 'default' };
 
-    if (data) myInit.body = (isFormData) ? data : qs.stringify(data);
+    if (data) myInit.body = (isFormData) ? data : JSON.stringify(data);
+
+    // 🔍 DEBUG: Ver exactamente qué se envía
+    if (url.includes('stock-negocio') && method === 'post') {
+      console.log('🔍 MYINIT COMPLETO:', myInit);
+      console.log('🔍 HEADERS:', headers);
+      console.log('🔍 BODY:', myInit.body);
+    }
 
     //const myRequest = new Request(url, myInit);
     //console.log(myInit);

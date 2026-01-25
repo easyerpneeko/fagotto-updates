@@ -81,7 +81,7 @@ class UberEatsController extends Controller
                 'display_id' => 'UE-001',
                 'status' => 'created',
                 'customer_name' => 'Juan Pérez',
-                'customer_phone' => null,
+                'customer_phone' => '+56912345678',
                 'total_amount' => 15990,
                 'items' => [
                     [
@@ -103,7 +103,7 @@ class UberEatsController extends Controller
                 'display_id' => 'UE-002',
                 'status' => 'accepted',
                 'customer_name' => 'María González',
-                'customer_phone' => null,
+                'customer_phone' => '+56987654321',
                 'total_amount' => 22500,
                 'items' => [
                     [

@@ -160,6 +160,20 @@
                     <i class="fas fa-chevron-right"></i>
                   </div>
                 </button>
+                
+                <!-- Botón Días Locos -->
+                <button 
+                  v-if="settingDiasLocos"
+                  @click="openDiasLocos()"
+                  class="category-item-center category-special category-dias-locos">
+                  <div class="category-icon">
+                    <i class="fas fa-fire"></i>
+                  </div>
+                  <span class="category-name">Días Locos</span>
+                  <div class="category-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                  </div>
+                </button>
               </div>
             </div>
 
@@ -384,6 +398,7 @@
     <venta-copas @addCopa="handleAddCopa" />
     <test-merchise ref="testMerchise" :cart="jsonTable" @addMerchise="handleAddMerchise" />
     <colacion ref="colacion" @addColacion="handleAddColacion" />
+    <dias-locos ref="diasLocos" :products="productsRequest" @addDiasLocos="handleAddDiasLocos" />
     
     <!-- Modal de métodos de pago -->
     <div v-show="showPaymentModal" :key="`payment-modal-${ticketComponentKey}`" class="payment-modal-overlay" @click="closePaymentModal">
@@ -548,6 +563,7 @@ import modalVerify from '@/components/modals/verifyDelete.vue';
 import ventaCopas from '@/components/modals/cafeteria/ventaCopas.vue';
 import testMerchise from '@/components/modals/cafeteria/testMerchise.vue';
 import colacion from '@/components/modals/cafeteria/colacion.vue';
+import diasLocos from '@/components/modals/cafeteria/diasLocos.vue';
 
 // Helpers y plugins
 import ConfigHelper from '@/helpers/ConfigHelper.js';
@@ -621,6 +637,7 @@ export default {
     ventaCopas,
     testMerchise,
     colacion,
+    diasLocos,
   },
   mounted() {
     //HavePermission
@@ -1183,6 +1200,11 @@ export default {
       this.$refs.colacion.openModal();
     },
 
+    // Abrir modal de Días Locos
+    openDiasLocos() {
+      this.$refs.diasLocos.openModal();
+    },
+
     // Manejar adición de copa desde modal ventaCopas
     handleAddCopa(copaData) {
       console.log('🍦 Datos recibidos de ventaCopas:', copaData);
@@ -1292,6 +1314,31 @@ export default {
       });
 
       console.log('✅ Colación agregada al carrito para:', colacionData.empleado_retira);
+    },
+
+    // Manejar adición de producto Días Locos desde modal diasLocos
+    handleAddDiasLocos(diasLocosData) {
+      console.log('🎉 Datos recibidos de Días Locos:', diasLocosData);
+      
+      // Agregar producto Días Locos al carrito (producto real de categoría 56)
+      this.quantityAdd({
+        id: diasLocosData.id, // ID real del producto
+        name: diasLocosData.name,
+        price: parseFloat(diasLocosData.price),
+        promo_price: diasLocosData.promo_price ? parseFloat(diasLocosData.promo_price) : null,
+        quantity: 1,
+        prices: diasLocosData.prices || [{ precio: parseFloat(diasLocosData.price) }],
+        cecina: diasLocosData.cecina || false,
+        ganancia: diasLocosData.ganancia || 0,
+        category: diasLocosData.category || null,
+        is_dias_locos: true, // ← Flag para NO actualizar stock
+        dias_locos_details: {
+          pasta: diasLocosData.dias_locos_details.pasta,
+          pasta_name: diasLocosData.dias_locos_details.pasta_name
+        }
+      });
+
+      console.log('✅ Producto Días Locos agregado al carrito:', diasLocosData.name);
     },
 
     search(input) {
@@ -1848,6 +1895,20 @@ export default {
       }
     },
 
+    settingDiasLocos: {
+      get() {
+        if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+        return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.dias_locos');
+      }
+    },
+
+    settingDiasLocos: {
+      get() {
+        if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+        return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.dias_locos');
+      }
+    },
+
     settingBanco: {
       get() {
         if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
@@ -2021,6 +2082,37 @@ export default {
 .category-colacion:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4) !important;
+}
+
+/* Botón especial Días Locos */
+.category-dias-locos {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+  animation: pulse-dias-locos 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dias-locos {
+  0%, 100% { 
+    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+  }
+  50% { 
+    box-shadow: 0 8px 30px rgba(245, 87, 108, 0.6);
+  }
+}
+
+.category-dias-locos:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 35px rgba(240, 147, 251, 0.5) !important;
+  animation: none;
+}
+
+.category-dias-locos .category-icon {
+  animation: fire-shake 0.5s ease-in-out infinite;
+}
+
+@keyframes fire-shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
 }
 </style><style>
 @import '../../../css/catalog-modal.css';

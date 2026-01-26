@@ -104,22 +104,6 @@ Route::group(['middleware' => ['JwtMiddleware']], function () {
   Route::get('/products/reposteria', 'ProductReposteriaController@index');
   // Route::get('/products/reposteria/sell', 'ProductController@getProductsOfSell');
 
-  // Ingredientes Globales
-  Route::put('/ingredient/{id}', 'GlobalIngredientController@update');
-  Route::get('/ingredients', 'GlobalIngredientController@index');
-
-  // Recetas Globales (BD Maestra)
-  Route::get('/recetas', 'RecetaController@index');
-  Route::get('/recetas/{id}', 'RecetaController@show');
-  Route::post('/recetas', 'RecetaController@store');
-  Route::put('/recetas/{id}', 'RecetaController@update');
-  Route::delete('/recetas/{id}', 'RecetaController@destroy');
-  
-  // Asociar recetas a productos (usa app_id del negocio)
-  Route::post('/recetas/{recetaId}/asociar-producto', 'RecetaController@asociarProducto');
-  Route::delete('/recetas/{recetaId}/desasociar-producto/{productId}', 'RecetaController@desasociarProducto');
-  Route::get('/productos/{productId}/receta', 'RecetaController@getRecetaDelProducto');
-
   // Folios
   Route::post('/folios/{id}', 'SIIController@readXML');
   Route::get('/folios/{id}', 'SIIController@getFolios');
@@ -258,6 +242,22 @@ Route::group(['middleware' => ['AppSecurity']], function () {
   Route::get('/web/cobro/{id}/download', 'CobrosController@downloadPDF');
 
   Route::get('/getEnvs', 'AplicationController@getEnvs');
+
+  // Ingredientes Globales
+  Route::put('/ingredient/{id}', 'GlobalIngredientController@update');
+  Route::get('/ingredients', 'GlobalIngredientController@index');
+
+  // Recetas Globales (BD Maestra)
+  Route::get('/recetas', 'RecetaController@index');
+  Route::get('/recetas/{id}', 'RecetaController@show');
+  Route::post('/recetas', 'RecetaController@store');
+  Route::put('/recetas/{id}', 'RecetaController@update');
+  Route::delete('/recetas/{id}', 'RecetaController@destroy');
+  
+  // Asociar recetas a productos (usa app_id del negocio)
+  Route::post('/recetas/{recetaId}/asociar-producto', 'RecetaController@asociarProducto');
+  Route::delete('/recetas/{recetaId}/desasociar-producto/{productId}', 'RecetaController@desasociarProducto');
+  Route::get('/productos/{productId}/receta', 'RecetaController@getRecetaDelProducto');
 
   Route::post('/local/login', 'Controllers_local\LoginLocal@login');
 

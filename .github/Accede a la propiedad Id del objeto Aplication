@@ -1,0 +1,21 @@
+Explicación paso a paso:
+
+CurrentApp::App()
+
+Es un método estático que devuelve el objeto completo de la aplicación actual
+Este objeto es una instancia de la clase Aplication
+Contiene toda la información del negocio: nombre, serial, configuración, etc.
+->Id
+
+Accede a la propiedad Id del objeto Aplication
+Esta propiedad contiene el ID numérico del negocio (ejemplo: 98, 58, etc.)
+Resultado:
+
+$appId ahora contiene solo el número de ID (98 para Fagotto Manuel Mont, 58 para Fagotto Agustinas)
+Este ID se usa para filtrar la base de datos: ->where('app_id', $appId)
+🔍 Analogía
+Es como si preguntaras por una persona:
+
+CurrentApp::getApp() ❌ → Intentas llamar a un método que no existe
+CurrentApp::App() ✅ → Te dan toda la ficha de la persona (nombre, apellido, dirección, teléfono, ID)
+CurrentApp::App()->Id ✅ → Te dan solo el número de cédula/ID de la persona

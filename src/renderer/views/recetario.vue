@@ -316,17 +316,29 @@ export default {
   
   computed: {
     recetasPaginadas() {
+      console.log('🔍 [COMPUTED] recetasPaginadas ejecutándose...');
+      console.log('🔍 [COMPUTED] this.recetas:', this.recetas);
+      console.log('🔍 [COMPUTED] Array.isArray(this.recetas):', Array.isArray(this.recetas));
+      
+      if (!Array.isArray(this.recetas)) {
+        console.warn('⚠️ [COMPUTED] this.recetas NO es un array!');
+        return [];
+      }
+      
       const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
       const fin = inicio + this.itemsPorPagina;
       const resultado = this.recetas.slice(inicio, fin);
-      console.log('🔍 recetasPaginadas computed:', {
+      
+      console.log('🔍 [COMPUTED] recetasPaginadas resultado:', {
         totalRecetas: this.recetas.length,
         paginaActual: this.paginaActual,
         itemsPorPagina: this.itemsPorPagina,
         inicio,
         fin,
-        resultado: resultado.length
+        resultadoLength: resultado.length,
+        primerReceta: resultado[0]
       });
+      
       return resultado;
     },
     
@@ -369,15 +381,32 @@ export default {
     
     async cargarProductos() {
       try {
-        // Llamada al API para obtener productos locales
-        const url = BaseUrl.getUrl('api/products');
-        const response = await Connection.request('get', url);
-        if (response.data && response.data.items) {
-          this.productosDisponibles = response.data.items || [];
+        console.log('🛒 [PRODUCTOS] Cargando productos locales...');
+        // Usar el método del store que trae todos los productos (sin paginación)
+        const request = await this.$store.dispatch('products/getProductsOfSell');
+        
+        console.log('🛒 [PRODUCTOS] Response completo:', request);
+        console.log('🛒 [PRODUCTOS] request.success:', request.success);
+        console.log('🛒 [PRODUCTOS] request.data:', request.data);
+        
+        if (request.success && request.data) {
+          // La respuesta es un array directo de productos
+          if (Array.isArray(request.data)) {
+            this.productosDisponibles = request.data;
+            console.log('🛒 [PRODUCTOS] ✅ Cargados (array directo):', this.productosDisponibles.length);
+          } else if (request.data.items && Array.isArray(request.data.items)) {
+            this.productosDisponibles = request.data.items;
+            console.log('🛒 [PRODUCTOS] ✅ Cargados (data.items):', this.productosDisponibles.length);
+          } else {
+            console.warn('⚠️ [PRODUCTOS] Estructura de respuesta desconocida:', request.data);
+            this.productosDisponibles = [];
+          }
+        } else {
+          console.warn('⚠️ [PRODUCTOS] Request no exitoso');
+          this.productosDisponibles = [];
         }
       } catch (error) {
-        console.warn('No se pudieron cargar productos:', error.message);
-        // No mostrar error al usuario, productos son opcionales para ver recetas
+        console.error('❌ [PRODUCTOS] Error al cargar productos:', error);
         this.productosDisponibles = [];
       }
     },
@@ -402,12 +431,17 @@ export default {
         
         const response = await Connection.request('get', url);
         
-        console.log('📦 Response completo:', response);
-        console.log('📦 Response.data:', response.data);
+        console.log('📦 [API] Response completo:', response);
+        console.log('📦 [API] Response.ok:', response.ok);
+        console.log('📦 [API] Response.success:', response.success);
+        console.log('📦 [API] Response.status:', response.status);
+        console.log('📦 [API] Response.data:', response.data);
+        console.log('📦 [API] Tipo de response.data:', typeof response.data);
         
-        if (response.data && response.data.success) {
+        // Connection.request() devuelve response.success, NO response.ok
+        if (response.success && response.data && response.data.success) {
           let recetas = response.data.data || [];
-          console.log('📦 Recetas recibidas:', recetas.length, recetas);
+          console.log('📦 [TRANSFORM] Recetas recibidas:', recetas.length, recetas);
           
           // Transformar estructura para el frontend
           this.recetas = recetas.map(r => ({
@@ -427,6 +461,11 @@ export default {
             productos: r.productos_asociados || [],
             productosCount: r.productos_asociados_count || 0
           }));
+          
+          console.log('📦 [TRANSFORM] this.recetas después del map:', this.recetas);
+          console.log('📦 [TRANSFORM] this.recetas.length:', this.recetas.length);
+          console.log('📦 [TRANSFORM] Primera receta:', this.recetas[0]);
+          console.log('📦 [TRANSFORM] Array.isArray(this.recetas):', Array.isArray(this.recetas));
           
           // Filtrar según asociación
           if (this.filtroAsociacion === 'asociadas') {
@@ -468,10 +507,20 @@ export default {
       }, 0);
     },
     
-    asociarProductos(receta) {
+    async asociarProductos(receta) {
+      console.log('🔗 [ASOCIAR] Abriendo modal para receta:', receta.nombre);
       this.recetaSeleccionada = receta;
       this.modalAsociarVisible = true;
       this.searchProducto = '';
+      
+      // Recargar productos por si no se cargaron en mounted
+      if (this.productosDisponibles.length === 0) {
+        console.log('🔗 [ASOCIAR] No hay productos, recargando...');
+        await this.cargarProductos();
+      }
+      
+      console.log('🔗 [ASOCIAR] Productos disponibles:', this.productosDisponibles.length);
+      
       // Marcar productos que ya tienen receta
       this.actualizarEstadoProductos();
     },

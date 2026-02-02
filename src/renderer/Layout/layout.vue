@@ -562,21 +562,16 @@ export default {
           badge: 'NUEVO'
         });
         
-        // 📊 Módulo de Stock (Excel) - Visible para cajeros
+        // � Stock con Historial por Día (reemplaza al Stock Excel anterior)
         menu.push({
-          label: 'Stock (Excel)',
-          route: '/inicio/stock-excel',
-          icon: 'fas fa-table',
-          requiresTurno: false
+          label: 'Stock Historial',
+          route: '/inicio/stock-historial',
+          icon: 'fas fa-history',
+          requiresTurno: false,
+          badge: 'NUEVO'
         });
         
-        menu.push({
-          label: 'Stock por Negocio',
-          route: '/inicio/stock-por-negocio',
-          icon: 'fas fa-store',
-          requiresTurno: false
-        });
-        
+
         // Módulos solo para administradores
         const isAdmin = this.isUserAdmin();
         console.log('🔍 isAdmin:', isAdmin);

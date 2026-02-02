@@ -49,6 +49,12 @@
                                 {{ mostrarHistorial ? 'Pedido' : 'Historial' }}
                             </button>
                         </div>
+                        <div class="col-lg-2 col-md-6 col-6 mt-3 mt-md-0">
+                            <button @click="mostrarModalPresupuesto = true" class="btn-urgente w-100" style="background: linear-gradient(45deg, #17a2b8, #138496);">
+                                <i class="fas fa-info-circle"></i>
+                                Presupuesto
+                            </button>
+                        </div>
                         <div class="col-lg-2 col-md-6 col-6 mt-3 mt-md-0" style="display: none;">
                             <button @click="abrirAdminProductos" class="btn-urgente w-100" style="background: linear-gradient(45deg, #6c757d, #495057);">
                                 <i class="fas fa-cog"></i>
@@ -775,6 +781,135 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal de Presupuesto -->
+        <div v-if="mostrarModalPresupuesto" class="modal-overlay-presupuesto" @click.self="mostrarModalPresupuesto = false">
+            <div class="modal-dialog-presupuesto">
+                <div class="modal-content-presupuesto">
+                    <div class="modal-header-presupuesto">
+                        <h5 class="modal-title-presupuesto">
+                            <i class="fas fa-calculator me-2"></i>
+                            Cómo Funciona el Presupuesto de Pedidos
+                        </h5>
+                        <button @click="cerrarModalPresupuesto" class="btn-close-presupuesto">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body-presupuesto">
+                        <div class="presupuesto-info">
+                            <div class="info-header">
+                                <i class="fas fa-chart-line"></i>
+                                <h6>Cálculo Automático del Presupuesto</h6>
+                            </div>
+                            
+                            <div class="info-section">
+                                <h6 class="section-title">
+                                    <i class="fas fa-lightbulb"></i>
+                                    Ejemplo Práctico
+                                </h6>
+                                <div class="ejemplo-card">
+                                    <div class="ejemplo-content">
+                                        <div class="ejemplo-step">
+                                            <span class="step-check">✅</span>
+                                            <div class="step-content">
+                                                <strong>Tu local proyecta vender:</strong>
+                                                <p class="step-value">$5.000.000 esta semana</p>
+                                            </div>
+                                        </div>
+                                        <div class="ejemplo-step">
+                                            <span class="step-check">✅</span>
+                                            <div class="step-content">
+                                                <strong>Puedes pedir hasta el 30%:</strong>
+                                                <p class="step-value">$1.500.000 de presupuesto total</p>
+                                            </div>
+                                        </div>
+                                        <div class="ejemplo-step">
+                                            <span class="step-check">✅</span>
+                                            <div class="step-content">
+                                                <strong>Dividido en 3 despachos semanales:</strong>
+                                                <p class="step-value">$500.000 por cada despacho</p>
+                                            </div>
+                                        </div>
+                                        <div class="ejemplo-step">
+                                            <span class="step-check">✅</span>
+                                            <div class="step-content">
+                                                <strong>Beneficio:</strong>
+                                                <p class="step-value">Control óptimo del inventario sin excesos</p>
+                                            </div>
+                                        </div>
+                                        <div class="ejemplo-step">
+                                            <span class="step-check">✅</span>
+                                            <div class="step-content">
+                                                <strong>Indicador visual:</strong>
+                                                <p class="step-value">Barra de progreso te muestra cuánto llevas gastado</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-section">
+                                <h6 class="section-title">
+                                    <i class="fas fa-info-circle"></i>
+                                    Consejos Importantes
+                                </h6>
+                                <div class="ejemplo-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left: 4px solid #f59e0b;">
+                                    <div class="ejemplo-content">
+                                        <div class="ejemplo-step">
+                                            <span class="step-arrow">➡️</span>
+                                            <div class="step-content">
+                                                <p class="step-value">Planifica pensando en la proyección semanal</p>
+                                            </div>
+                                        </div>
+                                        <div class="ejemplo-step">
+                                            <span class="step-arrow">➡️</span>
+                                            <div class="step-content">
+                                                <p class="step-value">Distribuye el presupuesto equitativamente</p>
+                                            </div>
+                                        </div>
+                                        <div class="ejemplo-step">
+                                            <span class="step-arrow">➡️</span>
+                                            <div class="step-content">
+                                                <p class="step-value">Evita concentrar todo en un solo despacho</p>
+                                            </div>
+                                        </div>
+                                        <div class="ejemplo-step">
+                                            <span class="step-arrow">➡️</span>
+                                            <div class="step-content">
+                                                <p class="step-value">Monitorea tu progreso en tiempo real</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-section">
+                                <div class="alert-tip-custom">
+                                    <div class="tip-icon">💡</div>
+                                    <div class="tip-content">
+                                        <strong>Tip:</strong> El sistema calcula automáticamente tu presupuesto basándose en las metas semanales. Úsalo como guía para optimizar tus pedidos y mantener la rentabilidad del negocio.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-4" style="color: #6b7280; font-size: 0.9rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                            <code>&lt;/&gt;</code> Saludos Jimmy Arriagada <code>&lt;/&gt;</code>
+                        </div>
+                    </div>
+                    <div class="modal-footer-presupuesto">
+                        <p class="text-muted small mb-3">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Puedes volver a ver esta guía haciendo clic en el botón "Presupuesto" en la parte superior
+                        </p>
+                        <button @click="cerrarModalPresupuesto" class="btn-entendido">
+                            <i class="fas fa-check me-2"></i>
+                            Entendido
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -795,6 +930,7 @@ export default {
             // Control de pantallas
             inicioSesion: false,
             mostrarHistorial: false,
+            mostrarModalPresupuesto: false,
             loadingHistorial: false,
             historialPedidos: [],
             
@@ -863,6 +999,16 @@ export default {
         await this.cargarPreciosCentralizados();
         // Cargar meta semanal
         await this.cargarMetaSemanal();
+        
+        // Auto-mostrar modal de bienvenida/presupuesto si no se ha mostrado antes
+        const modalYaMostrado = localStorage.getItem('presupuestoModalShown');
+        if (!modalYaMostrado) {
+            // Esperar un momento para que la UI esté lista
+            setTimeout(() => {
+                this.mostrarModalPresupuesto = true;
+            }, 500);
+        }
+        
         // Si ya inició sesión, cargar historial
         if (this.inicioSesion && this.app && this.app.Id) {
             this.cargarHistorial();
@@ -1108,6 +1254,12 @@ export default {
             if (this.app && this.app.Id) {
                 this.cargarHistorial();
             }
+        },
+        
+        cerrarModalPresupuesto() {
+            // Marcar como mostrado en localStorage
+            localStorage.setItem('presupuestoModalShown', 'true');
+            this.mostrarModalPresupuesto = false;
         },
         
         incrementar(producto) {
@@ -3676,6 +3828,339 @@ export default {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Modal de Presupuesto */
+.modal-overlay-presupuesto {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal-dialog-presupuesto {
+    max-width: 700px;
+    width: 90%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-content-presupuesto {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+}
+
+.modal-header-presupuesto {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title-presupuesto {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-close-presupuesto {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.btn-close-presupuesto:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.modal-body-presupuesto {
+    padding: 2rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.presupuesto-info .info-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    border-radius: 10px;
+}
+
+.presupuesto-info .info-header i {
+    font-size: 2rem;
+    color: #667eea;
+}
+
+.presupuesto-info .info-header h6 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.info-section {
+    margin-bottom: 1.5rem;
+}
+
+.info-intro {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #4b5563;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.section-title i {
+    color: #667eea;
+}
+
+.ejemplo-card {
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 2px solid #e5e7eb;
+}
+
+.ejemplo-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    color: #667eea;
+    font-size: 1rem;
+}
+
+.ejemplo-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.ejemplo-step {
+    display: flex;
+    gap: 1rem;
+    align-items: start;
+}
+
+.step-number {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.step-check {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.step-arrow {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.step-value {
+    margin: 0.3rem 0 0 0 !important;
+    color: #1f2937 !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem;
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-content strong {
+    display: block;
+    color: #1f2937;
+    margin-bottom: 0.3rem;
+}
+
+.step-content p {
+    margin: 0;
+    color: #6b7280;
+    line-height: 1.5;
+}
+
+.text-primary {
+    color: #667eea !important;
+}
+
+.text-success {
+    color: #10b981 !important;
+}
+
+.text-warning {
+    color: #f59e0b !important;
+}
+
+.alert-info-custom {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border-left: 4px solid #3b82f6;
+    padding: 1rem;
+    border-radius: 8px;
+    display: flex;
+    gap: 0.8rem;
+}
+
+.alert-info-custom i {
+    color: #3b82f6;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.alert-tip-custom {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-left: 4px solid #f59e0b;
+    padding: 1.2rem;
+    border-radius: 12px;
+    display: flex;
+    gap: 1rem;
+    align-items: start;
+}
+
+.tip-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.tip-content {
+    flex: 1;
+}
+
+.tip-content strong {
+    color: #92400e;
+    font-size: 1.05rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.tip-content {
+    color: #78350f;
+    line-height: 1.6;
+}
+
+.alert-info-custom strong {
+    display: block;
+    color: #1e40af;
+    margin-bottom: 0.3rem;
+}
+
+.alert-info-custom p {
+    margin: 0;
+    color: #1e3a8a;
+    font-size: 0.95rem;
+}
+
+.recomendaciones-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.recomendaciones-list li {
+    padding: 0.8rem;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.recomendaciones-list li i {
+    color: #10b981;
+    font-size: 1.2rem;
+}
+
+.modal-footer-presupuesto {
+    padding: 1.5rem 2rem;
+    background: #f9fafb;
+    border-radius: 0 0 16px 16px;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-entendido {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.btn-entendido:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
 }
 
 </style>

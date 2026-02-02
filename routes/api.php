@@ -675,6 +675,11 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::get('/local/pedidofinal/stock-negocio', 'Controllers_local\PedidoFinalStockController@getStockPorNegocio');
           Route::get('/local/pedidofinal/stock-negocio/resumen', 'Controllers_local\PedidoFinalStockController@getResumenStockPorNegocio');
           
+          // ===== HISTORIAL DIARIO DE STOCK (NUEVO) =====
+          Route::post('/local/pedidofinal/historial-dia', 'Controllers_local\PedidoFinalStockController@guardarHistorialDiario');
+          Route::get('/local/pedidofinal/historial-dia', 'Controllers_local\PedidoFinalStockController@getHistorialPorDia');
+          Route::get('/local/pedidofinal/historial-fechas', 'Controllers_local\PedidoFinalStockController@getFechasDisponibles');
+          
           // ===== RUTAS ADMIN PARA STOCK POR NEGOCIO (SIN FILTRO DE LLAVE) =====
           Route::get('/local/admin/pedidofinal/stock-negocio/resumen', 'Controllers_local\PedidoFinalStockController@getResumenStockPorNegocioAdmin');
           Route::get('/local/admin/pedidofinal/stock-negocio', 'Controllers_local\PedidoFinalStockController@getStockPorNegocioAdmin');

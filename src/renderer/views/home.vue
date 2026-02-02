@@ -1,70 +1,21 @@
 <template>
-  <div class="bg-home-gradient summer-beach-home">
-    <!-- ☀️ Summer beach elements -->
-    <div class="summer-elements">
-      <div class="beach-element" v-for="n in 20" :key="'element-' + n" :style="{
-        left: (n * 4) + '%',
-        animationDelay: (n * 0.5) + 's',
-        animationDuration: (8 + Math.random() * 6) + 's'
-      }">
-        {{ n % 3 === 0 ? '⭐' : (n % 3 === 1 ? '🐚' : '🌟') }}
-      </div>
-    </div>
-
-    <!-- Sun rays -->
-    <div class="sun-container">
-      <div class="sun">☀️</div>
-      <div class="sun-rays"></div>
-    </div>
-
-    <!-- Dolphin jumping -->
-    <div class="dolphin-container">
-      <div class="dolphin">🐬</div>
-      <div class="water-splash">💦</div>
-    </div>
-
-    <!-- Beach sand with umbrella -->
-    <div class="beach-sand">
-      <div class="beach-umbrella">
-        <div class="umbrella-top">🏖️</div>
-        <div class="umbrella-pole"></div>
-      </div>
-      
-      <!-- Beach people -->
-      <div class="beach-people">
-        <div class="person person-1">🏄‍♂️</div>
-        <div class="person person-2">🏊‍♀️</div>
-        <div class="person person-3">🤸‍♂️</div>
-      </div>
-    </div>
-
-    <!-- Windshield wiper animation -->
-    <div class="wiper-container">
-      <div class="wiper"></div>
-    </div>
-
-    <!-- Summer Message -->
-    <div class="summer-message-float">
-      <div class="summer-card">
-        <div class="card-ornament">🏖️</div>
-        <h2 class="summer-greeting-text">¡Verano 2026! ☀️</h2>
-        <p class="summer-wish">Disfruta el sol, la playa y las buenas vibras. 
-          ¡Que tengas un verano increíble desde Fagotto ERP! 🌊🌴</p>
-        <div class="card-ornament bottom">🍹</div>
-      </div>
-    </div>
-
+  <div class="default-bg-color p-2 d-flex flex-column pt-md-5">
+    
     <div class="bg-full-height-gradient">
       <div class="welcome-overlay d-flex flex-column justify-content-center align-items-center py-5">
         
         <!-- Mensaje de Turno Requerido -->
         <div v-if="!turnoActivo" class="turno-required-overlay">
-          <div class="turno-required-card text-center p-5">
-            <!-- Summer Title Header -->
-            <div class="summer-header mb-4">
-              <h1 class="summer-main-title">Summer Vibes 2026 🌊</h1>
+          <div class="turno-required-card p-0">
+            <!-- Header estilo modal cafetería -->
+            <div class="modal-header bg-primario text-white">
+              <h5 class="modal-title w-100 text-center">
+                <i class="fas fa-cash-register me-2"></i>
+                Sistema de Gestión Fagotto
+              </h5>
             </div>
-
+            
+            <div class="modal-body text-center p-4">
             <div class="turno-icon-container mb-4">
               <i class="fas fa-clock-o turno-icon"></i>
             </div>
@@ -111,171 +62,57 @@
               <i class="fas fa-info-circle me-1"></i>
               Este proceso es obligatorio y solo toma unos segundos
             </p>
+            </div>
           </div>
         </div>
 
         <!-- Contenido normal del home (solo se muestra con turno activo) -->
-        <div v-else class="welcome-content-only text-center p-5 my-4">
-          <div class="welcome-logo-container mb-4">
-            <img class="home_logo" src="../assets/logo.png" alt="fagotto-erp">
-          </div>
-          
-          <div class="welcome-content">
-            <!-- Badge de turno activo -->
-          </div>
-
-          <!-- Sección de Noticias del Sistema -->
-          <div class="news-section mt-5">
-            <h2 class="news-title mb-4">
-              <i class="fas fa-newspaper me-2"></i>
-              Novedades del Sistema
-            </h2>
-            
-            <div class="news-container">
-              
-              <!-- Noticia NUEVA: Versión 1.11.60 - Arreglos Críticos -->
-              <div class="news-panel news-panel-primary">
-                <div class="news-panel-header">
-                  <i class="fas fa-tools me-2"></i>
-                  <strong>Versión 1.11.60 - Correcciones Importantes</strong>
-                  <span class="news-panel-badge">ACTUALIZACIÓN</span>
-                </div>
-                <div class="news-panel-body">
-                  <p class="news-panel-text">
-                    <strong>🔧 Arqueo de Caja Mejorado:</strong> Corregido problema crítico donde los inputs no respondían al teclado, los cajeros ahora pueden digitar sin necesidad de reiniciar • 
-                    <strong>✨ Optimización de Inputs:</strong> Sistema de selección automática mejorado con tecnología requestAnimationFrame • 
-                    <strong>📋 Modal Educativo:</strong> Nueva notificación que explica las mejoras (se muestra 10 veces) • 
-                    <strong>💰 Pedidos Centralizados:</strong> Método de pago simplificado a solo Efectivo, eliminando errores de base de datos • 
-                    <strong>🏖️ Tema de Verano:</strong> Nueva interfaz visual con colores frescos y elementos playeros • 
-                    <strong>🎯 Noticias Legibles:</strong> Fondo gris en tarjetas de noticias para mejor contraste y lectura
-                  </p>
-                </div>
-                <div class="news-panel-footer">
-                  <i class="far fa-calendar-alt me-2"></i>12 de Enero, 2026 • 
-                  <i class="far fa-clock ms-2 me-2"></i>11:45 PM • 
-                  <strong style="color: #667eea;">Disponible ahora</strong>
-                </div>
+        <div v-else class="welcome-content-only">
+          <div class="container mt-5">
+            <div class="welcome-modal-card">
+              <!-- Header estilo modal cafetería -->
+              <div class="modal-header bg-primario text-white">
+                <h5 class="modal-title w-100 text-center">
+                  <i class="fas fa-home me-2"></i>
+                  Bienvenido al Sistema Fagotto ERP
+                </h5>
               </div>
               
-              <!-- Noticia NUEVA: Versión 1.11.51 - Mejoras importantes -->
-              <div class="news-panel news-panel-primary">
-                <div class="news-panel-header">
-                  <i class="fas fa-rocket me-2"></i>
-                  <strong>Versión 1.11.51 - Mejoras y Nuevas Funcionalidades</strong>
-                  <span class="news-panel-badge">ACTUALIZACIÓN</span>
+              <div class="modal-body p-4">
+                <div class="text-center mb-4">
+                  <img class="home_logo mb-3" src="../assets/logo.png" alt="fagotto-erp" style="max-width: 150px;">
+                  <h2 class="mb-2">¡Hola, {{ this.me.fullname }}! 👋</h2>
+                  <span class="turno-activo-badge">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Turno Activo
+                  </span>
                 </div>
-                <div class="news-panel-body">
-                  <p class="news-panel-text">
-                    <strong>🎯 Sistema de Metas Mejorado:</strong> Nueva visualización con progreso diario, barra animada y corazones flotantes al alcanzar ventas • 
-                    <strong>📊 Dashboard de Metas:</strong> Fecha del día, porcentaje de cumplimiento en tiempo real y colores dinámicos según progreso • 
-                    <strong>🔄 Sistema de Versiones Centralizado:</strong> Triple verificación (Base de Datos → GitHub → Fallback) para control total • 
-                    <strong>📦 Historial de Compras:</strong> Nuevo panel para ver el total de compras por producto en rangos de fechas • 
-                    <strong>⚡ Actualización Automática:</strong> Las ventas se actualizan cada 30 segundos sin recargar la página • 
-                    <strong>🎨 Interfaz Visual Mejorada:</strong> Animaciones fluidas y feedback visual instantáneo
-                  </p>
-                </div>
-                <div class="news-panel-footer">
-                  <i class="far fa-calendar-alt me-2"></i>5 de Enero, 2026 • 
-                  <i class="far fa-clock ms-2 me-2"></i>11:30 PM • 
-                  <strong style="color: #667eea;">Disponible ahora</strong>
-                </div>
-              </div>
-              
-              <!-- Noticia: Sistema de Pedidos Individuales -->
-              <div class="news-panel news-panel-success">
-                <div class="news-panel-header">
-                  <i class="fas fa-box-open me-2"></i>
-                  <strong>Sistema de Pedidos Individuales</strong>
-                  <span class="news-panel-badge">ACTIVO</span>
-                </div>
-                <div class="news-panel-body">
-                  <p class="news-panel-text">
-                    <strong>¡Revolución en pedidos!</strong> Ya disponible el sistema de pedidos individuales • 
-                    <strong>Sin ataduras:</strong> Ya no más packs obligatorios • 
-                    <strong>Total libertad:</strong> Pide solo lo que necesitas, cuando lo necesitas • 
-                    <strong>Interfaz intuitiva:</strong> Sistema moderno y fácil de usar • 
-                    <strong>Precios actualizados:</strong> Sistema centralizado con transparencia total • 
-                    <strong>Exclusivo para Admin:</strong> Acceso inicial restringido
-                  </p>
-                </div>
-                <div class="news-panel-footer">
-                  <i class="far fa-calendar-alt me-2"></i>4 de Enero, 2026 • 
-                  <i class="far fa-clock ms-2 me-2"></i>12:00 AM
-                </div>
-              </div>
-              
-              <!-- Noticia 1: Sistema de Ventas Optimizado -->
-              <div class="news-panel news-panel-info">
-                <div class="news-panel-header">
-                  <i class="fas fa-rocket me-2"></i>
-                  <strong>Sistema de Ventas Optimizado</strong>
-                  <span class="news-panel-badge">NUEVO</span>
-                </div>
-                <div class="news-panel-body">
-                  <p class="news-panel-text">
-                    <strong>Modal Fijo:</strong> El catálogo permanece abierto entre ventas • 
-                    <strong>Ahorro de tiempo:</strong> Reduce hasta 1 minuto por venta • 
-                    <strong>Proceso continuo:</strong> Atiende múltiples clientes sin interrupciones • 
-                    <strong>Carrito inteligente:</strong> Se limpia automáticamente • 
-                    <strong>Métodos de pago centralizados:</strong> Modal elegante con todas las opciones
-                  </p>
-                </div>
-                <div class="news-panel-footer">
-                  <i class="far fa-calendar-alt me-2"></i>31 de Diciembre, 2025 • 
-                  <i class="far fa-clock ms-2 me-2"></i>12:00 PM
-                </div>
-              </div>
 
-              <!-- Noticia 2: Registro Biométrico -->
-              <div class="news-panel news-panel-info">
-                <div class="news-panel-header">
-                  <i class="fas fa-fingerprint me-2"></i>
-                  <strong>Registro Biométrico de Asistencia</strong>
-                  <span class="news-panel-badge">FUNCIONALIDAD</span>
+                <div class="mode-explanation mb-4">
+                  <h6 class="text-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>SISTEMA LISTO PARA USAR</strong>
+                  </h6>
+                  <ul class="mt-2">
+                    <li>✅ Tu turno de caja está <strong>activo</strong> y funcionando</li>
+                    <li>✅ Todas las transacciones se están <strong>registrando automáticamente</strong></li>
+                    <li>✅ Acceso completo a <strong>todas las funcionalidades</strong> del sistema</li>
+                    <li>✅ Tus ventas se están <strong>contabilizando</strong> en tiempo real</li>
+                  </ul>
                 </div>
-                <div class="news-panel-body">
-                  <p class="news-panel-text">
-                    Control de asistencia biométrico que registra automáticamente la hora de llegada y salida de cada empleado. 
-                    <strong>Registro automático</strong> con captura precisa de horarios • 
-                    <strong>Control de personal</strong> con reportes detallados • 
-                    <strong>Seguridad</strong> mediante autenticación biométrica confiable • 
-                    <strong>Integración total</strong> con nómina y RRHH
-                  </p>
+
+                <div class="alert alert-info">
+                  <i class="fas fa-lightbulb me-2"></i>
+                  <strong>Tip:</strong> Recuerda cerrar tu turno al finalizar tu jornada desde el menú <strong>"Arqueo de Caja"</strong> para generar el reporte completo de tu día.
                 </div>
-                <div class="news-panel-footer">
-                  <i class="far fa-calendar-alt me-2"></i>31 de Diciembre, 2025 • 
-                  <i class="far fa-clock ms-2 me-2"></i>10:30 AM
+                
+                <div class="text-center mt-3" style="color: #6b7280; font-size: 0.9rem;">
+                  <code>&lt;/&gt;</code> Saludos Jimmy Arriagada <code>&lt;/&gt;</code>
                 </div>
               </div>
-
-              <!-- Noticia 3: Frase Inspiradora -->
-              <div class="news-panel news-panel-quote">
-                <div class="news-panel-header">
-                  <i class="fas fa-quote-left me-2"></i>
-                  <strong>Filosofía del Desarrollo</strong>
-                  <span class="news-panel-badge">INSPIRACIÓN</span>
-                </div>
-                <div class="news-panel-body">
-                  <blockquote class="news-quote-text">
-                    "La programación es el arte de forjar ideas para colmar necesidades"
-                  </blockquote>
-                  <p class="news-quote-author">
-                    <i class="fas fa-user-tie me-2"></i>
-                    <strong>Jimmy Arriagada</strong> - Desarrollador Principal • Fagotto ERP
-                  </p>
-                  <p class="news-panel-text">
-                    Cada línea de código que escribimos tiene un propósito: mejorar la vida de quienes usan nuestro sistema. 
-                    Desarrollamos con pasión, pensando siempre en las necesidades reales de nuestros usuarios.
-                  </p>
-                </div>
-                <div class="news-panel-footer">
-                  <i class="far fa-calendar-alt me-2"></i>31 de Diciembre, 2025 • 
-                  <i class="far fa-clock ms-2 me-2"></i>09:00 AM
-                </div>
-              </div>
-
             </div>
           </div>
+
         </div>
 
       </div>
@@ -602,43 +439,56 @@ export default {
 }
 
 .welcome-badge {
-  background: rgba(0, 0, 0, 0.3);
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  border-radius: 50px;
-  padding: 15px 30px;
+  background: var(--primary);
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
   display: inline-flex;
   align-items: center;
-  font-weight: 700;
-  font-size: 1rem;
-  backdrop-filter: blur(10px);
-  transition: all 0.4s ease;
+  font-weight: 500;
+  font-size: 0.9rem;
   color: white;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-  animation: badge-float 7s ease-in-out infinite alternate;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-@keyframes badge-float {
-  0% { 
-    transform: translateY(0px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-  }
-  100% { 
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-  }
+/* ===== CONTENIDO DE BIENVENIDA ===== */
+.welcome-content-only {
+  min-height: 100vh;
 }
 
-.welcome-badge:hover {
-  background: rgba(0, 0, 0, 0.5);
-  border-color: rgba(255, 255, 255, 0.8);
-  transform: translateY(-5px) scale(1.05);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+.welcome-modal-card {
+  background: #ffffff;
+  border-radius: 8px;
+  max-width: 700px;
+  margin: 0 auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
 }
 
-.welcome-badge i {
-  color: #ffd700;
+.welcome-modal-card .modal-body ul {
+  list-style: none;
+  padding-left: 0;
+  text-align: left;
+}
+
+.welcome-modal-card .modal-body ul li {
+  padding: 0.5rem 0;
+  font-size: 1rem;
+  color: #495057;
+}
+
+.welcome-modal-card .alert-info {
+  background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+  border: 2px solid #00bcd4;
+  border-radius: 8px;
+  padding: 1rem;
+  color: #006064;
+  font-size: 0.95rem;
+}
+
+.mode-explanation h6 {
   font-size: 1.1rem;
+  margin-bottom: 0.75rem;
 }
 
 /* Responsive */
@@ -673,8 +523,7 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(10px);
+  background: var(--secondary-dark);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -683,844 +532,130 @@ export default {
 }
 
 .turno-required-card {
-  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  background: #ffffff;
+  border-radius: 8px;
   max-width: 600px;
   width: 100%;
-  position: relative;
-  animation: turno-card-appear 0.8s ease-out;
-  border: 3px solid #e9ecef;
-}
-
-@keyframes turno-card-appear {
-  0% {
-    opacity: 0;
-    transform: translateY(50px) scale(0.9);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* ===== 📋 ESTILOS PARA MENSAJE INFORMATIVO DELIVERY ===== */
-.delivery-info-message {
-  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-  border: 3px solid #2c5f8d;
-  border-radius: 20px;
-  padding: 35px;
-  margin: 30px 0;
-  box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
-  position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
-  animation: info-fade-in 1s ease-out;
 }
 
-.delivery-info-message::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  animation: info-shine 3s infinite;
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: none;
 }
 
-@keyframes info-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes info-shine {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
-}
-
-.info-icon-container {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.info-icon-container i {
-  font-size: 4rem;
-  color: white;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  animation: info-icon-pulse 2s ease-in-out infinite;
-}
-
-@keyframes info-icon-pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-.info-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: white;
-  text-align: center;
-  margin-bottom: 20px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  position: relative;
-  z-index: 2;
-}
-
-.info-description {
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.95);
-  text-align: center;
-  line-height: 1.8;
-  margin-bottom: 25px;
-  position: relative;
-  z-index: 2;
-}
-
-.info-description strong {
-  color: white;
+.modal-title {
+  font-size: 1.25rem;
   font-weight: 600;
+  margin: 0;
 }
 
-.info-benefits {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin: 25px 0;
-  position: relative;
-  z-index: 2;
-}
-
-.benefit-item {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 15px 20px;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-}
-
-.benefit-item:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateX(5px);
-}
-
-.benefit-item i {
-  font-size: 1.5rem;
-  color: #a8d5ff;
-  min-width: 30px;
-}
-
-.benefit-item span {
-  color: white;
-  font-size: 1.05rem;
-  font-weight: 500;
-}
-
-.info-footer {
-  text-align: center;
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.85);
-  font-style: italic;
-  margin-top: 25px;
-  padding-top: 20px;
-  border-top: 2px solid rgba(255, 255, 255, 0.2);
-  position: relative;
-  z-index: 2;
-}
-
-/* Responsive para mensaje delivery */
-@media (max-width: 768px) {
-  .delivery-info-message {
-    padding: 25px 20px;
-    margin: 20px 10px;
-  }
-  
-  .info-icon-container i {
-    font-size: 3rem;
-  }
-  
-  .info-title {
-    font-size: 1.6rem;
-  }
-  
-  .info-description {
-    font-size: 1rem;
-  }
-  
-  .benefit-item {
-    padding: 12px 15px;
-  }
-  
-  .benefit-item i {
-    font-size: 1.3rem;
-  }
-  
-  .benefit-item span {
-    font-size: 0.95rem;
-  }
+.modal-body {
+  padding: 2rem;
 }
 
 .turno-icon-container {
-  position: relative;
+  text-align: center;
+  margin-bottom: 1.5rem;
 }
 
 .turno-icon {
-  font-size: 4rem;
-  color: #6c757d;
-  animation: turno-icon-pulse 2s ease-in-out infinite;
-}
-
-@keyframes turno-icon-pulse {
-  0%, 100% {
-    transform: scale(1);
-    color: #6c757d;
-  }
-  50% {
-    transform: scale(1.1);
-    color: #495057;
-  }
+  font-size: 3rem;
+  color: var(--primary);
 }
 
 .turno-title {
-  font-size: 2.2rem;
-  font-weight: 700;
+  font-size: 1.8rem;
+  font-weight: 600;
   color: #212529;
   margin-bottom: 1rem;
 }
 
 .admin-message {
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-  border: 2px solid #2196f3;
-  border-radius: 15px;
-  padding: 15px 20px;
-  color: #1565c0;
-  font-weight: 600;
-  display: inline-block;
-  animation: admin-glow 3s ease-in-out infinite alternate;
-}
-
-@keyframes admin-glow {
-  0% {
-    box-shadow: 0 5px 15px rgba(33, 150, 243, 0.2);
-  }
-  100% {
-    box-shadow: 0 8px 25px rgba(33, 150, 243, 0.4);
-  }
+  background: var(--primary);
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
 
 .turno-description {
-  font-size: 1.1rem;
+  font-size: 1rem;
   line-height: 1.6;
   color: #495057;
-  max-width: 500px;
-  margin: 0 auto;
+  margin-bottom: 1.5rem;
 }
 
 .turno-benefits {
   background: #f8f9fa;
-  border-radius: 12px;
-  padding: 20px;
-  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .benefit-item {
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  background: #ffffff;
+  border-left: 3px solid var(--primary);
+  border-radius: 4px;
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
-  font-weight: 500;
-  color: #495057;
 }
 
-.benefit-item:last-child {
-  margin-bottom: 0;
+.benefit-item i {
+  margin-right: 0.75rem;
 }
 
 .turno-btn {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  background: var(--primary);
   border: none;
-  border-radius: 15px;
-  padding: 15px 30px;
-  font-size: 1.1rem;
-  font-weight: 600;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: white;
   transition: all 0.3s ease;
-  box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
-  position: relative;
-  overflow: hidden;
-}
-
-.turno-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-  transition: left 0.5s;
-}
-
-.turno-btn:hover::before {
-  left: 100%;
 }
 
 .turno-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 35px rgba(40, 167, 69, 0.4);
-}
-
-.turno-btn:disabled {
-  opacity: 0.7;
-  transform: none;
-  cursor: not-allowed;
+  opacity: 0.9;
+  transform: translateY(-2px);
 }
 
 .turno-note {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #6c757d;
-  opacity: 0.8;
+  margin-top: 1rem;
 }
 
 .turno-activo-badge {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 25px;
-  padding: 10px 20px;
+  background: var(--primary);
+  border-radius: 20px;
+  padding: 8px 16px;
   display: inline-flex;
   align-items: center;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 0.9rem;
   color: white;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
-  animation: turno-activo-glow 4s ease-in-out infinite alternate;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-@keyframes turno-activo-glow {
-  0% {
-    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
-  }
-  100% {
-    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.5);
-  }
-}
-
-/* Responsive para mensaje de turno */
+/* Responsive */
 @media (max-width: 768px) {
   .turno-required-card {
     margin: 10px;
-    padding: 2rem !important;
+    padding: 1.5rem;
   }
   
   .turno-title {
-    font-size: 1.8rem;
-  }
-  
-  .turno-description {
-    font-size: 1rem;
+    font-size: 1.5rem;
   }
   
   .turno-icon {
-    font-size: 3rem;
-  }
-  
-  .admin-message {
-    padding: 12px 16px;
-    font-size: 0.9rem;
-  }
-}
-
-/* 🎄 ESTILOS NAVIDEÑOS - Dark Christmas Theme (Bedimcode Style) */
-@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@400;500;600&display=swap');
-
-.christmas-dark-home {
-  position: relative;
-  overflow: hidden;
-  background: hsl(210, 32%, 4%) !important;
-  background-image: url('https://github.com/bedimcode/responsive-christmas-website-2/blob/main/preview.png?raw=true');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  min-height: 100vh;
-}
-
-/* Summer beach theme */
-.summer-beach-home {
-  background: linear-gradient(180deg, 
-    #87CEEB 0%,      /* Sky blue */
-    #B0E0E6 40%,     /* Powder blue */
-    #F0E68C 70%,     /* Sandy yellow */
-    #FFD700 100%     /* Golden sand */
-  );
-  min-height: 100vh;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Summer floating elements */
-.summer-elements {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 999;
-}
-
-.beach-element {
-  position: absolute;
-  top: -10%;
-  font-size: 1.8rem;
-  opacity: 0.4;
-  animation: element-float linear infinite;
-  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.6));
-}
-
-@keyframes element-float {
-  0% {
-    transform: translateY(0) translateX(0) rotate(0deg) scale(0.8);
-    opacity: 0.4;
-  }
-  50% {
-    transform: translateY(50vh) translateX(30px) rotate(180deg) scale(1.2);
-    opacity: 0.6;
-  }
-  100% {
-    transform: translateY(100vh) translateX(-30px) rotate(360deg) scale(0.5);
-    opacity: 0.2;
-  }
-}
-
-/* Sun with rays - IZQUIERDA */
-.sun-container {
-  position: fixed;
-  top: 50px;
-  left: 80px;
-  z-index: 1000;
-  pointer-events: none;
-}
-
-.sun {
-  font-size: 5rem;
-  animation: sun-pulse 3s ease-in-out infinite;
-  filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
-}
-
-@keyframes sun-pulse {
-  0%, 100% {
-    transform: scale(1) rotate(0deg);
-    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
-  }
-  50% {
-    transform: scale(1.1) rotate(90deg);
-    filter: drop-shadow(0 0 50px rgba(255, 215, 0, 1));
-  }
-}
-
-.sun-rays {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 200px;
-  height: 200px;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
-  animation: rays-rotate 20s linear infinite;
-}
-
-@keyframes rays-rotate {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-/* Dolphin jumping */
-.dolphin-container {
-  position: fixed;
-  bottom: 25%;
-  left: 35%;
-  z-index: 1001;
-  pointer-events: none;
-}
-
-.dolphin {
-  font-size: 4.5rem;
-  animation: dolphin-jump 4s ease-in-out infinite;
-  filter: drop-shadow(0 5px 15px rgba(0, 150, 255, 0.6));
-}
-
-@keyframes dolphin-jump {
-  0%, 100% {
-    transform: translateY(0) rotate(-15deg);
-  }
-  25% {
-    transform: translateY(-80px) rotate(-25deg);
-  }
-  50% {
-    transform: translateY(-120px) rotate(0deg);
-  }
-  75% {
-    transform: translateY(-80px) rotate(25deg);
-  }
-}
-
-.water-splash {
-  position: absolute;
-  bottom: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 2rem;
-  animation: splash 4s ease-in-out infinite;
-  opacity: 0;
-}
-
-@keyframes splash {
-  0%, 20%, 80%, 100% {
-    opacity: 0;
-    transform: translateX(-50%) scale(0.5);
-  }
-  10%, 90% {
-    opacity: 1;
-    transform: translateX(-50%) scale(1.2);
-  }
-}
-
-/* Summer Header */
-.summer-header {
-  margin-bottom: 30px;
-}
-
-.summer-main-title {
-  font-family: 'Pacifico', cursive;
-  font-size: 4rem;
-  font-weight: 700;
-  background: linear-gradient(45deg, #FF6B6B, #FFD93D, #6BCF7F);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
-  margin: 0;
-  animation: summer-glow 3s ease-in-out infinite alternate;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-}
-
-@keyframes summer-glow {
-  from {
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)) brightness(1);
-  }
-  to {
-    filter: drop-shadow(0 4px 20px rgba(255, 215, 0, 0.6)) brightness(1.2);
-  }
-}
-
-/* Update turno card for summer theme */
-.turno-required-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 250, 230, 0.95) 100%) !important;
-  border: 3px solid #FFD700 !important;
-  color: #333 !important;
-  box-shadow: 0 8px 32px rgba(255, 215, 0, 0.3) !important;
-}
-
-.turno-title {
-  color: #FF6B6B !important;
-  text-shadow: 0 2px 4px rgba(255, 107, 107, 0.2);
-}
-
-.turno-description {
-  color: #555 !important;
-}
-
-.admin-message {
-  background: linear-gradient(135deg, #FFE5B4 0%, #FFD93D 100%) !important;
-  border: 2px solid #FFA500 !important;
-  color: #8B4513 !important;
-}
-
-.benefit-item {
-  color: #333 !important;
-  background: rgba(255, 255, 255, 0.7) !important;
-  border-left: 3px solid #6BCF7F;
-}
-
-.turno-note {
-  color: #666 !important;
-}
-
-/* Beach sand with texture */
-.beach-sand {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 180px;
-  background: 
-    repeating-linear-gradient(
-      90deg,
-      #F4A460 0px,
-      #DEB887 2px,
-      #F4A460 4px
-    ),
-    linear-gradient(to top, 
-      #D2691E 0%,
-      #F4A460 40%,
-      #FFE4B5 100%
-    );
-  z-index: 998;
-  pointer-events: none;
-  box-shadow: inset 0 10px 30px rgba(0, 0, 0, 0.15);
-}
-
-/* Beach umbrella */
-.beach-umbrella {
-  position: absolute;
-  right: 15%;
-  bottom: 60px;
-  z-index: 999;
-  animation: umbrella-sway 4s ease-in-out infinite;
-}
-
-@keyframes umbrella-sway {
-  0%, 100% {
-    transform: rotate(-3deg);
-  }
-  50% {
-    transform: rotate(3deg);
-  }
-}
-
-.umbrella-top {
-  font-size: 6rem;
-  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
-  transform-origin: bottom center;
-}
-
-.umbrella-pole {
-  width: 4px;
-  height: 60px;
-  background: linear-gradient(to bottom, #8B4513 0%, #A0522D 100%);
-  margin: -20px auto 0;
-  border-radius: 2px;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
-}
-
-/* Responsive summer */
-@media (max-width: 768px) {
-  .summer-main-title {
     font-size: 2.5rem;
-  }
-  
-  .beach-element {
-    font-size: 1.4rem;
-  }
-  
-  .sun-container {
-    top: 30px;
-    left: 30px;
-  }
-  
-  .sun {
-    font-size: 3rem;
-  }
-  
-  .sun-rays {
-    width: 120px;
-    height: 120px;
-  }
-  
-  .beach-umbrella {
-    right: 10%;
-    bottom: 40px;
-  }
-  
-  .umbrella-top {
-    font-size: 4rem;
-  }
-  
-  .umbrella-pole {
-    height: 40px;
-  }
-}
-
-/* Windshield Wiper Animation */
-.wiper-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1000;
-  overflow: hidden;
-}
-
-.wiper {
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  width: 2px;
-  height: 100%;
-  background: linear-gradient(to top, rgba(100, 150, 200, 0.6), transparent);
-  transform-origin: bottom center;
-  animation: wiper-sweep 8s ease-in-out infinite;
-  box-shadow: -2px 0 20px rgba(255, 255, 255, 0.6), 2px 0 20px rgba(255, 255, 255, 0.6);
-}
-
-.wiper::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -30px;
-  width: 60px;
-  height: 100%;
-  background: linear-gradient(90deg, transparent 0%, rgba(200, 230, 255, 0.4) 20%, rgba(200, 230, 255, 0.6) 50%, rgba(200, 230, 255, 0.4) 80%, transparent 100%);
-  filter: blur(10px);
-}
-
-@keyframes wiper-sweep {
-  0%, 10% {
-    transform: translateX(-50%) rotate(-60deg);
-    opacity: 0;
-  }
-  15% {
-    opacity: 1;
-  }
-  45% {
-    transform: translateX(-50%) rotate(60deg);
-  }
-  50%, 100% {
-    transform: translateX(-50%) rotate(60deg);
-    opacity: 0;
-  }
-}
-
-/* Christmas Floating Message */
-/* Summer message float */
-.summer-message-float {
-  position: fixed;
-  top: 80px;
-  right: 30px;
-  z-index: 1001;
-  animation: float-summer 6s ease-in-out infinite;
-}
-
-@keyframes float-summer {
-  0%, 100% {
-    transform: translateY(0) rotate(-2deg);
-  }
-  50% {
-    transform: translateY(-20px) rotate(2deg);
-  }
-}
-
-.summer-card {
-  background: linear-gradient(135deg, 
-    rgba(255, 193, 7, 0.95) 0%,
-    rgba(255, 152, 0, 0.95) 50%,
-    rgba(255, 87, 34, 0.95) 100%
-  );
-  backdrop-filter: blur(10px);
-  border-radius: 25px;
-  padding: 25px 30px;
-  box-shadow: 0 10px 40px rgba(255, 152, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  border: 3px solid rgba(255, 255, 255, 0.6);
-  position: relative;
-  max-width: 350px;
-  animation: summer-glow-card 3s ease-in-out infinite alternate;
-}
-
-@keyframes summer-glow-card {
-  from {
-    box-shadow: 0 10px 40px rgba(255, 152, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 20px rgba(255, 193, 7, 0.5);
-  }
-  to {
-    box-shadow: 0 15px 50px rgba(255, 152, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 0 35px rgba(255, 193, 7, 0.8);
-  }
-}
-
-.card-ornament {
-  font-size: 2.5rem;
-  text-align: center;
-  margin-bottom: 10px;
-  animation: beach-bounce 3s ease-in-out infinite;
-}
-
-.card-ornament.bottom {
-  margin-top: 10px;
-  margin-bottom: 0;
-  animation-delay: 1.5s;
-}
-
-@keyframes beach-bounce {
-  0%, 100% {
-    transform: translateY(0) rotate(-5deg) scale(1);
-  }
-  50% {
-    transform: translateY(-10px) rotate(5deg) scale(1.15);
-  }
-}
-
-.summer-greeting-text {
-  font-family: 'Pacifico', cursive;
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: #fff;
-  margin: 0 0 12px 0;
-  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 255, 255, 0.6);
-  text-align: center;
-}
-
-.summer-wish {
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.98);
-  line-height: 1.6;
-  margin: 0;
-  text-align: center;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
-  font-weight: 500;
-}
-
-/* Responsive summer card */
-@media (max-width: 768px) {
-  .summer-message-float {
-    top: 60px;
-    right: 15px;
-    left: 15px;
-  }
-
-  .summer-card {
-    max-width: 100%;
-    padding: 20px;
-  }
-
-  .summer-greeting-text {
-    font-size: 1.8rem;
-  }
-
-  .summer-wish {
-    font-size: 0.9rem;
-  }
-
-  .card-ornament {
-    font-size: 2rem;
-  }
-
-  .snow-accumulation {
-    height: 100px;
   }
 }
 
@@ -1685,6 +820,217 @@ export default {
 
   .news-quote-text {
     font-size: 1.1rem;
+  }
+}
+
+/* ===== ESTILOS PREMIUM PARA PANEL DE COMISIONES ===== */
+.news-panel-premium {
+  border-left: 6px solid #f59e0b;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.news-panel-header-premium {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  padding: 2rem 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.premium-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: pulse-premium 2s ease-in-out infinite;
+}
+
+@keyframes pulse-premium {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.premium-title-section {
+  flex: 1;
+}
+
+.premium-title {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.premium-subtitle {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: white;
+  margin-top: 0.5rem;
+}
+
+.news-panel-body-premium {
+  padding: 2.5rem 2.5rem 1.5rem 2.5rem;
+}
+
+.premium-feature {
+  display: flex;
+  gap: 1.5rem;
+  align-items: start;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.premium-feature:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(8px);
+}
+
+.feature-icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.feature-content h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: hsl(210, 24%, 95%);
+}
+
+.feature-content p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: hsl(210, 16%, 80%);
+}
+
+.premium-cta {
+  margin-top: 2rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.1) 100%);
+  border-radius: 12px;
+  border: 2px solid rgba(245, 158, 11, 0.3);
+}
+
+.cta-content {
+  text-align: center;
+}
+
+.cta-text {
+  font-size: 1.1rem;
+  color: hsl(210, 24%, 95%);
+  margin: 0 0 1rem 0;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.cta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  padding: 0.8rem 1.5rem;
+  border-radius: 25px;
+  font-weight: 600;
+  color: white;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+  animation: glow-badge 2s ease-in-out infinite;
+}
+
+@keyframes glow-badge {
+  0%, 100% { box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); }
+  50% { box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6); }
+}
+
+.news-panel-footer-premium {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1.5rem 2.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-signature {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  color: hsl(210, 16%, 70%);
+  font-size: 0.95rem;
+}
+
+.footer-signature code {
+  color: #f59e0b;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.signature-text {
+  font-style: italic;
+  font-weight: 500;
+}
+
+/* Responsive para panel premium */
+@media (max-width: 768px) {
+  .news-panel-header-premium {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem;
+  }
+
+  .premium-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    font-size: 1.5rem;
+  }
+
+  .premium-title {
+    font-size: 1.4rem;
+  }
+
+  .news-panel-body-premium {
+    padding: 1.5rem;
+  }
+
+  .premium-feature {
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .feature-icon {
+    font-size: 2rem;
+  }
+
+  .feature-content h4 {
+    font-size: 1.1rem;
+  }
+
+  .premium-cta {
+    padding: 1.5rem;
+  }
+
+  .footer-signature {
+    flex-direction: column;
+    gap: 0.4rem;
   }
 }
 </style>

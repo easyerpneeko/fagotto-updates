@@ -598,8 +598,10 @@ export default {
       this.$awn.success("Orden creada exitosamente",{labels:{success:'CORRECTO'}});
 
   
+      // 1. Imprimir TICKET
       var ticket = await Print.printBase64(request.data.ticket);
     
+      // 2. Imprimir BOLETA/FACTURA (si existe)
       if(request.data.order){
         if(request.data.order.response_folio && request.data.order.response_folio == 'boleta' || request.data.order.response_folio == 'factura') {
           this.$awn.info('El ajuste de '+ request.data.order.response_folio +' se encuentra desactivado');
@@ -612,6 +614,18 @@ export default {
             this.$awn.info(request.data.order[0].response_folio);
           }
         }
+      }
+
+      // 3. Imprimir QR (si existe) - El backend devuelve 'ticket_qr'
+      if(request.data.ticket_qr) {
+        console.log('🔍 QR detectado en response (ticket_qr), imprimiendo...');
+        setTimeout(async ()=>{
+          var qr = await Print.printBase64(request.data.ticket_qr);
+          console.log('✅ QR (ticket_qr) impreso');
+        }, 2000); // Esperar 2 segundos después de la boleta
+      } else {
+        console.log('⚠️ No se encontró ticket_qr en la respuesta');
+        console.log('🔍 Response data keys:', Object.keys(request.data));
       }
 
       //reinicio el type_sell y other_type

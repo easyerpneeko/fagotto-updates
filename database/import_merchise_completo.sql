@@ -105,11 +105,12 @@ INSERT INTO merchise_sections (id, name, sku, description, orden) VALUES
 (5, 'Family Party', 'FAMILY_PARTY', 'Combos familiares', 5);
 
 -- ========================================
--- PASO 3: INSERTAR PRODUCTOS (31 productos)
+-- PASO 3: INSERTAR PRODUCTOS (32 productos)
 -- ========================================
 
--- SECCIÓN 1: PASTA (8 productos) - Orden: 100-199
+-- SECCIÓN 1: PASTA (9 productos) - Orden: 100-199
 INSERT INTO merchise_items (sku, name, description, price, section_id, image, orden) VALUES
+('1f93a9c3-1f0f-446e-a750-4066b902a8fd', 'Pasta Bigoli con Salsa Cheddar', 'Pasta bigoli al dente con cremosa salsa cheddar. Sabor intenso, textura perfecta y un plato ideal para los amantes del queso.', 4990, 1, '', 100),
 ('13c6e5f7-5902-4519-a138-2fa05094aa7e', 'Pasta Bigoli 1 Salsa', 'Eligie 1 salsa de las 5 opciones', 5990, 1, '', 101),
 ('cc229610-0720-401b-9606-6f48a907e0fd', 'Pastas Fettuccini 1 Salsa', 'Eligie 1 salsa de las 5 opciones', 5990, 1, '', 102),
 ('f6eb0cf5-3329-4aaf-9110-c4422faef706', 'Noquis 1 Salsa', 'Eligie 1 salsa de las 5 opciones', 5990, 1, '', 103),
@@ -514,7 +515,7 @@ FROM merchise_item_modifiers;
 -- ========================================
 -- RESULTADO ESPERADO:
 -- - 5 secciones
--- - 29 productos (8 pasta, 9 combos, 3 para compartir, 6 sandwichis, 4 family party)
+-- - 32 productos (9 pasta, 9 combos, 3 para compartir, 6 sandwichis, 4 family party, 1 sin modificador)
 -- - 13 modificadores (SALSA_1, SALSA_2, LATA_1, LATA_2, PASTA_TIPO_1-4, SALSA_PASTA_1-4, BEBIDA_FAMILIAR)
 -- - 18 opciones (6 salsas + 4 bebidas lata + 4 tipos pasta + 4 bebidas familiares)
 -- - Productos con modificadores:

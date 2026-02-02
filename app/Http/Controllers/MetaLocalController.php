@@ -240,6 +240,14 @@ class MetaLocalController extends Controller
 
             $mes = date('n');
             $anio = date('Y');
+            $hoy = date('Y-m-d');
+
+            Log::info('📊 [META API] Iniciando getCurrentLocalMeta', [
+                'app_id' => $app->id,
+                'mes' => $mes,
+                'anio' => $anio,
+                'hoy' => $hoy
+            ]);
 
             // Obtener la meta del local actual para el mes/año actual
             $meta = DB::connection('easyerp_master')
@@ -249,9 +257,88 @@ class MetaLocalController extends Controller
                 ->where('anio', $anio)
                 ->first();
 
+            Log::info('📋 [META API] Meta base encontrada:', ['meta' => $meta]);
+
+            // Calcular meta semanal (lunes a domingo de la semana actual)
+            $metaSemanal = 0;
+            $diasSemana = [];
+            
+            if ($meta) {
+                // Obtener el lunes de la semana actual
+                $fechaActual = new \DateTime($hoy);
+                $diaSemana = $fechaActual->format('N'); // 1=lunes, 7=domingo
+                $diasHastaLunes = $diaSemana - 1;
+                $lunes = clone $fechaActual;
+                $lunes->modify("-{$diasHastaLunes} days");
+                
+                Log::info('📅 [META API] Calculando semana', [
+                    'fecha_actual' => $hoy,
+                    'dia_semana' => $diaSemana,
+                    'lunes' => $lunes->format('Y-m-d')
+                ]);
+                
+                // Generar los 7 días de la semana (lunes a domingo)
+                for ($i = 0; $i < 7; $i++) {
+                    $fecha = clone $lunes;
+                    $fecha->modify("+{$i} days");
+                    $diaNum = (int)$fecha->format('j');
+                    $mesNum = (int)$fecha->format('n');
+                    $anioNum = (int)$fecha->format('Y');
+                    
+                    Log::info("📆 [META API] Buscando día {$i}", [
+                        'fecha' => $fecha->format('Y-m-d'),
+                        'dia' => $diaNum,
+                        'mes' => $mesNum,
+                        'anio' => $anioNum,
+                        'app_id' => $app->id
+                    ]);
+                    
+                    // Buscar meta para este día específico
+                    $metaDia = DB::connection('easyerp_master')
+                        ->table('metas_locales')
+                        ->where('aplication_id', $app->id)
+                        ->where('dia', $diaNum)
+                        ->where('mes', $mesNum)
+                        ->where('anio', $anioNum)
+                        ->first();
+                    
+                    $montoDia = $metaDia ? (float)$metaDia->meta_diaria : 0;
+                    $metaSemanal += $montoDia;
+                    
+                    Log::info("💵 [META API] Resultado día {$i}", [
+                        'fecha' => $fecha->format('Y-m-d'),
+                        'meta_encontrada' => $metaDia ? 'SI' : 'NO',
+                        'id_registro' => $metaDia ? $metaDia->id : null,
+                        'monto' => $montoDia
+                    ]);
+                    
+                    $diasSemana[] = [
+                        'fecha' => $fecha->format('Y-m-d'),
+                        'dia' => $diaNum,
+                        'mes' => $mesNum,
+                        'anio' => $anioNum,
+                        'meta_diaria' => $montoDia
+                    ];
+                }
+            }
+
+            // Calcular presupuesto para pedidos (30% de la meta semanal)
+            $presupuestoPedidos = $metaSemanal * 0.30;
+            $presupuestoPorDespacho = $presupuestoPedidos / 3; // 3 despachos
+
+            Log::info('💰 [META API] Resultado final', [
+                'meta_semanal' => $metaSemanal,
+                'presupuesto_pedidos' => $presupuestoPedidos,
+                'presupuesto_por_despacho' => $presupuestoPorDespacho
+            ]);
+
             return response()->json([
                 'success' => true,
-                'meta' => $meta
+                'meta' => $meta,
+                'meta_semanal' => $metaSemanal,
+                'dias_semana' => $diasSemana,
+                'presupuesto_pedidos' => $presupuestoPedidos,
+                'presupuesto_por_despacho' => $presupuestoPorDespacho
             ], 200);
 
         } catch (\Exception $e) {

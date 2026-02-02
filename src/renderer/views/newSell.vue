@@ -761,7 +761,15 @@ export default {
         this.discount = 0,
           this.total = 0;
         this.$awn.success("Orden guardada exitosamente", { labels: { success: 'CORRECTO' } });
-        this.imprimir(request.data.ticket);
+        
+        // 🖨️ IMPRIMIR MÚLTIPLES TICKETS
+        const tickets = [];
+        if (request.data.ticket) tickets.push(request.data.ticket); // Ticket normal
+        if (request.data.ticket_qr) tickets.push(request.data.ticket_qr); // Ticket con QR
+        
+        if (tickets.length > 0) {
+          await this.imprimirMultiple(tickets);
+        }
 
         Loader.hide();
         console.log("focus 3 borrar-focus");
@@ -870,6 +878,16 @@ export default {
     },
     async imprimir(pdf) {
       await Print.printBase64(pdf);
+    },
+    async imprimirMultiple(pdfs) {
+      // 🖨️ Imprime múltiples PDFs en secuencia
+      for (const pdf of pdfs) {
+        if (pdf) {
+          await Print.printBase64(pdf);
+          // Pequeña pausa entre impresiones para evitar problemas
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
     },
     prepararInformacion(data) {
       /*

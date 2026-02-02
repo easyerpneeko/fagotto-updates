@@ -122,9 +122,15 @@ class OrderController extends Controller
       }
     }
 
-    $b64Doc = $this->printPDF($order, 'ticket');
+    // 🎫 GENERAR TICKET NORMAL (sin QR)
+    $ticketNormal = $this->printPDF($order, 'ticket', false);
+    
+    // 🎫 GENERAR TICKET CON QR (para cliente)
+    $ticketConQR = $this->printPDF($order, 'ticket', true);
+    
     $result = [
-      'ticket' => $b64Doc
+      'ticket' => $ticketNormal,
+      'ticket_qr' => $ticketConQR
     ];
 
     // 🐛 DEBUG: Verificar condiciones para crear sell
@@ -334,11 +340,17 @@ class OrderController extends Controller
   }
 
 
-  public function printPDF($order, $type)
+  public function printPDF($order, $type, $showQR = false)
   {
     $app = CurrentApp::App();
     $order['envs'] = json_decode($app->environment_vars);
-    $order['products'] = json_decode($order['products']);
+    $order['show_qr'] = $showQR; // 🎯 Agregar flag de QR aquí
+    
+    // 🔧 FIX: Solo decodificar si es string, si ya es array dejarlo como está
+    if (is_string($order['products'])) {
+      $order['products'] = json_decode($order['products']);
+    }
+    
     $order['no_code_bar'] = CurrentApp::ConfStr('modulos.ventas.submodulo.ticket.ajustes.no_code_bar');
     $order['view_total'] = CurrentApp::ConfStr('modulos.ventas.submodulo.ticket.ajustes.view_total');
     $order['view_subtotal'] = CurrentApp::ConfStr('modulos.ventas.submodulo.ticket.ajustes.view_subtotal');

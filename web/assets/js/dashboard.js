@@ -1200,7 +1200,8 @@ const GLOBAL_SALSAS_CONFIG = [
     { nombre: 'Alfredo', keywords: ['alfredo'], emoji: '🧀', gramaje: 140 },
     { nombre: 'Champiñón', keywords: ['champinon', 'champiñon', 'champiñón'], emoji: '🍄', gramaje: 140 },
     { nombre: 'Camarón', keywords: ['camaron', 'camarón'], emoji: '🦐', gramaje: 140 },
-    { nombre: 'Pollo Mostaza', keywords: ['pollo mostaza', 'crema/pollo/mostaza', 'crema pollo mostaza'], emoji: '🍗', gramaje: 140 }
+    { nombre: 'Pollo Mostaza', keywords: ['pollo mostaza', 'crema/pollo/mostaza', 'crema pollo mostaza'], emoji: '🍗', gramaje: 140 },
+    { nombre: 'Cheddar', keywords: ['cheddar'], emoji: '🧀', gramaje: 140 }
 ];
 
 // Cargar mapa de calor global de salsas
@@ -1336,7 +1337,8 @@ function calculateGlobalSauceKPIs(productos) {
                           nombreLower.includes('pesto') ||
                           nombreLower.includes('champinon') || nombreLower.includes('champiñon') ||
                           nombreLower.includes('camaron') || nombreLower.includes('camarón') ||
-                          nombreLower.includes('pollo mostaza');
+                          nombreLower.includes('pollo mostaza') ||
+                          nombreLower.includes('cheddar');
         
         const esPasta = nombreLower.includes('pasta') ||
                        nombreLower.includes('fettucine') ||

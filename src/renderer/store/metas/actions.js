@@ -6,9 +6,10 @@ export const fetchCurrentMeta = async ({ commit }) => {
     const url = BaseUrl.getUrl('api/metas-locales/current');
     const response = await Connection.request('get', url);
     
-    if (response && response.success && response.data.meta) {
-      commit('SET_CURRENT_META', response.data.meta);
-      return { success: true, data: response.data.meta };
+    if (response && response.success) {
+      // Guardar toda la estructura en el store
+      commit('SET_CURRENT_META', response.data);
+      return { success: true, data: response.data };
     } else {
       commit('SET_CURRENT_META', null);
       return { success: false, data: null };

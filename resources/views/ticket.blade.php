@@ -1,33 +1,60 @@
 <!DOCTYPE html>
 <?php
 use Picqer\Barcode\BarcodeGeneratorPNG;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
+
 // This will output the barcode as HTML output to display in the browser
 $generator = new BarcodeGeneratorPNG();
 
-function formatoChilenoSub($cantidad,$numero, $decimales = null) {
-
-  $numeroFinal = number_format($numero);
-
-  if ($decimales) $numeroFinal = number_format($numero, $decimales);
-
-  $numeroFinal = (float) $cantidad * (float) $numero;
-
-  // FORMATO CHILENO
-  // Coma por Pivote
-  $numeroFinal = str_replace(',','%coma%',  $numeroFinal);
-  // Punto por Coma
-  $numeroFinal = str_replace('.',',',       $numeroFinal);
-  // Pivote por Punto
-  $numeroFinal = str_replace('%coma%','.',  $numeroFinal);
-
-  return $numeroFinal;
-
+// 🎯 GENERAR QR CODE si está habilitado
+$qrCode = null;
+if (isset($order['show_qr']) && $order['show_qr']) {
+  \Log::info('🎯 QR CODE FLAG DETECTADO - Generando QR para orden: ' . $order['id']);
+  try {
+    // QR apunta a fagotto.cl con información de la orden
+    $qrData = "https://fagotto.cl/?orden=" . $order['id'] . "&barcode=" . $order['barcode'] . "&msg=gracias";
+    
+    // Compatible con versión 3.4.1 de chillerlan/php-qrcode
+    $qrCode = (new QRCode())->render($qrData);
+    \Log::info('✅ QR CODE GENERADO EXITOSAMENTE');
+  } catch (\Exception $e) {
+    // Si falla la generación, simplemente no mostramos el QR
+    \Log::error('❌ ERROR AL GENERAR QR: ' . $e->getMessage());
+    $qrCode = null;
+  }
+} else {
+  \Log::info('⚠️ QR CODE FLAG NO DETECTADO o es FALSE');
 }
-function formatoChileno($numero, $decimales = null) {
 
-  $numeroFinal = number_format($numero);
+if (!function_exists('formatoChilenoSub')) {
+  function formatoChilenoSub($cantidad,$numero, $decimales = null) {
 
-  if ($decimales) $numeroFinal = number_format($numero, $decimales);
+    $numeroFinal = number_format($numero);
+
+    if ($decimales) $numeroFinal = number_format($numero, $decimales);
+
+    $numeroFinal = (float) $cantidad * (float) $numero;
+
+    // FORMATO CHILENO
+    // Coma por Pivote
+    $numeroFinal = str_replace(',','%coma%',  $numeroFinal);
+    // Punto por Coma
+    $numeroFinal = str_replace('.',',',       $numeroFinal);
+    // Pivote por Punto
+    $numeroFinal = str_replace('%coma%','.',  $numeroFinal);
+
+    return $numeroFinal;
+
+  }
+}
+
+if (!function_exists('formatoChileno')) {
+  function formatoChileno($numero, $decimales = null) {
+
+    $numeroFinal = number_format($numero);
+
+    if ($decimales) $numeroFinal = number_format($numero, $decimales);
 
   // FORMATO CHILENO
 
@@ -40,6 +67,7 @@ function formatoChileno($numero, $decimales = null) {
 
   return $numeroFinal;
 
+  }
 }
 
 $imgLogo = null;
@@ -74,14 +102,29 @@ if (isset($order['envs']) && isset($order['envs']->sii_logo) && isset($order['en
   <head>
     <meta charset="utf-8">
     <title>ticket</title>
-    <?php if($imgLogo): ?>
-      <div style="text-align: center;">
-        <img src="<?php echo $imgLogo; ?>" alt="Logo" style="max-width: 100px; margin-bottom: 20px;">
-      </div>
-    <?php endif; ?>
   </head>
   <body class="body-ticket">
-    @if($order['lower_case'])
+    <?php if ($qrCode): ?>
+      <!-- 🎫 VERSIÓN SOLO QR (sin contenido del ticket) -->
+      <div style="text-align: center; padding: 30px 20px;">
+        <p style="font-size: 14px; font-weight: bold; margin-bottom: 15px; letter-spacing: 1px;">
+          ¡Escanea el QR Y OBTEN TU CUPONERA
+        </p>
+        <p style="font-size: 11px; margin-bottom: 25px; letter-spacing: 0.5px;">
+            Visita www.fagotto.cl
+        </p>
+        <div style="margin: 20px auto;">
+          <img src="<?php echo $qrCode; ?>" alt="QR Code" style="width: 200px; height: 200px; display: block; margin: 0 auto;">
+        </div>
+      </div>
+    <?php else: ?>
+      <!-- 🎫 VERSIÓN COMPLETA DEL TICKET (sin QR) -->
+      <?php if($imgLogo): ?>
+        <div style="text-align: center;">
+          <img src="<?php echo $imgLogo; ?>" alt="Logo" style="max-width: 100px; margin-bottom: 20px;">
+        </div>
+      <?php endif; ?>
+      @if($order['lower_case'])
       <p class="fontZiseOld text-spacing-3 header-title-1 text-center text-uppercase text-bold m-auto">
           ORDEN N° {{$order['id']}}<br>          
           <p class="text-spacing-3 header-title text-center text-uppercase mb-1 fs12 text-bold">     
@@ -157,6 +200,7 @@ if (isset($order['envs']) && isset($order['envs']->sii_logo) && isset($order['en
             ?>
         </p>
       @endif
+      
     @endif
     
 
@@ -283,7 +327,9 @@ if (isset($order['envs']) && isset($order['envs']->sii_logo) && isset($order['en
         </p>
 
       @endif
+      
     @endif
+    <?php endif; ?> <!-- Cierre del else para versión completa -->
   </body>
 </html>
 <style media="screen">

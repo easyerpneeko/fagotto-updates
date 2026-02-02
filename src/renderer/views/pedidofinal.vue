@@ -62,6 +62,50 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Presupuesto de Pedidos Semanal -->
+                    <div v-if="metaSemanal" class="row mt-3">
+                        <div class="col-12">
+                            <div class="presupuesto-card">
+                                <div class="presupuesto-header">
+                                    <i class="fas fa-chart-line"></i> Presupuesto de Pedidos
+                                </div>
+                                <div class="presupuesto-body">
+                                    <div class="presupuesto-item">
+                                        <span class="presupuesto-label">📊 Meta Semanal:</span>
+                                        <span class="presupuesto-value">{{ formatCLP(metaSemanal.meta_semanal) }}</span>
+                                    </div>
+                                    <div class="presupuesto-item">
+                                        <span class="presupuesto-label">🛒 Presupuesto Pedidos (30%):</span>
+                                        <span class="presupuesto-value highlight">{{ formatCLP(metaSemanal.presupuesto_pedidos) }}</span>
+                                    </div>
+                                    <div class="presupuesto-item">
+                                        <span class="presupuesto-label">📦 Por Despacho (÷3):</span>
+                                        <span class="presupuesto-value highlight">{{ formatCLP(metaSemanal.presupuesto_por_despacho) }}</span>
+                                    </div>
+                                    <div class="presupuesto-progress" v-if="totalConIVA > 0">
+                                        <div class="progress-info">
+                                            <span>Pedido actual: {{ formatCLP(totalConIVA) }}</span>
+                                            <span>{{ calcularPorcentajeDespacho() }}%</span>
+                                        </div>
+                                        <div class="progress-bar-container">
+                                            <div class="progress-bar-fill" 
+                                                 :style="{ width: calcularPorcentajeDespacho() + '%' }"
+                                                 :class="{
+                                                     'progress-ok': totalConIVA <= metaSemanal.presupuesto_por_despacho,
+                                                     'progress-warning': totalConIVA > metaSemanal.presupuesto_por_despacho && totalConIVA <= metaSemanal.presupuesto_por_despacho * 1.1,
+                                                     'progress-danger': totalConIVA > metaSemanal.presupuesto_por_despacho * 1.1
+                                                 }">
+                                            </div>
+                                        </div>
+                                        <div v-if="totalConIVA > metaSemanal.presupuesto_por_despacho" class="alert-exceso">
+                                            ⚠️ Exceso: ${{ formatNumber(totalConIVA - metaSemanal.presupuesto_por_despacho) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Historial de Pedidos -->
@@ -84,8 +128,14 @@
                             <p>No hay pedidos registrados</p>
                         </div>
 
+                        <div v-else-if="historialConProductosParsed.length === 0" class="empty-state fade-in-up">
+                            <i class="fas fa-exclamation-triangle fa-3x"></i>
+                            <p>Error procesando pedidos (computed vacío)</p>
+                            <small>{{ historialPedidos.length }} pedidos en data pero 0 en computed</small>
+                        </div>
+
                         <div v-else class="historial-grid">
-                            <div v-for="pedido in historialPedidos" :key="pedido.id" class="historial-card">
+                            <div v-for="pedido in historialConProductosParsed" :key="pedido.id" class="historial-card">
                         <div class="historial-card-header">
                             <div class="pedido-numero">
                                 <i class="fas fa-hashtag"></i> {{ pedido.id }}
@@ -121,7 +171,7 @@
                             </div>
                             <div class="historial-productos">
                                 <h5>Productos:</h5>
-                                <div v-for="(producto, index) in parseProducts(pedido.products)" :key="index" class="producto-item">
+                                <div v-for="(producto, index) in pedido.productosParsed" :key="index" class="producto-item">
                                     <span class="producto-qty">{{ producto.quantity }}x</span>
                                     <span class="producto-name">{{ producto.name }}</span>
                                     <span class="producto-price">${{ formatNumber(parseFloat(producto.price) * parseInt(producto.quantity)) }}</span>
@@ -753,6 +803,7 @@ export default {
             loadingProducts: false,
             stockRefreshInterval: null, // Timer para actualizar stock
             historialRefreshInterval: null, // Timer para actualizar historial
+            isLoadingHistorial: false, // Flag para prevenir múltiples cargas simultáneas
             
             // Administración de productos
             productoEditando: {
@@ -775,6 +826,7 @@ export default {
             // Datos de negocio
             app: null,
             date: moment().format('YYYY-MM-DD HH:mm:ss'),
+            metaSemanal: null, // Datos de meta semanal y presupuesto
             
             // Control
             submitted: false,
@@ -809,6 +861,8 @@ export default {
         this.name = this.me.fullname;
         // Cargar productos al iniciar
         await this.cargarPreciosCentralizados();
+        // Cargar meta semanal
+        await this.cargarMetaSemanal();
         // Si ya inició sesión, cargar historial
         if (this.inicioSesion && this.app && this.app.Id) {
             this.cargarHistorial();
@@ -826,6 +880,41 @@ export default {
         // Limpiar el intervalo de historial
         if (this.historialRefreshInterval) {
             clearInterval(this.historialRefreshInterval);
+        }
+    },
+    watch: {
+        // Watcher para detectar cambios en historialPedidos
+        historialPedidos: {
+            handler(newVal, oldVal) {
+                console.log('🔔 [WATCHER] historialPedidos cambió:');
+                console.log('   Anterior:', oldVal ? oldVal.length : 0, 'pedidos');
+                console.log('   Nuevo:', newVal ? newVal.length : 0, 'pedidos');
+            },
+            deep: true
+        },
+        
+        // Watcher para detectar cuándo se muestra/oculta el historial
+        mostrarHistorial(newVal) {
+            console.log('🔔 [WATCHER] mostrarHistorial cambió a:', newVal);
+            if (newVal && this.historialPedidos.length === 0) {
+                console.log('⚠️ [WATCHER] Historial vacío al mostrarlo, recargando...');
+                this.cargarHistorial();
+            }
+        },
+        
+        // Watcher para detectar cambios en loadingHistorial
+        loadingHistorial(newVal) {
+            console.log('🔔 [WATCHER] loadingHistorial cambió a:', newVal);
+        },
+        
+        // Watcher para detectar cambios en loadingProducts
+        loadingProducts(newVal) {
+            console.log('🔔 [WATCHER] loadingProducts cambió a:', newVal);
+        },
+        
+        // Watcher para detectar cambios en inicioSesion
+        inicioSesion(newVal) {
+            console.log('🔔 [WATCHER] inicioSesion cambió a:', newVal);
         }
     },
     computed: {
@@ -915,6 +1004,42 @@ export default {
         },
         isValidPaymode: {
             get() { return this.paymode === 'Efectivo' } // Siempre será válido porque es fijo
+        },
+        
+        // Cachear productos parseados del historial para evitar re-renderizados infinitos
+        historialConProductosParsed() {
+            try {
+                console.log('🎯 [COMPUTED] historialConProductosParsed ejecutándose...');
+                console.log('   mostrarHistorial:', this.mostrarHistorial);
+                console.log('   loadingHistorial:', this.loadingHistorial);
+                console.log('   historialPedidos.length:', this.historialPedidos ? this.historialPedidos.length : 0);
+                
+                if (!this.historialPedidos || this.historialPedidos.length === 0) {
+                    console.log('📊 Computed: No hay pedidos en historial');
+                    return [];
+                }
+                
+                const result = this.historialPedidos.map(pedido => {
+                    try {
+                        return {
+                            ...pedido,
+                            productosParsed: this.parseProductsSafe(pedido.products)
+                        };
+                    } catch (e) {
+                        console.error('❌ Error parseando pedido', pedido.id, e);
+                        return {
+                            ...pedido,
+                            productosParsed: []
+                        };
+                    }
+                });
+                
+                console.log('✅ Computed ejecutado:', result.length, 'pedidos con productos parseados');
+                return result;
+            } catch (error) {
+                console.error('❌ Error crítico en historialConProductosParsed:', error);
+                return [];
+            }
         }
     },
     methods: {
@@ -922,8 +1047,25 @@ export default {
             return FormatNumber.format(value);
         },
         
+        formatCLP(value) {
+            if (!value || value === 0) return '$0';
+            const formatted = new Intl.NumberFormat('es-CL', {
+                style: 'currency',
+                currency: 'CLP',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+            return formatted;
+        },
+        
         formatDate(date) {
             return moment(date).format('DD/MM/YYYY HH:mm');
+        },
+        
+        calcularPorcentajeDespacho() {
+            if (!this.metaSemanal || !this.metaSemanal.presupuesto_por_despacho) return 0;
+            const porcentaje = (this.totalConIVA / this.metaSemanal.presupuesto_por_despacho) * 100;
+            return Math.min(Math.round(porcentaje), 150); // Límite visual en 150%
         },
         
         parseProducts(productsJson) {
@@ -937,8 +1079,31 @@ export default {
             }
         },
         
+        // Versión segura sin logging excesivo (usada en computed)
+        parseProductsSafe(productsJson) {
+            try {
+                if (!productsJson) {
+                    return [];
+                }
+                // Si ya es un array, retornarlo directamente
+                if (Array.isArray(productsJson)) {
+                    return productsJson;
+                }
+                // Si es string, parsearlo
+                if (typeof productsJson === 'string') {
+                    return JSON.parse(productsJson);
+                }
+                return [];
+            } catch (e) {
+                console.warn('⚠️ Error parseando productos (safe):', e.message);
+                return [];
+            }
+        },
+        
         iniciarPedido() {
             this.inicioSesion = true;
+            // Cargar meta semanal
+            this.cargarMetaSemanal();
             // Cargar historial solo si app está disponible
             if (this.app && this.app.Id) {
                 this.cargarHistorial();
@@ -975,10 +1140,16 @@ export default {
         },
         
         iniciarActualizacionStock() {
+            console.log('⏸️ [STOCK] Actualización automática de stock DESHABILITADA temporalmente para debugging');
+            return; // TEMPORAL: Deshabilitar para debugging
+            
             // Actualizar stock cada 10 segundos
             this.stockRefreshInterval = setInterval(async () => {
                 if (!this.mostrarHistorial && this.inicioSesion) {
+                    console.log('📊 [STOCK] Actualizando stock en background...');
                     await this.actualizarStockSilencioso();
+                } else {
+                    console.log('⏭️ [STOCK] Saltando actualización (mostrarHistorial:', this.mostrarHistorial, ', inicioSesion:', this.inicioSesion, ')');
                 }
             }, 10000); // 10 segundos
             
@@ -1124,6 +1295,98 @@ export default {
             this.totalPedido = this.productosCentralizados.reduce((total, producto) => {
                 return total + (producto.cantidad * producto.precio_por_unidad);
             }, 0);
+        },
+        
+        async cargarMetaSemanal() {
+            try {
+                const response = await this.$store.dispatch('metas/fetchCurrentMeta');
+                
+                if (response && response.success && response.data) {
+                    // Si el backend ya devuelve meta_semanal, usarlo
+                    if (response.data.meta_semanal) {
+                        this.metaSemanal = response.data;
+                    } else {
+                        // FALLBACK: Calcular localmente mientras se despliega el backend
+                        console.log('⚠️ [META] Backend no tiene meta_semanal, calculando localmente...');
+                        
+                        // Obtener todas las metas del mes actual
+                        const mes = new Date().getMonth() + 1;
+                        const anio = new Date().getFullYear();
+                        const hoy = new Date();
+                        
+                        // Calcular lunes de la semana actual
+                        const diaSemana = hoy.getDay(); // 0=domingo, 1=lunes, etc
+                        const diasHastaLunes = diaSemana === 0 ? 6 : diaSemana - 1;
+                        const lunes = new Date(hoy);
+                        lunes.setDate(hoy.getDate() - diasHastaLunes);
+                        
+                        // Obtener metas de toda la semana (lunes a domingo)
+                        let metaSemanal = 0;
+                        const diasSemana = [];
+                        
+                        for (let i = 0; i < 7; i++) {
+                            const fecha = new Date(lunes);
+                            fecha.setDate(lunes.getDate() + i);
+                            const diaNum = fecha.getDate();
+                            const mesNum = fecha.getMonth() + 1; // Mes correcto de la fecha
+                            const anioNum = fecha.getFullYear(); // Año correcto de la fecha
+                            
+                            // Buscar meta de este día en la DB
+                            const metaDiaResponse = await Connection.request('GET', 
+                                BaseUrl.getUrl(`api/web/metas-locales?mes=${mesNum}&anio=${anioNum}&dia=${diaNum}`));
+                            
+                            let montoDia = 0;
+                            if (metaDiaResponse && metaDiaResponse.success && metaDiaResponse.data) {
+                                // API devuelve estructura anidada: {success, data: {success, data: [...]}}
+                                let dataArray = metaDiaResponse.data;
+                                if (metaDiaResponse.data.data && Array.isArray(metaDiaResponse.data.data)) {
+                                    dataArray = metaDiaResponse.data.data;
+                                }
+                                
+                                // Filtrar por app_id
+                                const appId = this.$store.state.main.Aplication ? this.$store.state.main.Aplication.Id : 58;
+                                
+                                if (Array.isArray(dataArray) && dataArray.length > 0) {
+                                    const metaDia = dataArray.find(m => m.aplication_id === appId);
+                                    if (metaDia) {
+                                        montoDia = parseFloat(metaDia.meta_diaria) || 0;
+                                    }
+                                }
+                            }
+                            
+                            metaSemanal += montoDia;
+                            diasSemana.push({
+                                fecha: fecha.toISOString().split('T')[0],
+                                dia: diaNum,
+                                mes: mesNum,
+                                anio: anioNum,
+                                meta_diaria: montoDia
+                            });
+                        }
+                        
+                        // Calcular presupuestos
+                        const presupuestoPedidos = metaSemanal * 0.30;
+                        const presupuestoPorDespacho = presupuestoPedidos / 3;
+                        
+                        this.metaSemanal = {
+                            success: true,
+                            meta: response.data.meta,
+                            meta_semanal: metaSemanal,
+                            dias_semana: diasSemana,
+                            presupuesto_pedidos: presupuestoPedidos,
+                            presupuesto_por_despacho: presupuestoPorDespacho
+                        };
+                        
+                        console.log('✅ Meta semanal cargada:', `$${this.formatNumber(metaSemanal)}`);
+                    }
+                } else {
+                    console.warn('⚠️ [META] No se pudo cargar la meta semanal');
+                    this.metaSemanal = null;
+                }
+            } catch (error) {
+                console.error('❌ [META] Error cargando meta semanal:', error);
+                this.metaSemanal = null;
+            }
         },
         
         validar_form() {
@@ -1648,21 +1911,35 @@ export default {
         
         async cargarHistorial() {
             try {
-                // Validar que app esté disponible
-                if (!this.app || !this.app.Id) {
-                    console.warn('⚠️ App no disponible aún, esperando...');
+                console.log('🔍 [HISTORIAL] Iniciando carga de historial...');
+                
+                // Prevenir múltiples cargas simultáneas
+                if (this.isLoadingHistorial) {
+                    console.warn('⚠️ [HISTORIAL] Ya hay una carga en progreso, saltando...');
                     return;
                 }
                 
+                this.isLoadingHistorial = true;
+                
+                // Validar que app esté disponible
+                if (!this.app || !this.app.Id) {
+                    console.warn('⚠️ [HISTORIAL] App no disponible aún, esperando...');
+                    this.isLoadingHistorial = false;
+                    return;
+                }
+                
+                console.log('🔍 [HISTORIAL] App ID:', this.app.Id);
                 this.loadingHistorial = true;
                 
                 // Usar la misma estructura que pedidos.vue
                 var params = '?params=true&appId=' + this.app.Id;
                 
+                console.log('🔍 [HISTORIAL] Llamando a getRequests con params:', params);
                 var request = await this.$store.dispatch('requests/getRequests', params);
-                console.log('📦 Historial pedidos:', request);
+                console.log('📦 [HISTORIAL] Response completo:', request);
                 
                 if (!request.success) {
+                    console.error('❌ [HISTORIAL] Request no exitoso:', request.data);
                     this.$awn.alert(request.data);
                     this.historialPedidos = [];
                     return;
@@ -1670,20 +1947,27 @@ export default {
                 
                 // Misma estructura que pedidos.vue: request.data.items
                 if (request.data && request.data.items) {
+                    console.log('🔍 [HISTORIAL] Items recibidos:', request.data.items.length);
+                    
                     // Ordenar por fecha más reciente primero
                     this.historialPedidos = request.data.items.sort((a, b) => {
                         return new Date(b.created_at) - new Date(a.created_at);
                     });
-                    console.log('✅ Historial cargado:', this.historialPedidos.length, 'pedidos');
+                    
+                    console.log('✅ [HISTORIAL] Historial asignado:', this.historialPedidos.length, 'pedidos');
+                    console.log('🔍 [HISTORIAL] Primer pedido:', this.historialPedidos[0]);
                 } else {
+                this.isLoadingHistorial = false;
+                    console.warn('⚠️ [HISTORIAL] No hay items en la respuesta');
                     this.historialPedidos = [];
                 }
             } catch (error) {
-                console.error('❌ Error cargando historial:', error);
+                console.error('❌ [HISTORIAL] Error cargando historial:', error);
                 this.$awn.alert('Error al cargar historial de pedidos');
                 this.historialPedidos = [];
             } finally {
                 this.loadingHistorial = false;
+                console.log('🏁 [HISTORIAL] Carga finalizada. Total pedidos:', this.historialPedidos.length);
             }
         },
         
@@ -1800,47 +2084,54 @@ export default {
         
         // ==================== FIN MÉTODOS DE ADMINISTRACIÓN ====================
         
-        formatDate(date) {
-            return moment(date).format('DD/MM/YYYY HH:mm');
-        },
-        
-        formatNumber(number) {
-            return FormatNumber.format(number);
-        },
-        
         calcularNetoHistorial(pedido) {
-            // Si el pedido tiene subtotal guardado, usarlo como NETO
-            if (pedido.subtotal && parseFloat(pedido.subtotal) > 0) {
-                return parseFloat(pedido.subtotal);
+            try {
+                // Si el pedido tiene subtotal guardado, usarlo como NETO
+                if (pedido.subtotal && parseFloat(pedido.subtotal) > 0) {
+                    return parseFloat(pedido.subtotal);
+                }
+                
+                // Si no tiene subtotal, asumir que el price es el total con IVA incluido
+                // y calcular el neto: Neto = Total / 1.19
+                const total = parseFloat(pedido.price || 0);
+                const neto = total / 1.19;
+                
+                return Math.round(neto);
+            } catch (error) {
+                console.error('❌ Error en calcularNetoHistorial:', error, pedido);
+                return 0;
             }
-            
-            // Si no tiene subtotal, asumir que el price es el total con IVA incluido
-            // y calcular el neto: Neto = Total / 1.19
-            const total = parseFloat(pedido.price || 0);
-            const neto = total / 1.19;
-            
-            return Math.round(neto);
         },
         
         calcularIVAHistorial(pedido) {
-            // Si el pedido tiene IVA guardado, usarlo
-            if (pedido.iva && parseFloat(pedido.iva) > 0) {
-                return parseFloat(pedido.iva);
+            try {
+                // Si el pedido tiene IVA guardado, usarlo
+                if (pedido.iva && parseFloat(pedido.iva) > 0) {
+                    return parseFloat(pedido.iva);
+                }
+                
+                // Calcular el IVA basándose en el neto
+                const neto = this.calcularNetoHistorial(pedido);
+                const iva = Math.round(neto * 0.19);
+                
+                return iva;
+            } catch (error) {
+                console.error('❌ Error en calcularIVAHistorial:', error, pedido);
+                return 0;
             }
-            
-            // Calcular el IVA basándose en el neto
-            const neto = this.calcularNetoHistorial(pedido);
-            const iva = Math.round(neto * 0.19);
-            
-            return iva;
         },
         
         calcularTotalHistorial(pedido) {
-            // El total siempre es NETO + IVA
-            const neto = this.calcularNetoHistorial(pedido);
-            const iva = this.calcularIVAHistorial(pedido);
-            
-            return neto + iva;
+            try {
+                // El total siempre es NETO + IVA
+                const neto = this.calcularNetoHistorial(pedido);
+                const iva = this.calcularIVAHistorial(pedido);
+                
+                return neto + iva;
+            } catch (error) {
+                console.error('❌ Error en calcularTotalHistorial:', error, pedido);
+                return 0;
+            }
         }
     }
 }
@@ -3247,5 +3538,145 @@ export default {
         padding: 8px 12px;
     }
 }
+
+/* ==================== PRESUPUESTO DE PEDIDOS ==================== */
+.presupuesto-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    border: 2px solid rgba(102, 126, 234, 0.15);
+    animation: fadeInUp 0.5s ease;
+}
+
+.presupuesto-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 20px;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.presupuesto-header i {
+    font-size: 20px;
+}
+
+.presupuesto-body {
+    padding: 20px;
+}
+
+.presupuesto-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+.presupuesto-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.presupuesto-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.presupuesto-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.presupuesto-value.highlight {
+    color: #667eea;
+    font-size: 18px;
+}
+
+.presupuesto-progress {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 2px dashed #dee2e6;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 24px;
+    background: #e9ecef;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    transition: width 0.5s ease, background 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.progress-bar-fill.progress-ok {
+    background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+}
+
+.progress-bar-fill.progress-warning {
+    background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+}
+
+.progress-bar-fill.progress-danger {
+    background: linear-gradient(90deg, #ef4444 0%, #f87171 100%);
+}
+
+.alert-exceso {
+    margin-top: 10px;
+    padding: 10px 15px;
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border-left: 4px solid #ef4444;
+    border-radius: 8px;
+    color: #991b1b;
+    font-weight: 600;
+    font-size: 13px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 </style>
 

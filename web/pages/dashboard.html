@@ -1758,85 +1758,6 @@
                     </div>
                 </div>
 
-                <!-- ========== TABLA COMPARATIVA AÑO A AÑO POR SUCURSAL ========== -->
-                <div class="content-card fade-in" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%); border: 2px solid rgba(139, 92, 246, 0.3);">
-                    <div class="card-header-modern" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);">
-                        <i class="fas fa-chart-bar"></i>
-                        <h5>📊 Comparación Detallada por Sucursal: <span id="fecha-2025" style="color: #fbbf24;">-</span> vs <span id="fecha-2024" style="color: #f97316;">-</span></h5>
-                    </div>
-                    <div class="card-body-modern">
-                        <div class="table-responsive">
-                            <table class="table modern-table">
-                                <thead>
-                                    <tr>
-                                        <th scope="col" rowspan="2" style="vertical-align: middle;">
-                                            <i class="fas fa-store"></i>
-                                            Sucursal
-                                        </th>
-                                        <th scope="col" colspan="3" style="text-align: center; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.2) 100%);">
-                                            <i class="fas fa-calendar-check"></i>
-                                            <span id="header-fecha-2025">Ayer 2025</span>
-                                        </th>
-                                        <th scope="col" colspan="3" style="text-align: center; background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%);">
-                                            <i class="fas fa-history"></i>
-                                            <span id="header-fecha-2024">Mismo Día 2024</span>
-                                        </th>
-                                        <th scope="col" colspan="2" style="text-align: center; background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%);">
-                                            <i class="fas fa-chart-line"></i>
-                                            Comparación
-                                        </th>
-                                    </tr>
-                                    <tr>
-                                        <th style="background: rgba(16, 185, 129, 0.1);">
-                                            <i class="fas fa-dollar-sign"></i> Ventas
-                                        </th>
-                                        <th style="background: rgba(16, 185, 129, 0.1);">
-                                            <i class="fas fa-receipt"></i> Tickets
-                                        </th>
-                                        <th style="background: rgba(16, 185, 129, 0.1);">
-                                            <i class="fas fa-calculator"></i> T. Promedio
-                                        </th>
-                                        <th style="background: rgba(245, 158, 11, 0.1);">
-                                            <i class="fas fa-dollar-sign"></i> Ventas
-                                        </th>
-                                        <th style="background: rgba(245, 158, 11, 0.1);">
-                                            <i class="fas fa-receipt"></i> Tickets
-                                        </th>
-                                        <th style="background: rgba(245, 158, 11, 0.1);">
-                                            <i class="fas fa-calculator"></i> T. Promedio
-                                        </th>
-                                        <th style="background: rgba(139, 92, 246, 0.1);">
-                                            <i class="fas fa-arrows-alt-h"></i> Diferencia $
-                                        </th>
-                                        <th style="background: rgba(139, 92, 246, 0.1);">
-                                            <i class="fas fa-percentage"></i> Diferencia %
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tabla-comparacion-tbody">
-                                    <tr>
-                                        <td colspan="9" class="text-center">
-                                            <i class="fas fa-spinner fa-spin"></i>
-                                            Cargando comparación...
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <!-- Explicación de la tabla -->
-                        <div style="background: rgba(139, 92, 246, 0.1); border-left: 4px solid #8b5cf6; padding: 1rem; border-radius: 8px; margin-top: 1.5rem;">
-                            <p style="margin: 0; color: #1e293b; font-size: 0.85rem;">
-                                <i class="fas fa-lightbulb" style="color: #8b5cf6;"></i>
-                                <strong>¿Cómo leer esta tabla?</strong><br>
-                                Compara el rendimiento de <strong>cada sucursal</strong> del día de ayer con el mismo día del año anterior.<br>
-                                • <span style="color: #10b981;">↗️ Verde</span> = Crecimiento respecto al año pasado<br>
-                                • <span style="color: #ef4444;">↘️ Rojo</span> = Caída respecto al año pasado
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- MAPA DE CALOR DE SALSAS - TODAS LAS SUCURSALES -->
                 <div class="content-card fade-in" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); border: 2px solid rgba(102, 126, 234, 0.3);">
                     <div class="card-header-modern" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
@@ -2061,12 +1982,13 @@
                 });
             });
 
+            // DESHABILITADO - Carga muy lenta
             // Cargar comparación año a año después de 2 segundos
-            setTimeout(function() {
-                if (typeof loadYearComparison === 'function') {
-                    loadYearComparison();
-                }
-            }, 2000);
+            // setTimeout(function() {
+            //     if (typeof loadYearComparison === 'function') {
+            //         loadYearComparison();
+            //     }
+            // }, 2000);
         });
 
         // ========== MOBILE MENU FUNCTIONALITY ==========

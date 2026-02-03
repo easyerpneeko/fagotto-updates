@@ -63,6 +63,7 @@ class MetaLocalController extends Controller
             $anio = $request->input('anio');
             $dia = $request->input('dia'); // Obtener el día
             $metaDiaria = $request->input('meta_diaria');
+            $ticketPromedio = $request->input('ticket_promedio'); // Obtener T/C
 
             if (!$aplicationId || !$mes || !$anio) {
                 return response()->json([
@@ -95,6 +96,7 @@ class MetaLocalController extends Controller
                     ->where('id', $metaExistente->id)
                     ->update([
                         'meta_diaria' => $metaDiaria,
+                        'ticket_promedio' => $ticketPromedio,
                         'updated_at' => date('Y-m-d H:i:s')
                     ]);
                 $metaId = $metaExistente->id;
@@ -106,6 +108,7 @@ class MetaLocalController extends Controller
                     'anio' => $anio,
                     'dia' => $dia, // Guardar el día
                     'meta_diaria' => $metaDiaria,
+                    'ticket_promedio' => $ticketPromedio,
                     'created_at' => date('Y-m-d H:i:s'),
                     'updated_at' => date('Y-m-d H:i:s')
                 ];
@@ -396,6 +399,118 @@ class MetaLocalController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener metas: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Guardar o actualizar ticket promedio de una semana
+     * POST /api/web/metas-locales/store-ticket-promedio
+     */
+    public function storeTicketPromedio(Request $request)
+    {
+        try {
+            $aplicationId = $request->input('aplication_id');
+            $mes = $request->input('mes');
+            $anio = $request->input('anio');
+            $semana = $request->input('semana');
+            $ticketPromedio = $request->input('ticket_promedio');
+
+            if (!$aplicationId || !$mes || !$anio || !$semana) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Faltan campos requeridos'
+                ], 400);
+            }
+
+            // Verificar si ya existe un registro para esta semana
+            $ticketExistente = DB::connection('easyerp_master')
+                ->table('metas_locales')
+                ->where('aplication_id', $aplicationId)
+                ->where('mes', $mes)
+                ->where('anio', $anio)
+                ->where('semana', $semana)
+                ->whereNotNull('ticket_promedio')
+                ->first();
+
+            if ($ticketExistente) {
+                // Actualizar
+                DB::connection('easyerp_master')
+                    ->table('metas_locales')
+                    ->where('id', $ticketExistente->id)
+                    ->update([
+                        'ticket_promedio' => $ticketPromedio,
+                        'updated_at' => date('Y-m-d H:i:s')
+                    ]);
+                $ticketId = $ticketExistente->id;
+            } else {
+                // Insertar nuevo registro
+                $data = [
+                    'aplication_id' => $aplicationId,
+                    'mes' => $mes,
+                    'anio' => $anio,
+                    'semana' => $semana,
+                    'ticket_promedio' => $ticketPromedio,
+                    'dia' => null, // NULL para indicar que es un registro de semana, no de día
+                    'meta_diaria' => null,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s')
+                ];
+                
+                $ticketId = DB::connection('easyerp_master')
+                    ->table('metas_locales')
+                    ->insertGetId($data);
+            }
+
+            $ticket = DB::connection('easyerp_master')
+                ->table('metas_locales')
+                ->where('id', $ticketId)
+                ->first();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ticket promedio guardado',
+                'ticket' => $ticket
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('MetaLocalController@storeTicketPromedio Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener tickets promedio de un mes/año
+     * GET /api/web/metas-locales/tickets-promedio?mes=1&anio=2026
+     */
+    public function getTicketsPromedio(Request $request)
+    {
+        try {
+            $mes = $request->input('mes', date('n'));
+            $anio = $request->input('anio', date('Y'));
+
+            $tickets = DB::connection('easyerp_master')
+                ->table('metas_locales')
+                ->where('mes', $mes)
+                ->where('anio', $anio)
+                ->whereNotNull('ticket_promedio')
+                ->whereNotNull('semana')
+                ->orderBy('semana', 'asc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $tickets
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('MetaLocalController@getTicketsPromedio Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
             ], 500);
         }
     }

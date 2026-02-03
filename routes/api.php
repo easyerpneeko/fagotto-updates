@@ -244,6 +244,8 @@ Route::group(['middleware' => ['AppSecurity']], function () {
   // Metas por Local - Dashboard ventas
   Route::get('/web/metas-locales', 'MetaLocalController@index');
   Route::post('/web/metas-locales/store', 'MetaLocalController@store');
+  Route::post('/web/metas-locales/store-ticket-promedio', 'MetaLocalController@storeTicketPromedio');
+  Route::get('/web/metas-locales/tickets-promedio', 'MetaLocalController@getTicketsPromedio');
   Route::get('/web/metas-locales/dashboard', 'MetaLocalController@getDashboard');
   Route::get('/metas-locales/current', 'MetaLocalController@getCurrentLocalMeta');
   

@@ -45,8 +45,8 @@
       </div>
     </template>
 
-    <!-- Footer con Meta Diaria -->
-    <div v-if="currentMeta && currentMeta.meta_diaria" class="panel_footer">
+    <!-- Footer con Meta Diaria - SIEMPRE VISIBLE -->
+    <div class="panel_footer">
       <!-- Contenedor de corazones flotantes -->
       <div class="hearts-container">
         <div v-for="heart in floatingHearts" :key="heart.id" class="floating-heart" :style="heart.style">
@@ -54,7 +54,8 @@
         </div>
       </div>
       
-      <div class="meta-container">
+      <!-- Contenido cuando HAY meta -->
+      <div v-if="currentMeta && currentMeta.meta_diaria" class="meta-container">
         <div class="fecha-dia">
           <span class="fecha-label">📅 {{ fechaHoy }}</span>
         </div>
@@ -65,16 +66,33 @@
         <div class="meta-progress-info">
           <span class="ventas-label">Ventas:</span>
           <span class="ventas-value">${{ formatNumber(ventasHoy) }}</span>
-          <span class="porcentaje-badge" :class="porcentajeClass">{{ porcentajeCumplimiento }}%</span>
+          <span class="porcentaje-badge" :class="porcentajeClass">{{ porcentajeCumplimiento }}% Cafetería</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar" :style="{ width: porcentajeCumplimiento + '%' }" :class="porcentajeClass"></div>
         </div>
       </div>
-      <div class="progress-bar-container">
-        <div class="progress-bar" :style="{ width: porcentajeCumplimiento + '%' }" :class="porcentajeClass"></div>
+      
+      <!-- Contenido cuando NO HAY meta pero hay ventas -->
+      <div v-else-if="ventasHoy > 0" class="meta-container">
+        <div class="fecha-dia">
+          <span class="fecha-label">📅 {{ fechaHoy }}</span>
+        </div>
+        <div class="meta-progress-info">
+          <span class="ventas-label">Ventas del Día:</span>
+          <span class="ventas-value">${{ formatNumber(ventasHoy) }}</span>
+        </div>
+        <div style="margin-top: 8px;">
+          <span class="meta-label-empty">⚠️ Sin meta configurada</span>
+        </div>
       </div>
-    </div>
-    <div v-else-if="currentMeta === null" class="panel_footer">
-      <div class="meta-container">
-        <span class="meta-label-empty">⚠️ Sin meta configurada</span>
+      
+      <!-- Cuando no hay nada -->
+      <div v-else class="meta-container">
+        <div class="fecha-dia">
+          <span class="fecha-label">📅 {{ fechaHoy }}</span>
+        </div>
+        <span class="meta-label-empty">⚠️ Sin meta configurada - Sin ventas hoy</span>
       </div>
     </div>
 
@@ -321,11 +339,18 @@ export default {
     }
   },
   async mounted() {
+    console.log('🎯 [BOARDS ACTIVES] Componente montado, cargando metas...');
+    
     // Cargar la meta diaria del local
     await this.$store.dispatch('metas/fetchCurrentMeta');
     
+    console.log('🎯 [BOARDS ACTIVES] Meta cargada:', this.currentMeta);
+    
     // Cargar ventas del día actual usando el mismo endpoint que dashboard web
     await this.updateDailySales();
+    
+    console.log('🎯 [BOARDS ACTIVES] Ventas del día:', this.ventasHoy);
+    console.log('🎯 [BOARDS ACTIVES] Porcentaje:', this.porcentajeCumplimiento + '%');
     
     // Guardar ventas iniciales
     this.previousVentas = this.ventasHoy;

@@ -955,8 +955,28 @@
                                 <i class="fas fa-calendar-week"></i>
                                 Semana ${semana.numero} - ${rangoFechas}
                             </div>
-                            <div style="font-size: 1.2rem; font-weight: 700;">
-                                Total: $<span id="total_semana_${semana.numero}">0</span>
+                            <div style="display: flex; gap: 2rem; align-items: center;">
+                                <div style="text-align: center; border-right: 2px solid rgba(255,255,255,0.3); padding-right: 2rem;">
+                                    <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.25rem;">Total</div>
+                                    <div style="font-size: 1.3rem; font-weight: 700;">
+                                        $<span id="total_semana_${semana.numero}">0</span>
+                                    </div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.5rem;">T/C</div>
+                                    <div class="input-group" style="width: 180px;">
+                                        <span class="input-group-text" style="background: white; border: 2px solid rgba(255,255,255,0.5);">$</span>
+                                        <input type="number" 
+                                               class="form-control ticket-promedio-input" 
+                                               id="ticket_promedio_semana_${semana.numero}"
+                                               data-semana="${semana.numero}"
+                                               placeholder="T/C"
+                                               value=""
+                                               min="0"
+                                               step="1"
+                                               style="background: white; border: 2px solid rgba(255,255,255,0.5); font-weight: 600;">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="card-body p-4">
@@ -987,7 +1007,7 @@
                                     <span style="font-weight: 600; color: var(--primary-color);">${etiquetaDia}</span>
                                     <span style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary);">${anioCorto}</span>
                                 </div>
-                                <div class="input-group">
+                                <div class="input-group mb-2">
                                     <span class="input-group-text">$</span>
                                     <input type="number" 
                                            class="form-control meta-dia-input" 
@@ -999,6 +1019,18 @@
                                            min="0"
                                            step="1"
                                            oninput="calcularTotalSemana(${semana.numero})">
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text" style="font-size: 0.85rem;">T/C</span>
+                                    <input type="number" 
+                                           class="form-control tc-dia-input" 
+                                           id="tc_${idDia}" 
+                                           data-semana="${semana.numero}"
+                                           placeholder="T/C"
+                                           value=""
+                                           min="0"
+                                           step="1"
+                                           style="font-size: 0.9rem;">
                                 </div>
                             </div>
                         </div>
@@ -1083,13 +1115,20 @@
                         // Construir ID con el formato correcto
                         const idDia = `meta_${meta.anio}_${meta.mes}_${meta.dia}`;
                         const metaEntero = parseInt(meta.meta_diaria) || 0;
-                        console.log(`✏️ Cargando meta: ${idDia} = ${metaEntero}`);
+                        const tcValue = parseFloat(meta.ticket_promedio) || '';
+                        console.log(`✏️ Cargando meta: ${idDia} = ${metaEntero}, T/C = ${tcValue}`);
                         
                         const input = $(`#${idDia}`);
                         if (input.length > 0) {
                             input.val(metaEntero);
                             const semana = input.data('semana');
                             if (semana) semanasConDatos.add(semana);
+                            
+                            // Cargar T/C
+                            const tcInput = $(`#tc_${idDia}`);
+                            if (tcInput.length > 0 && tcValue) {
+                                tcInput.val(tcValue);
+                            }
                         } else {
                             console.warn(`❌ No se encontró input con ID: ${idDia}`);
                         }
@@ -1100,11 +1139,15 @@
                 
                 // Calcular totales de las semanas que tienen datos
                 semanasConDatos.forEach(semana => calcularTotalSemana(semana));
+                
+                // Cargar ticket promedio de cada semana
+                cargarTicketsPromedio(mes, anio);
             });
         }
 
         function calcularTotalSemana(semanaNum) {
             let total = 0;
+            
             $(`.meta-dia-input[data-semana="${semanaNum}"]`).each(function() {
                 const valor = parseFloat($(this).val()) || 0;
                 total += valor;
@@ -1119,23 +1162,69 @@
             $(`#total_semana_${semanaNum}`).text(totalFormateado);
         }
 
+        function cargarTicketsPromedio(mes, anio) {
+            console.log('📥 Cargando tickets promedio para mes:', mes, 'año:', anio);
+            
+            __conection(
+                {
+                    url: generarURLApi(`/web/metas-locales/tickets-promedio?mes=${mes}&anio=${anio}`),
+                    header: credentials(),
+                    dev: true,
+                    method: 'GET'
+                },
+                {},
+                function(response) {
+                    const tickets = response.data || response;
+                    console.log('📦 Tickets promedio recibidos:', tickets);
+                    
+                    tickets.forEach(ticket => {
+                        if (ticket.aplication_id === localSeleccionado && ticket.semana) {
+                            const ticketValue = parseFloat(ticket.ticket_promedio) || 0;
+                            const inputId = `ticket_promedio_semana_${ticket.semana}`;
+                            console.log(`✏️ Cargando T/C semana ${ticket.semana}: ${ticketValue}`);
+                            
+                            const input = $(`#${inputId}`);
+                            if (input.length > 0) {
+                                input.val(ticketValue);
+                            } else {
+                                console.warn(`❌ No se encontró input con ID: ${inputId}`);
+                            }
+                        }
+                    });
+                },
+                function(error) {
+                    console.log(`⚠️ No hay tickets promedio para ${mes}/${anio}`);
+                }
+            );
+        }
+
         async function guardarMetasSemana(semanaNum, dias) {
             console.log('💾 Guardando semana', semanaNum, 'con días:', dias);
             let metasGuardadas = 0;
             
+            // Guardar metas de los días
             for (const diaObj of dias) {
                 const idDia = `meta_${diaObj.anio}_${diaObj.mes}_${diaObj.numero}`;
                 const metaValue = $(`#${idDia}`).val();
+                const tcValue = $(`#tc_${idDia}`).val();
                 
-                console.log(`Procesando ${idDia}: valor=${metaValue}`);
+                console.log(`Procesando ${idDia}: meta=${metaValue}, tc=${tcValue}`);
                 
                 if (metaValue && parseFloat(metaValue) > 0) {
-                    await guardarMetaDia(diaObj.numero, metaValue, diaObj.mes, diaObj.anio);
+                    await guardarMetaDia(diaObj.numero, metaValue, tcValue, diaObj.mes, diaObj.anio);
                     metasGuardadas++;
                 }
             }
             
-            if (metasGuardadas > 0) {
+            // Guardar ticket promedio de la semana
+            const ticketPromedioValue = $(`#ticket_promedio_semana_${semanaNum}`).val();
+            if (ticketPromedioValue && parseFloat(ticketPromedioValue) > 0 && dias.length > 0) {
+                // Usar el mes y año del primer día de la semana
+                await guardarTicketPromedio(semanaNum, ticketPromedioValue, dias[0].mes, dias[0].anio);
+                console.log(`✅ Ticket promedio guardado para semana ${semanaNum}: ${ticketPromedioValue}`);
+            }
+            
+            if (metasGuardadas > 0 || ticketPromedioValue) {
                 Swal.fire({
                     icon: 'success',
                     title: '¡Guardado!',
@@ -1152,7 +1241,7 @@
             }
         }
 
-        function guardarMetaDia(dia, metaValue, mes, anio) {
+        function guardarMetaDia(dia, metaValue, tcValue, mes, anio) {
             return new Promise((resolve, reject) => {
                 __conection(
                     {
@@ -1166,7 +1255,34 @@
                         mes: mes,
                         anio: anio,
                         dia: dia,
-                        meta_diaria: parseInt(metaValue) || 0
+                        meta_diaria: parseInt(metaValue) || 0,
+                        ticket_promedio: parseFloat(tcValue) || null
+                    },
+                    function(response) {
+                        resolve(response);
+                    },
+                    function(error) {
+                        reject(error);
+                    }
+                );
+            });
+        }
+
+        function guardarTicketPromedio(semana, ticketPromedio, mes, anio) {
+            return new Promise((resolve, reject) => {
+                __conection(
+                    {
+                        url: generarURLApi('/web/metas-locales/store-ticket-promedio'),
+                        header: credentials(),
+                        dev: true,
+                        method: 'POST'
+                    },
+                    {
+                        aplication_id: localSeleccionado,
+                        mes: mes,
+                        anio: anio,
+                        semana: semana,
+                        ticket_promedio: parseFloat(ticketPromedio) || 0
                     },
                     function(response) {
                         resolve(response);

@@ -152,6 +152,11 @@ const router = new Router({
           meta: { requiresTurno: true }
         },
         {
+          path: 'mapa-calor',
+          component: require('@/views/mapa-calor.vue').default,
+          meta: { requiresTurno: true }
+        },
+        {
           path: 'gastos',
           component: require('@/views/expenses.vue').default,
           meta: { requiresTurno: true }

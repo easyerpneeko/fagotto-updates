@@ -462,6 +462,10 @@ export default {
       var number=  Math.round(number/10)*10;
       return FormatNumber.format(String(number));
     },
+    formatDate(date){
+      if (!date) return moment().format('YYYY-MM-DD');
+      return moment(date).format('YYYY-MM-DD');
+    },
     deFormatNumber(number,backend = true){
       if (backend) {
      //JC   console.log("-------------------------hola",number)

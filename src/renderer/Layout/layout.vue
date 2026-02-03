@@ -446,15 +446,13 @@ export default {
                 requiresTurno: true
               });
             }
-            // Mapa de Calor
-            if (reportsGestion) {
-              menu.push({
-                label: 'Mapa de Calor',
-                route: '/inicio/mapa-calor',
-                icon: 'fa-fire',
-                requiresTurno: true
-              });
-            }
+            // Mapa de Calor - Disponible para todos los roles
+            menu.push({
+              label: 'Mapa de Calor',
+              route: '/inicio/mapa-calor',
+              icon: 'fa-fire',
+              requiresTurno: true
+            });
             // Submodulos de gastos del dia
             if (expenses_day && expensesGestion) {
               menu.push({

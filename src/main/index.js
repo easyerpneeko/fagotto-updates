@@ -152,7 +152,7 @@ function initApp() {
 }
 
 // Read GitHub token from environment variable or file
-let githubToken = process.env.GH_TOKEN || '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';
+let githubToken = process.env.GH_TOKEN || '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';
 
 console.log('🔍 Looking for GitHub token...');
 console.log('🔑 Token from environment:', process.env.GH_TOKEN ? 'Present' : 'Missing');

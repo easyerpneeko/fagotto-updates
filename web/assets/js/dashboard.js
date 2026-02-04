@@ -683,11 +683,40 @@ async function cargarCounterEnTabla(request) {
             // 🎯 Obtener meta del local y calcular estado
             const metaLocal = metasPorLocal[localId];
             let metaHTML = '<span class="text-muted">Sin meta</span>';
+            let tcMetaHTML = '<span class="text-muted">-</span>';
+            let tcRealVsMetaHTML = '<span class="text-muted">-</span>';
             
             if (metaLocal) {
                 const metaValor = parseInt(metaLocal.meta_diaria) || 0;
                 const diferencia = ventaBruta - metaValor;
                 const cumplida = diferencia >= 0;
+                
+                // T/C de la meta
+                const tcMeta = parseInt(metaLocal.ticket_promedio) || 0;
+                if (tcMeta > 0) {
+                    tcMetaHTML = `<span class="fw-bold text-primary">${tcMeta.toLocaleString('es-CL')}</span>`;
+                    
+                    // Comparar T/C Real vs T/C Meta
+                    const diferenciaTc = ticketPromedio - tcMeta;
+                    const cumpleTcMeta = diferenciaTc >= 0;
+                    
+                    if (cumpleTcMeta) {
+                        tcRealVsMetaHTML = `<div>
+                                                <div class="fw-bold text-success">✅ Meta superada</div>
+                                                <div style="font-size: 0.85rem; color: #10b981;">
+                                                    Meta T/C: ${tcMeta.toLocaleString('es-CL')}
+                                                    <span class="badge bg-success">+${Math.abs(diferenciaTc).toFixed(0)}</span>
+                                                </div>
+                                            </div>`;
+                    } else {
+                        tcRealVsMetaHTML = `<div>
+                                                <div style="font-size: 1.3rem; font-weight: bold; color: #f59e0b;">Faltan ${Math.abs(diferenciaTc).toFixed(0)}</div>
+                                                <div style="font-size: 0.85rem; color: #9ca3af;">
+                                                    Meta T/C: ${tcMeta.toLocaleString('es-CL')}
+                                                </div>
+                                            </div>`;
+                    }
+                }
                 
                 if (cumplida) {
                     metaHTML = `<div>
@@ -714,6 +743,8 @@ async function cargarCounterEnTabla(request) {
                               <td><span class="fw-bold text-info">${ordenes.toLocaleString('es-CL')}</span></td>
                               <td>${formatearMontoChile(ventaDelivery.toFixed(0))}</td>
                               <td>${ticketsDesglose}</td>
+                              <td>${tcMetaHTML}</td>
+                              <td>${tcRealVsMetaHTML}</td>
                               <td><strong>${porcentajeDelivery.toFixed(1)}%</strong></td>
                           </tr>`;
 
@@ -747,6 +778,8 @@ async function cargarCounterEnTabla(request) {
                             <td><strong><span class="text-warning">${totalTransacciones.toLocaleString('es-CL')}</span></strong></td>
                             <td><strong>${formatearMontoChile(totalVentaDelivery.toFixed(0))}</strong></td>
                             <td><strong>${ticketsDesgloseTotales}</strong></td>
+                            <td><strong>-</strong></td>
+                            <td><strong>-</strong></td>
                             <td><strong>${porcentajeTotalDelivery.toFixed(1)}%</strong></td>                      
                         </tr>`;
     tbody.innerHTML += ultimaFila;
@@ -807,11 +840,43 @@ async function cargarCounterEnTabla(request) {
             // 🎯 Obtener meta del local y calcular estado
             const metaLocal = metasPorLocal[localId];
             let metaHTML = '<span class="text-muted">Sin meta</span>';
+            let tcMetaHTML = '<span class="text-muted">-</span>';
+            let tcRealVsMetaHTML = '<span class="text-muted">-</span>';
+            
+            // Calcular ticket promedio real de este local
+            const ticketPromedioF = ordenes > 0 ? ventaBruta / ordenes : 0;
             
             if (metaLocal) {
                 const metaValor = parseInt(metaLocal.meta_diaria) || 0;
                 const diferencia = ventaBruta - metaValor;
                 const cumplida = diferencia >= 0;
+                
+                // T/C de la meta
+                const tcMeta = parseInt(metaLocal.ticket_promedio) || 0;
+                if (tcMeta > 0) {
+                    tcMetaHTML = `<span class="fw-bold text-primary">${tcMeta.toLocaleString('es-CL')}</span>`;
+                    
+                    // Comparar T/C Real vs T/C Meta
+                    const diferenciaTc = ticketPromedioF - tcMeta;
+                    const cumpleTcMeta = diferenciaTc >= 0;
+                    
+                    if (cumpleTcMeta) {
+                        tcRealVsMetaHTML = `<div>
+                                                <div class="fw-bold text-success">✅ Meta superada</div>
+                                                <div style="font-size: 0.85rem; color: #10b981;">
+                                                    Meta T/C: ${tcMeta.toLocaleString('es-CL')}
+                                                    <span class="badge bg-success">+${Math.abs(diferenciaTc).toFixed(0)}</span>
+                                                </div>
+                                            </div>`;
+                    } else {
+                        tcRealVsMetaHTML = `<div>
+                                                <div style="font-size: 1.3rem; font-weight: bold; color: #f59e0b;">Faltan ${Math.abs(diferenciaTc).toFixed(0)}</div>
+                                                <div style="font-size: 0.85rem; color: #9ca3af;">
+                                                    Meta T/C: ${tcMeta.toLocaleString('es-CL')}
+                                                </div>
+                                            </div>`;
+                    }
+                }
                 
                 if (cumplida) {
                     metaHTML = `<div>
@@ -838,6 +903,8 @@ async function cargarCounterEnTabla(request) {
                               <td><span class="fw-bold text-info">${ordenes.toLocaleString('es-CL')}</span></td>
                               <td>${formatearMontoChile(ventaDelivery.toFixed(0))}</td>
                               <td>${ticketsDesglose}</td>
+                              <td>${tcMetaHTML}</td>
+                              <td>${tcRealVsMetaHTML}</td>
                               <td><strong>${porcentajeDelivery.toFixed(1)}%</strong></td>
                           </tr>`;
             
@@ -870,6 +937,8 @@ async function cargarCounterEnTabla(request) {
                             <td><strong><span class="text-warning">${totalTransaccionesF.toLocaleString('es-CL')}</span></strong></td>
                             <td><strong>${formatearMontoChile(totalVentaDeliveryF.toFixed(0))}</strong></td>
                             <td><strong>${ticketsDesgloseTotalesF}</strong></td>
+                            <td><strong>-</strong></td>
+                            <td><strong>-</strong></td>
                             <td><strong>${porcentajeTotalDeliveryF.toFixed(1)}%</strong></td>                      
                         </tr>`;
     tbodyF.innerHTML += ultimaFilaF;

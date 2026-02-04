@@ -104,8 +104,8 @@
                                                  }">
                                             </div>
                                         </div>
-                                        <div v-if="totalConIVA > metaSemanal.presupuesto_por_despacho" class="alert-exceso">
-                                            ⚠️ Exceso: ${{ formatNumber(totalConIVA - metaSemanal.presupuesto_por_despacho) }}
+                                        <div v-if="totalConIVA > metaSemanal.presupuesto_por_despacho" class="alert-info-presupuesto">
+                                            💡 <strong>Sugerencia:</strong> Este pedido supera tu meta recomendada (30% semanal) por <strong>${{ formatNumber(totalConIVA - metaSemanal.presupuesto_por_despacho) }}</strong>. Puedes continuar con el pedido, este mensaje es solo una alerta.
                                         </div>
                                     </div>
                                 </div>
@@ -3812,6 +3812,17 @@ export default {
     font-weight: 600;
     font-size: 13px;
     animation: pulse 2s infinite;
+}
+
+.alert-info-presupuesto {
+    margin-top: 10px;
+    padding: 10px 15px;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border-left: 4px solid #3b82f6;
+    border-radius: 8px;
+    color: #1e3a8a;
+    font-weight: 500;
+    font-size: 13px;
 }
 
 @keyframes pulse {

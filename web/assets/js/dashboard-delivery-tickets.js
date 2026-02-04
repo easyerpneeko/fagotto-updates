@@ -68,12 +68,19 @@ async function calcularTicketsDelivery(counterRequest, startDate, endDate) {
                                 // Usar other_type (plataforma delivery) o paymode
                                 let metodo = (venta.other_type || venta.paymode || '').toLowerCase().trim();
                                 
-                                // Mapeo de nombres de plataformas
-                                if (metodo === 'uber_eats' || metodo === 'uber' || metodo === 'ubereats') {
+                                // 🔍 DEBUG: Ver qué métodos llegan
+                                if (metodo && (metodo.includes('uber') || metodo.includes('rappi') || metodo.includes('pedidos'))) {
+                                    console.log(`   📱 Método detectado: "${metodo}" (original: "${venta.other_type || venta.paymode}")`);
+                                }
+                                
+                                // Mapeo de nombres de plataformas (más variantes)
+                                if (metodo === 'uber_eats' || metodo === 'uber' || metodo === 'ubereats' || 
+                                    metodo === 'uber eats' || metodo.includes('uber')) {
                                     uberCount++;
-                                } else if (metodo === 'rappi') {
+                                } else if (metodo === 'rappi' || metodo.includes('rappi')) {
                                     rappiCount++;
-                                } else if (metodo === 'pedidos_ya' || metodo === 'pedidosya' || metodo === 'pedidos ya') {
+                                } else if (metodo === 'pedidos_ya' || metodo === 'pedidosya' || 
+                                           metodo === 'pedidos ya' || metodo.includes('pedidos')) {
                                     pedidosYaCount++;
                                 }
                             });

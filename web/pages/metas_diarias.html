@@ -963,18 +963,9 @@
                                     </div>
                                 </div>
                                 <div style="text-align: center;">
-                                    <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.5rem;">T/C</div>
-                                    <div class="input-group" style="width: 180px;">
-                                        <span class="input-group-text" style="background: white; border: 2px solid rgba(255,255,255,0.5);">$</span>
-                                        <input type="number" 
-                                               class="form-control ticket-promedio-input" 
-                                               id="ticket_promedio_semana_${semana.numero}"
-                                               data-semana="${semana.numero}"
-                                               placeholder="T/C"
-                                               value=""
-                                               min="0"
-                                               step="1"
-                                               style="background: white; border: 2px solid rgba(255,255,255,0.5); font-weight: 600;">
+                                    <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.25rem;">T/C Total</div>
+                                    <div style="font-size: 1.3rem; font-weight: 700;">
+                                        <span id="tc_total_semana_${semana.numero}">0</span>
                                     </div>
                                 </div>
                             </div>
@@ -1030,7 +1021,8 @@
                                            value=""
                                            min="0"
                                            step="1"
-                                           style="font-size: 0.9rem;">
+                                           style="font-size: 0.9rem;"
+                                           oninput="calcularTotalTCSemana(${semana.numero})">
                                 </div>
                             </div>
                         </div>
@@ -1138,10 +1130,10 @@
                 console.log('✅ Semanas con datos cargados:', Array.from(semanasConDatos));
                 
                 // Calcular totales de las semanas que tienen datos
-                semanasConDatos.forEach(semana => calcularTotalSemana(semana));
-                
-                // Cargar ticket promedio de cada semana
-                cargarTicketsPromedio(mes, anio);
+                semanasConDatos.forEach(semana => {
+                    calcularTotalSemana(semana);
+                    calcularTotalTCSemana(semana);
+                });
             });
         }
 
@@ -1160,43 +1152,30 @@
             });
             
             $(`#total_semana_${semanaNum}`).text(totalFormateado);
+            
+            // Calcular también el T/C total
+            calcularTotalTCSemana(semanaNum);
         }
 
-        function cargarTicketsPromedio(mes, anio) {
-            console.log('📥 Cargando tickets promedio para mes:', mes, 'año:', anio);
+        function calcularTotalTCSemana(semanaNum) {
+            let totalTC = 0;
             
-            __conection(
-                {
-                    url: generarURLApi(`/web/metas-locales/tickets-promedio?mes=${mes}&anio=${anio}`),
-                    header: credentials(),
-                    dev: true,
-                    method: 'GET'
-                },
-                {},
-                function(response) {
-                    const tickets = response.data || response;
-                    console.log('📦 Tickets promedio recibidos:', tickets);
-                    
-                    tickets.forEach(ticket => {
-                        if (ticket.aplication_id === localSeleccionado && ticket.semana) {
-                            const ticketValue = parseFloat(ticket.ticket_promedio) || 0;
-                            const inputId = `ticket_promedio_semana_${ticket.semana}`;
-                            console.log(`✏️ Cargando T/C semana ${ticket.semana}: ${ticketValue}`);
-                            
-                            const input = $(`#${inputId}`);
-                            if (input.length > 0) {
-                                input.val(ticketValue);
-                            } else {
-                                console.warn(`❌ No se encontró input con ID: ${inputId}`);
-                            }
-                        }
-                    });
-                },
-                function(error) {
-                    console.log(`⚠️ No hay tickets promedio para ${mes}/${anio}`);
-                }
-            );
+            // Sumar todos los T/C de los días de la semana
+            $(`.tc-dia-input[data-semana="${semanaNum}"]`).each(function() {
+                const valor = parseFloat($(this).val()) || 0;
+                totalTC += valor;
+            });
+            
+            // Formatear con separadores de miles
+            const totalFormateado = totalTC.toLocaleString('es-MX', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+            
+            $(`#tc_total_semana_${semanaNum}`).text(totalFormateado);
         }
+
+        // Función eliminada - El T/C promedio ahora se calcula automáticamente
 
         async function guardarMetasSemana(semanaNum, dias) {
             console.log('💾 Guardando semana', semanaNum, 'con días:', dias);
@@ -1216,9 +1195,10 @@
                 }
             }
             
-            // Guardar ticket promedio de la semana
-            const ticketPromedioValue = $(`#ticket_promedio_semana_${semanaNum}`).val();
-            if (ticketPromedioValue && parseFloat(ticketPromedioValue) > 0 && dias.length > 0) {
+            // Guardar ticket promedio de la semana (calculado automáticamente)
+            const ticketPromedioText = $(`#tc_total_semana_${semanaNum}`).text().replace(/,/g, '');
+            const ticketPromedioValue = parseFloat(ticketPromedioText) || 0;
+            if (ticketPromedioValue > 0 && dias.length > 0) {
                 // Usar el mes y año del primer día de la semana
                 await guardarTicketPromedio(semanaNum, ticketPromedioValue, dias[0].mes, dias[0].anio);
                 console.log(`✅ Ticket promedio guardado para semana ${semanaNum}: ${ticketPromedioValue}`);

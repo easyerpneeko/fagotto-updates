@@ -1,0 +1,4 @@
+git add .
+git commit -m "v1.12.1 - Hot Fix"
+git push
+$env:GH_TOKEN = "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"; npm run deploy

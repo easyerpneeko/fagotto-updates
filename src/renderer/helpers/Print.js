@@ -40,22 +40,35 @@ export default class {
 
   // Funcion para imprimir un PDF en base 64
   static printBase64(data, options = null) {
+    return new Promise((resolve, reject) => {
+      const filename = fileNameDefault;
+      
+      // Creamos el archivo
+      fs.writeFile(filename, data, 'base64', (err) => {
+        // En caso de error!
+        if(err) { 
+          console.error('[Printer] ❌ Error al crear PDF:', err); 
+          reject(err);
+          return;
+        }
 
-    const filename = fileNameDefault;
-    // Creamos el archivo
-    fs.writeFile(filename, data, 'base64', (err) => {
+        // Si todo sale bien
+        console.log('[Printer] ✅ PDF Creado con exito! ', filename);
 
-      // En caso de error!
-      if(err) { console.log(err); return false; }
-
-      // Si todo sale bien
-      console.log('[Printer] PDF Creado con exito! ', filename);
-
-      // Llamamos al imprimir!
-      return this.print(filename, options);
-
+        // Llamamos al imprimir y esperamos resultado
+        try {
+          this.print(filename, options);
+          // Dar tiempo para que el comando de impresión se ejecute
+          setTimeout(() => {
+            console.log('[Printer] ✅ Impresión completada');
+            resolve(true);
+          }, 1500); // Aumentado de implícito 0ms a 1500ms
+        } catch (error) {
+          console.error('[Printer] ❌ Error en print():', error);
+          reject(error);
+        }
+      });
     });
-
   }
 
   // Funcion para imprimir

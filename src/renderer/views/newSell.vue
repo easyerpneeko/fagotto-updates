@@ -750,7 +750,15 @@ export default {
 
         // Verificando respuesta
         if (!request.success) {
-          this.$awn.alert(request.data);
+          // 🌐 Detectar errores de conexión/internet lento
+          if (request.isNetworkError || (typeof request.data === 'string' && request.data.includes('Timeout'))) {
+            this.$awn.warning('⏰ INTERNET LENTO: La conexión está tardando mucho. Reintentando...', { 
+              durations: { warning: 5000 },
+              labels: { warning: 'CONEXIÓN LENTA' } 
+            });
+          } else {
+            this.$awn.alert(request.data);
+          }
           Loader.hide();
           return false;
         }
@@ -877,16 +885,66 @@ export default {
       this.editOrder = false;
     },
     async imprimir(pdf) {
-      await Print.printBase64(pdf);
+      try {
+        console.log('🖨️ Iniciando impresión de documento...');
+        await Print.printBase64(pdf);
+        console.log('✅ Documento impreso correctamente');
+        return true;
+      } catch (error) {
+        console.error('❌ Error al imprimir documento:', error);
+        this.$awn.alert('Error al imprimir el documento. Verifique la impresora e intente nuevamente.');
+        return false;
+      }
     },
     async imprimirMultiple(pdfs) {
-      // 🖨️ Imprime múltiples PDFs en secuencia
-      for (const pdf of pdfs) {
-        if (pdf) {
-          await Print.printBase64(pdf);
-          // Pequeña pausa entre impresiones para evitar problemas
-          await new Promise(resolve => setTimeout(resolve, 500));
+      // 🖨️ Imprime múltiples PDFs en secuencia con manejo robusto de errores
+      console.log(`📄 Iniciando impresión de ${pdfs.length} documento(s)...`);
+      
+      let exitosos = 0;
+      let fallidos = 0;
+      
+      for (let i = 0; i < pdfs.length; i++) {
+        const pdf = pdfs[i];
+        if (!pdf) {
+          console.warn(`⚠️ PDF ${i + 1} está vacío, omitiendo...`);
+          continue;
         }
+        
+        try {
+          console.log(`🖨️ Imprimiendo documento ${i + 1}/${pdfs.length}...`);
+          await Print.printBase64(pdf);
+          exitosos++;
+          console.log(`✅ Documento ${i + 1} impreso correctamente`);
+          
+          // Pausa aumentada entre impresiones para evitar conflictos
+          if (i < pdfs.length - 1) {
+            console.log(`⏳ Esperando 2 segundos antes del siguiente documento...`);
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Aumentado de 500ms a 2000ms
+          }
+        } catch (error) {
+          fallidos++;
+          console.error(`❌ Error al imprimir documento ${i + 1}:`, error);
+          // Continuar con el siguiente documento en vez de interrumpir todo
+          this.$awn.warning(`Error al imprimir documento ${i + 1}. Continuando...`, {
+            labels: { warning: 'ADVERTENCIA' }
+          });
+          
+          // Pausa más larga después de error para evitar problemas en cascada
+          if (i < pdfs.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 3000));
+          }
+        }
+      }
+      
+      // Reporte final
+      console.log(`📊 Impresión finalizada: ${exitosos} exitosos, ${fallidos} fallidos`);
+      
+      if (fallidos > 0) {
+        this.$awn.warning(`Se imprimieron ${exitosos} de ${pdfs.length} documentos. ${fallidos} fallaron.`, {
+          labels: { warning: 'ATENCIÓN' }
+        });
+      } else {
+        console.log(`✅ Todos los documentos se imprimieron correctamente`);
       }
     },
     prepararInformacion(data) {

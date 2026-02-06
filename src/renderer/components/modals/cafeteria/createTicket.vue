@@ -598,17 +598,39 @@ export default {
       this.$awn.success("Orden creada exitosamente",{labels:{success:'CORRECTO'}});
 
   
+      // 🖨️ IMPRESIÓN SECUENCIAL CON DELAYS
+      let printErrors = [];
+      
       // 1. Imprimir TICKET
-      var ticket = await Print.printBase64(request.data.ticket);
+      try {
+        console.log('🖨️ Imprimiendo ticket...');
+        await Print.printBase64(request.data.ticket);
+        console.log('✅ Ticket impreso correctamente');
+      } catch (error) {
+        console.error('❌ Error al imprimir ticket:', error);
+        printErrors.push('ticket');
+        this.$awn.warning('Error al imprimir ticket. Puede reimprimir desde el historial.');
+      }
+      
+      // ⏳ Esperar 2 segundos antes de la siguiente impresión
+      if (request.data.order && request.data.order.response_folio) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
     
       // 2. Imprimir BOLETA/FACTURA (si existe)
       if(request.data.order){
         if(request.data.order.response_folio && request.data.order.response_folio == 'boleta' || request.data.order.response_folio == 'factura') {
           this.$awn.info('El ajuste de '+ request.data.order.response_folio +' se encuentra desactivado');
         }else if (request.data.order.response_folio) {
-          setTimeout(async ()=>{
-            var order = await Print.printBase64(request.data.order.response_folio);
-          }, 1000);
+          try {
+            console.log('🖨️ Imprimiendo boleta/factura...');
+            await Print.printBase64(request.data.order.response_folio);
+            console.log('✅ Boleta/Factura impresa correctamente');
+          } catch (error) {
+            console.error('❌ Error al imprimir boleta/factura:', error);
+            printErrors.push('boleta/factura');
+            this.$awn.warning('Error al imprimir boleta/factura. Puede reimprimir desde el historial.');
+          }
         }else{
           if(typeof(request.data.order[0]) !== 'undefined') {
             this.$awn.info(request.data.order[0].response_folio);
@@ -616,17 +638,14 @@ export default {
         }
       }
 
-      // 3. Imprimir QR (si existe) - El backend devuelve 'ticket_qr'
-      if(request.data.ticket_qr) {
-        console.log('🔍 QR detectado en response (ticket_qr), imprimiendo...');
-        setTimeout(async ()=>{
-          var qr = await Print.printBase64(request.data.ticket_qr);
-          console.log('✅ QR (ticket_qr) impreso');
-        }, 2000); // Esperar 2 segundos después de la boleta
+      // 📊 Resumen de impresión
+      if (printErrors.length > 0) {
+        console.warn(`⚠️ Errores en impresión de: ${printErrors.join(', ')}`);
       } else {
-        console.log('⚠️ No se encontró ticket_qr en la respuesta');
-        console.log('🔍 Response data keys:', Object.keys(request.data));
+        console.log('✅ Todos los documentos impresos correctamente');
       }
+
+      // 3. Ya no se imprime QR (ticket_qr) - Solo ticket y boleta
 
       //reinicio el type_sell y other_type
       this.type_sell = null;

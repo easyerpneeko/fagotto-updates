@@ -10,6 +10,10 @@ export default class {
       'lock-scroll': true,
       backgroundColor: 'rgba(0,0,0,.95)',
       color: 'rgb(243, 242, 242)',
+      canCancel: false, // No permite cancelar con click
+      onCancel: () => {}, // Handler vacío para evitar conflictos
+      loader: 'spinner', // Tipo de loader específico
+      enforceFocus: false, // 🔥 NO capturar foco agresivamente (evita loop con Bootstrap)
     });
   }
 

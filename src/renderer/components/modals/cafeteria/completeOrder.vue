@@ -471,7 +471,13 @@ export default {
             this.$awn.info('El ajuste de '+ request.data.response_folio +' se encuentra desactivado');
           }else if (request.data.response_folio) {
             console.log('Ejecutando impresion...');
-            var printPDF = await Print.printBase64(request.data.response_folio);
+            try {
+              var printPDF = await Print.printBase64(request.data.response_folio);
+              console.log('✅ Boleta/Factura impresa correctamente');
+            } catch (error) {
+              console.error('❌ Error al imprimir boleta/factura:', error);
+              this.$awn.warning('La venta se registró pero hubo un error al imprimir. Puede reimprimir desde el historial.');
+            }
             this.$emit('refresh', true);
             this.hide(); //$('#completeOrder').modal('hide');
           }else{
@@ -492,7 +498,15 @@ export default {
             this.$emit('refresh', true);
             this.hide(); //$('#completeOrder').modal('hide');
           }else{
-            this.$awn.alert(request.data);
+            // 🌐 Detectar errores de conexión/internet lento
+            if (request.isNetworkError || (typeof request.data === 'string' && request.data.includes('Timeout'))) {
+              this.$awn.warning('⏰ INTERNET LENTO: La conexión está tardando mucho. Los reintentos automáticos no funcionaron. Verifica tu internet e intenta nuevamente.', { 
+                durations: { warning: 6000 },
+                labels: { warning: 'CONEXIÓN LENTA' } 
+              });
+            } else {
+              this.$awn.alert(request.data);
+            }
           }
         }
       }
@@ -507,8 +521,15 @@ export default {
       });
       console.log(request);
       Loader.hide();
-      if(request.success) var printPDF = await Print.printBase64(request.data);
-      else this.$awn.alert(request.data);
+      if(request.success) {
+        try {
+          var printPDF = await Print.printBase64(request.data);
+          console.log('✅ Total de orden impreso correctamente');
+        } catch (error) {
+          console.error('❌ Error al imprimir total de orden:', error);
+          this.$awn.alert('Error al imprimir. Verifique la impresora.');
+        }
+      } else this.$awn.alert(request.data);
 
     },
 
@@ -517,7 +538,15 @@ export default {
       var request = await this.$store.dispatch("cafeteria/printOrderTicket", {id:this.board.order.id});
       console.log(request);
       Loader.hide();
-      if(request.success) var printPDF = await Print.printBase64(request.data);
+      if(request.success) {
+        try {
+          var printPDF = await Print.printBase64(request.data);
+          console.log('✅ Ticket impreso correctamente');
+        } catch (error) {
+          console.error('❌ Error al imprimir ticket:', error);
+          this.$awn.alert('Error al imprimir ticket. Verifique la impresora.');
+        }
+      }
       else this.$awn.alert(request.data);
     },
 

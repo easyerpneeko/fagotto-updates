@@ -637,10 +637,18 @@ async function cargarCounterEnTabla(request) {
     
     const metasPorLocal = await cargarMetasDiarias(mes, anio, dia);
 
+    // IDs de Franquicias que deben aparecer en la primera tabla
+    const idsFranquicias = [114, 95, 77, 108, 117, 113, 96, 102, 98];
+    
+    // Array temporal para ordenar alfabéticamente las franquicias
+    const franquiciasData = [];
+
     for (const app in request) {
         let appIdName = app.split(',',2);
+        const appId = parseInt(appIdName[0]);
 
-        if(appIdName[0] != 79 && appIdName[0] != 86 && appIdName[0] != 98 && appIdName[0] != 109 && appIdName[0] != 106){    // quiero omitir 109 y 106 
+        // Filtro para incluir solo las franquicias
+        if(idsFranquicias.includes(appId)){ 
 
             const counters = request[app].original.counters;
             const localId = parseInt(appIdName[0]);
@@ -691,13 +699,13 @@ async function cargarCounterEnTabla(request) {
                 const diferencia = ventaBruta - metaValor;
                 const cumplida = diferencia >= 0;
                 
-                // T/C de la meta
+                // T/C de la meta (número de tickets objetivo)
                 const tcMeta = parseInt(metaLocal.ticket_promedio) || 0;
                 if (tcMeta > 0) {
                     tcMetaHTML = `<span class="fw-bold text-primary">${tcMeta.toLocaleString('es-CL')}</span>`;
                     
-                    // Comparar T/C Real vs T/C Meta
-                    const diferenciaTc = ticketPromedio - tcMeta;
+                    // Comparar Tickets Reales vs Tickets Meta (no precio promedio)
+                    const diferenciaTc = ordenes - tcMeta;
                     const cumpleTcMeta = diferenciaTc >= 0;
                     
                     if (cumpleTcMeta) {
@@ -741,14 +749,25 @@ async function cargarCounterEnTabla(request) {
                               <td>${formatearMontoChile(ventaBruta.toFixed(0))}</td>
                               <td>${metaHTML}</td>
                               <td><span class="fw-bold text-info">${ordenes.toLocaleString('es-CL')}</span></td>
-                              <td>${formatearMontoChile(ventaDelivery.toFixed(0))}</td>
-                              <td>${ticketsDesglose}</td>
                               <td>${tcMetaHTML}</td>
                               <td>${tcRealVsMetaHTML}</td>
+                              <td>${formatearMontoChile(ventaDelivery.toFixed(0))}</td>
+                              <td>${ticketsDesglose}</td>
                               <td><strong>${porcentajeDelivery.toFixed(1)}%</strong></td>
                           </tr>`;
 
-            tbody.innerHTML += fila;
+            // Guardar en array temporal para ordenar alfabéticamente
+            franquiciasData.push({
+                nombre: appIdName[1],
+                fila: fila,
+                ventaBruta: ventaBruta,
+                ventaDelivery: ventaDelivery,
+                ordenes: ordenes,
+                ticketsUber: ticketsUber,
+                ticketsRappi: ticketsRappi,
+                ticketsPedidosYa: ticketsPedidosYa
+            });
+            
             totalVentaBruta += ventaBruta;
             totalVentaDelivery += ventaDelivery;
             totalTransacciones += ordenes;
@@ -758,6 +777,14 @@ async function cargarCounterEnTabla(request) {
         }
         
     }
+    
+    // Ordenar franquicias alfabéticamente por nombre
+    franquiciasData.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    
+    // Agregar filas ordenadas al tbody
+    franquiciasData.forEach(item => {
+        tbody.innerHTML += item.fila;
+    });
     
     // Calcular totales generales
     const porcentajeTotalDelivery = totalVentaBruta > 0 ? ((totalVentaDelivery / totalVentaBruta) * 100) : 0;
@@ -772,20 +799,20 @@ async function cargarCounterEnTabla(request) {
                                     <div style="font-size: 0.75rem;">${partesTotales.join(' | ')}</div>`;
     
     const ultimaFila = `<tr class="table-dark">
-                            <td><strong>🏪 TOTALES</strong></td>
+                            <td><strong>🤝 TOTALES FRANQUICIAS</strong></td>
                             <td><strong>${formatearMontoChile(totalVentaBruta.toFixed(0))}</strong></td>
                             <td><strong>-</strong></td>
                             <td><strong><span class="text-warning">${totalTransacciones.toLocaleString('es-CL')}</span></strong></td>
+                            <td><strong>-</strong></td>
+                            <td><strong>-</strong></td>
                             <td><strong>${formatearMontoChile(totalVentaDelivery.toFixed(0))}</strong></td>
                             <td><strong>${ticketsDesgloseTotales}</strong></td>
-                            <td><strong>-</strong></td>
-                            <td><strong>-</strong></td>
                             <td><strong>${porcentajeTotalDelivery.toFixed(1)}%</strong></td>                      
                         </tr>`;
     tbody.innerHTML += ultimaFila;
     // ________________________________________________________________________________
 
-    // FRANQUICIAS PROPIAS FAGOTTO
+    // LOCALES PROPIOS
     const tbodyF = document.getElementById('tabla-counters-fagotto-tbody');
     tbodyF.innerHTML = '';
     let totalVentaBrutaF = 0;
@@ -795,10 +822,14 @@ async function cargarCounterEnTabla(request) {
     let totalTicketsRappiF = 0;
     let totalTicketsPedidosYaF = 0;
 
+    // IDs de Locales Propios
+    const idsLocalesPropios = [86, 58, 107, 59, 111, 97, 78, 116];
+
     for (const app in request) {
         let appIdName = app.split(',',2);
+        const appId = parseInt(appIdName[0]);
 
-        if(appIdName[0] === '86' || appIdName[0] === '106' || appIdName[0] === '109' || appIdName[0] === '98'){
+        if(idsLocalesPropios.includes(appId)){
             
             const counters = request[app].original.counters;
             const localId = parseInt(appIdName[0]);
@@ -851,13 +882,176 @@ async function cargarCounterEnTabla(request) {
                 const diferencia = ventaBruta - metaValor;
                 const cumplida = diferencia >= 0;
                 
-                // T/C de la meta
+                // T/C de la meta (número de tickets objetivo)
                 const tcMeta = parseInt(metaLocal.ticket_promedio) || 0;
                 if (tcMeta > 0) {
                     tcMetaHTML = `<span class="fw-bold text-primary">${tcMeta.toLocaleString('es-CL')}</span>`;
                     
-                    // Comparar T/C Real vs T/C Meta
-                    const diferenciaTc = ticketPromedioF - tcMeta;
+                    // Comparar Tickets Reales vs Tickets Meta (no precio promedio)
+                    const diferenciaTc = ordenes - tcMeta;
+                    const cumpleTcMeta = diferenciaTc >= 0;
+                    
+                    if (cumpleTcMeta) {
+                        tcRealVsMetaHTML = `<div>
+                                                <div class="fw-bold text-success">✅ Meta superada</div>
+                                                <div style="font-size: 0.85rem; color: #10b981;">
+                                                    Meta T/C: ${tcMeta.toLocaleString('es-CL')}
+                                                    <span class="badge bg-success">+${Math.abs(diferenciaTc).toFixed(0)}</span>
+                                                </div>
+                                            </div>`;
+                    } else {
+                        tcRealVsMetaHTML = `<div>
+                                                <div style="font-size: 1.3rem; font-weight; bold; color: #f59e0b;">Faltan ${Math.abs(diferenciaTc).toFixed(0)}</div>
+                                                <div style="font-size: 0.85rem; color: #9ca3af;">
+                                                    Meta T/C: ${tcMeta.toLocaleString('es-CL')}
+                                                </div>
+                                            </div>`;
+                    }
+                }
+                
+                if (cumplida) {
+                    metaHTML = `<div>
+                                    <div class="fw-bold text-success">✅ Meta superada</div>
+                                    <div style="font-size: 0.85rem; color: #10b981;">
+                                        Meta: ${formatearMontoChile(metaValor)} 
+                                        <span class="badge bg-success">+${formatearMontoChile(Math.abs(diferencia))}</span>
+                                    </div>
+                                </div>`;
+                } else {
+                    metaHTML = `<div>
+                                    <div style="font-size: 1.3rem; font-weight: bold; color: #f59e0b;">Faltan ${formatearMontoChile(Math.abs(diferencia))}</div>
+                                    <div style="font-size: 0.85rem; color: #9ca3af;">
+                                        Meta: ${formatearMontoChile(metaValor)}
+                                    </div>
+                                </div>`;
+                }
+            }
+
+            const filaF = `<tr>
+                              <td>${appIdName[1]}</td>
+                              <td>${formatearMontoChile(ventaBruta.toFixed(0))}</td>
+                              <td>${metaHTML}</td>
+                              <td><span class="fw-bold text-info">${ordenes.toLocaleString('es-CL')}</span></td>
+                              <td>${tcMetaHTML}</td>
+                              <td>${tcRealVsMetaHTML}</td>
+                              <td>${formatearMontoChile(ventaDelivery.toFixed(0))}</td>
+                              <td>${ticketsDesglose}</td>
+                              <td><strong>${porcentajeDelivery.toFixed(1)}%</strong></td>
+                          </tr>`;
+            
+            tbodyF.innerHTML += filaF;
+            totalVentaBrutaF += ventaBruta;
+            totalVentaDeliveryF += ventaDelivery;
+            totalTransaccionesF += ordenes;
+            totalTicketsUberF += ticketsUber;
+            totalTicketsRappiF += ticketsRappi;
+            totalTicketsPedidosYaF += ticketsPedidosYa;
+        }
+    }
+    
+    // Calcular totales generales para Fagotto
+    const porcentajeTotalDeliveryF = totalVentaBrutaF > 0 ? ((totalVentaDeliveryF / totalVentaBrutaF) * 100) : 0;
+    const totalTicketsDeliveryGeneralF = totalTicketsUberF + totalTicketsRappiF + totalTicketsPedidosYaF;
+    
+    // Crear desglose total de tickets para Fagotto
+    const partesTotalesF = [];
+    if (totalTicketsUberF > 0) partesTotalesF.push(`${totalTicketsUberF} Uber 🚗`);
+    if (totalTicketsRappiF > 0) partesTotalesF.push(`${totalTicketsRappiF} Rappi 📱`);
+    if (totalTicketsPedidosYaF > 0) partesTotalesF.push(`${totalTicketsPedidosYaF} Pedidos Ya 🛵`);
+    const ticketsDesgloseTotalesF = `<div class="fw-bold text-warning">${totalTicketsDeliveryGeneralF} tickets</div>
+                                     <div style="font-size: 0.75rem;">${partesTotalesF.join(' | ')}</div>`;
+    
+    const ultimaFilaF = `<tr class="table-dark">
+                            <td><strong>🏪 TOTALES LOCALES PROPIOS</strong></td>
+                            <td><strong>${formatearMontoChile(totalVentaBrutaF.toFixed(0))}</strong></td>
+                            <td><strong>-</strong></td>
+                            <td><strong><span class="text-warning">${totalTransaccionesF.toLocaleString('es-CL')}</span></strong></td>
+                            <td><strong>-</strong></td>
+                            <td><strong>-</strong></td>
+                            <td><strong>${formatearMontoChile(totalVentaDeliveryF.toFixed(0))}</strong></td>
+                            <td><strong>${ticketsDesgloseTotalesF}</strong></td>
+                            <td><strong>${porcentajeTotalDeliveryF.toFixed(1)}%</strong></td>                      
+                        </tr>`;
+    tbodyF.innerHTML += ultimaFilaF;
+    
+    // ________________________________________________________________________________
+    // TRAI I PASTI
+    const tbodyT = document.getElementById('tabla-counters-trai-tbody');
+    tbodyT.innerHTML = '';
+    let totalVentaBrutaT = 0;
+    let totalVentaDeliveryT = 0;
+    let totalTransaccionesT = 0;
+    let totalTicketsUberT = 0;
+    let totalTicketsRappiT = 0;
+    let totalTicketsPedidosYaT = 0;
+
+    // IDs de Trai i Pasti
+    const idsTraiPasti = [106, 109];
+
+    for (const app in request) {
+        let appIdName = app.split(',',2);
+        const appId = parseInt(appIdName[0]);
+
+        if(idsTraiPasti.includes(appId)){
+            
+            const counters = request[app].original.counters;
+            const localId = parseInt(appIdName[0]);
+            
+            // Calcular Venta Bruta (total de todas las ventas)
+            const ventaBruta = parseFloat(counters.balanceTotal) || 0;
+            
+            // Calcular TC (ticket promedio) - necesitamos las órdenes totales
+            const ordenes = parseInt(counters.orders) || 1;
+            
+            // Calcular Venta Delivery (suma de uber + rappi + pedidos_ya)
+            const uber = parseFloat(counters.uber) || 0;
+            const rappi = parseFloat(counters.rappi) || 0;
+            const pedidosYa = parseFloat(counters.pedidos_ya) || 0;
+            const ventaDelivery = uber + rappi + pedidosYa;
+            
+            // Obtener conteo de tickets por plataforma (del backend)
+            const ticketsUber = parseInt(counters.uber_count) || 0;
+            const ticketsRappi = parseInt(counters.rappi_count) || 0;
+            const ticketsPedidosYa = parseInt(counters.pedidos_ya_count) || 0;
+            const totalTicketsDelivery = ticketsUber + ticketsRappi + ticketsPedidosYa;
+            
+            // Crear texto de desglose de tickets
+            let ticketsDesglose = '';
+            if (totalTicketsDelivery > 0) {
+                const partes = [];
+                if (ticketsUber > 0) partes.push(`${ticketsUber} Uber 🚗`);
+                if (ticketsRappi > 0) partes.push(`${ticketsRappi} Rappi 📱`);
+                if (ticketsPedidosYa > 0) partes.push(`${ticketsPedidosYa} Pedidos Ya 🛵`);
+                ticketsDesglose = `<div class="fw-bold text-primary">${totalTicketsDelivery} tickets</div>
+                                   <div style="font-size: 0.75rem; color: #64748b;">${partes.join(' | ')}</div>`;
+            } else {
+                ticketsDesglose = '<span class="text-muted">0</span>';
+            }
+            
+            // Calcular porcentaje delivery
+            const porcentajeDelivery = ventaBruta > 0 ? ((ventaDelivery / ventaBruta) * 100) : 0;
+
+            // 🎯 Obtener meta del local y calcular estado
+            const metaLocal = metasPorLocal[localId];
+            let metaHTML = '<span class="text-muted">Sin meta</span>';
+            let tcMetaHTML = '<span class="text-muted">-</span>';
+            let tcRealVsMetaHTML = '<span class="text-muted">-</span>';
+            
+            // Calcular ticket promedio real de este local
+            const ticketPromedioT = ordenes > 0 ? ventaBruta / ordenes : 0;
+            
+            if (metaLocal) {
+                const metaValor = parseInt(metaLocal.meta_diaria) || 0;
+                const diferencia = ventaBruta - metaValor;
+                const cumplida = diferencia >= 0;
+                
+                // T/C de la meta (número de tickets objetivo)
+                const tcMeta = parseInt(metaLocal.ticket_promedio) || 0;
+                if (tcMeta > 0) {
+                    tcMetaHTML = `<span class="fw-bold text-primary">${tcMeta.toLocaleString('es-CL')}</span>`;
+                    
+                    // Comparar Tickets Reales vs Tickets Meta (no precio promedio)
+                    const diferenciaTc = ordenes - tcMeta;
                     const cumpleTcMeta = diferenciaTc >= 0;
                     
                     if (cumpleTcMeta) {
@@ -896,52 +1090,52 @@ async function cargarCounterEnTabla(request) {
                 }
             }
 
-            const filaF = `<tr>
+            const filaT = `<tr>
                               <td>${appIdName[1]}</td>
                               <td>${formatearMontoChile(ventaBruta.toFixed(0))}</td>
                               <td>${metaHTML}</td>
                               <td><span class="fw-bold text-info">${ordenes.toLocaleString('es-CL')}</span></td>
-                              <td>${formatearMontoChile(ventaDelivery.toFixed(0))}</td>
-                              <td>${ticketsDesglose}</td>
                               <td>${tcMetaHTML}</td>
                               <td>${tcRealVsMetaHTML}</td>
+                              <td>${formatearMontoChile(ventaDelivery.toFixed(0))}</td>
+                              <td>${ticketsDesglose}</td>
                               <td><strong>${porcentajeDelivery.toFixed(1)}%</strong></td>
                           </tr>`;
             
-            tbodyF.innerHTML += filaF;
-            totalVentaBrutaF += ventaBruta;
-            totalVentaDeliveryF += ventaDelivery;
-            totalTransaccionesF += ordenes;
-            totalTicketsUberF += ticketsUber;
-            totalTicketsRappiF += ticketsRappi;
-            totalTicketsPedidosYaF += ticketsPedidosYa;
+            tbodyT.innerHTML += filaT;
+            totalVentaBrutaT += ventaBruta;
+            totalVentaDeliveryT += ventaDelivery;
+            totalTransaccionesT += ordenes;
+            totalTicketsUberT += ticketsUber;
+            totalTicketsRappiT += ticketsRappi;
+            totalTicketsPedidosYaT += ticketsPedidosYa;
         }
     }
     
-    // Calcular totales generales para Fagotto
-    const porcentajeTotalDeliveryF = totalVentaBrutaF > 0 ? ((totalVentaDeliveryF / totalVentaBrutaF) * 100) : 0;
-    const totalTicketsDeliveryGeneralF = totalTicketsUberF + totalTicketsRappiF + totalTicketsPedidosYaF;
+    // Calcular totales generales para Trai i Pasti
+    const porcentajeTotalDeliveryT = totalVentaBrutaT > 0 ? ((totalVentaDeliveryT / totalVentaBrutaT) * 100) : 0;
+    const totalTicketsDeliveryGeneralT = totalTicketsUberT + totalTicketsRappiT + totalTicketsPedidosYaT;
     
-    // Crear desglose total de tickets para Fagotto
-    const partesTotalesF = [];
-    if (totalTicketsUberF > 0) partesTotalesF.push(`${totalTicketsUberF} Uber 🚗`);
-    if (totalTicketsRappiF > 0) partesTotalesF.push(`${totalTicketsRappiF} Rappi 📱`);
-    if (totalTicketsPedidosYaF > 0) partesTotalesF.push(`${totalTicketsPedidosYaF} Pedidos Ya 🛵`);
-    const ticketsDesgloseTotalesF = `<div class="fw-bold text-warning">${totalTicketsDeliveryGeneralF} tickets</div>
-                                     <div style="font-size: 0.75rem;">${partesTotalesF.join(' | ')}</div>`;
+    // Crear desglose total de tickets para Trai i Pasti
+    const partesTotalesT = [];
+    if (totalTicketsUberT > 0) partesTotalesT.push(`${totalTicketsUberT} Uber 🚗`);
+    if (totalTicketsRappiT > 0) partesTotalesT.push(`${totalTicketsRappiT} Rappi 📱`);
+    if (totalTicketsPedidosYaT > 0) partesTotalesT.push(`${totalTicketsPedidosYaT} Pedidos Ya 🛵`);
+    const ticketsDesgloseTotalesT = `<div class="fw-bold text-warning">${totalTicketsDeliveryGeneralT} tickets</div>
+                                     <div style="font-size: 0.75rem;">${partesTotalesT.join(' | ')}</div>`;
     
-    const ultimaFilaF = `<tr class="table-dark">
-                            <td><strong>🏪 TOTALES FAGOTTO</strong></td>
-                            <td><strong>${formatearMontoChile(totalVentaBrutaF.toFixed(0))}</strong></td>
+    const ultimaFilaT = `<tr class="table-dark">
+                            <td><strong>🍕 TOTALES TRAI I PASTI</strong></td>
+                            <td><strong>${formatearMontoChile(totalVentaBrutaT.toFixed(0))}</strong></td>
                             <td><strong>-</strong></td>
-                            <td><strong><span class="text-warning">${totalTransaccionesF.toLocaleString('es-CL')}</span></strong></td>
-                            <td><strong>${formatearMontoChile(totalVentaDeliveryF.toFixed(0))}</strong></td>
-                            <td><strong>${ticketsDesgloseTotalesF}</strong></td>
+                            <td><strong><span class="text-warning">${totalTransaccionesT.toLocaleString('es-CL')}</span></strong></td>
                             <td><strong>-</strong></td>
                             <td><strong>-</strong></td>
-                            <td><strong>${porcentajeTotalDeliveryF.toFixed(1)}%</strong></td>                      
+                            <td><strong>${formatearMontoChile(totalVentaDeliveryT.toFixed(0))}</strong></td>
+                            <td><strong>${ticketsDesgloseTotalesT}</strong></td>
+                            <td><strong>${porcentajeTotalDeliveryT.toFixed(1)}%</strong></td>                      
                         </tr>`;
-    tbodyF.innerHTML += ultimaFilaF;
+    tbodyT.innerHTML += ultimaFilaT;
     
     // ________________________________________________________________________________
     // const tbodyFac = document.getElementById('tabla-counters-facturacion-tbody');

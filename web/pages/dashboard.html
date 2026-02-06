@@ -1578,10 +1578,10 @@
 
                 <!-- TARJETAS KPI MEJORADAS -->
                 <div class="kpi-grid fade-in">
-                    <!-- VENTAS TOTALES FRANQUICIAS -->
+                    <!-- VENTAS LOCALES PROPIOS -->
                     <div class="kpi-card ventas-totales">
                         <div class="kpi-trend">
-                            <i class="fas fa-handshake"></i>
+                            <i class="fas fa-store"></i>
                         </div>
                         <div class="kpi-header">
                             <div class="kpi-icon">
@@ -1590,7 +1590,7 @@
                         </div>
                         <div class="kpi-content">
                             <div class="kpi-value" id="kpi-ventas-franquicias">$0</div>
-                            <div class="kpi-label">Ventas Totales Franquicias</div>
+                            <div class="kpi-label">Ventas Locales Propios</div>
                         </div>
                     </div>
                     
@@ -1610,23 +1610,23 @@
                         </div>
                     </div>
                     
-                    <!-- VENTAS TOTALES TRAI I PASTI -->
+                    <!-- VENTAS DELIVERY TOTAL -->
                     <div class="kpi-card peor-negocio">
                         <div class="kpi-trend">
-                            <i class="fas fa-utensils"></i>
+                            <i class="fas fa-motorcycle"></i>
                         </div>
                         <div class="kpi-header">
                             <div class="kpi-icon">
-                                <i class="fas fa-pizza-slice"></i>
+                                <i class="fas fa-truck"></i>
                             </div>
                         </div>
                         <div class="kpi-content">
                             <div class="kpi-value" id="kpi-ventas-trai">$0</div>
-                            <div class="kpi-label">Ventas Totales Trai i Pasti</div>
+                            <div class="kpi-label">Total Venta Delivery Marca</div>
                         </div>
                     </div>
                     
-                    <!-- VENTAS TOTALES FRANQUICIAS + SUCURSALES -->
+                    <!-- VENTAS TOTALES LOCALES PROPIOS + SUCURSALES -->
                     <div class="kpi-card facturas-totales">
                         <div class="kpi-trend">
                             <i class="fas fa-chart-pie"></i>
@@ -1638,7 +1638,7 @@
                         </div>
                         <div class="kpi-content">
                             <div class="kpi-value" id="kpi-ventas-total-general">$0</div>
-                            <div class="kpi-label">Ventas Totales Franquicias + Sucursales</div>
+                            <div class="kpi-label">Ventas Totales Locales + Sucursales</div>
                         </div>
                     </div>
                 </div>
@@ -1647,7 +1647,7 @@
                 <div class="content-card fade-in">
                     <div class="card-header-modern">
                         <i class="fas fa-handshake"></i>
-                        <h5>Fagotto Franquicias</h5>
+                        <h5>Franquicias</h5>
                     </div>
                     <div class="card-body-modern">
                         <div class="table-responsive">
@@ -1661,42 +1661,42 @@
                                         </th>
                                         <th scope="col" class="sortable" data-column="1" data-type="number">
                                             <i class="fas fa-dollar-sign"></i>
-                                            Venta Bruta
+                                            Venta Real
                                             <i class="fas fa-sort sort-icon"></i>
                                         </th>
                                         <th scope="col" class="sortable" data-column="2" data-type="number">
                                             <i class="fas fa-bullseye"></i>
-                                            Meta Establecida
+                                            Meta
                                             <i class="fas fa-sort sort-icon"></i>
                                         </th>
                                         <th scope="col" class="sortable" data-column="3" data-type="number">
                                             <i class="fas fa-hashtag"></i>
-                                            Tickets
+                                            TC Real
                                             <i class="fas fa-sort sort-icon"></i>
                                         </th>
                                         <th scope="col" class="sortable" data-column="4" data-type="number">
-                                            <i class="fas fa-motorcycle"></i>
-                                            Venta Delivery
-                                            <i class="fas fa-sort sort-icon"></i>
-                                        </th>
-                                        <th scope="col" class="sortable" data-column="5" data-type="text">
-                                            <i class="fas fa-ticket-alt"></i>
-                                            Ticket P/Delivery
-                                            <i class="fas fa-sort sort-icon"></i>
-                                        </th>
-                                        <th scope="col" class="sortable" data-column="6" data-type="number">
                                             <i class="fas fa-receipt"></i>
-                                            T/C (meta)
+                                            TC Meta
                                             <i class="fas fa-sort sort-icon"></i>
                                         </th>
-                                        <th scope="col" class="sortable" data-column="7" data-type="number">
+                                        <th scope="col" class="sortable" data-column="5" data-type="number">
                                             <i class="fas fa-chart-line"></i>
                                             T/C Real vs Meta
                                             <i class="fas fa-sort sort-icon"></i>
                                         </th>
+                                        <th scope="col" class="sortable" data-column="6" data-type="number">
+                                            <i class="fas fa-motorcycle"></i>
+                                            Delivery
+                                            <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th scope="col" class="sortable" data-column="7" data-type="text">
+                                            <i class="fas fa-ticket-alt"></i>
+                                            TC Delivery
+                                            <i class="fas fa-sort sort-icon"></i>
+                                        </th>
                                         <th scope="col" class="sortable" data-column="8" data-type="number">
                                             <i class="fas fa-percent"></i>
-                                            %
+                                            % Participación Delivery
                                             <i class="fas fa-sort sort-icon"></i>
                                         </th>
                                     </tr>
@@ -1718,7 +1718,7 @@
                 <div class="content-card fade-in">
                     <div class="card-header-modern">
                         <i class="fas fa-building"></i>
-                        <h5>Fagotto Sucursales Oficiales</h5>
+                        <h5>Locales Propios</h5>
                     </div>
                     <div class="card-body-modern">
                         <div class="table-responsive">
@@ -1731,39 +1731,101 @@
                                         </th>
                                         <th scope="col">
                                             <i class="fas fa-dollar-sign"></i>
-                                            Venta Bruta
+                                            Venta Real
                                         </th>
                                         <th scope="col">
                                             <i class="fas fa-bullseye"></i>
-                                            Meta Establecida
+                                            Meta
                                         </th>
                                         <th scope="col">
                                             <i class="fas fa-hashtag"></i>
-                                            Tickets
-                                        </th>
-                                        <th scope="col">
-                                            <i class="fas fa-motorcycle"></i>
-                                            Venta Delivery
-                                        </th>
-                                        <th scope="col">
-                                            <i class="fas fa-ticket-alt"></i>
-                                            Ticket P/Delivery
+                                            TC Real
                                         </th>
                                         <th scope="col">
                                             <i class="fas fa-receipt"></i>
-                                            T/C (meta)
+                                            TC Meta
                                         </th>
                                         <th scope="col">
                                             <i class="fas fa-chart-line"></i>
                                             T/C Real vs Meta
                                         </th>
                                         <th scope="col">
+                                            <i class="fas fa-motorcycle"></i>
+                                            Delivery
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-ticket-alt"></i>
+                                            TC Delivery
+                                        </th>
+                                        <th scope="col">
                                             <i class="fas fa-percent"></i>
-                                            %
+                                            % Participación Delivery
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody id="tabla-counters-fagotto-tbody">
+                                    <tr>
+                                        <td colspan="9" class="text-center">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            CARGANDO...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TRAI I PASTI -->
+                <div class="content-card fade-in">
+                    <div class="card-header-modern">
+                        <i class="fas fa-pizza-slice"></i>
+                        <h5>Trai i Pasti</h5>
+                    </div>
+                    <div class="card-body-modern">
+                        <div class="table-responsive">
+                            <table class="table modern-table" id="traiPastiTable">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">
+                                            <i class="fas fa-store"></i>
+                                            Sucursal
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-dollar-sign"></i>
+                                            Venta Real
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-bullseye"></i>
+                                            Meta
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-hashtag"></i>
+                                            TC Real
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-receipt"></i>
+                                            TC Meta
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-chart-line"></i>
+                                            T/C Real vs Meta
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-motorcycle"></i>
+                                            Delivery
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-ticket-alt"></i>
+                                            TC Delivery
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-percent"></i>
+                                            % Participación Delivery
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-counters-trai-tbody">
                                     <tr>
                                         <td colspan="9" class="text-center">
                                             <i class="fas fa-spinner fa-spin"></i>

@@ -25,8 +25,8 @@
     "package-win": "electron-packager . fagotto-erp-client --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/icons/win/Logo_ERD.png --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Fagotto ERP - Client\"",
     "package-win-production": "electron-packager . fagotto-erp-client --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds-production --version-string.CompanyName=CE --version-string.FileDescription=CE --production --version-string.ProductName=\"Fagotto ERP - Client\"",
     "postinstall": "",
-    "deploy": "set GH_TOKEN=%GH_TOKEN% && node .electron-vue/build.js && electron-builder build --win --publish always",
-    "deploy-never": "set GH_TOKEN=%GH_TOKEN% && node .electron-vue/build.js && electron-builder build --win --publish never",
+    "deploy": "node .electron-vue/build.js && electron-builder build --win --publish always",
+    "deploy-never": "node .electron-vue/build.js && electron-builder build --win --publish never",
     "test-updater": "node test-updater.js"
   },
   "build": {

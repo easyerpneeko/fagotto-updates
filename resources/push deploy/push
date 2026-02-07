@@ -1,4 +1,6 @@
 git add .
 git commit -m "v1.12.10 - Correcciones y Fix: Internet lento con timeout 30s + reintentos, delays 2s entre impresiones, fix enforceFocus loop infinito"
-git push
-$env:GH_TOKEN = "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"; npm run deploy
+
+# Set GH_TOKEN environment variable before running this script
+# Example: $env:GH_TOKEN = "your_token"
+npm run deploy

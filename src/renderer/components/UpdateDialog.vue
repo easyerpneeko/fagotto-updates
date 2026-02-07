@@ -148,11 +148,20 @@ export default {
         console.log('🔍 Checking for updates...');
         this.updateState = 'checking';
         
+        // Get token from main process via IPC
+        const { ipcRenderer } = require('electron');
+        const token = await ipcRenderer.invoke('get-github-token');
+        
+        const headers = {
+          'Accept': 'application/vnd.github.v3+json'
+        };
+        
+        if (token) {
+          headers['Authorization'] = `token ${token}`;
+        }
+        
         const response = await fetch('https://api.github.com/repos/easyerpneeko/fagotto-updates/releases/latest', {
-          headers: {
-            'Authorization': 'token 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',
-            'Accept': 'application/vnd.github.v3+json'
-          }
+          headers
         });
         
         if (!response.ok) {

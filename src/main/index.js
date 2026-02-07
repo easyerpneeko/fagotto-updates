@@ -151,11 +151,11 @@ function initApp() {
   createMainWindow();
 }
 
-// Read GitHub token from environment variable or file
-let githubToken = process.env.GH_TOKEN || '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';
+// Read GitHub token from environment variable only
+let githubToken = process.env.GH_TOKEN || null;
 
 console.log('🔍 Looking for GitHub token...');
-console.log('🔑 Token from environment:', process.env.GH_TOKEN ? 'Present' : 'Missing');
+console.log('🔑 Token from environment:', githubToken ? 'Present' : 'MISSING - Set GH_TOKEN environment variable');
 
 try {
   const tokenFilePath = path.resolve(__dirname, '..', '..', 'gh_token.json');
@@ -877,4 +877,9 @@ ipcMain.on('force_check_updates', () => {
   isDownloading = false;
   downloadStartTime = null;
   handlePrivateRepoUpdate();
+});
+
+// IPC handler to get GitHub token from environment
+ipcMain.handle('get-github-token', async () => {
+  return githubToken || null;
 });

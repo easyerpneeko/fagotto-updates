@@ -597,7 +597,7 @@ async function requestLoadCounters(startDate, endDate) {
                 }
             }
         });
-        cargarCounterEnTabla(request);
+        cargarCounterEnTabla(request, startDate, endDate);
         loadSucursalesList(labels);
         
         // Actualizar KPIs usando los datos originales
@@ -619,7 +619,7 @@ async function requestLoadCounters(startDate, endDate) {
     });
 }
 
-async function cargarCounterEnTabla(request) {
+async function cargarCounterEnTabla(request, startDate, endDate) {
     const tbody = document.getElementById('tabla-counters-tbody');
     tbody.innerHTML = '';
     let totalVentaBruta = 0;
@@ -629,12 +629,14 @@ async function cargarCounterEnTabla(request) {
     let totalTicketsRappi = 0;
     let totalTicketsPedidosYa = 0;
 
-    // Cargar metas del día actual
-    const hoy = new Date();
-    const mes = hoy.getMonth() + 1;
-    const anio = hoy.getFullYear();
-    const dia = hoy.getDate();
+    // 🎯 Usar la fecha FINAL del rango seleccionado (no hoy)
+    // Si filtras semana 2-8 Feb, usa el 8 (no el 9)
+    const fechaReferencia = new Date(endDate || new Date());
+    const mes = fechaReferencia.getMonth() + 1;
+    const anio = fechaReferencia.getFullYear();
+    const dia = fechaReferencia.getDate();
     
+    console.log(`📅 Buscando metas para: ${dia}/${mes}/${anio} (fecha del rango: ${endDate})`);
     const metasPorLocal = await cargarMetasDiarias(mes, anio, dia);
 
     // IDs de Franquicias que deben aparecer en la primera tabla

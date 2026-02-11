@@ -153,6 +153,62 @@ class RequestsController extends Controller
 
     public function storePedidoFinal(Request $request)
     {
+        // 🕐 Validar horario permitido para pedidos (7:00 AM - 1:00 PM)
+        $horaActual = Carbon::now('America/Santiago');
+        $horaInicio = Carbon::createFromTime(7, 0, 0, 'America/Santiago');
+        $horaFin = Carbon::createFromTime(13, 0, 0, 'America/Santiago');
+        
+        if (!$horaActual->between($horaInicio, $horaFin)) {
+            $horaActualFormateada = $horaActual->format('H:i');
+            return response()->json([
+                'success' => false,
+                'message' => "⏰ Los pedidos solo están habilitados entre las 7:00 AM y las 1:00 PM.\n\nHora actual: {$horaActualFormateada}\n\nPor favor, intenta nuevamente dentro del horario permitido."
+            ], 403);
+        }
+
+        // 📅 Validar día de la semana permitido según tipo de negocio
+        $appId = $request->input('app_id');
+        
+        // IDs de locales propios (Martes, Jueves, Viernes)
+        $idsPropios = [58, 59, 78, 86, 97, 107, 111, 116]; // Agustinas, Plaza De Armas, Encomenderos, Ahumada, Rosario norte, Bulnes, Mall Imperio, Las Condes
+        
+        // IDs de franquicias (Lunes, Miércoles, Viernes)
+        $idsFranquicias = [114, 95, 77, 108, 117, 113, 96, 102, 98]; // Amunategui, Bombero Ossa, Merced, Puente Alto, Rancagua, Vergara, Suecia, Turbus, Manuel Montt
+        
+        $esPropio = in_array($appId, $idsPropios);
+        $esFranquicia = in_array($appId, $idsFranquicias);
+        
+        $diaActual = $horaActual->dayOfWeek; // 0=domingo, 1=lunes, etc.
+        
+        // Determinar días permitidos según tipo
+        $diasPermitidos = null;
+        $tipoNegocio = '';
+        
+        if ($esPropio) {
+            $diasPermitidos = [2, 4, 5]; // Martes, Jueves, Viernes
+            $tipoNegocio = 'propio';
+        } elseif ($esFranquicia) {
+            $diasPermitidos = [1, 3, 5]; // Lunes, Miércoles, Viernes
+            $tipoNegocio = 'franquicia';
+        }
+        
+        // Validar día solo si el negocio está en alguna de las listas
+        if ($diasPermitidos !== null) {
+            if (!in_array($diaActual, $diasPermitidos)) {
+                $nombresDias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+                $nombreDiasPermitidos = implode(', ', array_map(function($d) use ($nombresDias) {
+                    return $nombresDias[$d];
+                }, $diasPermitidos));
+                
+                $nombreDiaActual = $nombresDias[$diaActual];
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => "📅 Tu local ({$tipoNegocio}) solo puede hacer pedidos los días: {$nombreDiasPermitidos}.\n\nHoy es {$nombreDiaActual}.\n\nPor favor, intenta nuevamente en un día permitido."
+                ], 403);
+            }
+        }
+
         $validatedData = $request->validate([
             'contact_name' => 'required|string|max:70',
             'contact_phone' => 'required|string|max:20',

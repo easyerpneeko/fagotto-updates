@@ -234,6 +234,7 @@ export default {
 
       if (this.type_sell == 'amipass') {
         thing.set('other_type', 'amipass');
+        thing.set('type_sell', 'boleta'); // 🎫 GENERAR BOLETA SII OFICIAL (no boleta local)
       }
 
       if (this.type_sell == 'rappi') {
@@ -246,6 +247,7 @@ export default {
 
       if (this.type_sell == 'banco_chile_20') {
         thing.set('other_type', 'banco_chile_20');
+        thing.set('type_sell', 'boleta'); // 🏦 GENERAR BOLETA SII OFICIAL (no boleta local)
         // Agregar información especial del pago con 20%
         if (this.value.specialPayment) {
           thing.append('special_payment_info', JSON.stringify(this.value.specialPayment));

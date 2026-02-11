@@ -916,10 +916,10 @@ export default {
           exitosos++;
           console.log(`✅ Documento ${i + 1} impreso correctamente`);
           
-          // Pausa aumentada entre impresiones para evitar conflictos
+          // Pausa entre impresiones para evitar conflictos
           if (i < pdfs.length - 1) {
-            console.log(`⏳ Esperando 2 segundos antes del siguiente documento...`);
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Aumentado de 500ms a 2000ms
+            console.log(`⏳ Esperando 1 segundo antes del siguiente documento...`);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Optimizado a 1 segundo
           }
         } catch (error) {
           fallidos++;
@@ -929,9 +929,9 @@ export default {
             labels: { warning: 'ADVERTENCIA' }
           });
           
-          // Pausa más larga después de error para evitar problemas en cascada
+          // Pausa después de error para evitar problemas en cascada
           if (i < pdfs.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            await new Promise(resolve => setTimeout(resolve, 1500));
           }
         }
       }

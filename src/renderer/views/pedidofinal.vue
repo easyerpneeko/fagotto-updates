@@ -3,27 +3,67 @@
         <!-- Pantalla de Bienvenida -->
         <div v-if="!inicioSesion" class="welcome-screen">
             <div class="welcome-content">
-                <div class="welcome-icon">
-                    <i class="fas fa-shopping-cart"></i>
+                <!-- Logo Fagotto -->
+                <div class="welcome-logo-container">
+                    <img src="../assets/logo.png" alt="Fagotto ERP" class="welcome-logo">
                 </div>
-                <h1 class="welcome-title">Bienvenido al Nuevo Sistema de Pedidos</h1>
-                <p class="welcome-subtitle">Sistema de precios centralizados</p>
-                <p class="welcome-description">
-                    Realiza tus pedidos de forma rápida y sencilla.<br>
-                    Selecciona los productos que necesitas y completa tu pedido en minutos.
-                </p>
-                <button @click="iniciarPedido" class="btn-iniciar">
-                    <i class="fas fa-rocket"></i> Comenzar Pedido
+                
+                <!-- Title -->
+                <h1 class="welcome-title-modern">Sistema de Pedidos</h1>
+                <p class="welcome-subtitle-modern">Gestión inteligente de pedidos centralizados</p>
+                
+                <!-- 📅 Mensaje de día no permitido -->
+                <div v-if="!diaPermitido" class="dia-no-permitido">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>Hoy no es día de pedidos para tu local</p>
+                    <p class="dias-permitidos">{{ mensajeDiasPermitidos }}</p>
+                    <p class="next-disponible">Vuelve {{ proximoDiaDisponible }}</p>
+                </div>
+                
+                <!-- ⏰ Countdown Timer -->
+                <div v-else-if="horarioActivo" class="countdown-container">
+                    <div class="countdown-label">
+                        <i class="fas fa-clock"></i> Tiempo restante para hacer pedidos hoy
+                    </div>
+                    <div class="countdown-timer">
+                        <div class="time-block">
+                            <span class="time-value">{{ horasRestantes }}</span>
+                            <span class="time-label">HORAS</span>
+                        </div>
+                        <div class="time-separator">:</div>
+                        <div class="time-block">
+                            <span class="time-value">{{ minutosRestantes }}</span>
+                            <span class="time-label">MIN</span>
+                        </div>
+                        <div class="time-separator">:</div>
+                        <div class="time-block">
+                            <span class="time-value">{{ segundosRestantes }}</span>
+                            <span class="time-label">SEG</span>
+                        </div>
+                    </div>
+                    <div class="horario-info">
+                        <i class="fas fa-info-circle"></i> Horario: 7:00 AM - 1:00 PM
+                    </div>
+                </div>
+                
+                <!-- Mensaje fuera de horario -->
+                <div v-else class="fuera-horario">
+                    <i class="fas fa-moon"></i>
+                    <p>Los pedidos están disponibles de 7:00 AM a 1:00 PM</p>
+                    <p class="next-disponible">Vuelve mañana a las 7:00 AM</p>
+                </div>
+                
+                <!-- CTA Button -->
+                <button @click="iniciarPedido" class="btn-iniciar-modern" :disabled="!horarioActivo || !diaPermitido">
+                    <span class="btn-icon"><i class="fas fa-rocket"></i></span>
+                    <span class="btn-text">{{ obtenerTextoBoton }}</span>
+                    <span class="btn-arrow"><i class="fas fa-arrow-right"></i></span>
                 </button>
-                <div class="welcome-info">
-                    <div class="info-badge">
-                        <i class="fas fa-check-circle"></i> Precios actualizados
-                    </div>
-                    <div class="info-badge">
-                        <i class="fas fa-bolt"></i> Proceso rápido
-                    </div>
-                    <div class="info-badge">
-                        <i class="fas fa-shield-alt"></i> Seguro
+                
+                <!-- Footer Desarrollador -->
+                <div class="developer-footer">
+                    <div class="developer-text">
+                        <code>Desarrollado por <strong>Jimmy Arriagada</strong></code>
                     </div>
                 </div>
             </div>
@@ -243,7 +283,7 @@
                             </div>
                             <!-- Campo WhatsApp -->
                             <div class="form-group-modern">
-                                <input v-model="whatsapp" type="text" placeholder="WhatsApp (+56912345678)*" class="form-control-modern" maxlength="12">
+                                <input v-model="whatsapp" @input="handleWhatsappInput" type="text" placeholder="Ej: +56949939922" class="form-control-modern" maxlength="12">
                                 <i class="input-icon fab fa-whatsapp"></i>
                             </div>
                             <!-- Método de pago fijo: Efectivo (sin opción de cambiar) -->
@@ -462,7 +502,7 @@
                                 <label style="font-weight: 600; color: #495057; margin-bottom: 0.5rem;">
                                     <i class="fab fa-whatsapp"></i> WhatsApp (para confirmación)
                                 </label>
-                                <input v-model="whatsapp" type="text" class="form-control" placeholder="+56912345678" required>
+                                <input v-model="whatsapp" @input="handleWhatsappInput" type="text" class="form-control" placeholder="Ej: +56949939922" maxlength="12" required>
                             </div>
 
                             <!-- Selección de método de pago -->
@@ -954,7 +994,7 @@ export default {
             
             // Formulario
             name: '',
-            whatsapp: '',
+            whatsapp: '+569',
             phone: '', // No se usa pero se mantiene para compatibilidad
             comment: '', // No se usa pero se mantiene para compatibilidad
             paymode: 'Efectivo', // Por defecto Efectivo
@@ -986,7 +1026,20 @@ export default {
             paymodes: [
                 { id: 2, name: 'Efectivo' },
                 { id: 3, name: 'Tarjeta' }
-            ]
+            ],
+            
+            // ⏰ Countdown Timer
+            tiempoRestante: '',
+            horarioActivo: true,
+            countdownInterval: null,
+            horasRestantes: 0,
+            minutosRestantes: 0,
+            segundosRestantes: 0,
+            
+            // 📅 Control de días permitidos por negocio
+            diaPermitido: true,
+            idsPropios: [58, 59, 78, 86, 97, 107, 111, 116], // Agustinas, Plaza De Armas, Encomenderos, Ahumada, Rosario norte, Bulnes, Mall Imperio, Las Condes
+            idsFranquicias: [114, 95, 77, 108, 117, 113, 96, 102, 98] // Amunategui, Bombero Ossa, Merced, Puente Alto, Rancagua, Vergara, Suecia, Turbus, Manuel Montt
         }
     },
     async beforeCreate() {
@@ -1017,6 +1070,9 @@ export default {
         this.iniciarActualizacionStock();
         // Iniciar actualización automática de historial cada 15 segundos
         this.iniciarActualizacionHistorial();
+        
+        // ⏰ Iniciar countdown timer
+        this.iniciarCountdown();
     },
     beforeDestroy() {
         // Limpiar el intervalo cuando se destruye el componente
@@ -1026,6 +1082,10 @@ export default {
         // Limpiar el intervalo de historial
         if (this.historialRefreshInterval) {
             clearInterval(this.historialRefreshInterval);
+        }
+        // Limpiar el countdown
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
         }
     },
     watch: {
@@ -1065,6 +1125,78 @@ export default {
     },
     computed: {
         me: { get() { return this.$store.getters['main/user']; } },
+        
+        // 🏪 Nombre del local
+        nombreLocal() {
+            return this.app && this.app.Name ? this.app.Name : 'Tu local';
+        },
+        
+        // 🏪 Determinar tipo de negocio
+        tipoNegocio() {
+            const appId = this.app && this.app.Id ? this.app.Id : null;
+            if (!appId) return null;
+            if (this.idsPropios.includes(appId)) return 'propio';
+            if (this.idsFranquicias.includes(appId)) return 'franquicia';
+            return null; // Negocio sin restricción de pedidos
+        },
+        
+        esFranquicia() {
+            return this.tipoNegocio === 'franquicia';
+        },
+        
+        esPropio() {
+            return this.tipoNegocio === 'propio';
+        },
+        
+        // 📅 Mensaje de días permitidos según tipo de negocio
+        mensajeDiasPermitidos() {
+            if (this.esFranquicia) {
+                return `📅 ${this.nombreLocal} (franquicia) puede pedir: Lunes, Miércoles y Viernes`;
+            } else if (this.esPropio) {
+                return `📅 ${this.nombreLocal} (propio) puede pedir: Martes, Jueves y Viernes`;
+            } else {
+                return ''; // Sin restricción
+            }
+        },
+        
+        // 📅 Calcular próximo día disponible
+        proximoDiaDisponible() {
+            // Si el negocio no tiene restricción de días, retornar mensaje genérico
+            if (!this.esPropio && !this.esFranquicia) {
+                return 'cualquier día';
+            }
+            
+            const hoy = moment();
+            const diaActual = hoy.day(); // 0=domingo, 1=lunes, etc.
+            
+            // Días permitidos según tipo
+            let diasPermitidos = null;
+            if (this.esPropio) {
+                diasPermitidos = [2, 4, 5]; // Martes, Jueves, Viernes
+            } else if (this.esFranquicia) {
+                diasPermitidos = [1, 3, 5]; // Lunes, Miércoles, Viernes
+            }
+            
+            if (!diasPermitidos) return 'pronto';
+            
+            // Buscar el próximo día disponible
+            for (let i = 1; i <= 7; i++) {
+                const proximoDia = (diaActual + i) % 7;
+                if (diasPermitidos.includes(proximoDia)) {
+                    const nombresDias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+                    const fechaProxima = moment().add(i, 'days');
+                    return `el ${nombresDias[proximoDia]} ${fechaProxima.format('DD/MM')}`;
+                }
+            }
+            return 'pronto';
+        },
+        
+        // 📅 Texto del botón según estado
+        obtenerTextoBoton() {
+            if (!this.diaPermitido) return 'Día No Permitido';
+            if (!this.horarioActivo) return 'Fuera de Horario';
+            return 'Comenzar Pedido';
+        },
         
         // Categorías únicas de productos ordenadas
         categorias() {
@@ -1141,8 +1273,9 @@ export default {
         },
         isValidPhone: {
             get() { 
-                const regex = /^\+56\d{9}$/;
-                return regex.test(this.phone);
+                // Validar +569 seguido de exactamente 8 dígitos
+                const regex = /^\+569\d{8}$/;
+                return regex.test(this.whatsapp);
             }
         },
         isValidComment: {
@@ -1208,6 +1341,27 @@ export default {
             return moment(date).format('DD/MM/YYYY HH:mm');
         },
         
+        handleWhatsappInput(event) {
+            // Mantener siempre el prefijo +569
+            let value = event.target.value;
+            
+            // Si el usuario borra todo o intenta borrar el prefijo, restaurarlo
+            if (!value.startsWith('+569')) {
+                value = '+569';
+            }
+            
+            // Actualizar el valor
+            this.whatsapp = value;
+            event.target.value = value;
+            
+            // Mantener el cursor después del prefijo si intenta borrar
+            if (event.target.selectionStart < 4) {
+                this.$nextTick(() => {
+                    event.target.setSelectionRange(4, 4);
+                });
+            }
+        },
+        
         calcularPorcentajeDespacho() {
             if (!this.metaSemanal || !this.metaSemanal.presupuesto_por_despacho) return 0;
             const porcentaje = (this.totalConIVA / this.metaSemanal.presupuesto_por_despacho) * 100;
@@ -1246,7 +1400,144 @@ export default {
             }
         },
         
+        // 🕐 Validar si estamos dentro del horario permitido para pedidos
+        validarHorarioPedidos() {
+            const ahora = moment();
+            const horaActual = ahora.hour();
+            const minutoActual = ahora.minute();
+            const diaActual = ahora.day(); // 0=domingo, 1=lunes, etc.
+            
+            // 📅 VALIDAR DÍA DE LA SEMANA PERMITIDO (solo para propios y franquicias)
+            let diasPermitidos = null;
+            let tipoNegocio = '';
+            
+            if (this.esPropio) {
+                diasPermitidos = [2, 4, 5]; // Martes, Jueves, Viernes
+                tipoNegocio = 'propio';
+            } else if (this.esFranquicia) {
+                diasPermitidos = [1, 3, 5]; // Lunes, Miércoles, Viernes
+                tipoNegocio = 'franquicia';
+            }
+            
+            // Solo validar día si el negocio tiene restricción
+            if (diasPermitidos !== null && !diasPermitidos.includes(diaActual)) {
+                const nombresDias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+                const nombreDiasPermitidos = diasPermitidos.map(d => nombresDias[d]).join(', ');
+                
+                this.$awn.alert(
+                    `📅 ${this.nombreLocal} (${tipoNegocio}) solo puede hacer pedidos los días: ${nombreDiasPermitidos}.\n\n` +
+                    `Hoy es ${nombresDias[diaActual]}.\n\n` +
+                    `Próximo día disponible: ${this.proximoDiaDisponible}`,
+                    {
+                        labels: { alert: 'DÍA NO PERMITIDO' }
+                    }
+                );
+                return false;
+            }
+            
+            // ⏰ VALIDAR HORARIO (7:00 AM - 1:00 PM)
+            const horaInicio = 7;
+            const horaFin = 13;
+            
+            // Convertir a minutos totales para comparación precisa
+            const minutosActuales = horaActual * 60 + minutoActual;
+            const minutosInicio = horaInicio * 60;
+            const minutosFin = horaFin * 60;
+            
+            if (minutosActuales < minutosInicio || minutosActuales >= minutosFin) {
+                const horaFormateada = ahora.format('HH:mm');
+                this.$awn.alert(
+                    `⏰ Los pedidos solo están habilitados entre las 7:00 AM y las 1:00 PM.\n\n` +
+                    `Hora actual: ${horaFormateada}\n\n` +
+                    `Por favor, intenta nuevamente dentro del horario permitido.`,
+                    {
+                        labels: { alert: 'HORARIO NO PERMITIDO' }
+                    }
+                );
+                return false;
+            }
+            
+            return true;
+        },
+        
+        // ⏱️ Iniciar y actualizar countdown timer
+        iniciarCountdown() {
+            this.actualizarCountdown();
+            this.countdownInterval = setInterval(() => {
+                this.actualizarCountdown();
+            }, 1000);
+        },
+        
+        actualizarCountdown() {
+            const ahora = moment();
+            const horaActual = ahora.hour();
+            const minutoActual = ahora.minute();
+            const segundoActual = ahora.second();
+            const diaActual = ahora.day(); // 0=domingo, 1=lunes, etc.
+            
+            // 📅 VALIDAR DÍA DE LA SEMANA (solo si el negocio tiene restricción)
+            if (this.esPropio || this.esFranquicia) {
+                let diasPermitidos = null;
+                if (this.esPropio) {
+                    diasPermitidos = [2, 4, 5]; // Martes, Jueves, Viernes
+                } else if (this.esFranquicia) {
+                    diasPermitidos = [1, 3, 5]; // Lunes, Miércoles, Viernes
+                }
+                
+                this.diaPermitido = diasPermitidos ? diasPermitidos.includes(diaActual) : true;
+                
+                if (!this.diaPermitido) {
+                    // Día no permitido
+                    this.horarioActivo = false;
+                    this.horasRestantes = 0;
+                    this.minutosRestantes = 0;
+                    this.segundosRestantes = 0;
+                    this.tiempoRestante = 'Día no permitido';
+                    return;
+                }
+            } else {
+                // Negocio sin restricción de días
+                this.diaPermitido = true;
+            }
+            
+            // ⏰ VALIDAR HORARIO: 7:00 AM - 1:00 PM (13:00)
+            const horaInicio = 7;
+            const horaFin = 13;
+            
+            // Crear momento de cierre (1:00 PM hoy)
+            const horaCierre = moment().hours(horaFin).minutes(0).seconds(0);
+            
+            // Calcular diferencia
+            const diferencia = horaCierre.diff(ahora);
+            
+            if (diferencia <= 0 || horaActual < horaInicio) {
+                // Fuera de horario
+                this.horarioActivo = false;
+                this.horasRestantes = 0;
+                this.minutosRestantes = 0;
+                this.segundosRestantes = 0;
+                this.tiempoRestante = 'Fuera de horario';
+            } else {
+                // Dentro del horario
+                this.horarioActivo = true;
+                const duracion = moment.duration(diferencia);
+                this.horasRestantes = Math.floor(duracion.asHours());
+                this.minutosRestantes = duracion.minutes();
+                this.segundosRestantes = duracion.seconds();
+                
+                // Formatear para string legible
+                const horas = String(this.horasRestantes).padStart(2, '0');
+                const minutos = String(this.minutosRestantes).padStart(2, '0');
+                const segundos = String(this.segundosRestantes).padStart(2, '0');
+                this.tiempoRestante = `${horas}:${minutos}:${segundos}`;
+            }
+        },
+        
         iniciarPedido() {
+            // Validar horario antes de iniciar
+            if (!this.validarHorarioPedidos()) {
+                return;
+            }
             this.inicioSesion = true;
             // Cargar meta semanal
             this.cargarMetaSemanal();
@@ -1767,6 +2058,11 @@ export default {
         },
         
         async crearPedidoSinPago() {
+            // 🕐 Validar horario permitido
+            if (!this.validarHorarioPedidos()) {
+                return null;
+            }
+            
             // Crear pedido con status_payment='impagado' para Linkyfi
             // Filtrar solo productos con cantidad > 0
             const productosSeleccionados = this.productosCentralizados
@@ -1871,33 +2167,45 @@ export default {
                 return;
             }
             
-            // Enviar mensaje automáticamente via Twilio
-            try {
-                console.log('📤 Datos a enviar:', {
-                    to: this.whatsapp,
-                    message_length: mensaje.length,
-                    pedido_id: pedido ? pedido.id : null
-                });
-                
-                const response = await this.$store.dispatch('notifications/sendWhatsApp', {
-                    to: this.whatsapp,
-                    message: mensaje,
-                    pedido_id: pedido ? pedido.id : null
-                });
-                
-                if (response.success) {
-                    this.$awn.success('✅ WhatsApp enviado correctamente a ' + this.whatsapp, {
-                        labels: { success: 'MENSAJE ENVIADO' },
-                        durations: { success: 5000 }
-                    });
-                    console.log('✅ WhatsApp enviado via Twilio:', response.data);
-                } else {
-                    throw new Error(response.message || 'Error al enviar WhatsApp');
-                }
-            } catch (error) {
-                console.error('❌ Error enviando WhatsApp:', error);
-                this.$awn.alert('Error al enviar WhatsApp: ' + error.message);
-            }
+            // DESHABILITADO: Envío automático via Twilio (estaba fallando)
+            // Ahora solo se prepara el mensaje pero no se envía automáticamente
+            console.log('ℹ️ Mensaje preparado (Twilio deshabilitado):', {
+                to: this.whatsapp,
+                message_length: mensaje.length,
+                pedido_id: pedido ? pedido.id : null
+            });
+            
+            this.$awn.success('✅ Pedido registrado correctamente. WhatsApp: ' + this.whatsapp, {
+                labels: { success: 'PEDIDO CREADO' },
+                durations: { success: 3000 }
+            });
+            
+            // try {
+            //     console.log('📤 Datos a enviar:', {
+            //         to: this.whatsapp,
+            //         message_length: mensaje.length,
+            //         pedido_id: pedido ? pedido.id : null
+            //     });
+            //     
+            //     const response = await this.$store.dispatch('notifications/sendWhatsApp', {
+            //         to: this.whatsapp,
+            //         message: mensaje,
+            //         pedido_id: pedido ? pedido.id : null
+            //     });
+            //     
+            //     if (response.success) {
+            //         this.$awn.success('✅ WhatsApp enviado correctamente a ' + this.whatsapp, {
+            //             labels: { success: 'MENSAJE ENVIADO' },
+            //             durations: { success: 5000 }
+            //         });
+            //         console.log('✅ WhatsApp enviado via Twilio:', response.data);
+            //     } else {
+            //         throw new Error(response.message || 'Error al enviar WhatsApp');
+            //     }
+            // } catch (error) {
+            //     console.error('❌ Error enviando WhatsApp:', error);
+            //     this.$awn.alert('Error al enviar WhatsApp: ' + error.message);
+            // }
         },
         
         enviarPorWhatsAppWeb(pedido, urlPago) {
@@ -1967,6 +2275,12 @@ export default {
         // ========================================
         async newRequest() {
             this.submitted = true;
+            
+            // 🕐 Validar horario permitido
+            if (!this.validarHorarioPedidos()) {
+                return;
+            }
+            
             if (!this.validar_form()) {
                 return;
             }
@@ -2299,20 +2613,57 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #f5f7fa;
     padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.welcome-screen::before {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: rgba(102, 126, 234, 0.03);
+    border-radius: 50%;
+    top: -250px;
+    right: -250px;
+    animation: float 6s ease-in-out infinite;
+}
+
+.welcome-screen::after {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: rgba(118, 75, 162, 0.02);
+    border-radius: 50%;
+    bottom: -200px;
+    left: -200px;
+    animation: float 8s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-30px) rotate(10deg);
+    }
 }
 
 .welcome-content {
     text-align: center;
-    max-width: 600px;
-    animation: fadeInUp 0.6s ease;
+    max-width: 700px;
+    animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 1;
 }
 
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(50px);
     }
     to {
         opacity: 1;
@@ -2320,86 +2671,393 @@ export default {
     }
 }
 
-.welcome-icon {
-    width: 120px;
-    height: 120px;
-    background: white;
-    border-radius: 50%;
+/* Modern Icon */
+/* Logo Fagotto */
+.welcome-logo-container {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 30px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    animation: logoFloat 3s ease-in-out infinite;
 }
 
-.welcome-icon i {
-    font-size: 60px;
-    color: #667eea;
+.welcome-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.3));
+    animation: logoPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.3s backwards;
 }
 
-.welcome-title {
-    font-size: 42px;
-    color: white;
-    margin: 0 0 15px 0;
+@keyframes logoPop {
+    from {
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes logoFloat {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Developer Footer */
+.developer-footer {
+    margin-top: 60px;
+    padding: 20px;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    animation: fadeInUp 0.6s ease-out 1.2s backwards;
+}
+
+.developer-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.developer-text code {
+    background: linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0, #00ff00, #8000ff, #ff0080);
+    background-size: 200% auto;
+    padding: 3px 8px;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 12px;
     font-weight: 700;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    animation: rainbowFlow 3s linear infinite;
 }
 
-.welcome-subtitle {
-    font-size: 20px;
-    color: rgba(255,255,255,0.9);
-    margin: 0 0 20px 0;
-    font-weight: 300;
+@keyframes rainbowFlow {
+    0% {
+        background-position: 0% center;
+    }
+    100% {
+        background-position: 200% center;
+    }
 }
 
-.welcome-description {
+.developer-text strong {
+    color: #fff;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Modern Title */
+.welcome-title-modern {
+    font-size: 48px;
+    color: #2c3e50;
+    margin: 0 0 10px 0;
+    font-weight: 800;
+    text-shadow: none;
+    letter-spacing: -1px;
+    animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards;
+}
+
+.welcome-subtitle-modern {
+    font-size: 18px;
+    color: #7f8c8d;
+    margin: 0 0 40px 0;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;
+}
+
+/* Countdown Container */
+.countdown-container {
+    background: white;
+    backdrop-filter: none;
+    border-radius: 24px;
+    padding: 30px;
+    margin: 0 0 40px 0;
+    border: 2px solid #e0e6ed;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s backwards;
+}
+
+.countdown-label {
+    color: #2c3e50;
     font-size: 16px;
-    color: rgba(255,255,255,0.8);
-    line-height: 1.6;
-    margin-bottom: 40px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-.btn-iniciar {
-    padding: 18px 50px;
+.countdown-label i {
+    margin-right: 8px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.countdown-timer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.time-block {
+    background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 16px;
+    padding: 20px 25px;
+    min-width: 100px;
+    backdrop-filter: none;
+    border: 2px solid #dee2e6;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+}
+
+.time-block:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+}
+
+.time-value {
+    display: block;
+    font-size: 48px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    text-shadow: none;
+    font-family: 'Courier New', monospace;
+}
+
+.time-label {
+    display: block;
+    font-size: 12px;
+    color: #7f8c8d;
+    font-weight: 600;
+    margin-top: 8px;
+    letter-spacing: 2px;
+}
+
+.time-separator {
+    font-size: 40px;
+    color: #667eea;
+    font-weight: 700;
+    animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.horario-info {
+    color: #667eea;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 20px;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 20px;
+    display: inline-block;
+}
+
+.horario-info i {
+    margin-right: 6px;
+}
+
+/* Fuera de horario */
+.fuera-horario {
+    background: white;
+    backdrop-filter: none;
+    border-radius: 24px;
+    padding: 40px;
+    margin: 0 0 40px 0;
+    border: 2px solid #e0e6ed;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s backwards;
+}
+
+.fuera-horario i {
+    font-size: 60px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+}
+
+.fuera-horario p {
+    color: #2c3e50;
+    font-size: 18px;
+    margin: 10px 0;
+    font-weight: 500;
+}
+
+.next-disponible {
+    font-size: 16px !important;
+    color: #7f8c8d !important;
+    font-weight: 400 !important;
+}
+
+/* 📅 Estilos para día no permitido */
+.dia-no-permitido {
+    background: white;
+    backdrop-filter: none;
+    border-radius: 24px;
+    padding: 40px;
+    margin: 0 0 40px 0;
+    border: 2px solid #fee2e2;
+    box-shadow: 0 8px 32px rgba(239, 68, 68, 0.15);
+    animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s backwards;
+}
+
+.dia-no-permitido i {
+    font-size: 60px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+    animation: pulse 2s ease infinite;
+}
+
+.dia-no-permitido p {
+    color: #991b1b;
+    font-size: 18px;
+    margin: 10px 0;
+    font-weight: 600;
+}
+
+.dia-no-permitido .dias-permitidos {
+    background: rgba(254, 226, 226, 0.5);
+    border-radius: 12px;
+    padding: 12px 20px;
+    margin: 15px 0;
+    color: #7f1d1d;
+    font-weight: 700;
+    font-size: 16px;
+    border: 1px solid #fecaca;
+}
+
+.dia-no-permitido .next-disponible {
+    color: #991b1b !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+/* Modern Button */
+.btn-iniciar-modern {
+    position: relative;
+    padding: 20px 50px;
     background: white;
     color: #667eea;
     border: none;
-    border-radius: 50px;
+    border-radius: 60px;
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 15px;
+    overflow: hidden;
+    animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.5s backwards;
+    margin-bottom: 20px;
 }
 
-.btn-iniciar:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+.btn-iniciar-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+    transition: left 0.6s;
 }
 
-.btn-iniciar i {
-    margin-right: 10px;
+.btn-iniciar-modern:hover::before {
+    left: 100%;
 }
 
-.welcome-info {
+.btn-iniciar-modern:hover:not(:disabled) {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+}
+
+.btn-iniciar-modern:active:not(:disabled) {
+    transform: translateY(-2px) scale(1.02);
+}
+
+.btn-iniciar-modern:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn-icon {
+    font-size: 22px;
     display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 40px;
-    flex-wrap: wrap;
+    align-items: center;
 }
 
-.info-badge {
-    background: rgba(255,255,255,0.2);
-    padding: 10px 20px;
-    border-radius: 20px;
-    color: white;
-    font-size: 14px;
-    backdrop-filter: blur(10px);
+.btn-text {
+    font-size: 18px;
+    letter-spacing: 0.5px;
 }
 
-.info-badge i {
-    margin-right: 8px;
+.btn-arrow {
+    font-size: 18px;
+    transition: transform 0.3s;
+    display: flex;
+    align-items: center;
+}
+
+.btn-iniciar-modern:hover .btn-arrow {
+    transform: translateX(5px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .welcome-title-modern {
+        font-size: 32px;
+    }
+    
+    .countdown-timer {
+        gap: 10px;
+    }
+    
+    .time-block {
+        padding: 15px 20px;
+        min-width: 80px;
+    }
+    
+    .time-value {
+        font-size: 36px;
+    }
+    
+    .btn-iniciar-modern {
+        padding: 18px 40px;
+        font-size: 16px;
+    }
 }
 
 /* ==================== INTERFAZ PRINCIPAL ==================== */

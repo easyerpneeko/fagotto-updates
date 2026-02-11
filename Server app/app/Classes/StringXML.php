@@ -172,6 +172,9 @@ class StringXML {
           <RznSoc><?= $data['emisor_razon_social'] ?></RznSoc>
           <GiroEmis><?= $data['emisor_giro'] ?></GiroEmis>
           <Acteco><?= $data['emisor_acteco'] ?></Acteco>
+          <?php if (isset($data['emisor_codigo_sucursal']) && !empty($data['emisor_codigo_sucursal'])) { ?>
+          <CdgSIISucur><?= $data['emisor_codigo_sucursal'] ?></CdgSIISucur>
+          <?php } ?>
           <DirOrigen><?= $data['emisor_origen'] ?></DirOrigen>
           <CmnaOrigen><?= $data['emisor_comuna'] ?></CmnaOrigen>
           <CiudadOrigen><?= $data['emisor_ciudad'] ?></CiudadOrigen>
@@ -471,6 +474,8 @@ class StringXML {
                                 'fecha_emision'=>$data['fecha_emision'],
                                 'documento_referencia'=>$data['documento_referencia']]);
 
+    // Código de sucursal (si existe en environment_vars)
+    $CdgSucursal = isset($environment_vars['sii_codigo_sucursal']['value']) ? $environment_vars['sii_codigo_sucursal']['value'] : '';
 
     return Self::DTE(['ID'=>'F437T33',
       'tipo'=>33,
@@ -482,6 +487,7 @@ class StringXML {
       'emisor_razon_social'=>$RnzSoc,
       'emisor_giro'=>$GirEmis,
       'emisor_acteco'=>$Acteco,
+      'emisor_codigo_sucursal'=>$CdgSucursal,
       'emisor_origen'=>$DirOrig,
       'emisor_comuna'=>$CmoOrig,
       'emisor_ciudad'=>$CiudOrig,
@@ -674,6 +680,8 @@ class StringXML {
                                   'fecha_emision'=>$data['fecha_emision'],
                                   'documento_referencia'=>$data['documento_referencia']]);
 
+      // Código de sucursal (si existe en environment_vars)
+      $CdgSucursal = isset($environment_vars['sii_codigo_sucursal']['value']) ? $environment_vars['sii_codigo_sucursal']['value'] : '';
 
       return Self::DTE(['ID'=>'F437T33',
       'tipo'=>33,
@@ -685,6 +693,7 @@ class StringXML {
       'emisor_razon_social'=>$RnzSoc,
       'emisor_giro'=>$GirEmis,
       'emisor_acteco'=>$Acteco,
+      'emisor_codigo_sucursal'=>$CdgSucursal,
       'emisor_origen'=>$DirOrig,
       'emisor_comuna'=>$CmoOrig,
       'emisor_ciudad'=>$CiudOrig,
@@ -898,6 +907,8 @@ class StringXML {
                                   'fecha_emision'=>$data['fecha_emision'],
                                   'documento_referencia'=>$data['documento_referencia']]);
 
+      // Código de sucursal (si existe en environment_vars)
+      $CdgSucursal = isset($environment_vars['sii_codigo_sucursal']['value']) ? $environment_vars['sii_codigo_sucursal']['value'] : '';
 
       return Self::DTE(['ID'=>'F437T33',
         'tipo'=>33,
@@ -909,6 +920,7 @@ class StringXML {
         'emisor_razon_social'=>$RnzSoc,
         'emisor_giro'=>$GirEmis,
         'emisor_acteco'=>$Acteco,
+        'emisor_codigo_sucursal'=>$CdgSucursal,
         'emisor_origen'=>$DirOrig,
         'emisor_comuna'=>$CmoOrig,
         'emisor_ciudad'=>$CiudOrig,
@@ -1021,6 +1033,8 @@ class StringXML {
                                 'fecha_emision'=>$fechaEmis,
                                 'documento_referencia'=>(isset($sell->comment)) ? $sell->comment : '']);
 
+    // Código de sucursal (si existe en environment_vars)
+    $CdgSucursal = isset($environment_vars['sii_codigo_sucursal']['value']) ? $environment_vars['sii_codigo_sucursal']['value'] : '';
 
     return Self::DTE(['ID'=>'R76220409-6T52F11',
       'tipo'=>52, // guia de despacho
@@ -1032,6 +1046,7 @@ class StringXML {
       'emisor_razon_social'=>$RnzSoc,
       'emisor_giro'=>$GirEmis,
       'emisor_acteco'=>$Acteco,
+      'emisor_codigo_sucursal'=>$CdgSucursal,
       'emisor_origen'=>$DirOrig,
       'emisor_comuna'=>$CmoOrig,
       'emisor_ciudad'=>$CiudOrig,
@@ -1145,9 +1160,13 @@ class StringXML {
     $PrecioIva = $PT - $MontoNeto;
 
 
+    // Código de sucursal (si existe en environment_vars)
+    $CdgSucursal = isset($environment_vars['sii_codigo_sucursal']['value']) ? $environment_vars['sii_codigo_sucursal']['value'] : '';
+    $nodoSucursal = !empty($CdgSucursal) ? '<CdgSIISucur>'.$CdgSucursal.'</CdgSIISucur>' : '';
+
     $xml_dte = '<DTE version="1.0">
     <Documento ID="F437T33">
-    <Encabezado><IdDoc><TipoDTE>39</TipoDTE><Folio>'.$folio.'</Folio><FchEmis>'.$fechaEmis.'</FchEmis><IndServicio>3</IndServicio></IdDoc><Emisor><RUTEmisor>'.$RutEmisor.'</RUTEmisor></Emisor><Receptor><RUTRecep>66666666-6</RUTRecep><RznSocRecep>'.$sell->razon_social.'</RznSocRecep></Receptor>
+    <Encabezado><IdDoc><TipoDTE>39</TipoDTE><Folio>'.$folio.'</Folio><FchEmis>'.$fechaEmis.'</FchEmis><IndServicio>3</IndServicio></IdDoc><Emisor><RUTEmisor>'.$RutEmisor.'</RUTEmisor><RznSoc>'.$RnzSoc.'</RznSoc><GiroEmis>'.$GirEmis.'</GiroEmis><Acteco>'.$Acteco.'</Acteco>'.$nodoSucursal.'<DirOrigen>'.$DirOrig.'</DirOrigen><CmnaOrigen>'.$CmoOrig.'</CmnaOrigen><CiudadOrigen>'.$CiudOrig.'</CiudadOrigen></Emisor><Receptor><RUTRecep>66666666-6</RUTRecep><RznSocRecep>'.$sell->razon_social.'</RznSocRecep></Receptor>
     <Totales>
     <MntNeto>'.$MontoNeto.'</MntNeto>
     <IVA>'.$PrecioIva.'</IVA>
@@ -1542,6 +1561,8 @@ class StringXML {
                                     'fecha_emision'=>$data['fecha_emision'],
                                     'documento_referencia'=>$data['documento_referencia']]);
   
+        // Código de sucursal (si existe en environment_vars)
+        $CdgSucursal = isset($environment_vars['sii_codigo_sucursal']['value']) ? $environment_vars['sii_codigo_sucursal']['value'] : '';
   
         return Self::DTE(['ID'=>'F437T33',
         'tipo'=>33,
@@ -1553,6 +1574,7 @@ class StringXML {
         'emisor_razon_social'=>$RnzSoc,
         'emisor_giro'=>$GirEmis,
         'emisor_acteco'=>$Acteco,
+        'emisor_codigo_sucursal'=>$CdgSucursal,
         'emisor_origen'=>$DirOrig,
         'emisor_comuna'=>$CmoOrig,
         'emisor_ciudad'=>$CiudOrig,

@@ -49,6 +49,13 @@ Route::get('/totem/categorias', 'Controllers_local\TotemController@getCategorias
 Route::get('/totem/productos', 'Controllers_local\TotemController@getProductos');
 Route::get('/totem/data', 'Controllers_local\TotemController@getTotemData');
 Route::post('/totem/productos', 'Controllers_local\TotemController@crearProducto');
+
+// MercadoPago - Rutas para integraci ón con terminales Point (app_id 116 - Las Condes)
+Route::group(['middleware' => ['AppSecurity']], function () {
+  Route::get('/mercadopago/config', 'MercadoPagoController@getConfig');
+  Route::post('/mercadopago/create-payment', 'MercadoPagoController@createPayment');
+  Route::get('/mercadopago/payment-status/{orderId}', 'MercadoPagoController@getPaymentStatus');
+});
 Route::put('/totem/productos/{id}', 'Controllers_local\TotemController@actualizarProducto');
 Route::delete('/totem/productos/{id}', 'Controllers_local\TotemController@eliminarProducto');
 

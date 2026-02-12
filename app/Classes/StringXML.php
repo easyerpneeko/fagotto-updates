@@ -8,7 +8,25 @@ use App\models_local\ProductGuia;
 class StringXML {
 
   public static function getProductName($productID) {
-    $product = Product::find($productID)->name;
+    $productModel = Product::find($productID);
+    
+    if ($productModel) {
+      // Producto existe en BD
+      $product = $productModel->name;
+    } else {
+      // Producto no existe (colación, copa personalizada, etc.)
+      // Buscar en products_sells por si tiene description_sii
+      $productSell = ProductSell::where('product', $productID)->latest()->first();
+      
+      if ($productSell && !empty($productSell->description_sii)) {
+        $product = $productSell->description_sii;
+      } else {
+        // Fallback: limpiar el ID y usarlo como nombre
+        $product = str_replace('_', ' ', $productID);
+        $product = strtoupper($product);
+      }
+    }
+    
     $product = str_replace("ñ","n",$product);
     $product = str_replace("'","",$product);
     return $product;

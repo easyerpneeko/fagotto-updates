@@ -152,6 +152,10 @@ export default {
           data.giro = client.giro;
           data.phone = (this.clientsPhone) ? client.phone : '';
         }
+      } else {
+        // 🎫 Cuando es solo ticket (onlyTicket=true), también marcar data.ticket=true
+        // para que el backend imprima correctamente
+        data.ticket = true;
       }
 
       var thing = new FormData();
@@ -620,6 +624,13 @@ export default {
       }
     
       // 2. Imprimir BOLETA/FACTURA (si existe)
+      console.log('🔍 DEBUG BOLETA - request.data:', request.data);
+      console.log('🔍 DEBUG BOLETA - request.data.order:', request.data.order);
+      if (request.data.order) {
+        console.log('🔍 DEBUG BOLETA - response_folio:', request.data.order.response_folio);
+        console.log('🔍 DEBUG BOLETA - response_folio type:', typeof request.data.order.response_folio);
+      }
+      
       if(request.data.order){
         if(request.data.order.response_folio && request.data.order.response_folio == 'boleta' || request.data.order.response_folio == 'factura') {
           this.$awn.info('El ajuste de '+ request.data.order.response_folio +' se encuentra desactivado');

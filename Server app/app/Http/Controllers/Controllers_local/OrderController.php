@@ -339,7 +339,6 @@ class OrderController extends Controller
     return response()->json($b64Doc, 200);
   }
 
-
   public function printPDF($order, $type, $showQR = false)
   {
     $app = CurrentApp::App();

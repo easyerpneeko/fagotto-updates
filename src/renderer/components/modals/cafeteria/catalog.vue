@@ -444,17 +444,25 @@
             </button>
             
             <button v-if="settingDebito" 
-              @click="viewTicket('debito'); closePaymentModal()" 
-              class="payment-method-btn">
+              @click="processDebitoPayment(); closePaymentModal()" 
+              class="payment-method-btn"
+              :class="{'payment-mercadopago': isFagottoLasCondes}"
+              :disabled="mercadoPagoProcessing">
               <i class="fas fa-credit-card"></i>
-              <span>Débito</span>
+              <span v-if="!isFagottoLasCondes || !mercadoPagoProcessing">Débito</span>
+              <span v-else-if="isFagottoLasCondes && !mercadoPagoProcessing">Débito (MercadoPago Point)</span>
+              <span v-else>Procesando...</span>
             </button>
             
             <button v-if="settingCredito" 
-              @click="viewTicket('credito'); closePaymentModal()" 
-              class="payment-method-btn">
+              @click="processCreditoPayment(); closePaymentModal()" 
+              class="payment-method-btn"
+              :class="{'payment-mercadopago': isFagottoLasCondes}"
+              :disabled="mercadoPagoProcessing">
               <i class="fas fa-credit-card"></i>
-              <span>Crédito</span>
+              <span v-if="!isFagottoLasCondes || !mercadoPagoProcessing">Crédito</span>
+              <span v-else-if="isFagottoLasCondes && !mercadoPagoProcessing">Crédito (MercadoPago Point)</span>
+              <span v-else>Procesando...</span>
             </button>
             
             <button v-if="settingTransferencia" 
@@ -569,6 +577,8 @@ import diasLocos from '@/components/modals/cafeteria/diasLocos.vue';
 import ConfigHelper from '@/helpers/ConfigHelper.js';
 import FormatNumber from '@/helpers/FormatNumber.js';
 import Loader from '@/helpers/Loader';
+import Connection from '@/helpers/Connection.js';
+import BaseUrl from '@/helpers/baseUrl';
 
 export default {
   data() {
@@ -610,6 +620,10 @@ export default {
       isSpecialPaymentDay: false,
       // Estado del módulo Gelateria
       gelateriaActive: true, // Activado por defecto hasta implementar backend
+      // MercadoPago
+      appId: null,
+      mercadoPagoProcessing: false,
+      mercadoPagoOrderId: null,
       jsonTable: {
         btn: true,
         items: [],
@@ -650,6 +664,9 @@ export default {
     // Verificar el estado del módulo Gelateria
     this.checkGelateriaStatus();
     
+    // Obtener app_id del aplication.json
+    this.loadAppId();
+    
     // Verificar la hora cada 5 minutos por si cambia el día
     setInterval(() => {
       this.checkChileTime();
@@ -670,9 +687,200 @@ export default {
       this.showPaymentModal = true;
     },
     
+    // Procesar pago con Débito (integrado con MercadoPago en Las Condes)
+    async processDebitoPayment() {
+      // Si es Fagotto Las Condes (app_id 116), usar MercadoPago Point
+      if (this.isFagottoLasCondes) {
+        console.log('💳 Procesando débito con MercadoPago Point para Las Condes');
+        await this.sendToMercadoPago('debit');
+      } else {
+        // Para otros locales, procesar débito normalmente
+        console.log('💳 Procesando débito normal');
+        await this.viewTicket('debito');
+      }
+    },
+    
+    // Procesar pago con Crédito (integrado con MercadoPago en Las Condes)
+    async processCreditoPayment() {
+      // Si es Fagotto Las Condes (app_id 116), usar MercadoPago Point
+      if (this.isFagottoLasCondes) {
+        console.log('💳 Procesando crédito con MercadoPago Point para Las Condes');
+        await this.sendToMercadoPago('credit');
+      } else {
+        // Para otros locales, procesar crédito normalmente
+        console.log('💳 Procesando crédito normal');
+        await this.viewTicket('credito');
+      }
+    },
+    
     // Cerrar modal de métodos de pago
     closePaymentModal() {
       this.showPaymentModal = false;
+    },
+    
+    // Cargar app_id desde aplication.json
+    loadAppId() {
+      ConfigHelper.readAppFile((err, data) => {
+        if (!err && data) {
+          try {
+            const appData = JSON.parse(data);
+            this.appId = appData.Id || null;
+            console.log('📱 App ID cargado:', this.appId);
+          } catch (error) {
+            console.error('❌ Error al parsear aplication.json:', error);
+          }
+        }
+      });
+    },
+    
+    // Enviar pago a MercadoPago Point
+    async sendToMercadoPago(paymentType = 'debit') {
+      if (this.productoSend.length === 0) {
+        this.$awn.alert('Es necesario agregar algún producto');
+        return false;
+      }
+      
+      if (this.mercadoPagoProcessing) {
+        this.$awn.alert('Ya hay un pago en proceso');
+        return false;
+      }
+      
+      try {
+        this.mercadoPagoProcessing = true;
+        
+        const paymentTypeText = paymentType === 'credit' ? 'Crédito' : 'Débito';
+        this.$awn.info(`Enviando pago ${paymentTypeText} al terminal MercadoPago Point...`);
+        
+        // Enviar pago al terminal
+        const payload = {
+          amount: Math.round(this.total),
+          description: `Venta Fagotto Las Condes - ${this.productoSend.length} productos`,
+          external_reference: `ORD-${Date.now()}`,
+          app_id: this.appId,
+          payment_type: paymentType, // 'credit' o 'debit'
+          products: this.productoSend.map(p => ({
+            name: p.name,
+            quantity: p.quantity,
+            price: p.price
+          }))
+        };
+        
+        console.log('💳 Enviando pago a MercadoPago:', payload);
+        
+        const response = await Connection.request(
+          'POST',
+          BaseUrl.getUrl('api/mercadopago/create-payment'),
+          payload
+        );
+        
+        if (!response.success || !response.data) {
+          throw new Error(response.message || 'Error al crear el pago');
+        }
+        
+        // La respuesta de Laravel tiene estructura: {ok: true, data: {order_id, ...}}
+        const paymentData = response.data.data || response.data;
+        this.mercadoPagoOrderId = paymentData.order_id;
+        
+        console.log('✅ Pago enviado al terminal:', paymentData);
+        console.log('🔑 Order ID:', paymentData.order_id);
+        
+        this.$awn.success(`Pago ${paymentTypeText} enviado al terminal MercadoPago. Procesando venta...`);
+        
+        // Limpiar estado de MercadoPago
+        this.mercadoPagoProcessing = false;
+        this.mercadoPagoOrderId = null;
+        
+        // ✅ PROCESAR VENTA INMEDIATAMENTE según el tipo de pago (sin esperar aprobación del terminal)
+        // El terminal procesará el cobro en paralelo
+        await this.viewTicket(paymentType === 'credit' ? 'credito' : 'debito');
+        
+      } catch (error) {
+        console.error('❌ Error al enviar pago a MercadoPago:', error);
+        this.$awn.alert(`Error: ${error.message || 'No se pudo procesar el pago'}`);
+        this.mercadoPagoProcessing = false;
+        this.mercadoPagoOrderId = null;
+      }
+    },
+    
+    // Polling para verificar el estado del pago
+    async pollMercadoPagoStatus(orderId, attempts = 0, maxAttempts = 60) {
+      // Validar que orderId no sea undefined/null
+      if (!orderId || orderId === 'undefined') {
+        console.error('❌ orderId inválido:', orderId);
+        this.$awn.alert('Error: ID de orden inválido');
+        this.mercadoPagoProcessing = false;
+        this.mercadoPagoOrderId = null;
+        return;
+      }
+      
+      if (attempts >= maxAttempts) {
+        this.$awn.alert('Tiempo de espera agotado. Verifica el estado del pago manualmente.');
+        this.mercadoPagoProcessing = false;
+        this.mercadoPagoOrderId = null;
+        return;
+      }
+      
+      try {
+        const response = await Connection.request(
+          'GET',
+          BaseUrl.getUrl(`api/mercadopago/payment-status/${orderId}`)
+        );
+        
+        if (response.success && response.data) {
+          // La respuesta puede tener estructura: {ok: true, data: {status, ...}}
+          const statusData = response.data.data || response.data;
+          const status = statusData.status;
+          
+          console.log(`🔍 Estado del pago (intento ${attempts + 1}/${maxAttempts}):`, status);
+          console.log('📦 Datos completos:', statusData);
+          
+          if (status === 'approved' || status === 'accredited') {
+            // Pago aprobado - procesar la venta con débito
+            this.$awn.success('¡Pago aprobado! Procesando venta...');
+            this.mercadoPagoProcessing = false;
+            this.mercadoPagoOrderId = null;
+            
+            // Procesar como débito (genera boleta SII con método débito)
+            await this.viewTicket('debito');
+            
+          } else if (status === 'rejected' || status === 'cancelled') {
+            // Pago rechazado o cancelado
+            this.$awn.alert(`Pago ${status === 'rejected' ? 'rechazado' : 'cancelado'}`);
+            this.mercadoPagoProcessing = false;
+            this.mercadoPagoOrderId = null;
+            
+          } else {
+            // Estado pendiente - seguir consultando
+            setTimeout(() => {
+              this.pollMercadoPagoStatus(orderId, attempts + 1, maxAttempts);
+            }, 5000); // Esperar 5 segundos entre consultas
+          }
+        } else {
+          throw new Error('No se pudo verificar el estado del pago');
+        }
+        
+      } catch (error) {
+        console.error('❌ Error al verificar estado del pago:', error);
+        
+        // Si el error es por orderId inválido, detener inmediatamente
+        if (!orderId || orderId === 'undefined') {
+          this.mercadoPagoProcessing = false;
+          this.mercadoPagoOrderId = null;
+          return;
+        }
+        
+        // Reintentar solo 3 veces en caso de error de red
+        if (attempts < 3) {
+          console.log(`⏳ Reintentando (${attempts + 1}/3)...`);
+          setTimeout(() => {
+            this.pollMercadoPagoStatus(orderId, attempts + 1, maxAttempts);
+          }, 5000);
+        } else {
+          this.$awn.alert('Error al verificar el estado del pago. Consulta manualmente.');
+          this.mercadoPagoProcessing = false;
+          this.mercadoPagoOrderId = null;
+        }
+      }
     },
     
     // tickets (require board)
@@ -988,6 +1196,10 @@ export default {
         // 🔧 FIX: Cerrar modal de pagos primero si está abierto
         this.showPaymentModal = false;
         
+        // 💳 LIMPIAR estado de MercadoPago
+        this.mercadoPagoProcessing = false;
+        this.mercadoPagoOrderId = null;
+        
         // 🧹 LIMPIEZA FORZADA: Eliminar todos los modales residuales de Bootstrap
         $('.modal-backdrop').remove();
         $('body').removeClass('modal-open');
@@ -1022,6 +1234,10 @@ export default {
       this.$store.commit('cafeteria/clearOnlyWaiter');
 
       this.typeCreateTicket = false;
+      
+      // 💳 LIMPIAR estado de MercadoPago
+      this.mercadoPagoProcessing = false;
+      this.mercadoPagoOrderId = null;
 
 
       if (this.board && this.board.order == null && refresh == false) {
@@ -1995,6 +2211,13 @@ export default {
         return ConfigHelper.ConfStr('modulos.ventas.ajustes.permitir_venta_sin_stock');
       }
     },
+    
+    // Computed para verificar si es Fagotto Las Condes (app_id 116)
+    isFagottoLasCondes: {
+      get() {
+        return this.appId === 116;
+      }
+    },
 
     filteredList: {
       get() {
@@ -2113,6 +2336,49 @@ export default {
   0%, 100% { transform: rotate(0deg); }
   25% { transform: rotate(-5deg); }
   75% { transform: rotate(5deg); }
+}
+
+/* 💳 Estilos para el botón de MercadoPago Point */
+.payment-mercadopago {
+  background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%) !important;
+  color: white !important;
+  font-weight: bold !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.payment-mercadopago::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.payment-mercadopago:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.payment-mercadopago:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 180, 216, 0.4) !important;
+}
+
+.payment-mercadopago:disabled {
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%) !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+}
+
+.payment-mercadopago i {
+  font-size: 1.5em !important;
+  margin-right: 8px !important;
 }
 </style><style>
 @import '../../../css/catalog-modal.css';

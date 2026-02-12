@@ -1,0 +1,16 @@
+[Unit]
+Description=Project Zomboid Dedicated Server
+After=network.target
+
+[Service]
+Type=forking
+User=pzserver
+Group=pzserver
+WorkingDirectory=/home/pzserver/pzserver
+ExecStart=/usr/bin/screen -dmS pzserver /home/pzserver/pzserver/start-server.sh
+ExecStop=/usr/bin/screen -X -S pzserver quit
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

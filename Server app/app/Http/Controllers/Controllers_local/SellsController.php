@@ -251,13 +251,22 @@ class SellsController extends Controller
 
     $items = json_decode($_request['products']);
     foreach ($items as $item) {
-      // ✅ FIX MERCHISE Y COLACIÓN: Saltear validación si es producto merchise o colación
+      // ✅ FIX MERCHISE Y COLACIÓN: Saltear validación si es producto merchise o colación (no están en tabla products)
       $is_merchise = isset($item->is_merchise) && $item->is_merchise === true;
       $is_colacion = isset($item->is_colacion) && $item->is_colacion === true;
+      
+      \Log::info('🍝 COLACIÓN VALIDACIÓN:', [
+        'product_id' => $item->id,
+        'is_colacion_isset' => isset($item->is_colacion),
+        'is_colacion_value' => $item->is_colacion ?? 'NOT SET',
+        'is_colacion_var' => $is_colacion,
+        'type_of_is_colacion' => gettype($item->is_colacion ?? null)
+      ]);
       
       if (!$is_merchise && !$is_colacion) {
         $product = Product::find($item->id);
         if (!$product) {
+          \Log::error('❌ PRODUCTO NO ENCONTRADO:', ['id' => $item->id, 'is_colacion' => $is_colacion]);
           if (isset($_request['ticket'])) return "Producto no encontrado";
           else return response()->json("Producto no encontrado", 404);
         }

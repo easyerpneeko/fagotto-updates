@@ -243,6 +243,11 @@ class SellsController extends Controller
 
     $items = json_decode($_request['products']);
     foreach ($items as $item) {
+      // 🍝 SKIP validación para colaciones (productos virtuales, no están en tabla products)
+      if (isset($item->is_colacion) && $item->is_colacion === true) {
+        continue; // Saltar validación, igual que con merchise
+      }
+      
       $product = Product::find($item->id);
       if (!$product) {
         if (isset($_request['ticket'])) return "Producto no encontrado";
@@ -358,6 +363,10 @@ class SellsController extends Controller
       if (isset($item->comment) && !empty($item->comment)) {
         $newProductSell['description_sii'] = strtoupper(trim($item->comment));
       }
+      // 🍝 Si es colación u otro producto especial sin ID real, guardar nombre en description_sii
+      if (isset($item->is_colacion) && $item->is_colacion) {
+        $newProductSell['description_sii'] = strtoupper($item->name);
+      }
       $created = ProductSell::createProductSell($newProductSell);
       if (!$created) {
         if (isset($_request['ticket'])) return "Error del servidor";
@@ -377,8 +386,22 @@ class SellsController extends Controller
 
     if (CurrentApp::ConfStr('modulos.ventas.submodulos.sii')) {
       if (CurrentApp::ConfStr('modulos.ventas.submodulos.sii.ajustes.factura') || CurrentApp::ConfStr('modulos.ventas.submodulos.sii.ajustes.boleta')) {
+        \Log::info('🍝 COLACIÓN DEBUG - Antes de procesar boleta:', [
+          'type_sell' => $_request['type_sell'] ?? 'NO SET',
+          'sell_id' => $sell->id,
+          'tiene_productos' => count(json_decode($_request['products']))
+        ]);
+        
         if (isset($_request['type_sell']) && $_request['type_sell'] == 'factura') $asingFolio = SIIController::processFactura($request, $sell->id);
-        if (isset($_request['type_sell']) && $_request['type_sell'] == 'boleta') $asingFolio = SIIController::processBoleta($request, $sell->id);
+        if (isset($_request['type_sell']) && $_request['type_sell'] == 'boleta') {
+          $asingFolio = SIIController::processBoleta($request, $sell->id);
+          \Log::info('🍝 COLACIÓN DEBUG - Resultado processBoleta:', [
+            'isset' => isset($asingFolio),
+            'success' => $asingFolio['success'] ?? 'NO SET',
+            'content_type' => $asingFolio['content'] ? gettype($asingFolio['content']) : 'NULL'
+          ]);
+        }
+        
         if (isset($asingFolio)) {
           if (!$asingFolio['success']) {
             $query['response_folio'] = $asingFolio['content'];
@@ -387,6 +410,11 @@ class SellsController extends Controller
           }
           // $b64Doc = chunk_split(base64_encode(file_get_contents($asingFolio['content'])));
           $query['response_folio'] = $asingFolio['content'];
+          \Log::info('🍝 COLACIÓN DEBUG - response_folio seteado:', [
+            'length' => strlen($query['response_folio'])
+          ]);
+        } else {
+          \Log::warning('🍝 COLACIÓN DEBUG - $asingFolio NO está seteado!');
         }
       } else {
         if (!isset($_request['type_sell']))  $query['response_folio'] = 'boleta_local';

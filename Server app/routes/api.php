@@ -42,6 +42,11 @@ Route::post('/stripe/create-payment-intent', 'Controllers_local\StripePaymentCon
 Route::post('/stripe/confirm-payment', 'Controllers_local\StripePaymentController@confirmPayment');
 Route::post('/stripe/webhook', 'Controllers_local\StripePaymentController@webhook');
 
+// MercadoPago Point - Integración para pagos con terminal
+Route::get('/mercadopago/config', 'MercadoPagoController@getConfig');
+Route::post('/mercadopago/create-payment', 'MercadoPagoController@createPayment');
+Route::get('/mercadopago/payment-status/{orderId}', 'MercadoPagoController@getPaymentStatus');
+
 // Metas Locales (acceso público desde web dashboard)
 Route::get('/web/metas-locales', 'MetaLocalController@index');
 Route::post('/web/metas-locales/store', 'MetaLocalController@store');

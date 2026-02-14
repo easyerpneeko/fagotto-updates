@@ -71,15 +71,29 @@ if ($monto < 100) {
     exit;
 }
 
-// Obtener credenciales
-$accessToken = MP_ACCESS_TOKEN;
-$deviceId = MP_DEVICE_ID;
+// Obtener app_id del payload para seleccionar credenciales correctas
+$appId = $data['app_id'] ?? null;
+
+// Seleccionar credenciales según app_id
+if ($appId == 58) {
+    // Agustinas - Cuenta 4
+    $accessToken = getenv('MP_ACCESS_TOKEN_58');
+    $deviceId = getenv('MP_DEVICE_ID_58');
+} elseif ($appId == 116) {
+    // Las Condes - Cuenta 1
+    $accessToken = getenv('MP_ACCESS_TOKEN_116');
+    $deviceId = getenv('MP_DEVICE_ID_116');
+} else {
+    // Fallback: credenciales del payload o error
+    $accessToken = $data['access_token'] ?? null;
+    $deviceId = $data['device_id'] ?? null;
+}
 
 if (empty($accessToken) || empty($deviceId)) {
     http_response_code(500);
     echo json_encode([
         'error' => 'Configuración incompleta',
-        'message' => 'Faltan credenciales de MercadoPago en el .env'
+        'message' => 'Faltan credenciales de MercadoPago para app_id: ' . $appId
     ]);
     exit;
 }
@@ -91,6 +105,22 @@ $externalReference = $data['referencia'] ?? "REF-" . time();
 // Determinar tipo de pago: 'credit' o 'debit'
 $paymentType = $data['payment_type'] ?? 'debit';
 $mercadoPagoPaymentType = ($paymentType === 'credit') ? 'credit_card' : 'debit_card';
+
+// Determinar external_store_id según el terminal (para evitar errores de site_id)
+$externalStoreId = null;
+if (strpos($deviceId, 'N950NCC302980807') !== false) {
+    // Terminal 1 NEWLAND - Cuenta 2
+    $externalStoreId = "75998370";
+} elseif (strpos($deviceId, 'SMARTPOS1495485450') !== false) {
+    // Terminal PAX A910 - Cuenta 2/3
+    $externalStoreId = "73565262";
+} elseif (strpos($deviceId, 'N950NCC302980808') !== false) {
+    // Terminal NEWLAND - Cuenta 1 Las Condes
+    $externalStoreId = "76216860";
+} elseif (strpos($deviceId, 'N950NCC804178629') !== false) {
+    // Terminal NEWLAND - Cuenta 4 Agustinas
+    $externalStoreId = "77440880";
+}
 
 $payload = [
     "type" => "point",
@@ -118,6 +148,11 @@ $payload = [
         ]
     ]
 ];
+
+// Agregar external_store_id si está disponible (ayuda a evitar errores de site_id)
+if ($externalStoreId !== null) {
+    $payload['external_store_id'] = $externalStoreId;
+}
 
 // Generar idempotency key único
 $idempotencyKey = uniqid('mppoint_api_', true);

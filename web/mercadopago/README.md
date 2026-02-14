@@ -1,14 +1,49 @@
-# ?? Mercado Pago Point Smart - Sistema de Pagos
+# üí≥ Mercado Pago Point Smart - Sistema de Pagos
 
 Sistema integrado para enviar pagos al terminal Point Smart de Mercado Pago desde web.
 
-## ?? ConfiguraciÛn
+## ‚öôÔ∏è Configuraciones Disponibles
 
-**Terminal:**
-- Modelo: NEWLAND N950
-- S/N: N950NCC302980808
-- Modo: PDV ?
-- PaÌs: Chile (CLP)
+### Cuenta 1 - Fagotto
+- Terminal: NEWLAND_N950__N950NCC302980808
+- Store ID: 76216860
+- Modo: PDV ‚úÖ
+
+### Cuenta 2 - Env2
+- Terminal 1: NEWLAND_N950__N950NCC302980807 (Store: 75998370)
+- Terminal 2: PAX_A910__SMARTPOS1495485450 (Store: 73565262)
+- Modo: PDV ‚úÖ
+
+### Cuenta 3 - PVD
+- Terminal: PAX_A910__SMARTPOS1495485450
+- Store ID: 73565262
+- S/N: SMARTPOS1495485450
+- Modo: PDV ‚úÖ
+
+### Cuenta 4 - Env4
+- Terminal: NEWLAND_N950__N950NCC804178629
+- Store ID: 77440880
+- S/N: N950NCC804178629
+- Modo: PDV ‚úÖ
+
+## üîÑ Cambiar entre Terminales
+
+```powershell
+# Cuenta 1
+Copy-Item .env.cuenta1 .env -Force
+
+# Cuenta 2 (Env2)
+Copy-Item .env.cuenta2 .env -Force
+
+# Cuenta 3 (PVD)
+Copy-Item .env.cuenta3 .env -Force
+
+# Cuenta 4 (Env4)
+Copy-Item .env.cuenta4 .env -Force
+
+# Verificar cual est√° activa
+cat .env | Select-String "MP_DEVICE_ID"
+```
 
 ## ?? Archivos principales
 
@@ -21,10 +56,10 @@ Consultar el estado de un pago en tiempo real con auto-refresh.
 URL: http://localhost/mercadopago-point-example/validar-pago.php
 
 ### 3. webhook-point.php
-Recibe notificaciones autom·ticas de Mercado Pago.
+Recibe notificaciones automÔøΩticas de Mercado Pago.
 
 ### 4. ver-mi-terminal.php
-Consultar informaciÛn del terminal vinculado.
+Consultar informaciÔøΩn del terminal vinculado.
 
 ## ?? Flujo de trabajo
 
@@ -39,7 +74,7 @@ Consultar informaciÛn del terminal vinculado.
 - rejected - Rechazado ?
 - cancelled - Cancelado ??
 
-## ?? URLs ProducciÛn
+## ?? URLs ProducciÔøΩn
 
 - Enviar: https://fagottoerp.cl/mercadopago/enviar-pago-web.php
 - Validar: https://fagottoerp.cl/mercadopago/validar-pago.php

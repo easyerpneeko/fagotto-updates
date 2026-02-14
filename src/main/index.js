@@ -38,7 +38,12 @@ async function createMainWindow() {/**/
     useContentSize: true,
     width: 1000,
     title: 'Fagotto Chile',
-    webPreferences: { nodeIntegration: true, contextIsolation: false, enableRemoteModule: true }
+    webPreferences: { 
+      nodeIntegration: true, 
+      contextIsolation: false, 
+      enableRemoteModule: true,
+      webSecurity: false // ✅ Deshabilitar CORS para desarrollo
+    }
   })
 
   // Limpiar caché al crear la ventana

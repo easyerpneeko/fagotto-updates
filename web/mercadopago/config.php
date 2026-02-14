@@ -51,14 +51,7 @@ if (!file_exists(LOG_DIR)) {
     mkdir(LOG_DIR, 0755, true);
 }
 
-// Validar configuración
-if (empty(MP_ACCESS_TOKEN) || MP_ACCESS_TOKEN === 'tu_access_token_aqui') {
-    die("ERROR: Configura MP_ACCESS_TOKEN en el archivo .env\n");
-}
-
-if (empty(MP_DEVICE_ID) || MP_DEVICE_ID === 'PAX_A910__SMARTPOS1234567890') {
-    die("ERROR: Configura MP_DEVICE_ID en el archivo .env\n");
-}
+// No validar credenciales aquí, se validan en cada archivo según necesidad
 
 return [
     'access_token' => MP_ACCESS_TOKEN,

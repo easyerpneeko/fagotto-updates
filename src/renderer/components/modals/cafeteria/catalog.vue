@@ -174,6 +174,20 @@
                     <i class="fas fa-chevron-right"></i>
                   </div>
                 </button>
+                
+                <!-- Botón Cupón -->
+                <button 
+                  v-if="cuponInstalled"
+                  @click="openModalCupon()"
+                  class="category-item-center category-special category-cupon">
+                  <div class="category-icon">
+                    <i class="fas fa-ticket-alt"></i>
+                  </div>
+                  <span class="category-name">Cupones 2x1</span>
+                  <div class="category-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                  </div>
+                </button>
               </div>
             </div>
 
@@ -399,6 +413,8 @@
     <test-merchise ref="testMerchise" :cart="jsonTable" @addMerchise="handleAddMerchise" />
     <colacion ref="colacion" @addColacion="handleAddColacion" />
     <dias-locos ref="diasLocos" :products="productsRequest" @addDiasLocos="handleAddDiasLocos" />
+    <modal-cupon @abrir-seleccion="abrirModalSeleccion" />
+    <modal-seleccion-cupon ref="modalSeleccionCupon" @producto-seleccionado="handleProductoCupon" />
     
     <!-- Modal de métodos de pago -->
     <div v-show="showPaymentModal" :key="`payment-modal-${ticketComponentKey}`" class="payment-modal-overlay" @click="closePaymentModal">
@@ -572,6 +588,8 @@ import ventaCopas from '@/components/modals/cafeteria/ventaCopas.vue';
 import testMerchise from '@/components/modals/cafeteria/testMerchise.vue';
 import colacion from '@/components/modals/cafeteria/colacion.vue';
 import diasLocos from '@/components/modals/cafeteria/diasLocos.vue';
+import modalCupon from '@/components/modals/cafeteria/modalCupon.vue';
+import modalSeleccionCupon from '@/components/modals/cafeteria/modalSeleccionCupon.vue';
 
 // Helpers y plugins
 import ConfigHelper from '@/helpers/ConfigHelper.js';
@@ -652,6 +670,8 @@ export default {
     testMerchise,
     colacion,
     diasLocos,
+    modalCupon,
+    modalSeleccionCupon,
   },
   mounted() {
     //HavePermission
@@ -784,14 +804,24 @@ export default {
         console.log('✅ Pago enviado al terminal:', paymentData);
         console.log('🔑 Order ID:', paymentData.order_id);
         
-        this.$awn.success(`Pago ${paymentTypeText} enviado al terminal MercadoPago. Procesando venta...`);
+        this.$awn.success(`Pago ${paymentTypeText} enviado al terminal. Esperando confirmación...`);
+        
+        // ⚠️ IMPORTANTE: Pedir confirmación ANTES de procesar la venta
+        const clientePago = await this.confirmarPagoCliente(paymentTypeText);
+        
+        if (!clientePago) {
+          // El cliente NO completó el pago
+          this.$awn.alert('Venta cancelada. El cliente no completó el pago.');
+          this.mercadoPagoProcessing = false;
+          this.mercadoPagoOrderId = null;
+          return;
+        }
         
         // Limpiar estado de MercadoPago
         this.mercadoPagoProcessing = false;
         this.mercadoPagoOrderId = null;
         
-        // ✅ PROCESAR VENTA INMEDIATAMENTE según el tipo de pago (sin esperar aprobación del terminal)
-        // El terminal procesará el cobro en paralelo
+        // ✅ Cliente confirmó que pagó → Procesar venta
         await this.viewTicket(paymentType === 'credit' ? 'credito' : 'debito');
         
       } catch (error) {
@@ -800,6 +830,38 @@ export default {
         this.mercadoPagoProcessing = false;
         this.mercadoPagoOrderId = null;
       }
+    },
+    
+    // Confirmar que el cliente completó el pago en el terminal
+    async confirmarPagoCliente(paymentTypeText) {
+      return new Promise((resolve) => {
+        this.$awn.confirm(
+          `<div style="font-size: 18px; line-height: 1.6;">
+            <strong style="font-size: 22px;">¿El cliente COMPLETÓ el pago con ${paymentTypeText}?</strong>
+            <br><br>
+            <div style="font-size: 16px; color: #ff9800;">
+              ⚠️ Confirma que el terminal mostró <strong>"APROBADO"</strong><br>
+              Si el cliente se equivocó de clave o canceló, presiona <strong>NO</strong>
+            </div>
+          </div>`,
+          () => {
+            // Usuario confirmó - Cliente SÍ pagó
+            console.log('✅ Confirmado: Cliente pagó exitosamente');
+            resolve(true);
+          },
+          () => {
+            // Usuario canceló - Cliente NO pagó
+            console.log('❌ Cancelado: Cliente no completó el pago');
+            resolve(false);
+          },
+          {
+            labels: {
+              confirm: '✅ SÍ pagó',
+              cancel: '❌ NO pagó'
+            }
+          }
+        );
+      });
     },
     
     // Polling para verificar el estado del pago
@@ -1419,6 +1481,22 @@ export default {
     // Abrir modal de Días Locos
     openDiasLocos() {
       this.$refs.diasLocos.openModal();
+    },
+
+    // Abrir modal de Cupón
+    openModalCupon() {
+      $('#modalCupon').modal('show');
+    },
+
+    // Manejar apertura del modal de selección de cupón
+    abrirModalSeleccion(cuponData) {
+      this.$refs.modalSeleccionCupon.openModal(cuponData);
+    },
+
+    // Manejar producto seleccionado desde modal de cupón
+    handleProductoCupon(producto) {
+      console.log('🎫 Producto con cupón recibido:', producto);
+      this.quantityAdd(producto);
     },
 
     // Manejar adición de copa desde modal ventaCopas
@@ -2206,16 +2284,24 @@ export default {
       }
     },
 
+    cuponInstalled: {
+      get() {
+        // Sistema de cupones siempre activo
+        return true;
+      }
+    },
+
     settingVenderSinStock: {
       get() {
         return ConfigHelper.ConfStr('modulos.ventas.ajustes.permitir_venta_sin_stock');
       }
     },
     
-    // Computed para verificar si es Fagotto Las Condes (app_id 116)
+    // Computed para verificar si tiene MercadoPago Point habilitado (app_id 116 o 58)
     isFagottoLasCondes: {
       get() {
-        return this.appId === 116;
+        // app_id 116 = Las Condes, app_id 58 = Agustinas
+        return [58, 116].includes(this.appId);
       }
     },
 

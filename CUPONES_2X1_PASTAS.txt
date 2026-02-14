@@ -1,0 +1,72 @@
+╔═══════════════════════════════════════════════════════════╗
+║         CUPONES 2x1 PASTAS - SEGUNDA GRATIS              ║
+╚═══════════════════════════════════════════════════════════╝
+
+📋 CUPONES VÁLIDOS (46 CÓDIGOS):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  01  02  03  04  05  06  07  08  09  10
+  11  12  13  14  15  16  17  18  19  20
+  21  22  23  24  25  26  27  28  29  30
+  31  32  33  34  35  36  37  38  39  40
+  41  42  43  44  45  46
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 CONDICIONES:
+
+  🍝 PASO 1 - Primera pasta (precio normal):
+     • Bigoli: TODAS las opciones disponibles
+     • Fettuccini: TODAS las opciones disponibles
+
+  🎁 PASO 2 - Segunda pasta GRATIS:
+     • Bigoli: Solo Boloñesa, Alfredo, Cheddar
+     • Fettuccini: Solo Boloñesa, Alfredo, Cheddar
+
+  💰 Funcionamiento:
+     • Primera pasta: Precio normal ($3,990 - $4,990)
+     • Segunda pasta: GRATIS ($0)
+
+  🔒 Restricciones:
+     • Un solo uso por cupón
+     • No reutilizable
+     • Válido por 6 meses
+     • Registra: sucursal + usuario + fecha
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚙️  CONFIGURACIÓN:
+
+  📍 Desarrollo: 
+     • Códigos 01-46 funcionan automáticamente
+     • Datos guardados en localStorage
+     • Para vaciar cupones usados: localStorage.removeItem('cuponesUsados')
+
+  🚀 Producción:
+     • Ejecutar: database/crear_10_cupones_2x1.sql
+     • Backend: posfagotto.cl/api/cupones/validar
+     • Backend: posfagotto.cl/api/cupones/aplicar
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 PARA PROBAR:
+
+1. Ir a Cafetería
+2. Click en "Cupones 2x1"
+3. Ingresar código: 01 (o cualquiera del 01 al 46)
+4. Seleccionar primera pasta (todas disponibles)
+5. Seleccionar segunda pasta (solo Boloñesa/Alfredo/Cheddar)
+6. Agregar al carrito
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🗑️ VACIAR CUPONES USADOS (DESARROLLO):
+
+Abrir DevTools (F12) > Console:
+localStorage.removeItem('cuponesUsados');
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Fecha de creación: 14/02/2026
+Válidos hasta: 14/08/2026
+Total cupones: 46

@@ -838,25 +838,49 @@ class PedidoFinalStockController extends Controller
     /**
      * Obtener historial de stock por día específico
      * GET /api/local/pedidofinal/historial-dia?fecha=2024-01-21&id_negocio=1
+     * Si no se pasa fecha, devuelve TODOS los registros
      */
     public function getHistorialPorDia(Request $request)
     {
         try {
-            $fecha = $request->fecha ?? date('Y-m-d');
+            $fecha = $request->fecha ?? null;
             $idNegocio = $request->id_negocio ?? null;
 
             $query = DB::table('historial_stock_diario')
-                ->where('fecha_reporte', $fecha);
+                ->select([
+                    'id',
+                    'id_producto',
+                    'producto_nombre',
+                    'id_negocio',
+                    'nombre_negocio',
+                    'app_id',
+                    'cantidad_reportada',
+                    'unidad_medida',
+                    'fecha_reporte',
+                    'usuario',
+                    'observacion',
+                    'created_at',
+                    'updated_at'
+                ]);
+
+            // Solo filtrar por fecha si se proporciona
+            if ($fecha) {
+                $query->where('fecha_reporte', $fecha);
+                \Log::info("📊 Consultando historial para fecha: {$fecha}");
+            } else {
+                \Log::info("📊 Consultando TODO el historial (sin filtro de fecha)");
+            }
 
             if ($idNegocio) {
                 $query->where('id_negocio', $idNegocio);
             }
 
             $historial = $query
+                ->orderBy('fecha_reporte', 'desc')
                 ->orderBy('producto_nombre', 'asc')
                 ->get();
 
-            \Log::info("📊 Historial día {$fecha} - Total: " . $historial->count());
+            \Log::info("✅ Historial consultado - Total: " . $historial->count());
 
             return response()->json([
                 'success' => true,

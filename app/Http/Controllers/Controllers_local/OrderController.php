@@ -54,9 +54,9 @@ class OrderController extends Controller
       $validaciones = [
         'total'     => 'required',
         'products'  => 'required',
-        'waiter_id' => 'required',
-        // Si el modo garzon NO esta activado, la mesa es obligatoria, por el contrario si esta activado, deja de ser obligatoria
-        'board_id'  => (!CurrentApp::ConfStr('modulos.cafeteria.submodulos.garzon_mode')) ? 'required' : '',
+        // ✅ waiter_id y board_id son opcionales para permitir merchandise (llevar)
+        'waiter_id' => 'nullable',
+        'board_id'  => 'nullable',
       ];
     }
 
@@ -76,6 +76,9 @@ class OrderController extends Controller
     if ($validator->fails()) return response()->json($validator->errors(), 400);
 
     if (CurrentApp::ConfStr('modulos.cafeteria')) {
+      // ✅ Variables para mesero y mesa (pueden ser null para merchandise)
+      $waiter = null;
+      $board = null;
 
       // Verificando existencia de la mesa y que no este ocupada (Si es que se envio una mesa)
       if (isset($_request['board_id']) && $_request['board_id']) {
@@ -85,9 +88,11 @@ class OrderController extends Controller
         if ($verifyStateBoard) return response()->json("La mesa seleccionada ya se encuentra ocupada", 404);
       }
 
-      // Verificando existencia del mesero
-      $waiter = Waiter::find($_request['waiter_id']);
-      if (!$waiter) return response()->json("Mesero no encontrado", 404);
+      // Verificando existencia del mesero (solo si se envió)
+      if (isset($_request['waiter_id']) && $_request['waiter_id']) {
+        $waiter = Waiter::find($_request['waiter_id']);
+        if (!$waiter) return response()->json("Mesero no encontrado", 404);
+      }
     }
 
     // Creando orden
@@ -104,8 +109,9 @@ class OrderController extends Controller
         ]);
       }
 
+      // ✅ Asignar mesero y mesa solo si existen (pueden ser null para merchandise)
       $order->waiter  = $waiter;
-      $order->board   = (isset($board) && $board) ? $board : null;
+      $order->board   = $board;
     }
 
     // Procesar información especial del pago si existe

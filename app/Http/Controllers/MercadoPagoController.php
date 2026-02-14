@@ -21,20 +21,26 @@ class MercadoPagoController extends Controller
         try {
             $appId = CurrentApp::App()->id;
             
-            // Solo Las Condes (app_id 116) tiene MercadoPago configurado
-            if ($appId != 116) {
+            // Validar que sea un negocio con MercadoPago configurado
+            // app_id 116 = Las Condes, app_id 58 = Agustinas
+            if (!in_array($appId, [58, 116])) {
                 return response()->json([
                     'ok' => false,
                     'message' => 'MercadoPago no está configurado para este negocio'
                 ], 403);
             }
             
+            // Determinar terminal según app_id
+            $terminal = ($appId == 58) 
+                ? 'NEWLAND_N950__N950NCC804178629'  // Terminal Agustinas
+                : 'NEWLAND_N950__N950NCC302980808'; // Terminal Las Condes
+            
             return response()->json([
                 'ok' => true,
                 'data' => [
                     'enabled' => true,
                     'app_id' => $appId,
-                    'terminal' => 'NEWLAND_N950__N950NCC302980807', // Terminal 2 del .env
+                    'terminal' => $terminal,
                     'base_url' => $this->mercadoPagoUrl
                 ]
             ]);
@@ -60,8 +66,9 @@ class MercadoPagoController extends Controller
         try {
             $appId = CurrentApp::App()->id;
             
-            // Validar que sea Las Condes
-            if ($appId != 116) {
+            // Validar que sea un negocio con MercadoPago configurado
+            // app_id 116 = Las Condes, app_id 58 = Agustinas
+            if (!in_array($appId, [58, 116])) {
                 return response()->json([
                     'ok' => false,
                     'message' => 'MercadoPago no está configurado para este negocio'
@@ -194,8 +201,9 @@ class MercadoPagoController extends Controller
         try {
             $appId = CurrentApp::App()->id;
             
-            // Validar que sea Las Condes
-            if ($appId != 116) {
+            // Validar que sea un negocio con MercadoPago configurado
+            // app_id 116 = Las Condes, app_id 58 = Agustinas
+            if (!in_array($appId, [58, 116])) {
                 return response()->json([
                     'ok' => false,
                     'message' => 'MercadoPago no está configurado para este negocio'

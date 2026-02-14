@@ -1,9 +1,12 @@
 // ============================================
 // Stock por Sucursales - JavaScript
 // ============================================
+// VERSION: 2026-02-13 12:30 - Filtrar antes de agrupar en Resumen
 
 // Configurar moment.js en español
 moment.locale('es');
+
+console.log('🚀 Stock Sucursales cargado - VERSION: 2026-02-13 12:30');
 
 // Variables globales
 let datosResumen = [];
@@ -93,10 +96,10 @@ async function cargarDatos() {
 
 async function cargarResumen() {
     try {
-        console.log('📊 Cargando resumen...');
+        console.log('📊 Cargando resumen desde historial_stock_diario...');
         
-        // USAR ENDPOINT ADMIN QUE NO FILTRA POR LLAVE
-        const url = generarURLApi('/local/admin/pedidofinal/stock-negocio/resumen');
+        // Usar endpoint de historial diario - obtiene últimos registros
+        const url = generarURLApi('/local/pedidofinal/historial-dia');
         
         await __conection({
             url: url,
@@ -104,25 +107,40 @@ async function cargarResumen() {
             dev: true,
             method: 'GET'
         }, {}, function(request) {
-            console.log('🔍 DEBUG Resumen - request completo:', request);
-            console.log('🔍 DEBUG Resumen - request.data:', request.data);
-            
             const result = request.data || request;
             
+            let todosLosRegistros = [];
             // Detectar formato de respuesta
             if (Array.isArray(result)) {
-                datosResumen = result;
-                console.log('✅ Caso 1: Array directo con', result.length, 'items');
+                todosLosRegistros = result;
             } else if (result && Array.isArray(result.data)) {
-                datosResumen = result.data;
-                console.log('✅ Caso 2: result.data con', result.data.length, 'items');
+                todosLosRegistros = result.data;
             } else {
-                datosResumen = [];
-                console.log('⚠️ No se detectó formato correcto');
+                todosLosRegistros = [];
+                console.warn('⚠️ Formato de respuesta inesperado');
             }
             
-            console.log('✅ Resumen cargado:', datosResumen.length, 'registros');
-            console.log('📋 Datos del resumen:', datosResumen);
+            // AGRUPAR: Obtener solo el último registro por negocio-producto
+            const registrosPorClave = {};
+            todosLosRegistros.forEach(item => {
+                const clave = `${item.id_negocio}_${item.id_producto}`;
+                // Usar created_at si existe (timestamp completo), sino fecha_reporte
+                const fechaActualStr = item.created_at || (item.fecha_reporte + ' 00:00:00');
+                const fechaActual = new Date(fechaActualStr);
+                
+                if (!registrosPorClave[clave]) {
+                    registrosPorClave[clave] = item;
+                } else {
+                    const fechaExistenteStr = registrosPorClave[clave].created_at || (registrosPorClave[clave].fecha_reporte + ' 00:00:00');
+                    const fechaExistente = new Date(fechaExistenteStr);
+                    if (fechaActual > fechaExistente) {
+                        registrosPorClave[clave] = item;
+                    }
+                }
+            });
+            
+            datosResumen = Object.values(registrosPorClave);
+            console.log('✅ Resumen cargado:', datosResumen.length, 'productos únicos de', todosLosRegistros.length, 'registros totales');
         });
     } catch (error) {
         console.error('❌ Error cargando resumen:', error);
@@ -136,10 +154,10 @@ async function cargarResumen() {
 
 async function cargarHistorial() {
     try {
-        console.log('📜 Cargando historial...');
+        console.log('📜 Cargando historial desde historial_stock_diario...');
         
-        // USAR ENDPOINT ADMIN QUE NO FILTRA POR LLAVE
-        const url = generarURLApi('/local/admin/pedidofinal/stock-negocio');
+        // Usar endpoint de historial diario - sin fecha para obtener todos
+        const url = generarURLApi('/local/pedidofinal/historial-dia');
         
         await __conection({
             url: url,
@@ -147,25 +165,19 @@ async function cargarHistorial() {
             dev: true,
             method: 'GET'
         }, {}, function(request) {
-            console.log('🔍 DEBUG Historial - request completo:', request);
-            console.log('🔍 DEBUG Historial - request.data:', request.data);
-            
             const result = request.data || request;
             
             // Detectar formato de respuesta
             if (Array.isArray(result)) {
                 datosHistorial = result;
-                console.log('✅ Caso 1: Array directo con', result.length, 'items');
             } else if (result && Array.isArray(result.data)) {
                 datosHistorial = result.data;
-                console.log('✅ Caso 2: result.data con', result.data.length, 'items');
             } else {
                 datosHistorial = [];
-                console.log('⚠️ No se detectó formato correcto');
+                console.warn('⚠️ Formato de respuesta inesperado');
             }
             
             console.log('✅ Historial cargado:', datosHistorial.length, 'registros');
-            console.log('📋 Datos del historial:', datosHistorial);
         });
     } catch (error) {
         console.error('❌ Error cargando historial:', error);
@@ -184,6 +196,7 @@ function aplicarFiltros() {
     const fechaHasta = $('#filtroFechaHasta').val();
     
     console.log('🔍 Aplicando filtros:', { idLocal, textoProducto, fechaDesde, fechaHasta });
+    console.log('📊 Datos antes de filtrar:', { resumen: datosResumen.length, historial: datosHistorial.length });
     
     // Obtener el nombre del local seleccionado
     let nombreLocalSeleccionado = '';
@@ -193,8 +206,9 @@ function aplicarFiltros() {
         console.log('🏪 Filtrando por local:', nombreLocalSeleccionado, '(ID:', idLocal, ')');
     }
     
-    // Filtrar resumen
-    let resumenFiltrado = [...datosResumen];
+    // RESUMEN: Filtrar PRIMERO desde historial completo, luego agrupar
+    console.log('📊 RESUMEN: Filtrando desde historial completo antes de agrupar...');
+    let resumenFiltrado = [...datosHistorial];
     
     if (idLocal && nombreLocalSeleccionado) {
         resumenFiltrado = resumenFiltrado.filter(item => {
@@ -216,23 +230,103 @@ function aplicarFiltros() {
     }
     
     if (textoProducto) {
-        resumenFiltrado = resumenFiltrado.filter(item => {
+        console.log(`🔎 FILTRANDO RESUMEN por: "${textoProducto}"`);
+        const antesResumen = resumenFiltrado.length;
+        let contadorCoincidencias = 0;
+        
+        resumenFiltrado = resumenFiltrado.filter((item, idx) => {
+            // Buscar en múltiples campos
             const producto = String(item.producto_nombre || '').toLowerCase();
-            return producto.includes(textoProducto);
+            const cantidad = String(item.cantidad_reportada || '');
+            const idProducto = String(item.id_producto || '');
+            const unidad = String(item.unidad_medida || '').toLowerCase();
+            const negocio = String(item.nombre_negocio || '').toLowerCase();
+            const usuario = String(item.usuario || '').toLowerCase();
+            
+            // Buscar también en la fecha formateada
+            let fechaFormateada = '';
+            if (item.created_at || item.fecha_reporte) {
+                const fechaStr = item.created_at || (item.fecha_reporte + ' 00:00:00');
+                fechaFormateada = moment(fechaStr).format('DD/MM/YYYY');
+            }
+            
+            const coincide = producto.includes(textoProducto) ||
+                           cantidad.includes(textoProducto) ||
+                           idProducto.includes(textoProducto) ||
+                           unidad.includes(textoProducto) ||
+                           negocio.includes(textoProducto) ||
+                           usuario.includes(textoProducto) ||
+                           fechaFormateada.includes(textoProducto);
+            
+            // Log solo de los que SÍ coinciden (primeros 10)
+            if (coincide && contadorCoincidencias < 10) {
+                console.log(`  ✅ MATCH #${contadorCoincidencias + 1}: ${producto.substring(0, 30)} | Fecha: ${fechaFormateada} | Cant: ${cantidad}`);
+                contadorCoincidencias++;
+            }
+            
+            return coincide;
         });
+        console.log(`✅ Filtro aplicado: ${antesResumen} → ${resumenFiltrado.length} (resumen)`);
     }
     
     if (fechaDesde) {
-        resumenFiltrado = resumenFiltrado.filter(item => {
-            return moment(item.fecha_registro).isSameOrAfter(moment(fechaDesde));
+        console.log(`📅 Filtrando por fecha DESDE: ${fechaDesde}`);
+        const antesFechaDesde = resumenFiltrado.length;
+        
+        resumenFiltrado = resumenFiltrado.filter((item, idx) => {
+            const fechaItem = moment(item.fecha_reporte);
+            const fechaFiltro = moment(fechaDesde);
+            const cumple = fechaItem.isSameOrAfter(fechaFiltro);
+            
+            // Log primeros 3
+            if (idx < 3) {
+                console.log(`  Item: fecha_reporte="${item.fecha_reporte}" → moment="${fechaItem.format('YYYY-MM-DD')}" >= "${fechaFiltro.format('YYYY-MM-DD')}" = ${cumple}`);
+            }
+            
+            return cumple;
         });
+        console.log(`  Después fechaDesde: ${antesFechaDesde} → ${resumenFiltrado.length}`);
     }
     
     if (fechaHasta) {
-        resumenFiltrado = resumenFiltrado.filter(item => {
-            return moment(item.fecha_registro).isSameOrBefore(moment(fechaHasta).endOf('day'));
+        console.log(`📅 Filtrando por fecha HASTA: ${fechaHasta}`);
+        const antesFechaHasta = resumenFiltrado.length;
+        
+        resumenFiltrado = resumenFiltrado.filter((item, idx) => {
+            const fechaItem = moment(item.fecha_reporte);
+            const fechaFiltro = moment(fechaHasta).endOf('day');
+            const cumple = fechaItem.isSameOrBefore(fechaFiltro);
+            
+            // Log primeros 3
+            if (idx < 3) {
+                console.log(`  Item: fecha_reporte="${item.fecha_reporte}" → moment="${fechaItem.format('YYYY-MM-DD')}" <= "${fechaFiltro.format('YYYY-MM-DD')}" = ${cumple}`);
+            }
+            
+            return cumple;
         });
+        console.log(`  Después fechaHasta: ${antesFechaHasta} → ${resumenFiltrado.length}`);
     }
+    
+    // AGRUPAR registros filtrados: Mantener solo el último por negocio-producto
+    console.log('🔄 Agrupando registros filtrados por negocio-producto...');
+    const registrosPorClave = {};
+    resumenFiltrado.forEach(item => {
+        const clave = `${item.id_negocio}_${item.id_producto}`;
+        const fechaActualStr = item.created_at || (item.fecha_reporte + ' 00:00:00');
+        const fechaActual = new Date(fechaActualStr);
+        
+        if (!registrosPorClave[clave]) {
+            registrosPorClave[clave] = item;
+        } else {
+            const fechaExistenteStr = registrosPorClave[clave].created_at || (registrosPorClave[clave].fecha_reporte + ' 00:00:00');
+            const fechaExistente = new Date(fechaExistenteStr);
+            if (fechaActual > fechaExistente) {
+                registrosPorClave[clave] = item;
+            }
+        }
+    });
+    resumenFiltrado = Object.values(registrosPorClave);
+    console.log(`✅ Después de agrupar: ${Object.keys(registrosPorClave).length} productos únicos`);
     
     // Filtrar historial
     let historialFiltrado = [...datosHistorial];
@@ -251,22 +345,81 @@ function aplicarFiltros() {
     }
     
     if (textoProducto) {
-        historialFiltrado = historialFiltrado.filter(item => {
+        console.log(`🔎 FILTRANDO HISTORIAL por: "${textoProducto}"`);
+        const antesHistorial = historialFiltrado.length;
+        let contadorCoincidencias = 0;
+        
+        historialFiltrado = historialFiltrado.filter((item, idx) => {
+            // Buscar en múltiples campos
             const producto = String(item.producto_nombre || '').toLowerCase();
-            return producto.includes(textoProducto);
+            const cantidad = String(item.cantidad_reportada || '');
+            const idProducto = String(item.id_producto || '');
+            const unidad = String(item.unidad_medida || '').toLowerCase();
+            const negocio = String(item.nombre_negocio || '').toLowerCase();
+            const usuario = String(item.usuario || '').toLowerCase();
+            
+            // Buscar también en la fecha formateada
+            let fechaFormateada = '';
+            if (item.created_at || item.fecha_reporte) {
+                const fechaStr = item.created_at || (item.fecha_reporte + ' 00:00:00');
+                fechaFormateada = moment(fechaStr).format('DD/MM/YYYY');
+            }
+            
+            const coincide = producto.includes(textoProducto) ||
+                           cantidad.includes(textoProducto) ||
+                           idProducto.includes(textoProducto) ||
+                           unidad.includes(textoProducto) ||
+                           negocio.includes(textoProducto) ||
+                           usuario.includes(textoProducto) ||
+                           fechaFormateada.includes(textoProducto);
+            
+            // Log solo de los que SÍ coinciden (primeros 10)
+            if (coincide && contadorCoincidencias < 10) {
+                console.log(`  ✅ MATCH #${contadorCoincidencias + 1}: ${producto.substring(0, 30)} | Fecha: ${fechaFormateada} | Cant: ${cantidad}`);
+                contadorCoincidencias++;
+            }
+            
+            return coincide;
         });
+        console.log(`✅ Filtro aplicado: ${antesHistorial} → ${historialFiltrado.length} (historial)`);
     }
     
     if (fechaDesde) {
-        historialFiltrado = historialFiltrado.filter(item => {
-            return moment(item.fecha_registro).isSameOrAfter(moment(fechaDesde));
+        console.log(`📅 HISTORIAL - Filtrando por fecha DESDE: ${fechaDesde}`);
+        const antesFechaDesde = historialFiltrado.length;
+        
+        historialFiltrado = historialFiltrado.filter((item, idx) => {
+            const fechaItem = moment(item.fecha_reporte);
+            const fechaFiltro = moment(fechaDesde);
+            const cumple = fechaItem.isSameOrAfter(fechaFiltro);
+            
+            // Log primeros 3
+            if (idx < 3) {
+                console.log(`  Item: fecha_reporte="${item.fecha_reporte}" → moment="${fechaItem.format('YYYY-MM-DD')}" >= "${fechaFiltro.format('YYYY-MM-DD')}" = ${cumple}`);
+            }
+            
+            return cumple;
         });
+        console.log(`  Después fechaDesde: ${antesFechaDesde} → ${historialFiltrado.length}`);
     }
     
     if (fechaHasta) {
-        historialFiltrado = historialFiltrado.filter(item => {
-            return moment(item.fecha_registro).isSameOrBefore(moment(fechaHasta).endOf('day'));
+        console.log(`📅 HISTORIAL - Filtrando por fecha HASTA: ${fechaHasta}`);
+        const antesFechaHasta = historialFiltrado.length;
+        
+        historialFiltrado = historialFiltrado.filter((item, idx) => {
+            const fechaItem = moment(item.fecha_reporte);
+            const fechaFiltro = moment(fechaHasta).endOf('day');
+            const cumple = fechaItem.isSameOrBefore(fechaFiltro);
+            
+            // Log primeros 3
+            if (idx < 3) {
+                console.log(`  Item: fecha_reporte="${item.fecha_reporte}" → moment="${fechaItem.format('YYYY-MM-DD')}" <= "${fechaFiltro.format('YYYY-MM-DD')}" = ${cumple}`);
+            }
+            
+            return cumple;
         });
+        console.log(`  Después fechaHasta: ${antesFechaHasta} → ${historialFiltrado.length}`);
     }
     
     console.log('📊 Resultados filtrados:', resumenFiltrado.length, 'resumen,', historialFiltrado.length, 'historial');
@@ -317,6 +470,7 @@ function cambiarVista(vista) {
 // ============================================
 
 function renderizarResumen(datos) {
+    console.log('🎨 Renderizando RESUMEN con', datos.length, 'items');
     const $tbody = $('#tablaResumen');
     $tbody.empty();
     
@@ -332,11 +486,28 @@ function renderizarResumen(datos) {
         return;
     }
     
+    console.log('📝 Primeros 3 items a renderizar:', datos.slice(0, 3).map(d => ({ 
+        producto: d.producto_nombre, 
+        fecha: d.fecha_reporte,
+        cantidad: d.cantidad_reportada
+    })));
+    
     datos.forEach(item => {
         const tipo = detectarTipoMedida(item.unidad_medida);
         const tipoTexto = tipo.charAt(0).toUpperCase() + tipo.slice(1);
         const cantidad = formatearCantidad(item.cantidad_reportada, item.unidad_medida);
-        const fecha = moment(item.fecha_registro).format('DD/MM/YYYY HH:mm');
+        
+        // Usar created_at si existe, sino fecha_reporte
+        let fechaCompleta;
+        if (item.created_at) {
+            fechaCompleta = item.created_at;
+        } else if (item.fecha_reporte) {
+            fechaCompleta = item.fecha_reporte + ' 00:00:00';
+        } else {
+            fechaCompleta = null;
+        }
+        
+        const fecha = fechaCompleta ? moment(fechaCompleta).format('DD/MM/YYYY HH:mm') : 'Sin fecha';
         
         $tbody.append(`
             <tr>
@@ -366,6 +537,7 @@ function renderizarResumen(datos) {
 // ============================================
 
 function renderizarHistorial(datos) {
+    console.log('🎨 Renderizando HISTORIAL con', datos.length, 'items');
     const $tbody = $('#tablaHistorial');
     $tbody.empty();
     
@@ -385,7 +557,18 @@ function renderizarHistorial(datos) {
         const tipo = detectarTipoMedida(item.unidad_medida);
         const tipoTexto = tipo.charAt(0).toUpperCase() + tipo.slice(1);
         const cantidad = formatearCantidad(item.cantidad_reportada, item.unidad_medida);
-        const fecha = moment(item.fecha_registro).format('DD/MM/YYYY HH:mm');
+        
+        // Usar created_at si existe, sino fecha_reporte
+        let fechaCompleta;
+        if (item.created_at) {
+            fechaCompleta = item.created_at;
+        } else if (item.fecha_reporte) {
+            fechaCompleta = item.fecha_reporte + ' 00:00:00';
+        } else {
+            fechaCompleta = null;
+        }
+        
+        const fecha = fechaCompleta ? moment(fechaCompleta).format('DD/MM/YYYY HH:mm') : 'Sin fecha';
         
         $tbody.append(`
             <tr>

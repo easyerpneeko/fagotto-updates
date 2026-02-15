@@ -659,6 +659,11 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::match(['post', 'put'], '/local/pedidofinal/precio/{id}', 'Controllers_local\RequestsController@updatePedidoFinalPrecio');
           Route::match(['post', 'put'], '/local/pedidofinal/nombre/{id}', 'Controllers_local\RequestsController@updatePedidoFinalNombre');
           
+          // Historial diario de stock
+          Route::post('/local/pedidofinal/historial-dia', 'Controllers_local\PedidoFinalStockController@guardarHistorialDiario');
+          Route::get('/local/pedidofinal/historial-dia', 'Controllers_local\PedidoFinalStockController@getHistorialPorDia');
+          Route::get('/local/pedidofinal/historial-fechas', 'Controllers_local\PedidoFinalStockController@getFechasDisponibles');
+          
           Route::put('/local/request/{id}', 'Controllers_local\RequestsController@update');
           Route::delete('/local/request/{id}', 'Controllers_local\RequestsController@remove');
           Route::put('/local/request/decline/{app_id}/{id}', 'Controllers_local\RequestsController@decline');

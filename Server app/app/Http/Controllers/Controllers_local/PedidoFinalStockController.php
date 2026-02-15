@@ -16,7 +16,7 @@ class PedidoFinalStockController extends Controller
     public function getStock(Request $request)
     {
         try {
-            $productos = DB::connection('easyerp')->table('pedidofinal_precios')
+            $productos = DB::table('pedidofinal_precios')
                 ->where('activo', 1)
                 ->orderBy('categoria', 'asc')
                 ->orderBy('producto', 'asc')
@@ -472,38 +472,40 @@ class PedidoFinalStockController extends Controller
     public function registrarStockPorNegocio(Request $request)
     {
         try {
-            // Log de datos recibidos para debug
-            \Log::info('📦 STOCK NEGOCIO: Datos recibidos', $request->all());
-
             $request->validate([
                 'id_producto' => 'required|integer',
-                'producto_nombre' => 'required|string',
                 'cantidad_reportada' => 'required|numeric',
-                'unidad_medida' => 'nullable|string',
                 'id_negocio' => 'nullable|integer',
-                'app_id' => 'nullable',
+                'app_id' => 'nullable|string',
                 'nombre_negocio' => 'nullable|string',
                 'usuario' => 'nullable|string',
                 'observacion' => 'nullable|string'
             ]);
 
-            \Log::info('✅ STOCK NEGOCIO: Validación pasada');
+            // Obtener datos del producto
+            $producto = DB::table('pedidofinal_precios')
+                ->where('id', $request->id_producto)
+                ->first();
 
-            // Insertar registro directamente con los datos del request
-            $id = DB::connection('easyerp')->table('pedidofinal_stock_por_negocio')->insertGetId([
+            if (!$producto) {
+                return response()->json([
+                    'error' => 'Producto no encontrado'
+                ], 404);
+            }
+
+            // Insertar registro
+            $id = DB::table('pedidofinal_stock_por_negocio')->insertGetId([
                 'id_producto' => $request->id_producto,
-                'producto_nombre' => $request->producto_nombre,
+                'producto_nombre' => $producto->producto,
                 'id_negocio' => $request->id_negocio,
                 'app_id' => $request->app_id,
                 'nombre_negocio' => $request->nombre_negocio,
                 'cantidad_reportada' => $request->cantidad_reportada,
-                'unidad_medida' => $request->unidad_medida ?? 'kg',
+                'unidad_medida' => $producto->unidad_medida,
                 'usuario' => $request->usuario ?? 'Sistema',
                 'observacion' => $request->observacion,
                 'fecha_registro' => now()
             ]);
-
-            \Log::info('💾 STOCK NEGOCIO: Registro insertado con ID: ' . $id);
 
             return response()->json([
                 'success' => true,
@@ -511,15 +513,7 @@ class PedidoFinalStockController extends Controller
                 'data' => ['id' => $id]
             ], 201);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('❌ STOCK NEGOCIO: Error de validación', ['errors' => $e->errors()]);
-            return response()->json([
-                'error' => 'Error de validación',
-                'message' => 'The given data was invalid.',
-                'errors' => $e->errors()
-            ], 422);
         } catch (\Exception $e) {
-            \Log::error('❌ STOCK NEGOCIO: Error general', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
                 'error' => 'Error al registrar stock',
                 'message' => $e->getMessage()
@@ -535,7 +529,7 @@ class PedidoFinalStockController extends Controller
     public function getStockPorNegocio(Request $request)
     {
         try {
-            $query = DB::connection('easyerp')->table('pedidofinal_stock_por_negocio');
+            $query = DB::table('pedidofinal_stock_por_negocio');
 
             // Filtros
             if ($request->has('id_negocio')) {
@@ -588,7 +582,7 @@ class PedidoFinalStockController extends Controller
     {
         try {
             // SOLUCIÓN SIMPLE: Traer todos los registros y agrupar en PHP
-            $todosLosRegistros = DB::connection('easyerp')->table('pedidofinal_stock_por_negocio')
+            $todosLosRegistros = DB::table('pedidofinal_stock_por_negocio')
                 ->leftJoin('pedidofinal_precios as p', 'pedidofinal_stock_por_negocio.id_producto', '=', 'p.id')
                 ->select(
                     'pedidofinal_stock_por_negocio.*',
@@ -649,7 +643,7 @@ class PedidoFinalStockController extends Controller
             \Log::info('🔍 ADMIN: Request headers: ' . json_encode($request->headers->all()));
             
             // Usar DB:: normal en vez de connection('master')
-            $todosLosRegistros = DB::connection('easyerp')->table('pedidofinal_stock_por_negocio')
+            $todosLosRegistros = DB::table('pedidofinal_stock_por_negocio')
                 ->leftJoin('pedidofinal_precios as p', 'pedidofinal_stock_por_negocio.id_producto', '=', 'p.id')
                 ->select(
                     'pedidofinal_stock_por_negocio.*',
@@ -758,6 +752,192 @@ class PedidoFinalStockController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => 'Error al obtener historial',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Guardar historial de stock diario
+     * POST /api/local/pedidofinal/historial-dia
+     */
+    public function guardarHistorialDiario(Request $request)
+    {
+        try {
+            $request->validate([
+                'id_producto' => 'required|integer',
+                'producto_nombre' => 'required|string',
+                'cantidad_reportada' => 'required|numeric',
+                'unidad_medida' => 'nullable|string',
+                'id_negocio' => 'nullable|integer',
+                'nombre_negocio' => 'nullable|string',
+                'app_id' => 'nullable',
+                'usuario' => 'nullable|string',
+                'observacion' => 'nullable|string',
+                'fecha_reporte' => 'nullable|date'
+            ]);
+
+            $fechaReporte = $request->fecha_reporte ?? date('Y-m-d');
+
+            // Verificar si ya existe un registro para este producto, negocio y fecha
+            $existente = DB::table('historial_stock_diario')
+                ->where('id_producto', $request->id_producto)
+                ->where('id_negocio', $request->id_negocio)
+                ->where('fecha_reporte', $fechaReporte)
+                ->first();
+
+            if ($existente) {
+                // Actualizar el registro existente
+                DB::table('historial_stock_diario')
+                    ->where('id', $existente->id)
+                    ->update([
+                        'cantidad_reportada' => $request->cantidad_reportada,
+                        'unidad_medida' => $request->unidad_medida,
+                        'usuario' => $request->usuario,
+                        'observacion' => $request->observacion,
+                        'updated_at' => now()
+                    ]);
+
+                \Log::info("✅ Historial actualizado - Producto: {$request->id_producto}, Fecha: {$fechaReporte}");
+            } else {
+                // Crear nuevo registro
+                DB::table('historial_stock_diario')->insert([
+                    'id_producto' => $request->id_producto,
+                    'producto_nombre' => $request->producto_nombre,
+                    'id_negocio' => $request->id_negocio,
+                    'nombre_negocio' => $request->nombre_negocio,
+                    'app_id' => $request->app_id,
+                    'cantidad_reportada' => $request->cantidad_reportada,
+                    'unidad_medida' => $request->unidad_medida,
+                    'fecha_reporte' => $fechaReporte,
+                    'usuario' => $request->usuario,
+                    'observacion' => $request->observacion,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+
+                \Log::info("✅ Historial creado - Producto: {$request->id_producto}, Fecha: {$fechaReporte}");
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Historial de stock guardado correctamente',
+                'fecha' => $fechaReporte
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('❌ Error en guardarHistorialDiario: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => 'Error al guardar historial',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener historial de stock por día específico
+     * GET /api/local/pedidofinal/historial-dia?fecha=2024-01-21&id_negocio=1
+     * Si no se pasa fecha, devuelve TODOS los registros
+     */
+    public function getHistorialPorDia(Request $request)
+    {
+        try {
+            $fecha = $request->fecha ?? null;
+            $idNegocio = $request->id_negocio ?? null;
+
+            $query = DB::table('historial_stock_diario')
+                ->select([
+                    'id',
+                    'id_producto',
+                    'producto_nombre',
+                    'id_negocio',
+                    'nombre_negocio',
+                    'app_id',
+                    'cantidad_reportada',
+                    'unidad_medida',
+                    'fecha_reporte',
+                    'usuario',
+                    'observacion',
+                    'created_at',
+                    'updated_at'
+                ]);
+
+            // Solo filtrar por fecha si se proporciona
+            if ($fecha) {
+                $query->where('fecha_reporte', $fecha);
+                \Log::info("📊 Consultando historial para fecha: {$fecha}");
+            } else {
+                \Log::info("📊 Consultando TODO el historial (sin filtro de fecha)");
+            }
+
+            if ($idNegocio) {
+                $query->where('id_negocio', $idNegocio);
+            }
+
+            $historial = $query
+                ->orderBy('fecha_reporte', 'desc')
+                ->orderBy('producto_nombre', 'asc')
+                ->get();
+
+            \Log::info("✅ Historial consultado - Total: " . $historial->count());
+
+            return response()->json([
+                'success' => true,
+                'data' => $historial,
+                'fecha' => $fecha,
+                'total' => $historial->count()
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('❌ Error en getHistorialPorDia: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => 'Error al obtener historial del día',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener fechas disponibles con stock registrado
+     * GET /api/local/pedidofinal/historial-fechas?id_negocio=1
+     */
+    public function getFechasDisponibles(Request $request)
+    {
+        try {
+            $idNegocio = $request->id_negocio ?? null;
+
+            $query = DB::table('historial_stock_diario')
+                ->select(
+                    'fecha_reporte as fecha',
+                    DB::raw('COUNT(DISTINCT id_producto) as total_productos'),
+                    DB::raw('MAX(usuario) as usuario'),
+                    DB::raw('MAX(nombre_negocio) as negocio')
+                )
+                ->groupBy('fecha_reporte');
+
+            if ($idNegocio) {
+                $query->where('id_negocio', $idNegocio);
+            }
+
+            $fechas = $query
+                ->orderBy('fecha_reporte', 'desc')
+                ->get();
+
+            \Log::info("📅 Fechas disponibles encontradas: " . $fechas->count());
+
+            return response()->json([
+                'success' => true,
+                'data' => $fechas,
+                'total' => $fechas->count()
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('❌ Error en getFechasDisponibles: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => 'Error al obtener fechas disponibles',
                 'message' => $e->getMessage()
             ], 500);
         }

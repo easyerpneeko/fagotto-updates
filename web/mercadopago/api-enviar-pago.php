@@ -106,21 +106,14 @@ $externalReference = $data['referencia'] ?? "REF-" . time();
 $paymentType = $data['payment_type'] ?? 'debit';
 $mercadoPagoPaymentType = ($paymentType === 'credit') ? 'credit_card' : 'debit_card';
 
-// Determinar external_store_id según el terminal (para evitar errores de site_id)
-$externalStoreId = null;
-if (strpos($deviceId, 'N950NCC302980807') !== false) {
-    // Terminal 1 NEWLAND - Cuenta 2
-    $externalStoreId = "75998370";
-} elseif (strpos($deviceId, 'SMARTPOS1495485450') !== false) {
-    // Terminal PAX A910 - Cuenta 2/3
-    $externalStoreId = "73565262";
-} elseif (strpos($deviceId, 'N950NCC302980808') !== false) {
-    // Terminal NEWLAND - Cuenta 1 Las Condes
-    $externalStoreId = "76216860";
-} elseif (strpos($deviceId, 'N950NCC804178629') !== false) {
-    // Terminal NEWLAND - Cuenta 4 Agustinas
-    $externalStoreId = "77440880";
-}
+// ⚠️ NOTA: external_store_id NO está soportado por MercadoPago Point API
+// MercadoPago rechaza el campo con error 400: "additionalProperties '$.external_store_id' not allowed"
+// El site_id se determina automáticamente por el device_id configurado en la cuenta
+
+// Referencias de terminales (producción):
+// - Terminal 807 (NEWLAND_N950__N950NCC302980807): Las Condes PRODUCCIÓN Cuenta 2 - ACTIVO
+// - Terminal 629 (NEWLAND_N950__N950NCC804178629): Agustinas PRODUCCIÓN Cuenta 4
+// - Terminal 808 (NEWLAND_N950__N950NCC302980808): PRUEBAS (solo para testing)
 
 $payload = [
     "type" => "point",
@@ -148,11 +141,6 @@ $payload = [
         ]
     ]
 ];
-
-// Agregar external_store_id si está disponible (ayuda a evitar errores de site_id)
-if ($externalStoreId !== null) {
-    $payload['external_store_id'] = $externalStoreId;
-}
 
 // Generar idempotency key único
 $idempotencyKey = uniqid('mppoint_api_', true);

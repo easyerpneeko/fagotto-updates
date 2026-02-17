@@ -793,6 +793,23 @@ export default {
           payload
         );
         
+        // Manejar específicamente HTTP 409 (pago pendiente en terminal)
+        if (response.status === 409) {
+          this.mercadoPagoProcessing = false;
+          this.$awn.alert(
+            `⚠️ HAY UN PAGO PENDIENTE EN EL TERMINAL\n\n` +
+            `Por favor, ve al terminal físico MercadoPago y:\n` +
+            `• Completa el pago pendiente, O\n` +
+            `• Cancela la transacción anterior\n\n` +
+            `Luego intenta nuevamente.`,
+            {
+              labels: { alert: 'Entendido' },
+              durations: { alert: 0 }
+            }
+          );
+          return false;
+        }
+        
         if (!response.success || !response.data) {
           throw new Error(response.message || 'Error al crear el pago');
         }
@@ -826,7 +843,23 @@ export default {
         
       } catch (error) {
         console.error('❌ Error al enviar pago a MercadoPago:', error);
-        this.$awn.alert(`Error: ${error.message || 'No se pudo procesar el pago'}`);
+        
+        let errorMessage = 'No se pudo procesar el pago';
+        
+        // Mensaje más específico según el error
+        if (error.message) {
+          if (error.message.includes('409')) {
+            errorMessage = 'Hay un pago pendiente en el terminal. Por favor, completa o cancela la transacción anterior.';
+          } else if (error.message.includes('400')) {
+            errorMessage = 'Error en los datos del pago. Por favor, intenta nuevamente.';
+          } else if (error.message.includes('conexión') || error.message.includes('timeout')) {
+            errorMessage = 'Error de conexión con MercadoPago. Verifica tu conexión a internet.';
+          } else {
+            errorMessage = error.message;
+          }
+        }
+        
+        this.$awn.alert(`❌ Error: ${errorMessage}`);
         this.mercadoPagoProcessing = false;
         this.mercadoPagoOrderId = null;
       }

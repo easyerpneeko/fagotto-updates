@@ -133,21 +133,43 @@ class MercadoPagoController extends Controller
                 throw new \Exception('Error de conexión con MercadoPago: ' . $curlError);
             }
             
+            // Parsear respuesta (incluso en caso de error)
+            $responseData = json_decode($response, true);
+            
+            // Manejar específicamente HTTP 409 (pago pendiente en terminal)
+            if ($httpCode === 409) {
+                Log::warning('⚠️ Pago pendiente en terminal', [
+                    'http_code' => $httpCode,
+                    'response' => $responseData
+                ]);
+                
+                return response()->json([
+                    'ok' => false,
+                    'message' => $responseData['message'] ?? 'Ya hay un pago pendiente en el terminal. Por favor, completa o cancela el pago actual en el terminal físico.',
+                    'error_code' => 'PAYMENT_PENDING_ON_TERMINAL',
+                    'details' => $responseData
+                ], 409);
+            }
+            
+            // Otros códigos de error HTTP
             if ($httpCode !== 200) {
                 Log::error('Error HTTP al enviar pago: ' . $httpCode);
                 Log::error('Response: ' . $response);
-                throw new \Exception('Error al crear el pago en MercadoPago (HTTP ' . $httpCode . ')');
+                
+                $errorMessage = 'Error al crear el pago en MercadoPago';
+                if ($responseData && isset($responseData['message'])) {
+                    $errorMessage = $responseData['message'];
+                }
+                
+                throw new \Exception($errorMessage . ' (HTTP ' . $httpCode . ')');
             }
-            
-            // Parsear respuesta
-            $responseData = json_decode($response, true);
             
             if (!$responseData) {
                 Log::error('Respuesta inválida de MercadoPago: ' . $response);
                 throw new \Exception('Respuesta inválida de MercadoPago');
             }
             
-            // Verificar si hay error
+            // Verificar si hay error en respuesta exitosa (200)
             if (isset($responseData['error'])) {
                 throw new \Exception($responseData['message'] ?? 'Error al crear el pago');
             }

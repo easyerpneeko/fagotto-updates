@@ -648,6 +648,13 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::post('/local/pedidofinal/stock-negocio', 'Controllers_local\RequestsController@storeStockNegocio');
           Route::get('/local/pedidofinal/stock', 'Controllers_local\RequestsController@getStock');
           
+          // Traspasos de Productos entre Locales
+          Route::get('/local/traspasos-productos', 'Controllers_local\TraspasosController@index');
+          Route::get('/local/traspasos-productos/productos', 'Controllers_local\TraspasosController@getProductos');
+          Route::post('/local/traspasos-productos', 'Controllers_local\TraspasosController@store');
+          Route::get('/local/traspasos-productos/{id}', 'Controllers_local\TraspasosController@show');
+          Route::put('/local/traspasos-productos/{id}/estado', 'Controllers_local\TraspasosController@updateEstado');
+          
           // Historial de cambios (usado por web/pages/stock.html)
           Route::get('/local/pedidofinal/stock/history', 'Controllers_local\RequestsController@getPedidoFinalStockHistory');
           Route::get('/local/pedidofinal/precio/history', 'Controllers_local\RequestsController@getPedidoFinalPrecioHistory');

@@ -250,7 +250,7 @@
 
         <!-- Footer -->
         <div class="footer">
-            <p><strong>(y si te tomas una cerveza ?)</strong></p>
+            <p><strong>Sistema Fagotto ERP</strong></p>
             <p>Pedidos Centralizados - Notificación Automática</p>
             <p style="opacity: 0.8; font-size: 12px; margin-top: 10px;">
                 Este correo fue generado automáticamente. Por favor no responder.

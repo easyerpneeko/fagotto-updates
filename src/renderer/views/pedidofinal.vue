@@ -1,7 +1,7 @@
 ﻿<template>
     <div class="pedido-final-container">
         <!-- Pantalla de Bienvenida -->
-        <div v-if="!inicioSesion" class="welcome-screen">
+        <div v-if="!inicioSesion && !mostrarHistorial" class="welcome-screen">
             <div class="welcome-content">
                 <!-- Logo Fagotto -->
                 <div class="welcome-logo-container">
@@ -53,17 +53,157 @@
                     <p class="next-disponible">Vuelve mañana a las 7:00 AM</p>
                 </div>
                 
-                <!-- CTA Button -->
-                <button @click="iniciarPedido" class="btn-iniciar-modern" :disabled="!horarioActivo || !diaPermitido">
-                    <span class="btn-icon"><i class="fas fa-rocket"></i></span>
-                    <span class="btn-text">{{ obtenerTextoBoton }}</span>
-                    <span class="btn-arrow"><i class="fas fa-arrow-right"></i></span>
-                </button>
+                <!-- CTA Buttons -->
+                <div class="buttons-container">
+                    <!-- Botón Crear Pedido -->
+                    <button @click="iniciarPedido" class="btn-iniciar-modern" :disabled="!diaPermitido || !horarioActivo">
+                        <span class="btn-icon"><i class="fas fa-rocket"></i></span>
+                        <span class="btn-text">{{ obtenerTextoBoton }}</span>
+                        <span class="btn-arrow"><i class="fas fa-arrow-right"></i></span>
+                    </button>
+                    
+                    <!-- Botón Ver Historial (SIEMPRE disponible 24/7) -->
+                    <button @click="verHistorialDirecto" class="btn-historial-modern">
+                        <span class="btn-icon"><i class="fas fa-history"></i></span>
+                        <span class="btn-text">Ver Historial</span>
+                    </button>
+                </div>
+                
+                <!-- Mensaje informativo -->
+                <div v-if="!horarioActivo && diaPermitido" class="info-acceso">
+                    <i class="fas fa-info-circle"></i>
+                    <small>Puedes ver tu historial de pedidos en cualquier momento</small>
+                </div>
                 
                 <!-- Footer Desarrollador -->
                 <div class="developer-footer">
                     <div class="developer-text">
                         <code>Desarrollado por <strong>Jimmy Arriagada</strong></code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vista de Historial Independiente (24/7 disponible) -->
+        <div v-else-if="mostrarHistorial" class="historial-standalone-container">
+            <div class="historial-main">
+                <!-- Header del Historial -->
+                <div class="historial-header-standalone fade-in-up">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8 col-md-6 col-12">
+                            <div class="historial-title-card card">
+                                <div class="card-body">
+                                    <h5>📜 Historial de Pedidos</h5>
+                                    <span>{{ this.app && this.app.Name ? this.app.Name : 'Cargando...' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-12 mt-3 mt-md-0">
+                            <button @click="volverAlInicio" class="btn-volver-inicio w-100">
+                                <i class="fas fa-arrow-left"></i>
+                                Volver al Inicio
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historial de Pedidos -->
+                <div class="section-card fade-in-up">
+                    <div class="section-card-header">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <h3 class="m-0"><i class="fas fa-clock"></i> Historial de Pedidos ({{ historialPedidos.length }})</h3>
+                            <button @click="cargarHistorial" class="btn-refresh-small" :disabled="loadingHistorial" style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;">
+                                <i class="fas fa-sync-alt" :class="{ 'fa-spin': loadingHistorial }"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="section-card-body">
+                        <!-- Estado de carga -->
+                        <div v-show="loadingHistorial" class="loading-modern">
+                            <i class="fas fa-spinner fa-spin"></i> Cargando historial...
+                        </div>
+
+                        <!-- Sin datos -->
+                        <div v-show="!loadingHistorial && historialPedidos.length === 0" class="empty-state fade-in-up">
+                            <i class="fas fa-inbox fa-3x"></i>
+                            <p>No hay pedidos registrados</p>
+                        </div>
+
+                        <!-- Con datos -->
+                        <div v-show="!loadingHistorial && historialPedidos.length > 0" class="historial-grid">
+                            <div v-for="pedido in historialPedidos" :key="'pedido-' + pedido.id" class="historial-card">
+                                <div class="historial-card-header">
+                                    <div class="pedido-numero">
+                                        <i class="fas fa-hashtag"></i> {{ pedido.id }}
+                                    </div>
+                                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                        <div class="pedido-status" :class="'status-' + pedido.status">
+                                            {{ pedido.status }}
+                                        </div>
+                                        <div v-if="pedido.payment_status" class="payment-badge" :class="'payment-' + pedido.payment_status">
+                                            <i class="fas" :class="pedido.payment_status === 'paid' ? 'fa-check-circle' : pedido.payment_status === 'failed' ? 'fa-times-circle' : 'fa-clock'"></i>
+                                            {{ pedido.payment_status === 'paid' ? 'Pagado' : pedido.payment_status === 'failed' ? 'Pago fallido' : 'Pendiente pago' }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="historial-card-body">
+                                    <div class="historial-info">
+                                        <div class="info-row">
+                                            <i class="fas fa-calendar"></i>
+                                            <span>{{ formatDate(pedido.created_at) }}</span>
+                                        </div>
+                                        <div class="info-row">
+                                            <i class="fas fa-user"></i>
+                                            <span>{{ pedido.contact_name }}</span>
+                                        </div>
+                                        <div class="info-row">
+                                            <i class="fas fa-credit-card"></i>
+                                            <span>{{ pedido.paymode }}</span>
+                                        </div>
+                                        <div class="info-row" v-if="pedido.comment">
+                                            <i class="fas fa-comment"></i>
+                                            <span>{{ pedido.comment }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="historial-productos">
+                                        <h5>Productos:</h5>
+                                        <div v-for="(producto, index) in parseProductsSafe(pedido.products)" :key="'p-' + pedido.id + '-' + index" class="producto-item">
+                                            <span class="producto-qty">{{ producto.quantity }}x</span>
+                                            <span class="producto-name">{{ producto.name }}</span>
+                                            <span class="producto-price">${{ formatNumber(parseFloat(producto.price) * parseInt(producto.quantity)) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="historial-card-footer">
+                                    <div class="historial-breakdown">
+                                        <div class="historial-breakdown-row">
+                                            <span class="historial-breakdown-label">NETO:</span>
+                                            <span class="historial-breakdown-value">${{ formatNumber(calcularNetoHistorial(pedido)) }}</span>
+                                        </div>
+                                        <div class="historial-breakdown-row">
+                                            <span class="historial-breakdown-label">EXENTO:</span>
+                                            <span class="historial-breakdown-value">$0</span>
+                                        </div>
+                                        <div class="historial-breakdown-row">
+                                            <span class="historial-breakdown-label">I.V.A (19%):</span>
+                                            <span class="historial-breakdown-value">${{ formatNumber(calcularIVAHistorial(pedido)) }}</span>
+                                        </div>
+                                        <div class="historial-breakdown-separator"></div>
+                                        <div class="historial-breakdown-row historial-breakdown-total">
+                                            <span class="historial-breakdown-label-total">💵 TOTAL:</span>
+                                            <span class="historial-breakdown-value-total">${{ formatNumber(calcularTotalHistorial(pedido)) }}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Botón de pago si está pendiente -->
+                                    <div v-if="pedido.payment_status === 'pending' || !pedido.payment_status" class="historial-actions" style="margin-top: 1rem;">
+                                        <button @click="pagarPedidoExistente(pedido)" class="btn-pagar-historial" style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                            <i class="fas fa-credit-card"></i> Pagar Ahora - ${{ formatNumber(calcularTotalHistorial(pedido)) }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -82,12 +222,6 @@
                                     <span>{{ this.app && this.app.Name ? this.app.Name : 'Cargando...' }} • {{ this.date }}</span>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-lg-2 col-md-6 col-6 mt-3 mt-md-0">
-                            <button @click="mostrarHistorial = !mostrarHistorial" class="btn-urgente w-100">
-                                <i class="fas fa-history"></i>
-                                {{ mostrarHistorial ? 'Pedido' : 'Historial' }}
-                            </button>
                         </div>
                         <div class="col-lg-2 col-md-6 col-6 mt-3 mt-md-0">
                             <button @click="mostrarModalPresupuesto = true" class="btn-urgente w-100" style="background: linear-gradient(45deg, #17a2b8, #138496);">
@@ -154,111 +288,19 @@
                     </div>
                 </div>
 
-                <!-- Historial de Pedidos -->
-                <div v-if="mostrarHistorial" class="section-card fade-in-up">
-                    <div class="section-card-header">
-                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                            <h3 class="m-0"><i class="fas fa-clock"></i> Historial de Pedidos ({{ historialPedidos.length }})</h3>
-                            <button @click="cargarHistorial" class="btn-refresh-small" :disabled="loadingHistorial" style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;">
-                                <i class="fas fa-sync-alt" :class="{ 'fa-spin': loadingHistorial }"></i>
-                            </button>
-                        </div>
+                <!-- Banner de Solo Lectura fuera de Horario -->
+                <div v-if="!horarioActivo" class="banner-solo-lectura fade-in-up">
+                    <div class="banner-icon">
+                        <i class="fas fa-eye"></i>
                     </div>
-                    <div class="section-card-body">
-                        <div v-if="loadingHistorial" class="loading-modern">
-                            <i class="fas fa-spinner fa-spin"></i> Cargando historial...
-                        </div>
-
-                        <div v-else-if="!historialPedidos || historialPedidos.length === 0" class="empty-state fade-in-up">
-                            <i class="fas fa-inbox fa-3x"></i>
-                            <p>No hay pedidos registrados</p>
-                        </div>
-
-                        <div v-else-if="historialConProductosParsed.length === 0" class="empty-state fade-in-up">
-                            <i class="fas fa-exclamation-triangle fa-3x"></i>
-                            <p>Error procesando pedidos (computed vacío)</p>
-                            <small>{{ historialPedidos.length }} pedidos en data pero 0 en computed</small>
-                        </div>
-
-                        <div v-else class="historial-grid">
-                            <div v-for="pedido in historialConProductosParsed" :key="pedido.id" class="historial-card">
-                        <div class="historial-card-header">
-                            <div class="pedido-numero">
-                                <i class="fas fa-hashtag"></i> {{ pedido.id }}
-                            </div>
-                            <div style="display: flex; gap: 0.5rem; align-items: center;">
-                                <div class="pedido-status" :class="'status-' + pedido.status">
-                                    {{ pedido.status }}
-                                </div>
-                                <div v-if="pedido.payment_status" class="payment-badge" :class="'payment-' + pedido.payment_status">
-                                    <i class="fas" :class="pedido.payment_status === 'paid' ? 'fa-check-circle' : pedido.payment_status === 'failed' ? 'fa-times-circle' : 'fa-clock'"></i>
-                                    {{ pedido.payment_status === 'paid' ? 'Pagado' : pedido.payment_status === 'failed' ? 'Pago fallido' : 'Pendiente pago' }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="historial-card-body">
-                            <div class="historial-info">
-                                <div class="info-row">
-                                    <i class="fas fa-calendar"></i>
-                                    <span>{{ formatDate(pedido.created_at) }}</span>
-                                </div>
-                                <div class="info-row">
-                                    <i class="fas fa-user"></i>
-                                    <span>{{ pedido.contact_name }}</span>
-                                </div>
-                                <div class="info-row">
-                                    <i class="fas fa-credit-card"></i>
-                                    <span>{{ pedido.paymode }}</span>
-                                </div>
-                                <div class="info-row" v-if="pedido.comment">
-                                    <i class="fas fa-comment"></i>
-                                    <span>{{ pedido.comment }}</span>
-                                </div>
-                            </div>
-                            <div class="historial-productos">
-                                <h5>Productos:</h5>
-                                <div v-for="(producto, index) in pedido.productosParsed" :key="index" class="producto-item">
-                                    <span class="producto-qty">{{ producto.quantity }}x</span>
-                                    <span class="producto-name">{{ producto.name }}</span>
-                                    <span class="producto-price">${{ formatNumber(parseFloat(producto.price) * parseInt(producto.quantity)) }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="historial-card-footer">
-                            <div class="historial-breakdown">
-                                <div class="historial-breakdown-row">
-                                    <span class="historial-breakdown-label">NETO:</span>
-                                    <span class="historial-breakdown-value">${{ formatNumber(calcularNetoHistorial(pedido)) }}</span>
-                                </div>
-                                <div class="historial-breakdown-row">
-                                    <span class="historial-breakdown-label">EXENTO:</span>
-                                    <span class="historial-breakdown-value">$0</span>
-                                </div>
-                                <div class="historial-breakdown-row">
-                                    <span class="historial-breakdown-label">I.V.A (19%):</span>
-                                    <span class="historial-breakdown-value">${{ formatNumber(calcularIVAHistorial(pedido)) }}</span>
-                                </div>
-                                <div class="historial-breakdown-separator"></div>
-                                <div class="historial-breakdown-row historial-breakdown-total">
-                                    <span class="historial-breakdown-label-total">💵 TOTAL:</span>
-                                    <span class="historial-breakdown-value-total">${{ formatNumber(calcularTotalHistorial(pedido)) }}</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Botón de pago si está pendiente -->
-                            <div v-if="pedido.payment_status === 'pending' || !pedido.payment_status" class="historial-actions" style="margin-top: 1rem;">
-                                <button @click="pagarPedidoExistente(pedido)" class="btn-pagar-historial" style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
-                                    <i class="fas fa-credit-card"></i> Pagar Ahora - ${{ formatNumber(calcularTotalHistorial(pedido)) }}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    <div class="banner-content">
+                        <strong>Modo Solo Lectura</strong>
+                        <p>Fuera del horario de pedidos (7:00 AM - 1:00 PM). Puedes ver tu historial pero no crear nuevos pedidos.</p>
                     </div>
                 </div>
 
                 <!-- Formulario Compacto -->
-                <div v-if="!mostrarHistorial" class="section-card fade-in-up">
+                <div class="section-card fade-in-up">
                     <div class="section-card-header">
                         <h3 class="m-0">📝 Datos del Pedido</h3>
                     </div>
@@ -310,7 +352,7 @@
                 </div>
 
                 <!-- Productos en Cards -->
-                <div v-if="!mostrarHistorial" class="section-card fade-in-up">
+                <div class="section-card fade-in-up">
                     <div class="section-card-header" style="display: flex; justify-content: space-between; align-items: center;">
                         <h3 class="m-0">📦 Selecciona tus Productos ({{ cantidadProductos }})</h3>
                         <button @click="cargarPreciosCentralizados" class="btn-refresh" style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;">
@@ -372,7 +414,7 @@
                 </div>
 
                 <!-- Footer con botón fijo -->
-                <div class="section-card fade-in-up" v-if="!mostrarHistorial">
+                <div class="section-card fade-in-up">
                     <div class="section-card-body" style="padding: 1.5rem;">
                         <div class="products-indicator">
                             <div class="products-status" :class="totalPedido > 0 ? 'has-products' : 'no-products'">
@@ -505,8 +547,8 @@
                                 <input v-model="whatsapp" @input="handleWhatsappInput" type="text" class="form-control" placeholder="Ej: +56949939922" maxlength="12" required>
                             </div>
 
-                            <!-- Selección de método de pago -->
-                            <div class="mb-4">
+                            <!-- ⚠️ SISTEMA DE PAGOS DESACTIVADO CON v-if="false" - PENDIENTE APROBACIÓN GERENCIA -->
+                            <div v-if="false" class="mb-4">
                                 <label style="font-weight: 700; color: #495057; margin-bottom: 1rem; font-size: 1.1rem;">
                                     <i class="fas fa-credit-card"></i> Método de Pago
                                 </label>
@@ -600,9 +642,11 @@
                                     <i class="fas fa-shield-alt"></i> Serás redirigido a Flow.cl para pagar con tu tarjeta de forma segura.
                                 </small>
                             </div>
-                        </div>
+                            </div>
+                            <!-- FIN SISTEMA DE PAGOS DESACTIVADO ⚠️ -->
 
-                        <!-- Procesando pago -->
+                        <!-- ⚠️ COMENTADO - Spinner de procesando pago
+                        Procesando pago
                         <div v-else style="text-align: center; padding: 2rem;">
                             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
                                 <span class="sr-only">Procesando...</span>
@@ -610,26 +654,24 @@
                             <h5 style="margin-top: 1rem; color: #495057;">Preparando pago...</h5>
                             <p style="color: #6c757d;">Serás redirigido a la página de pago.</p>
                         </div>
+                        FIN COMENTADO ⚠️ -->
                     </div>
-                    <div class="modal-footer" style="border-top: 1px solid #dee2e6; padding: 1rem 2rem;" v-if="!processingPayment">
+                    <div class="modal-footer" style="border-top: 1px solid #dee2e6; padding: 1rem 2rem;">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 8px;">
                             <i class="fas fa-times"></i> Cancelar
                         </button>
                         <button @click="procesarPago" 
-                                :disabled="!metodoPagoSeleccionado"
                                 class="btn btn-primary" 
-                                :style="{
-                                    background: metodoPagoSeleccionado === 'flow' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    padding: '0.5rem 2rem',
-                                    fontWeight: '600',
-                                    fontSize: '1.05rem',
-                                    opacity: !metodoPagoSeleccionado ? 0.5 : 1,
-                                    cursor: !metodoPagoSeleccionado ? 'not-allowed' : 'pointer'
-                                }">
-                            <i class="fas fa-dollar-sign"></i> 
-                            Pagar ${{ formatNumber(metodoPagoSeleccionado === 'flow' ? totalConComisionFlow : modalTotalConIVA) }}
+                                style="
+                                    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                                    border: none;
+                                    border-radius: 8px;
+                                    padding: 0.5rem 2rem;
+                                    font-weight: 600;
+                                    font-size: 1.05rem;
+                                ">
+                            <i class="fas fa-check-circle"></i> 
+                            Crear Pedido - ${{ formatNumber(modalTotalConIVA) }}
                         </button>
                     </div>
                 </div>
@@ -1048,6 +1090,7 @@ export default {
     },
     async mounted() {
         this.name = this.me.fullname;
+        
         // Cargar productos al iniciar
         await this.cargarPreciosCentralizados();
         // Cargar meta semanal
@@ -1056,7 +1099,6 @@ export default {
         // Auto-mostrar modal de bienvenida/presupuesto si no se ha mostrado antes
         const modalYaMostrado = localStorage.getItem('presupuestoModalShown');
         if (!modalYaMostrado) {
-            // Esperar un momento para que la UI esté lista
             setTimeout(() => {
                 this.mostrarModalPresupuesto = true;
             }, 500);
@@ -1066,12 +1108,9 @@ export default {
         if (this.inicioSesion && this.app && this.app.Id) {
             this.cargarHistorial();
         }
-        // Iniciar actualización automática de stock cada 10 segundos
-        this.iniciarActualizacionStock();
-        // Iniciar actualización automática de historial cada 15 segundos
-        this.iniciarActualizacionHistorial();
         
-        // ⏰ Iniciar countdown timer
+        this.iniciarActualizacionStock();
+        this.iniciarActualizacionHistorial();
         this.iniciarCountdown();
     },
     beforeDestroy() {
@@ -1099,14 +1138,7 @@ export default {
             deep: true
         },
         
-        // Watcher para detectar cuándo se muestra/oculta el historial
-        mostrarHistorial(newVal) {
-            console.log('🔔 [WATCHER] mostrarHistorial cambió a:', newVal);
-            if (newVal && this.historialPedidos.length === 0) {
-                console.log('⚠️ [WATCHER] Historial vacío al mostrarlo, recargando...');
-                this.cargarHistorial();
-            }
-        },
+        // Watcher removido - ahora verHistorialDirecto maneja la carga
         
         // Watcher para detectar cambios en loadingHistorial
         loadingHistorial(newVal) {
@@ -1437,7 +1469,7 @@ export default {
             
             // ⏰ VALIDAR HORARIO (7:00 AM - 1:00 PM)
             const horaInicio = 7;
-            const horaFin = 13;
+            const horaFin = 13; // 1:00 PM
             
             // Convertir a minutos totales para comparación precisa
             const minutosActuales = horaActual * 60 + minutoActual;
@@ -1447,7 +1479,7 @@ export default {
             if (minutosActuales < minutosInicio || minutosActuales >= minutosFin) {
                 const horaFormateada = ahora.format('HH:mm');
                 this.$awn.alert(
-                    `⏰ Los pedidos solo están habilitados entre las 7:00 AM y las 1:00 PM.\n\n` +
+                    `⏰ Los pedidos solo están habilitados entre las 7:00 AM y la 1:00 PM.\n\n` +
                     `Hora actual: ${horaFormateada}\n\n` +
                     `Por favor, intenta nuevamente dentro del horario permitido.`,
                     {
@@ -1500,9 +1532,9 @@ export default {
                 this.diaPermitido = true;
             }
             
-            // ⏰ VALIDAR HORARIO: 7:00 AM - 1:00 PM (13:00)
+            // ⏰ VALIDAR HORARIO: 7:00 AM - 1:00 PM
             const horaInicio = 7;
-            const horaFin = 13;
+            const horaFin = 13; // 1:00 PM
             
             // Crear momento de cierre (1:00 PM hoy)
             const horaCierre = moment().hours(horaFin).minutes(0).seconds(0);
@@ -1545,6 +1577,22 @@ export default {
             if (this.app && this.app.Id) {
                 this.cargarHistorial();
             }
+        },
+        
+        verHistorialDirecto() {
+            console.log('📋 Ver Historial - ACCESO DIRECTO 24/7');
+            
+            // Activar vista de historial
+            this.mostrarHistorial = true;
+            
+            // Cargar datos (no bloqueante)
+            this.cargarHistorial();
+        },
+        
+        volverAlInicio() {
+            console.log('🔙 Volviendo al inicio');
+            this.mostrarHistorial = false;
+            // NO cambiar inicioSesion - mantener en welcome screen
         },
         
         cerrarModalPresupuesto() {
@@ -1877,11 +1925,12 @@ export default {
         },
         
         async procesarPago() {
+            // ⚠️ COMENTADO TEMPORALMENTE - PENDIENTE APROBACIÓN GERENCIA
             // Validar que haya seleccionado un método de pago
-            if (!this.metodoPagoSeleccionado) {
-                this.$awn.alert('Por favor selecciona un método de pago');
-                return;
-            }
+            // if (!this.metodoPagoSeleccionado) {
+            //     this.$awn.alert('Por favor selecciona un método de pago');
+            //     return;
+            // }
             
             if (!this.whatsapp) {
                 this.$awn.alert('Por favor ingresa tu número de WhatsApp para recibir la confirmación');
@@ -1891,13 +1940,18 @@ export default {
             this.processingPayment = true;
             
             try {
-                if (this.metodoPagoSeleccionado === 'linkify') {
-                    // Proceso con Linkify (transferencia)
-                    await this.procesarPagoLinkify();
-                } else if (this.metodoPagoSeleccionado === 'flow') {
-                    // Proceso con Flow (tarjeta)
-                    await this.procesarPagoFlow();
-                }
+                // ⚠️ COMENTADO TEMPORALMENTE - Sistema de pagos pendiente aprobación
+                // if (this.metodoPagoSeleccionado === 'linkify') {
+                //     // Proceso con Linkify (transferencia)
+                //     await this.procesarPagoLinkify();
+                // } else if (this.metodoPagoSeleccionado === 'flow') {
+                //     // Proceso con Flow (tarjeta)
+                //     await this.procesarPagoFlow();
+                // }
+                
+                // Crear el pedido directamente
+                await this.crearPedidoSinPago();
+                this.$awn.success('✅ ¡Pedido enviado exitosamente! Se Enviara un correo a la jefa de local informando el pedido saludos Jimmy.');
             } catch (error) {
                 console.error('❌ Error procesando pago:', error);
                 this.$awn.alert('Error al procesar el pago: ' + error.message);
@@ -2386,16 +2440,16 @@ export default {
                 }
                 
                 this.isLoadingHistorial = true;
+                this.loadingHistorial = true;
+                console.log('🔍 [HISTORIAL] loadingHistorial establecido en:', this.loadingHistorial);
                 
                 // Validar que app esté disponible
                 if (!this.app || !this.app.Id) {
                     console.warn('⚠️ [HISTORIAL] App no disponible aún, esperando...');
-                    this.isLoadingHistorial = false;
                     return;
                 }
                 
                 console.log('🔍 [HISTORIAL] App ID:', this.app.Id);
-                this.loadingHistorial = true;
                 
                 // Usar la misma estructura que pedidos.vue
                 var params = '?params=true&appId=' + this.app.Id;
@@ -2416,24 +2470,32 @@ export default {
                     console.log('🔍 [HISTORIAL] Items recibidos:', request.data.items.length);
                     
                     // Ordenar por fecha más reciente primero
-                    this.historialPedidos = request.data.items.sort((a, b) => {
+                    const pedidosOrdenados = request.data.items.sort((a, b) => {
                         return new Date(b.created_at) - new Date(a.created_at);
                     });
+                    
+                    // Usar $set para asegurar reactividad en Vue 2
+                    this.$set(this, 'historialPedidos', pedidosOrdenados);
                     
                     console.log('✅ [HISTORIAL] Historial asignado:', this.historialPedidos.length, 'pedidos');
                     console.log('🔍 [HISTORIAL] Primer pedido:', this.historialPedidos[0]);
                 } else {
-                this.isLoadingHistorial = false;
                     console.warn('⚠️ [HISTORIAL] No hay items en la respuesta');
-                    this.historialPedidos = [];
+                    this.$set(this, 'historialPedidos', []);
                 }
             } catch (error) {
                 console.error('❌ [HISTORIAL] Error cargando historial:', error);
                 this.$awn.alert('Error al cargar historial de pedidos');
-                this.historialPedidos = [];
+                this.$set(this, 'historialPedidos', []);
             } finally {
+                // Actualizar estados directamente sin $set
+                this.isLoadingHistorial = false;
                 this.loadingHistorial = false;
-                console.log('🏁 [HISTORIAL] Carga finalizada. Total pedidos:', this.historialPedidos.length);
+                
+                console.log('🏁 [HISTORIAL] Carga finalizada.');
+                console.log('   - Total pedidos:', this.historialPedidos.length);
+                console.log('   - loadingHistorial:', this.loadingHistorial);
+                console.log('   - mostrarHistorial:', this.mostrarHistorial);
             }
         },
         
@@ -3035,6 +3097,67 @@ export default {
     transform: translateX(5px);
 }
 
+/* Contenedor de botones */
+.buttons-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+/* Botón Ver Historial */
+.btn-historial-modern {
+    position: relative;
+    padding: 20px 45px;
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-historial-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.btn-historial-modern:hover::before {
+    left: 100%;
+}
+
+.btn-historial-modern:hover:not(:disabled) {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+}
+
+.btn-historial-modern:active:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+.btn-historial-modern:disabled {
+    background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%);
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .welcome-title-modern {
@@ -3054,10 +3177,87 @@ export default {
         font-size: 36px;
     }
     
-    .btn-iniciar-modern {
+    .btn-iniciar-modern,
+    .btn-historial-modern {
         padding: 18px 40px;
         font-size: 16px;
     }
+    
+    .buttons-container {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+}
+
+/* ==================== HISTORIAL STANDALONE (24/7 disponible) ==================== */
+.historial-standalone-container {
+    background: #f5f7fa;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.historial-main {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.historial-header-standalone {
+    margin-bottom: 30px;
+}
+
+.historial-title-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.historial-title-card:hover {
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.historial-title-card .card-body {
+    padding: 1.5rem;
+}
+
+.historial-title-card h5 {
+    margin: 0 0 8px 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.historial-title-card span {
+    color: #6c757d;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.btn-volver-inicio {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    cursor: pointer;
+}
+
+.btn-volver-inicio:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-volver-inicio i {
+    margin-right: 8px;
 }
 
 /* ==================== INTERFAZ PRINCIPAL ==================== */
@@ -4780,6 +4980,67 @@ export default {
     margin: 0;
     color: #1e3a8a;
     font-size: 0.95rem;
+}
+
+/* Banner Solo Lectura */
+.banner-solo-lectura {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+    border: 2px solid #ffc107;
+    border-radius: 12px;
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    box-shadow: 0 3px 10px rgba(255, 193, 7, 0.2);
+}
+
+.banner-icon {
+    font-size: 2rem;
+    color: #ff9800;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.banner-content {
+    flex: 1;
+}
+
+.banner-content strong {
+    color: #e65100;
+    font-size: 1.1rem;
+    display: block;
+    margin-bottom: 0.3rem;
+}
+
+.banner-content p {
+    margin: 0;
+    color: #f57c00;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Info Acceso en Pantalla de Bienvenida */
+.info-acceso {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-left: 4px solid #2196f3;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+    text-align: left;
+}
+
+.info-acceso strong {
+    color: #1565c0;
+    display: block;
+    margin-bottom: 0.3rem;
+}
+
+.info-acceso p {
+    margin: 0;
+    color: #0d47a1;
+    font-size: 0.9rem;
+    line-height: 1.5;
 }
 
 .recomendaciones-list {

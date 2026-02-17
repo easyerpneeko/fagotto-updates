@@ -788,6 +788,17 @@ class StringXML {
           $esPedidoFinal = !isset($primerProducto->costo) && isset($primerProducto->price);
       }
       
+      // 🔥 IMPORTANTE: En pedidofinal, id=1 es HARINA. En tradicional, id=1 es VASO.
+      // Solo eliminamos id=1 si es pedido tradicional (vaso no se factura)
+      if (!$esPedidoFinal) {
+          foreach ($products as $key => $value) {
+              if (isset($value->id) && $value->id == 1) {
+                  // Eliminar vaso de pedidos tradicionales
+                  unset($products[$key]);
+              }
+          }
+      }
+      
       if ($esPedidoFinal) {
           // Para pedidos de pedidofinal.vue, simplemente sumar price * quantity
           foreach ($products as $value) {
@@ -795,12 +806,8 @@ class StringXML {
               $cantidadProductos++;
           }
       } else {
-          // Para pedidos tradicionales
+          // Para pedidos tradicionales (vaso ya fue eliminado del array)
           foreach ($products as $value) {
-            // Saltar el vaso (id=1) ya que su costo se distribuye
-            if (isset($value->id) && $value->id == 1) {
-              continue;
-            }
             // Contar solo productos que forman la fórmula (salsas, queso, huevos, harina)
             // Excluir opcionales (category 3)
             if (isset($value->category) && $value->category !== 3) {
@@ -838,11 +845,7 @@ class StringXML {
           continue;
         }
         
-        // Para pedidos tradicionales
-        // Saltar el vaso
-        if (isset($value->id) && $value->id == 1) {
-          continue;
-        }
+        // Para pedidos tradicionales (vaso ya fue eliminado del array)
 
         // Calcular cantidad según categoría
         if (isset($value->category) && $value->category === 2) {

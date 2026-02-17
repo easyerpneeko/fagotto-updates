@@ -1,6 +1,6 @@
 {
   "name": "fagotto-erp-app",
-  "version": "1.12.32",
+  "version": "1.12.39",
   "author": "",
   "description": "FagottoERP build over electron-vue",
   "license": "null",
@@ -143,6 +143,7 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-stage-0": "^6.24.1",
     "babel-register": "^6.26.0",
+    "bcryptjs": "^3.0.3",
     "cfonts": "^2.1.2",
     "chalk": "^2.4.1",
     "copy-webpack-plugin": "^4.5.1",

@@ -562,14 +562,20 @@ export default {
         
         // 📦 Módulo de Pedido Final - Público para todos
         menu.push({
-          label: 'Crear Pedido',
+          label: 'Sistema de Pedidos',
           route: '/inicio/pedido-final',
           icon: 'fas fa-clipboard-list',
           requiresTurno: false,
           badge: 'NUEVO'
         });
-        
-        // � Stock con Historial por Día (reemplaza al Stock Excel anterior)
+                // 📦 Módulo de Traspaso de Productos
+        menu.push({
+          label: 'Traspaso de Productos',
+          route: '/inicio/traspaso-productos',
+          icon: 'fas fa-exchange-alt',
+          requiresTurno: false
+        });
+                // � Stock con Historial por Día (reemplaza al Stock Excel anterior)
         menu.push({
           label: 'Stock Historial',
           route: '/inicio/stock-historial',

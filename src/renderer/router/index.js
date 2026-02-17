@@ -217,6 +217,11 @@ const router = new Router({
           meta: { requiresTurno: false }
         },
         {
+          path: 'traspaso-productos',
+          component: require('@/views/traspaso-productos.vue').default,
+          meta: { requiresTurno: false }
+        },
+        {
           path: 'stock-historial',
           component: require('@/views/stock-excel-historial.vue').default,
           meta: { requiresTurno: false }

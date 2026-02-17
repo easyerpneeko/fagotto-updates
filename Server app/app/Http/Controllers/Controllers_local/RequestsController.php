@@ -155,25 +155,21 @@ class RequestsController extends Controller
 
     public function storePedidoFinal(Request $request)
     {
-        // 🧪 Excepción permanente para local de pruebas (ID 121)
         $appId = $request->input('app_id');
-        $isTestLocal = ($appId == 121);
         
-        if (!$isTestLocal) {
-            // 🕐 Validar horario permitido para pedidos (7:00 AM - 1:00 PM)
-            $horaActual = Carbon::now('America/Santiago');
-            $horaInicio = Carbon::createFromTime(7, 0, 0, 'America/Santiago');
-            $horaFin = Carbon::createFromTime(23, 0, 0, 'America/Santiago'); // 🚨 TEMPORAL JIMMY TESTING - REVERTIR A 13 ANTES DE LAS 23:00
-            
-            if (!$horaActual->between($horaInicio, $horaFin)) {
-                $horaActualFormateada = $horaActual->format('H:i');
-                return response()->json([
-                    'success' => false,
-                    'message' => "⏰ Los pedidos solo están habilitados entre las 7:00 AM y las 11:00 PM (TEMPORAL).\n\nHora actual: {$horaActualFormateada}\n\nPor favor, intenta nuevamente dentro del horario permitido."
-                ], 403);
-            }
+        // 🕐 Validar horario permitido para pedidos (7:00 AM - 1:00 PM)
+        $horaActual = Carbon::now('America/Santiago');
+        $horaInicio = Carbon::createFromTime(7, 0, 0, 'America/Santiago');
+        $horaFin = Carbon::createFromTime(13, 0, 0, 'America/Santiago'); // 1:00 PM
+        
+        if (!$horaActual->between($horaInicio, $horaFin)) {
+            $horaActualFormateada = $horaActual->format('H:i');
+            return response()->json([
+                'success' => false,
+                'message' => "⏰ Los pedidos solo están habilitados entre las 7:00 AM y la 1:00 PM.\n\nHora actual: {$horaActualFormateada}\n\nPor favor, intenta nuevamente dentro del horario permitido."
+            ], 403);
         }
-
+            
         // 📅 Validar día de la semana permitido según tipo de negocio
         
         // IDs de locales propios (Martes, Jueves, Viernes)
@@ -185,37 +181,34 @@ class RequestsController extends Controller
         $esPropio = in_array($appId, $idsPropios);
         $esFranquicia = in_array($appId, $idsFranquicias);
         
-        // Solo validar días si NO es el local de pruebas (121)
-        if (!$isTestLocal) {
-            $diaActual = Carbon::now('America/Santiago')->dayOfWeek; // 0=domingo, 1=lunes, etc.
-            
-            // Determinar días permitidos según tipo
-            $diasPermitidos = null;
-            $tipoNegocio = '';
-            
-            if ($esPropio) {
-                $diasPermitidos = [2, 4, 5]; // Martes, Jueves, Viernes
-                $tipoNegocio = 'propio';
-            } elseif ($esFranquicia) {
-                $diasPermitidos = [1, 3, 5]; // Lunes, Miércoles, Viernes
-                $tipoNegocio = 'franquicia';
-            }
-            
-            // Validar día solo si el negocio está en alguna de las listas
-            if ($diasPermitidos !== null) {
-                if (!in_array($diaActual, $diasPermitidos)) {
-                    $nombresDias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-                    $nombreDiasPermitidos = implode(', ', array_map(function($d) use ($nombresDias) {
-                        return $nombresDias[$d];
-                    }, $diasPermitidos));
-                    
-                    $nombreDiaActual = $nombresDias[$diaActual];
-                    
-                    return response()->json([
-                        'success' => false,
-                        'message' => "📅 Tu local ({$tipoNegocio}) solo puede hacer pedidos los días: {$nombreDiasPermitidos}.\n\nHoy es {$nombreDiaActual}.\n\nPor favor, intenta nuevamente en un día permitido."
-                    ], 403);
-                }
+        $diaActual = Carbon::now('America/Santiago')->dayOfWeek; // 0=domingo, 1=lunes, etc.
+        
+        // Determinar días permitidos según tipo
+        $diasPermitidos = null;
+        $tipoNegocio = '';
+        
+        if ($esPropio) {
+            $diasPermitidos = [2, 4, 5]; // Martes, Jueves, Viernes
+            $tipoNegocio = 'propio';
+        } elseif ($esFranquicia) {
+            $diasPermitidos = [1, 3, 5]; // Lunes, Miércoles, Viernes
+            $tipoNegocio = 'franquicia';
+        }
+        
+        // Validar día solo si el negocio está en alguna de las listas
+        if ($diasPermitidos !== null) {
+            if (!in_array($diaActual, $diasPermitidos)) {
+                $nombresDias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+                $nombreDiasPermitidos = implode(', ', array_map(function($d) use ($nombresDias) {
+                    return $nombresDias[$d];
+                }, $diasPermitidos));
+                
+                $nombreDiaActual = $nombresDias[$diaActual];
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => "📅 Tu local ({$tipoNegocio}) solo puede hacer pedidos los días: {$nombreDiasPermitidos}.\n\nHoy es {$nombreDiaActual}.\n\nPor favor, intenta nuevamente en un día permitido."
+                ], 403);
             }
         }
 
@@ -374,8 +367,7 @@ class RequestsController extends Controller
                     'soledad.zavalaga@fagotto.cl',
                     'erick@fagotto.cl',
                     'ma.gabriela@fagotto.cl',
-                    'margarita@fagotto.cl',
-                    'soporte@fagotto.cl'  // Jimmy Arriagada
+                    'margarita@fagotto.cl'
                 ];
                 
                 // Enviar email a cada destinatario

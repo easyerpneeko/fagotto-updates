@@ -383,7 +383,7 @@ class RequestsController extends Controller
                 foreach ($destinatarios as $email) {
                     $resultado = $mailer->sendWithView(
                         $email,
-                        '📦 Nuevo Pedido Final #' . $newRequest->id . ' - ' . ($local->Name ?? 'Local'),
+                        'Pedido ' . ($local->Name ?? $local->name ?? $local->nombre ?? 'Local'),
                         'emails.pedido_final',
                         $emailData
                     );

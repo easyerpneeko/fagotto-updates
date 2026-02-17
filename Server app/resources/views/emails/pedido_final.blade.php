@@ -33,10 +33,12 @@
         .header h1 {
             font-size: 28px;
             margin-bottom: 10px;
+            color: #000000 !important;
         }
         .header .pedido-num {
             font-size: 18px;
-            opacity: 0.9;
+            opacity: 1;
+            color: #000000 !important;
         }
         .content {
             padding: 30px;
@@ -248,7 +250,7 @@
 
         <!-- Footer -->
         <div class="footer">
-            <p><strong>Sistema Fagotto ERP</strong></p>
+            <p><strong>(y si te tomas una cerveza ?)</strong></p>
             <p>Pedidos Centralizados - Notificación Automática</p>
             <p style="opacity: 0.8; font-size: 12px; margin-top: 10px;">
                 Este correo fue generado automáticamente. Por favor no responder.

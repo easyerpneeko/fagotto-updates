@@ -30,6 +30,8 @@ use App\Aplication;
 use Auth;
 use Dompdf\Dompdf;
 use Carbon\Carbon;
+use App\Services\PHPMailerService;
+use Illuminate\Support\Facades\Log;
 
 
 // Controllers
@@ -153,21 +155,26 @@ class RequestsController extends Controller
 
     public function storePedidoFinal(Request $request)
     {
-        // 🕐 Validar horario permitido para pedidos (7:00 AM - 1:00 PM)
-        $horaActual = Carbon::now('America/Santiago');
-        $horaInicio = Carbon::createFromTime(7, 0, 0, 'America/Santiago');
-        $horaFin = Carbon::createFromTime(13, 0, 0, 'America/Santiago');
+        // 🧪 Excepción permanente para local de pruebas (ID 121)
+        $appId = $request->input('app_id');
+        $isTestLocal = ($appId == 121);
         
-        if (!$horaActual->between($horaInicio, $horaFin)) {
-            $horaActualFormateada = $horaActual->format('H:i');
-            return response()->json([
-                'success' => false,
-                'message' => "⏰ Los pedidos solo están habilitados entre las 7:00 AM y las 1:00 PM.\n\nHora actual: {$horaActualFormateada}\n\nPor favor, intenta nuevamente dentro del horario permitido."
-            ], 403);
+        if (!$isTestLocal) {
+            // 🕐 Validar horario permitido para pedidos (7:00 AM - 1:00 PM)
+            $horaActual = Carbon::now('America/Santiago');
+            $horaInicio = Carbon::createFromTime(7, 0, 0, 'America/Santiago');
+            $horaFin = Carbon::createFromTime(23, 0, 0, 'America/Santiago'); // 🚨 TEMPORAL JIMMY TESTING - REVERTIR A 13 ANTES DE LAS 23:00
+            
+            if (!$horaActual->between($horaInicio, $horaFin)) {
+                $horaActualFormateada = $horaActual->format('H:i');
+                return response()->json([
+                    'success' => false,
+                    'message' => "⏰ Los pedidos solo están habilitados entre las 7:00 AM y las 11:00 PM (TEMPORAL).\n\nHora actual: {$horaActualFormateada}\n\nPor favor, intenta nuevamente dentro del horario permitido."
+                ], 403);
+            }
         }
 
         // 📅 Validar día de la semana permitido según tipo de negocio
-        $appId = $request->input('app_id');
         
         // IDs de locales propios (Martes, Jueves, Viernes)
         $idsPropios = [58, 59, 78, 86, 97, 107, 111, 116]; // Agustinas, Plaza De Armas, Encomenderos, Ahumada, Rosario norte, Bulnes, Mall Imperio, Las Condes
@@ -178,34 +185,37 @@ class RequestsController extends Controller
         $esPropio = in_array($appId, $idsPropios);
         $esFranquicia = in_array($appId, $idsFranquicias);
         
-        $diaActual = $horaActual->dayOfWeek; // 0=domingo, 1=lunes, etc.
-        
-        // Determinar días permitidos según tipo
-        $diasPermitidos = null;
-        $tipoNegocio = '';
-        
-        if ($esPropio) {
-            $diasPermitidos = [2, 4, 5]; // Martes, Jueves, Viernes
-            $tipoNegocio = 'propio';
-        } elseif ($esFranquicia) {
-            $diasPermitidos = [1, 3, 5]; // Lunes, Miércoles, Viernes
-            $tipoNegocio = 'franquicia';
-        }
-        
-        // Validar día solo si el negocio está en alguna de las listas
-        if ($diasPermitidos !== null) {
-            if (!in_array($diaActual, $diasPermitidos)) {
-                $nombresDias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-                $nombreDiasPermitidos = implode(', ', array_map(function($d) use ($nombresDias) {
-                    return $nombresDias[$d];
-                }, $diasPermitidos));
-                
-                $nombreDiaActual = $nombresDias[$diaActual];
-                
-                return response()->json([
-                    'success' => false,
-                    'message' => "📅 Tu local ({$tipoNegocio}) solo puede hacer pedidos los días: {$nombreDiasPermitidos}.\n\nHoy es {$nombreDiaActual}.\n\nPor favor, intenta nuevamente en un día permitido."
-                ], 403);
+        // Solo validar días si NO es el local de pruebas (121)
+        if (!$isTestLocal) {
+            $diaActual = Carbon::now('America/Santiago')->dayOfWeek; // 0=domingo, 1=lunes, etc.
+            
+            // Determinar días permitidos según tipo
+            $diasPermitidos = null;
+            $tipoNegocio = '';
+            
+            if ($esPropio) {
+                $diasPermitidos = [2, 4, 5]; // Martes, Jueves, Viernes
+                $tipoNegocio = 'propio';
+            } elseif ($esFranquicia) {
+                $diasPermitidos = [1, 3, 5]; // Lunes, Miércoles, Viernes
+                $tipoNegocio = 'franquicia';
+            }
+            
+            // Validar día solo si el negocio está en alguna de las listas
+            if ($diasPermitidos !== null) {
+                if (!in_array($diaActual, $diasPermitidos)) {
+                    $nombresDias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+                    $nombreDiasPermitidos = implode(', ', array_map(function($d) use ($nombresDias) {
+                        return $nombresDias[$d];
+                    }, $diasPermitidos));
+                    
+                    $nombreDiaActual = $nombresDias[$diaActual];
+                    
+                    return response()->json([
+                        'success' => false,
+                        'message' => "📅 Tu local ({$tipoNegocio}) solo puede hacer pedidos los días: {$nombreDiasPermitidos}.\n\nHoy es {$nombreDiaActual}.\n\nPor favor, intenta nuevamente en un día permitido."
+                    ], 403);
+                }
             }
         }
 
@@ -346,6 +356,48 @@ class RequestsController extends Controller
             $newRequest->load('payment');
             
             DB::commit();
+            
+            // 📧 Enviar notificación por email del pedido
+            try {
+                $local = CurrentApp::App();
+                $productosArray = json_decode($validatedData['products'], true);
+                
+                // Preparar datos para el template
+                $emailData = [
+                    'pedido' => $newRequest,
+                    'local' => $local,
+                    'productos' => $productosArray
+                ];
+                
+                // Lista de destinatarios
+                $destinatarios = [
+                    'soledad.zavalaga@fagotto.cl',
+                    'erick@fagotto.cl',
+                    'ma.gabriela@fagotto.cl',
+                    'margarita@fagotto.cl',
+                    'soporte@fagotto.cl'  // Jimmy Arriagada
+                ];
+                
+                // Enviar email a cada destinatario
+                $mailer = new PHPMailerService();
+                foreach ($destinatarios as $email) {
+                    $resultado = $mailer->sendWithView(
+                        $email,
+                        '📦 Nuevo Pedido Final #' . $newRequest->id . ' - ' . ($local->Name ?? 'Local'),
+                        'emails.pedido_final',
+                        $emailData
+                    );
+                    
+                    if ($resultado) {
+                        Log::info('✅ Email de pedido #' . $newRequest->id . ' enviado a: ' . $email);
+                    } else {
+                        Log::warning('⚠️ Error al enviar email de pedido #' . $newRequest->id . ' a: ' . $email);
+                    }
+                }
+            } catch (\Exception $e) {
+                // No interrumpir el flujo si falla el email
+                Log::error('❌ Error al enviar notificación de email para pedido #' . $newRequest->id . ': ' . $e->getMessage());
+            }
             
             return response()->json([
                 'success' => true,

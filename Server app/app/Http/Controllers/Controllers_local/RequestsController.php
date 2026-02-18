@@ -182,10 +182,10 @@ class RequestsController extends Controller
         if (!$sinRestriccion) {
         
         // IDs de locales propios (Martes, Jueves, Viernes)
-        $idsPropios = [58, 59, 78, 86, 97, 107, 111, 116]; // Agustinas, Plaza De Armas, Encomenderos, Ahumada, Rosario norte, Bulnes, Mall Imperio, Las Condes
+        $idsPropios = [58, 59, 78, 86, 97, 107, 111]; // Agustinas, Plaza De Armas, Encomenderos, Ahumada, Rosario norte, Bulnes, Mall Imperio
         
         // IDs de franquicias (Lunes, Miércoles, Viernes)
-        $idsFranquicias = [114, 95, 77, 108, 117, 113, 96, 102, 98]; // Amunategui, Bombero Ossa, Merced, Puente Alto, Rancagua, Vergara, Suecia, Turbus, Manuel Montt
+        $idsFranquicias = [114, 95, 77, 108, 117, 113, 96, 102, 98, 116]; // Amunategui, Bombero Ossa, Merced, Puente Alto, Rancagua, Vergara, Suecia, Turbus, Manuel Montt, Las Condes
         
         $esPropio = in_array($appId, $idsPropios);
         $esFranquicia = in_array($appId, $idsFranquicias);

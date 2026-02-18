@@ -42,15 +42,15 @@
                         </div>
                     </div>
                     <div class="horario-info">
-                        <i class="fas fa-info-circle"></i> Horario: 7:00 AM - 1:00 PM
+                        <i class="fas fa-info-circle"></i> Horario: 5:00 AM - 1:00 PM
                     </div>
                 </div>
                 
                 <!-- Mensaje fuera de horario -->
                 <div v-else class="fuera-horario">
                     <i class="fas fa-moon"></i>
-                    <p>Los pedidos están disponibles de 7:00 AM a 1:00 PM</p>
-                    <p class="next-disponible">Vuelve mañana a las 7:00 AM</p>
+                    <p>Los pedidos están disponibles de 5:00 AM a 1:00 PM</p>
+                    <p class="next-disponible">Vuelve mañana a las 5:00 AM</p>
                 </div>
                 
                 <!-- CTA Buttons -->
@@ -301,7 +301,7 @@
                     </div>
                     <div class="banner-content">
                         <strong>Modo Solo Lectura</strong>
-                        <p>Fuera del horario de pedidos (7:00 AM - 1:00 PM). Puedes ver tu historial pero no crear nuevos pedidos.</p>
+                        <p>Fuera del horario de pedidos (5:00 AM - 1:00 PM). Puedes ver tu historial pero no crear nuevos pedidos.</p>
                     </div>
                 </div>
 
@@ -1011,43 +1011,43 @@
                         </button>
                     </div>
                     <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
+                        
                         <!-- Historial de Comentarios -->
-                        <div v-if="comentarios.length > 0" class="mb-3">
-                            <h6 class="text-muted mb-3">📜 Historial de Comentarios</h6>
-                            <div class="chat-container" style="max-height: 300px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                                <div v-for="(comentario, index) in comentarios" :key="index" class="chat-message mb-3" 
-                                    style="background: white; padding: 12px; border-radius: 8px; border-left: 4px solid #667eea; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <strong style="color: #667eea;">
-                                            <i class="fas fa-user-circle"></i> {{ comentario.user_name || 'Usuario' }}
-                                        </strong>
-                                        <small class="text-muted">
-                                            <i class="far fa-clock"></i> {{ formatDate(comentario.created_at) }}
-                                        </small>
+                        <div v-if="comentarios && comentarios.length > 0" style="margin-bottom: 20px;">
+                            <h6 style="color: #666; margin-bottom: 15px;">📜 Historial de Comentarios</h6>
+                            <div style="max-height: 300px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                <div v-for="(comentario, index) in comentarios" :key="'com-' + comentario.id" 
+                                    style="background: white; padding: 12px; margin-bottom: 10px; border-radius: 5px; border-left: 3px solid #667eea;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <strong style="color: #667eea;">👤 {{ comentario.user_name || 'Usuario' }}</strong>
+                                        <small style="color: #999;">{{ formatDate(comentario.created_at) }}</small>
                                     </div>
-                                    <p style="margin: 0; color: #333; white-space: pre-wrap;">{{ comentario.comentario }}</p>
+                                    <p style="margin: 0; color: #333;">{{ comentario.comentario }}</p>
                                 </div>
                             </div>
                         </div>
-                        <div v-else class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> No hay comentarios previos. ¡Sé el primero en comentar!
+                        <div v-else style="padding: 15px; background: #e3f2fd; border-radius: 5px; margin-bottom: 20px;">
+                            <p style="margin: 0; color: #1976d2;">ℹ️ No hay comentarios previos. ¡Sé el primero en comentar!</p>
                         </div>
                         
                         <!-- Formulario para Nuevo Comentario -->
-                        <div class="form-group-modern">
-                            <label for="review" class="info-label">✍️ Nuevo Comentario:</label>
-                            <textarea v-model="review" @keyup.ctrl.enter="sendReview" id="review" 
-                                class="form-control-modern textarea-modern" 
+                        <div>
+                            <label style="font-weight: 600; color: #333; margin-bottom: 10px; display: block;">✍️ Nuevo Comentario:</label>
+                            <textarea v-model="review" @keyup.ctrl.enter="sendReview" 
+                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;"
                                 rows="4"
                                 placeholder="Escribe tu comentario sobre el pedido..."></textarea>
-                            <small class="text-muted">Presiona Ctrl+Enter para enviar</small>
+                            <small style="color: #999;">
+                                Presiona Ctrl+Enter para enviar
+                            </small>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-modern btn-secondary-modern" data-dismiss="modal">
                             ✖️ Cerrar
                         </button>
-                        <button type="button" class="btn-modern btn-primary-modern" @click="sendReview" :disabled="!review.trim()">
+                        <button type="button" class="btn-modern btn-primary-modern" 
+                            @click="sendReview">
                             📤 Enviar Comentario
                         </button>
                     </div>
@@ -1148,7 +1148,8 @@ export default {
             // 📅 Control de días permitidos por negocio
             diaPermitido: true,
             idsPropios: [58, 59, 78, 86, 97, 107, 111, 116], // Agustinas, Plaza De Armas, Encomenderos, Ahumada, Rosario norte, Bulnes, Mall Imperio, Las Condes
-            idsFranquicias: [114, 95, 77, 108, 117, 113, 96, 102, 98] // Amunategui, Bombero Ossa, Merced, Puente Alto, Rancagua, Vergara, Suecia, Turbus, Manuel Montt
+            idsFranquicias: [114, 95, 77, 108, 117, 113, 96, 102, 98], // Amunategui, Bombero Ossa, Merced, Puente Alto, Rancagua, Vergara, Suecia, Turbus, Manuel Montt
+            idsExcepcionHorario: [121] // Food Truck - Sin restricción de horario ni día
         }
     },
     async beforeCreate() {
@@ -1501,6 +1502,12 @@ export default {
         
         // 🕐 Validar si estamos dentro del horario permitido para pedidos
         validarHorarioPedidos() {
+            // 🚀 EXCEPCIÓN: Si el negocio está en la lista de excepción, permitir siempre
+            const appId = this.app && this.app.Id ? this.app.Id : null;
+            if (appId && this.idsExcepcionHorario && this.idsExcepcionHorario.includes(appId)) {
+                return true; // Sin restricción de día ni horario
+            }
+            
             const ahora = moment();
             const horaActual = ahora.hour();
             const minutoActual = ahora.minute();
@@ -1534,8 +1541,8 @@ export default {
                 return false;
             }
             
-            // ⏰ VALIDAR HORARIO (7:00 AM - 1:00 PM)
-            const horaInicio = 7;
+            // ⏰ VALIDAR HORARIO (5:00 AM - 1:00 PM)
+            const horaInicio = 5;
             const horaFin = 13; // 1:00 PM
             
             // Convertir a minutos totales para comparación precisa
@@ -1546,7 +1553,7 @@ export default {
             if (minutosActuales < minutosInicio || minutosActuales >= minutosFin) {
                 const horaFormateada = ahora.format('HH:mm');
                 this.$awn.alert(
-                    `⏰ Los pedidos solo están habilitados entre las 7:00 AM y la 1:00 PM.\n\n` +
+                    `⏰ Los pedidos solo están habilitados entre las 5:00 AM y la 1:00 PM.\n\n` +
                     `Hora actual: ${horaFormateada}\n\n` +
                     `Por favor, intenta nuevamente dentro del horario permitido.`,
                     {
@@ -1574,7 +1581,19 @@ export default {
             const segundoActual = ahora.second();
             const diaActual = ahora.day(); // 0=domingo, 1=lunes, etc.
             
-            // 📅 VALIDAR DÍA DE LA SEMANA (solo si el negocio tiene restricción)
+            // � EXCEPCIÓN: Si el negocio está en la lista de excepción, permitir siempre
+            const appId = this.app && this.app.Id ? this.app.Id : null;
+            if (appId && this.idsExcepcionHorario && this.idsExcepcionHorario.includes(appId)) {
+                this.diaPermitido = true;
+                this.horarioActivo = true;
+                this.horasRestantes = 24;
+                this.minutosRestantes = 0;
+                this.segundosRestantes = 0;
+                this.tiempoRestante = 'Sin restricción';
+                return;
+            }
+            
+            // �📅 VALIDAR DÍA DE LA SEMANA (solo si el negocio tiene restricción)
             if (this.esPropio || this.esFranquicia) {
                 let diasPermitidos = null;
                 if (this.esPropio) {
@@ -1599,8 +1618,8 @@ export default {
                 this.diaPermitido = true;
             }
             
-            // ⏰ VALIDAR HORARIO: 7:00 AM - 1:00 PM
-            const horaInicio = 7;
+            // ⏰ VALIDAR HORARIO: 5:00 AM - 1:00 PM
+            const horaInicio = 5;
             const horaFin = 13; // 1:00 PM
             
             // Crear momento de cierre (1:00 PM hoy)
@@ -2570,16 +2589,14 @@ export default {
         
         async openReview(pedido) {
             this.idRequest = pedido.id;
-            this.review = ''; // Limpiar textarea
-            
-            // Cargar historial de comentarios
-            await this.cargarComentarios(pedido.id);
-            
+            this.review = '';
+            this.comentarios = [];
             $('#modalReview').modal('show');
+            await this.$nextTick();
+            setTimeout(() => this.cargarComentarios(pedido.id), 100);
         },
         
         async cargarComentarios(pedidoId) {
-            console.log('📜 Cargando historial de comentarios para pedido:', pedidoId);
             try {
                 const response = await Connection.request(
                     'GET',
@@ -2587,57 +2604,76 @@ export default {
                 );
                 
                 if (response.success && response.data) {
-                    // Backend devuelve estructura anidada: {success: true, data: {success: true, comentarios: [...]}}
                     const comentarios = response.data.comentarios || [];
-                    this.comentarios = comentarios;
-                    console.log('✅ Comentarios cargados:', this.comentarios.length);
+                    this.$set(this, 'comentarios', comentarios);
                 } else {
-                    console.error('❌ Error al cargar comentarios');
-                    this.comentarios = [];
+                    this.$set(this, 'comentarios', []);
                 }
             } catch (error) {
                 console.error('❌ Error al cargar comentarios:', error);
-                this.comentarios = [];
+                this.$set(this, 'comentarios', []);
             }
         },
         
         async sendReview() {
-            console.log('📝 Enviando comentario para pedido:', this.idRequest, 'Comentario:', this.review);
+            console.log('� [SEND REVIEW] Función iniciada');
+            console.log('   - idRequest:', this.idRequest);
+            console.log('   - review:', this.review);
+            console.log('   - review.length:', this.review.length);
+            console.log('   - review.trim():', this.review.trim());
             
-            if (this.review.length > 0) {
-                let data = new FormData();
-                data.append('review', this.review);
+            if (!this.review || this.review.trim().length === 0) {
+                console.warn('⚠️ Comentario vacío, no se puede enviar');
+                this.$awn.alert("Es necesario escribir un comentario");
+                return;
+            }
+            
+            let data = new FormData();
+            data.append('review', this.review);
+            
+            // Obtener nombre del cajero logueado
+            console.log('👤 [USER INFO] this.me:', this.me);
+            console.log('👤 [USER INFO] this.me.fullname:', this.me ? this.me.fullname : 'NO EXISTE');
+            console.log('👤 [USER INFO] this.me.name:', this.me ? this.me.name : 'NO EXISTE');
+            console.log('👤 [USER INFO] this.me.username:', this.me ? this.me.username : 'NO EXISTE');
+            
+            const userName = this.me && this.me.fullname ? this.me.fullname : 'Usuario';
+            console.log('👤 [USER INFO] userName final:', userName);
+            
+            data.append('user_name', userName);
+            
+            console.log('📦 Datos a enviar:', {
+                review: this.review,
+                user_name: userName,
+                idRequest: this.idRequest
+            });
+            
+            try {
+                console.log('📡 Enviando request al store...');
+                var request = await this.$store.dispatch("requests/update", { id: this.idRequest, data });
                 
-                // Obtener nombre del usuario desde localStorage
-                const turnoData = JSON.parse(localStorage.getItem('turnoActivo') || '{}');
-                const userName = turnoData.nombre || 'Usuario';
-                data.append('user_name', userName);
+                console.log('📨 Response del servidor:', request);
                 
-                try {
-                    var request = await this.$store.dispatch("requests/update", { id: this.idRequest, data });
+                if (request.success) {
+                    this.$awn.success("💬 Comentario enviado correctamente");
                     
-                    if (request.success) {
-                        this.$awn.success("💬 Comentario enviado correctamente");
-                        
-                        // Recargar comentarios para mostrar el nuevo
-                        await this.cargarComentarios(this.idRequest);
-                        
-                        // Recargar historial de pedidos
-                        await this.cargarHistorial();
-                        
-                        this.review = ''; // Limpiar el comentario
-                    } else {
-                        this.$awn.alert("Error al enviar el comentario");
-                    }
-                } catch (error) {
-                    console.error('❌ Error al enviar comentario:', error);
+                    // Recargar comentarios para mostrar el nuevo
+                    console.log('🔄 Recargando comentarios...');
+                    await this.cargarComentarios(this.idRequest);
+                    
+                    // Recargar historial de pedidos
+                    console.log('🔄 Recargando historial...');
+                    await this.cargarHistorial();
+                    
+                    this.review = ''; // Limpiar el comentario
+                    console.log('✅ Comentario enviado y datos recargados');
+                } else {
+                    console.error('❌ Error: Request no exitoso', request);
                     this.$awn.alert("Error al enviar el comentario");
                 }
-                
-                // No cerrar el modal para poder seguir viendo el historial
-                // $('#modalReview').modal('hide');
-            } else {
-                this.$awn.alert("Es necesario escribir un comentario");
+            } catch (error) {
+                console.error('❌ Error al enviar comentario:', error);
+                this.$awn.alert("Error al enviar el comentario");
             }
         },
         

@@ -139,10 +139,11 @@ async function getPedidos(startDate = null, endDate = null, page) {
             tablasContainer.innerHTML = "";
 
             for (const app in apps) {
-                // console.log(apps[app].original);
                 let pedidos = apps[app].original.items;
-                if (pedidos.length > 0) {
+                
+                if (pedidos && pedidos.length > 0) {
                     let fila = `<div class="table-responsive">
+                                    <h3 class="mt-3 mb-2">${app}</h3>
                                     <table class="table table-striped table-sm">
                                             <thead>
                                                 <tr>
@@ -237,8 +238,7 @@ async function getPedidos(startDate = null, endDate = null, page) {
 
                     tablasContainer.innerHTML += fila;
                 } else {
-                    const tablasContainer = document.getElementById('tablas-container');
-                    tablasContainer.innerHTML = "NO HAY PEDIDOS";
+                    tablasContainer.innerHTML += `<div class="alert alert-warning">No hay pedidos para ${app}</div>`;
                 }
                 // LÃ³gica de paginaciÃ³n
                 // const totalPages = Math.ceil(apps.length / itemsPerPage);

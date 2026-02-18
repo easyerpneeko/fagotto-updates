@@ -42,7 +42,7 @@ export async function getProductsOfSell(context) {
   const request = await Connection.request('get',url);
   return request;
 }
-
+11111
 export async function removeRequest(context, id) {
   let url = BaseUrl.getUrl('api/local/request/' + id);
   const request = await Connection.request('delete',url);

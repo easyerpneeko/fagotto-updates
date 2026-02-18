@@ -156,22 +156,30 @@ class RequestsController extends Controller
 
     public function storePedidoFinal(Request $request)
     {
-        $appId = $request->input('app_id');
+        // Convertir app_id a integer para comparación type-safe
+        $appId = (int) $request->input('app_id');
         
-        // 🕐 Validar horario permitido para pedidos (7:00 AM - 1:00 PM)
-        $horaActual = Carbon::now('America/Santiago');
-        $horaInicio = Carbon::createFromTime(7, 0, 0, 'America/Santiago');
-        $horaFin = Carbon::createFromTime(13, 0, 0, 'America/Santiago'); // 1:00 PM
+        // � EXCEPCIÓN: Food Truck (ID 121) sin restricción de horario ni día
+        $idsExcepcionHorario = [121]; // Food Truck - Sin restricción de horario ni día
+        $sinRestriccion = in_array($appId, $idsExcepcionHorario, true);
         
-        if (!$horaActual->between($horaInicio, $horaFin)) {
-            $horaActualFormateada = $horaActual->format('H:i');
-            return response()->json([
-                'success' => false,
-                'message' => "⏰ Los pedidos solo están habilitados entre las 7:00 AM y la 1:00 PM.\n\nHora actual: {$horaActualFormateada}\n\nPor favor, intenta nuevamente dentro del horario permitido."
-            ], 403);
+        // 🕐 Validar horario permitido para pedidos (5:00 AM - 1:00 PM)
+        if (!$sinRestriccion) {
+            $horaActual = Carbon::now('America/Santiago');
+            $horaInicio = Carbon::createFromTime(5, 0, 0, 'America/Santiago');
+            $horaFin = Carbon::createFromTime(13, 0, 0, 'America/Santiago'); // 1:00 PM
+            
+            if (!$horaActual->between($horaInicio, $horaFin)) {
+                $horaActualFormateada = $horaActual->format('H:i');
+                return response()->json([
+                    'success' => false,
+                    'message' => "⏰ Los pedidos solo están habilitados entre las 5:00 AM y la 1:00 PM.\n\nHora actual: {$horaActualFormateada}\n\nPor favor, intenta nuevamente dentro del horario permitido."
+                ], 403);
+            }
         }
             
         // 📅 Validar día de la semana permitido según tipo de negocio
+        if (!$sinRestriccion) {
         
         // IDs de locales propios (Martes, Jueves, Viernes)
         $idsPropios = [58, 59, 78, 86, 97, 107, 111, 116]; // Agustinas, Plaza De Armas, Encomenderos, Ahumada, Rosario norte, Bulnes, Mall Imperio, Las Condes
@@ -212,6 +220,7 @@ class RequestsController extends Controller
                 ], 403);
             }
         }
+        } // Fin validación de horario y día para negocios con restricción
 
         $validatedData = $request->validate([
             'contact_name' => 'required|string|max:70',

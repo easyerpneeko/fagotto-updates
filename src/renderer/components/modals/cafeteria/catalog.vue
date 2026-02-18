@@ -147,8 +147,9 @@
                   </div>
                 </button>
                 
-                <!-- Botón Cheaf -->
+                <!-- Botón Cheaf (solo 16:00 - 19:00) -->
                 <button 
+                  v-if="isCheafTimeAvailable"
                   @click="openCheaf()"
                   class="category-item-center category-special category-cheaf">
                   <div class="category-icon">
@@ -633,6 +634,8 @@ export default {
       // Datos para método de pago especial Banco De Chile 20%
       chileTime: null,
       isSpecialPaymentDay: false,
+      // Horario disponible para botón Cheaf (16:00 - 19:00)
+      isCheafTimeAvailable: false,
       // Estado del módulo Gelateria
       gelateriaActive: true, // Activado por defecto hasta implementar backend
       // MercadoPago
@@ -677,6 +680,9 @@ export default {
     // Verificar la hora de Chile para el método de pago especial
     this.checkChileTime();
     
+    // Verificar horario para botón Cheaf (16:00 - 19:00)
+    this.checkCheafTime();
+    
     // Verificar el estado del módulo Gelateria
     this.checkGelateriaStatus();
     
@@ -686,6 +692,7 @@ export default {
     // Verificar la hora cada 5 minutos por si cambia el día
     setInterval(() => {
       this.checkChileTime();
+      this.checkCheafTime();
     }, 300000); // 5 minutos = 300,000 ms
   },
   methods: {
@@ -1410,6 +1417,35 @@ export default {
       } catch (error) {
         console.error('Error obteniendo hora de Chile:', error);
         this.isSpecialPaymentDay = false;
+        return false;
+      }
+    },
+
+    // Método para verificar si es horario disponible para Cheaf (16:00 - 19:00)
+    async checkCheafTime() {
+      try {
+        // Obtener la hora actual del sistema en zona horaria de Chile
+        const chileTimeZone = 'America/Santiago';
+        const now = new Date();
+        
+        // Crear fecha en zona horaria de Chile
+        const chileTime = new Date(now.toLocaleString("en-US", {timeZone: chileTimeZone}));
+        
+        // Obtener la hora actual (0-23)
+        const currentHour = chileTime.getHours();
+        
+        // Verificar si está entre las 16:00 (4 PM) y 19:00 (7 PM)
+        this.isCheafTimeAvailable = currentHour >= 16 && currentHour < 19;
+        
+        console.log('=== HORARIO DISPONIBLE CHEAF ===');
+        console.log('Hora actual de Chile:', chileTime.toLocaleString('es-CL'));
+        console.log('Hora:', currentHour);
+        console.log('Botón Cheaf disponible (16:00-19:00):', this.isCheafTimeAvailable ? 'SÍ' : 'NO');
+        
+        return this.isCheafTimeAvailable;
+      } catch (error) {
+        console.error('Error verificando horario Cheaf:', error);
+        this.isCheafTimeAvailable = false;
         return false;
       }
     },

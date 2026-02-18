@@ -705,16 +705,62 @@
                                     </div>
                                 </div>
                                 <div class="modal-footer">
+                                    <button type="button" class="btn btn-info me-2" onclick="abrirComentarios()">
+                                        <i class="fas fa-comments"></i> 💬 Comentarios
+                                    </button>
                                     <button type="button" class="btn btn-success me-2" onclick="imprimirPedidoPDF()">
                                         <i class="fas fa-file-pdf"></i> Guía de Despacho
                                     </button>
                                     <button type="button" class="btn btn-primary"
                                         data-bs-dismiss="modal">Cerrar</button>
-                                    <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Modal de Comentarios del Pedido -->
+                    <div class="modal fade" id="comentariosModal" tabindex="-1" aria-labelledby="comentariosModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white;">
+                                    <h5 class="modal-title" id="comentariosModalLabel">
+                                        <i class="fas fa-comments"></i> 💬 Comentarios del Pedido #<span id="comentario-pedido-id">0</span>
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body" style="max-height: 600px; overflow-y: auto;">
+                                    <!-- Historial de Comentarios -->
+                                    <div id="comentarios-container" style="margin-bottom: 20px;">
+                                        <h6 style="color: #666; margin-bottom: 15px;">📜 Historial de Comentarios</h6>
+                                        <div id="comentarios-lista" style="max-height: 350px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                            <div class="text-center text-muted py-4">
+                                                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                                                <p class="mt-2">Cargando comentarios...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Formulario Nuevo Comentario -->
+                                    <div>
+                                        <label style="font-weight: 600; color: #333; margin-bottom: 10px; display: block;">✍️ Nuevo Comentario:</label>
+                                        <textarea id="nuevo-comentario" class="form-control" rows="4" 
+                                            placeholder="Escribe tu comentario sobre el pedido..."
+                                            style="border: 1px solid #ddd; border-radius: 5px;"></textarea>
+                                        <small class="text-muted">Escribe tu mensaje y presiona "Enviar Comentario"</small>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        <i class="fas fa-times"></i> Cerrar
+                                    </button>
+                                    <button type="button" class="btn btn-primary" onclick="enviarComentario()">
+                                        <i class="fas fa-paper-plane"></i> 📤 Enviar Comentario
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!--Modal guia despacho-->
                     <!-- <div style="" class="modal fade" id="newGuiaDespachoModal" tabindex="-1" role="dialog" aria-labelledby="clientCreate" aria-hidden="true" data-backdrop="false">
                         <div class="modal-dialog modal-md modal-dialog-centered" role="document">
@@ -1299,6 +1345,194 @@
         })
 
         
+    </script>
+
+    <!-- ==================== SISTEMA DE COMENTARIOS BIDIRECCIONAL ==================== -->
+    <script>
+        let pedidoActualId = null;
+        let userInfo = null;
+
+        // Función para abrir el modal de comentarios
+        function abrirComentarios() {
+            // Obtener el ID del pedido actual (desde el modal de productos)
+            const pedidoTitle = document.getElementById('productsModalLabel').textContent;
+            const match = pedidoTitle.match(/#\s*-\s*(\d+)/);
+            
+            if (!match) {
+                alert('❌ No se pudo identificar el pedido');
+                return;
+            }
+            
+            pedidoActualId = match[1];
+            
+            // Obtener información del usuario
+            const session = _store().session.get();
+            userInfo = session && session.usuario ? session.usuario : {nombre: 'Usuario Web', fullname: 'Usuario Web'};
+            
+            console.log('📱 Abriendo comentarios para pedido:', pedidoActualId);
+            console.log('👤 Usuario:', userInfo);
+            
+            // Actualizar título
+            document.getElementById('comentario-pedido-id').textContent = pedidoActualId;
+            
+            // Limpiar textarea
+            document.getElementById('nuevo-comentario').value = '';
+            
+            // Cerrar modal de productos
+            const productsModal = bootstrap.Modal.getInstance(document.getElementById('productsModal'));
+            if (productsModal) {
+                productsModal.hide();
+            }
+            
+            // Abrir modal de comentarios
+            const comentariosModal = new bootstrap.Modal(document.getElementById('comentariosModal'));
+            comentariosModal.show();
+            
+            // Cargar comentarios
+            cargarComentarios();
+        }
+
+        // Función para cargar comentarios del pedido
+        async function cargarComentarios() {
+            if (!pedidoActualId) return;
+            
+            const container = document.getElementById('comentarios-lista');
+            container.innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Cargando comentarios...</p></div>';
+            
+            try {
+                console.log('📜 Cargando comentarios del pedido:', pedidoActualId);
+                
+                await __conection({
+                    url: generarURLApi(`/local/request/${pedidoActualId}/comentarios`),
+                    header: credentials(),
+                    dev: true,
+                    method: 'GET'
+                }, null, function(response) {
+                    console.log('📦 Comentarios recibidos:', response);
+                    
+                    if (response.success && response.data && response.data.comentarios) {
+                        const comentarios = response.data.comentarios;
+                        
+                        if (comentarios.length === 0) {
+                            container.innerHTML = '<div class="alert alert-info"><i class="fas fa-info-circle"></i> No hay comentarios previos. ¡Sé el primero en comentar!</div>';
+                            return;
+                        }
+                        
+                        // Renderizar comentarios
+                        let html = '';
+                        comentarios.forEach((comentario, index) => {
+                            const fecha = new Date(comentario.created_at);
+                            const fechaFormateada = fecha.toLocaleDateString('es-CL') + ' ' + fecha.toLocaleTimeString('es-CL', {hour: '2-digit', minute: '2-digit'});
+                            
+                            html += `
+                                <div style="background: white; padding: 12px; margin-bottom: 10px; border-radius: 5px; border-left: 3px solid #667eea;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <strong style="color: #667eea;"><i class="fas fa-user-circle"></i> ${comentario.user_name || 'Usuario'}</strong>
+                                        <small style="color: #999;">${fechaFormateada}</small>
+                                    </div>
+                                    <p style="margin: 0; color: #333; white-space: pre-wrap;">${comentario.comentario}</p>
+                                </div>
+                            `;
+                        });
+                        
+                        container.innerHTML = html;
+                        
+                        // Scroll al final
+                        setTimeout(() => {
+                            container.scrollTop = container.scrollHeight;
+                        }, 100);
+                    } else {
+                        container.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> No se pudieron cargar los comentarios</div>';
+                    }
+                });
+                
+            } catch (error) {
+                console.error('❌ Error cargando comentarios:', error);
+                container.innerHTML = '<div class="alert alert-danger"><i class="fas fa-times-circle"></i> Error al cargar comentarios</div>';
+            }
+        }
+
+        // Función para enviar nuevo comentario
+        async function enviarComentario() {
+            const textarea = document.getElementById('nuevo-comentario');
+            const comentario = textarea.value.trim();
+            
+            if (!comentario) {
+                alert('⚠️ Por favor escribe un comentario');
+                return;
+            }
+            
+            if (!pedidoActualId) {
+                alert('❌ No se pudo identificar el pedido');
+                return;
+            }
+            
+            console.log('🚀 Enviando comentario para pedido:', pedidoActualId);
+            
+            try {
+                const userName = userInfo && userInfo.fullname ? userInfo.fullname : (userInfo && userInfo.nombre ? userInfo.nombre : 'Usuario Web');
+                
+                const formData = new FormData();
+                formData.append('review', comentario);
+                formData.append('user_name', userName);
+                
+                console.log('📦 Enviando:', {review: comentario, user_name: userName});
+                
+                await __conection({
+                    url: generarURLApi(`/local/request/${pedidoActualId}/review`),
+                    header: credentials(),
+                    dev: true,
+                    method: 'PUT'
+                }, formData, function(response) {
+                    console.log('📨 Response:', response);
+                    
+                    if (response.success || response.message) {
+                        // Mostrar notificación de éxito
+                        const notification = document.createElement('div');
+                        notification.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; width: 350px;';
+                        notification.innerHTML = `
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <div>
+                                    <strong>✅ Comentario enviado</strong><br>
+                                    <small>Se ha notificado por email a los destinatarios</small>
+                                </div>
+                                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                            </div>
+                        `;
+                        document.body.appendChild(notification);
+                        
+                        setTimeout(() => {
+                            if (notification.parentNode) {
+                                notification.remove();
+                            }
+                        }, 5000);
+                        
+                        // Limpiar textarea
+                        textarea.value = '';
+                        
+                        // Recargar comentarios
+                        cargarComentarios();
+                    } else {
+                        alert('❌ Error al enviar el comentario');
+                    }
+                });
+                
+            } catch (error) {
+                console.error('❌ Error enviando comentario:', error);
+                alert('❌ Error al enviar el comentario');
+            }
+        }
+
+        // Auto-refrescar comentarios cada 15 segundos si el modal está abierto
+        setInterval(() => {
+            const modal = document.getElementById('comentariosModal');
+            if (modal && modal.classList.contains('show') && pedidoActualId) {
+                console.log('🔄 Auto-refrescando comentarios...');
+                cargarComentarios();
+            }
+        }, 15000);
     </script>
 </body>
 

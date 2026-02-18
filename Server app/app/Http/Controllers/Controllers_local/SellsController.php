@@ -251,9 +251,10 @@ class SellsController extends Controller
 
     $items = json_decode($_request['products']);
     foreach ($items as $item) {
-      // ✅ FIX MERCHISE Y COLACIÓN: Saltear validación si es producto merchise o colación (no están en tabla products)
+      // ✅ FIX MERCHISE, COLACIÓN Y CHEAF: Saltear validación si es producto merchise, colación o cheaf (no están en tabla products)
       $is_merchise = isset($item->is_merchise) && $item->is_merchise === true;
       $is_colacion = isset($item->is_colacion) && $item->is_colacion === true;
+      $is_cheaf = isset($item->is_cheaf) && $item->is_cheaf === true;
       
       \Log::info('🍝 COLACIÓN VALIDACIÓN:', [
         'product_id' => $item->id,
@@ -263,7 +264,7 @@ class SellsController extends Controller
         'type_of_is_colacion' => gettype($item->is_colacion ?? null)
       ]);
       
-      if (!$is_merchise && !$is_colacion) {
+      if (!$is_merchise && !$is_colacion && !$is_cheaf) {
         $product = Product::find($item->id);
         if (!$product) {
           \Log::error('❌ PRODUCTO NO ENCONTRADO:', ['id' => $item->id, 'is_colacion' => $is_colacion]);
@@ -373,11 +374,12 @@ class SellsController extends Controller
 
     // Creando cada columna en la pivote de cada producto por cada venta
     foreach ($items as $item) {
-      // ✅ FIX MERCHISE Y COLACIÓN: Saltear validación de producto si es merchise o colación
+      // ✅ FIX MERCHISE, COLACIÓN Y CHEAF: Saltear validación de producto si es merchise, colación o cheaf
       $is_merchise = isset($item->is_merchise) && $item->is_merchise === true;
       $is_colacion = isset($item->is_colacion) && $item->is_colacion === true;
+      $is_cheaf = isset($item->is_cheaf) && $item->is_cheaf === true;
       
-      if (!$is_merchise && !$is_colacion) {
+      if (!$is_merchise && !$is_colacion && !$is_cheaf) {
         $product = Product::find($item->id);
         if (!$product) {
           if (isset($_request['ticket'])) return "Producto no encontrado";
@@ -435,6 +437,18 @@ class SellsController extends Controller
         ]);
       }
       
+      // ✅ CHEAF: Guardar nombre del producto en description_sii si es cheaf
+      $is_cheaf = isset($item->is_cheaf) && $item->is_cheaf === true;
+      if ($is_cheaf && isset($item->name)) {
+        $newProductSell['description_sii'] = $item->name;
+        $newProductSell['product'] = null; // NULL para cheaf (no existe en tabla products)
+        \Log::info('✅ CHEAF - Guardando description_sii:', [
+          'product_id' => $item->id,
+          'name' => $item->name,
+          'promo_type' => $item->promo_type ?? 'NO SET'
+        ]);
+      }
+      
       \Log::info('🔍 MERCHISE - newProductSell antes de crear:', $newProductSell);
       
       if (CurrentApp::ConfStr('modulos.ventas.ajustes.permitir_ganancia')) {
@@ -482,8 +496,8 @@ class SellsController extends Controller
         }
       }
       
-      // ✅ FIX MERCHISE Y COLACIÓN: Solo actualizar stock si NO es producto merchise o colación
-      if (!$is_merchise && !$is_colacion && CurrentApp::ConfStr('modulos.productos.ajustes.permitir_stock')) {
+      // ✅ FIX MERCHISE, COLACIÓN Y CHEAF: Solo actualizar stock si NO es producto merchise, colación o cheaf
+      if (!$is_merchise && !$is_colacion && !$is_cheaf && CurrentApp::ConfStr('modulos.productos.ajustes.permitir_stock')) {
         $product->stock = (float) $product->stock - $item->quantity;
         if (!$product->save()) {
           if (isset($_request['ticket'])) return 'Error en la base de datos';

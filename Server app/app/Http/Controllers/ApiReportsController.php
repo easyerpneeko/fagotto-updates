@@ -72,9 +72,13 @@ class ApiReportsController extends Controller
       $products = [];
       $productSells = DB::table($database2.'.products_sells')->where('products_sells.sell',$sell->id)
       ->leftJoin($database2.'.products','products.id','products_sells.product')
-      ->select('products_sells.price as totalPrice','products_sells.quantity','products_sells.unitary_price','products.name')
+      ->select('products_sells.price as totalPrice','products_sells.quantity','products_sells.unitary_price','products.name','products_sells.description_sii')
       ->get();
       foreach ($productSells as $productSell) {
+        // ✅ FIX MERCHISE/CHEAF/COLACIÓN: Usar description_sii si el nombre del producto no existe
+        if (empty($productSell->name) && !empty($productSell->description_sii)) {
+          $productSell->name = $productSell->description_sii;
+        }
         $products[] = $productSell;
       }
       $sell->products = $products;

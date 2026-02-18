@@ -95,9 +95,13 @@ class ReportsController extends Controller
       $products = [];
       $productSells = DB::table($database2 . '.products_sells')->where('products_sells.sell', $sell->id)
         ->leftJoin($database2 . '.products', 'products.id', 'products_sells.product')
-        ->select('products_sells.price as totalPrice', 'products_sells.quantity', 'products_sells.unitary_price', 'products.name')
+        ->select('products_sells.price as totalPrice', 'products_sells.quantity', 'products_sells.unitary_price', 'products.name', 'products_sells.description_sii')
         ->get();
       foreach ($productSells as $productSell) {
+        // ✅ FIX MERCHISE/CHEAF/COLACIÓN: Usar description_sii si el nombre del producto no existe
+        if (empty($productSell->name) && !empty($productSell->description_sii)) {
+          $productSell->name = $productSell->description_sii;
+        }
         $products[] = $productSell;
       }
       $sell->products = $products;
@@ -117,10 +121,15 @@ class ReportsController extends Controller
     $startDate = $request->input('startDate');
     $endDate = $request->input('endDate');
 
-    $topProducts = ProductSell::select('products.name   as product_name', 'products_sells.product', DB::raw('SUM(quantity) as total_quantity'))
-      ->join('products', 'products_sells.product', '=', 'products.id')
+    // ✅ FIX MERCHISE/CHEAF/COLACIÓN: Incluir productos con product = NULL
+    // Agrupar por nombre del producto (COALESCE) para que productos con product=NULL se sumen correctamente
+    $topProducts = ProductSell::select(
+        DB::raw('COALESCE(products.name, products_sells.description_sii) as product_name'),
+        DB::raw('SUM(quantity) as total_quantity')
+      )
+      ->leftJoin('products', 'products_sells.product', '=', 'products.id')
       ->whereBetween(DB::raw('DATE(products_sells.created_at)'), [$startDate, $endDate])
-      ->groupBy('products_sells.product', 'products.name')
+      ->groupBy(DB::raw('COALESCE(products.name, products_sells.description_sii)'))
       ->orderByDesc('total_quantity')
       ->limit(10)
       ->get();
@@ -504,7 +513,8 @@ class ReportsController extends Controller
     }
 
     // Solo procesar productos si hay ventas que cumplan con los filtros
-    $products_sells = ProductSell::whereBetween('created_at', [$_request['startDate'], $_request['endDate']]);
+    $products_sells = ProductSell::select('*', 'description_sii', 'gananciaTotal')
+        ->whereBetween('created_at', [$_request['startDate'], $_request['endDate']]);
     
     // Si hay filtros de métodos de pago, también filtrar los productos vendidos
     if ($hasPaymentFilters) {
@@ -570,8 +580,12 @@ class ReportsController extends Controller
         $counters['quantityTotal'] += $product_sell->quantity;
 
         $product = Product::with('productCategory')->find($product_sell->product);
+        
+        // ✅ FIX CHEAF/MERCHISE/COLACIÓN: Manejar productos con product = NULL
         if ($product) {
+            // Producto normal con ID en la tabla products
             $productId = $product->id;
+            $productName = $product->name;
             $sellPrice = $product_sell->price;
 
             $categoryName = 'Sin categoría'; // Valor predeterminado
@@ -584,12 +598,33 @@ class ReportsController extends Controller
 
             if (!isset($uniqueProducts[$uniqueKey])) {
                 $uniqueProducts[$uniqueKey] = [
-                    'name' => $product->name,
+                    'name' => $productName,
                     'quantity' => 0,
                     'price' => $sellPrice,
                     'totalProfit' => 0,
                     'category' => $categoryName,
                     'product_id' => $productId // Opcional: guardar el ID del producto para referencia
+                ];
+            }
+
+            $uniqueProducts[$uniqueKey]['quantity'] += $product_sell->quantity;
+            $uniqueProducts[$uniqueKey]['totalProfit'] += $product_sell->gananciaTotal;
+        } else if (!empty($product_sell->description_sii)) {
+            // Producto virtual (Cheaf, Merchise, Colación, etc.)
+            $productName = $product_sell->description_sii;
+            $sellPrice = $product_sell->price;
+            
+            // Usar el nombre como clave única para productos sin ID
+            $uniqueKey = 'virtual_' . $productName . '_' . $sellPrice;
+
+            if (!isset($uniqueProducts[$uniqueKey])) {
+                $uniqueProducts[$uniqueKey] = [
+                    'name' => $productName,
+                    'quantity' => 0,
+                    'price' => $sellPrice,
+                    'totalProfit' => 0,
+                    'category' => 'Promociones', // Categoría para productos virtuales
+                    'product_id' => null
                 ];
             }
 

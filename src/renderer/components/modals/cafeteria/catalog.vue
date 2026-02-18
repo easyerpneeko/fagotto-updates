@@ -147,6 +147,19 @@
                   </div>
                 </button>
                 
+                <!-- Botón Cheaf -->
+                <button 
+                  @click="openCheaf()"
+                  class="category-item-center category-special category-cheaf">
+                  <div class="category-icon">
+                    <i class="fas fa-fire"></i>
+                  </div>
+                  <span class="category-name">Cheaf</span>
+                  <div class="category-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                  </div>
+                </button>
+                
                 <!-- Botón Merchise -->
                 <button 
                   v-if="settingMerchise"
@@ -170,20 +183,6 @@
                     <i class="fas fa-fire"></i>
                   </div>
                   <span class="category-name">Días Locos</span>
-                  <div class="category-arrow">
-                    <i class="fas fa-chevron-right"></i>
-                  </div>
-                </button>
-                
-                <!-- Botón Cupón -->
-                <button 
-                  v-if="cuponInstalled"
-                  @click="openModalCupon()"
-                  class="category-item-center category-special category-cupon">
-                  <div class="category-icon">
-                    <i class="fas fa-ticket-alt"></i>
-                  </div>
-                  <span class="category-name">Cupones 2x1</span>
                   <div class="category-arrow">
                     <i class="fas fa-chevron-right"></i>
                   </div>
@@ -412,9 +411,8 @@
     <venta-copas @addCopa="handleAddCopa" />
     <test-merchise ref="testMerchise" :cart="jsonTable" @addMerchise="handleAddMerchise" />
     <colacion ref="colacion" @addColacion="handleAddColacion" />
+    <cheaf ref="cheaf" @addCheaf="handleAddCheaf" />
     <dias-locos ref="diasLocos" :products="productsRequest" @addDiasLocos="handleAddDiasLocos" />
-    <modal-cupon @abrir-seleccion="abrirModalSeleccion" />
-    <modal-seleccion-cupon ref="modalSeleccionCupon" @producto-seleccionado="handleProductoCupon" />
     
     <!-- Modal de métodos de pago -->
     <div v-show="showPaymentModal" :key="`payment-modal-${ticketComponentKey}`" class="payment-modal-overlay" @click="closePaymentModal">
@@ -587,9 +585,8 @@ import modalVerify from '@/components/modals/verifyDelete.vue';
 import ventaCopas from '@/components/modals/cafeteria/ventaCopas.vue';
 import testMerchise from '@/components/modals/cafeteria/testMerchise.vue';
 import colacion from '@/components/modals/cafeteria/colacion.vue';
+import cheaf from '@/components/modals/cafeteria/cheaf.vue';
 import diasLocos from '@/components/modals/cafeteria/diasLocos.vue';
-import modalCupon from '@/components/modals/cafeteria/modalCupon.vue';
-import modalSeleccionCupon from '@/components/modals/cafeteria/modalSeleccionCupon.vue';
 
 // Helpers y plugins
 import ConfigHelper from '@/helpers/ConfigHelper.js';
@@ -669,9 +666,8 @@ export default {
     ventaCopas,
     testMerchise,
     colacion,
+    cheaf,
     diasLocos,
-    modalCupon,
-    modalSeleccionCupon,
   },
   mounted() {
     //HavePermission
@@ -1511,25 +1507,14 @@ export default {
       this.$refs.colacion.openModal();
     },
 
+    // Abrir modal de Cheaf
+    openCheaf() {
+      this.$refs.cheaf.openModal();
+    },
+
     // Abrir modal de Días Locos
     openDiasLocos() {
       this.$refs.diasLocos.openModal();
-    },
-
-    // Abrir modal de Cupón
-    openModalCupon() {
-      $('#modalCupon').modal('show');
-    },
-
-    // Manejar apertura del modal de selección de cupón
-    abrirModalSeleccion(cuponData) {
-      this.$refs.modalSeleccionCupon.openModal(cuponData);
-    },
-
-    // Manejar producto seleccionado desde modal de cupón
-    handleProductoCupon(producto) {
-      console.log('🎫 Producto con cupón recibido:', producto);
-      this.quantityAdd(producto);
     },
 
     // Manejar adición de copa desde modal ventaCopas
@@ -1641,6 +1626,28 @@ export default {
       });
 
       console.log('✅ Colación agregada al carrito para:', colacionData.empleado_retira);
+    },
+
+    // Manejar adición de promoción Cheaf desde modal cheaf
+    handleAddCheaf(cheafData) {
+      console.log('🔥 Datos recibidos de Cheaf:', cheafData);
+      
+      // Agregar promoción Cheaf al carrito
+      this.quantityAdd({
+        id: cheafData.id,
+        name: cheafData.name,
+        price: cheafData.price, // 5990 o 3890
+        promo_price: null,
+        quantity: 1,
+        prices: [{ precio: cheafData.price }],
+        cecina: false,
+        ganancia: 0,
+        is_cheaf: true, // Flag importante
+        promo_type: cheafData.promo_type, // 'pastas' o 'ciabattas'
+        description: cheafData.description
+      });
+
+      console.log('✅ Promoción Cheaf agregada al carrito:', cheafData.name);
     },
 
     // Manejar adición de producto Días Locos desde modal diasLocos
@@ -2317,13 +2324,6 @@ export default {
       }
     },
 
-    cuponInstalled: {
-      get() {
-        // Sistema de cupones siempre activo
-        return true;
-      }
-    },
-
     settingVenderSinStock: {
       get() {
         return ConfigHelper.ConfStr('modulos.ventas.ajustes.permitir_venta_sin_stock');
@@ -2424,6 +2424,26 @@ export default {
 .category-colacion:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4) !important;
+}
+
+/* Botón especial Cheaf */
+.category-cheaf {
+  background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%) !important;
+  animation: pulse-cheaf 2s ease-in-out infinite;
+}
+
+.category-cheaf:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(247, 151, 30, 0.5) !important;
+}
+
+@keyframes pulse-cheaf {
+  0%, 100% { 
+    box-shadow: 0 4px 15px rgba(247, 151, 30, 0.4);
+  }
+  50% { 
+    box-shadow: 0 8px 30px rgba(255, 210, 0, 0.6);
+  }
 }
 
 /* Botón especial Días Locos */

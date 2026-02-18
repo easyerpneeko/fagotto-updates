@@ -669,7 +669,6 @@ class RequestsController extends Controller
 
     public function review(Request $request, $id)
     {
-
         $pedido = Requests::findOrFail($id);
 
         if(!$pedido) return response()->json('Pedido no encontrado',404);
@@ -677,6 +676,42 @@ class RequestsController extends Controller
         $pedido->review = $request['review'];
           
         if(!$pedido->save()) return response()->json('Error del servidor',500);
+        
+        // ✅ Enviar notificación por email sobre el nuevo comentario
+        try {
+            $local = CurrentApp::App();
+            
+            $emailData = [
+                'pedido' => $pedido,
+                'local' => $local,
+                'comentario' => $request['review']
+            ];
+            
+            // Lista de destinatarios
+            $destinatarios = [
+                'soledad.zavalaga@fagotto.cl',
+                'erick@fagotto.cl',
+                'ma.gabriela@fagotto.cl'
+            ];
+            
+            // Enviar email a todos los destinatarios
+            $mailer = new PHPMailerService();
+            $resultado = $mailer->sendWithViewToMultiple(
+                $destinatarios,
+                '💬 Comentario en Pedido #' . $pedido->id . ' - ' . ($local->Name ?? $local->name ?? $local->nombre ?? 'Local'),
+                'emails.pedido_comentario',
+                $emailData
+            );
+            
+            if ($resultado) {
+                Log::info('✅ Email de comentario para pedido #' . $pedido->id . ' enviado a ' . count($destinatarios) . ' destinatarios');
+            } else {
+                Log::warning('⚠️ Error al enviar email de comentario para pedido #' . $pedido->id);
+            }
+        } catch (\Exception $e) {
+            // No interrumpir el flujo si falla el email
+            Log::error('❌ Error al enviar notificación de comentario para pedido #' . $pedido->id . ': ' . $e->getMessage());
+        }
         
         return response()->json('Pedido actualizado exitosamente',200);
     }

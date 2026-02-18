@@ -2586,8 +2586,10 @@ export default {
                     BaseUrl.getUrl(`api/local/request/${pedidoId}/comentarios`)
                 );
                 
-                if (response.success) {
-                    this.comentarios = response.comentarios;
+                if (response.success && response.data) {
+                    // Backend devuelve estructura anidada: {success: true, data: {success: true, comentarios: [...]}}
+                    const comentarios = response.data.comentarios || [];
+                    this.comentarios = comentarios;
                     console.log('✅ Comentarios cargados:', this.comentarios.length);
                 } else {
                     console.error('❌ Error al cargar comentarios');

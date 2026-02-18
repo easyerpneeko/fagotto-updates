@@ -92,6 +92,60 @@
                                 </p>
                             </div>
 
+                            <!-- Productos del Pedido -->
+                            <div style="margin-top: 30px;">
+                                <h3 style="margin: 0 0 15px 0; color: #333; font-size: 20px; padding-bottom: 10px; border-bottom: 2px solid #667eea;">
+                                    📦 Productos del Pedido
+                                </h3>
+                                <table cellpadding="12" cellspacing="0" border="0" width="100%" style="margin-top: 15px;">
+                                    <thead>
+                                        <tr style="background: #667eea; color: #ffffff;">
+                                            <th style="padding: 12px; text-align: center; border-radius: 8px 0 0 0;">Cant.</th>
+                                            <th style="padding: 12px; text-align: left;">Producto</th>
+                                            <th style="padding: 12px; text-align: right;">Precio Unit.</th>
+                                            <th style="padding: 12px; text-align: right; border-radius: 0 8px 0 0;">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($productos as $producto)
+                                        <tr style="border-bottom: 1px solid #e0e0e0;">
+                                            <td style="padding: 12px; text-align: center; font-weight: 700; color: #667eea;">
+                                                {{ $producto['quantity'] ?? $producto['cantidad'] ?? 0 }}
+                                                <small style="color: #6c757d;">{{ $producto['unidad_medida'] ?? 'un' }}</small>
+                                            </td>
+                                            <td style="padding: 12px; color: #333;">
+                                                {{ $producto['name'] ?? $producto['producto'] ?? 'Producto' }}
+                                            </td>
+                                            <td style="padding: 12px; text-align: right; color: #666;">
+                                                ${{ number_format($producto['price'] ?? $producto['precio_por_unidad'] ?? 0, 0, ',', '.') }}
+                                            </td>
+                                            <td style="padding: 12px; text-align: right; font-weight: 700; color: #667eea;">
+                                                ${{ number_format(($producto['quantity'] ?? $producto['cantidad'] ?? 0) * ($producto['price'] ?? $producto['precio_por_unidad'] ?? 0), 0, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                                
+                                <!-- Totales -->
+                                <div style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                                    <table cellpadding="8" cellspacing="0" border="0" width="100%">
+                                        <tr>
+                                            <td style="padding: 8px; color: #666;">Subtotal ({{ count($productos) }} productos):</td>
+                                            <td style="padding: 8px; text-align: right; font-weight: 600;">${{ number_format($pedido->subtotal, 0, ',', '.') }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px; color: #666;">IVA (19%):</td>
+                                            <td style="padding: 8px; text-align: right; font-weight: 600;">${{ number_format($pedido->iva, 0, ',', '.') }}</td>
+                                        </tr>
+                                        <tr style="border-top: 2px solid #667eea;">
+                                            <td style="padding: 15px 8px 8px 8px; color: #667eea; font-size: 18px; font-weight: 700;">TOTAL A PAGAR:</td>
+                                            <td style="padding: 15px 8px 8px 8px; text-align: right; color: #667eea; font-size: 20px; font-weight: 700;">${{ number_format($pedido->price, 0, ',', '.') }} CLP</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+
                             <!-- Información Original del Pedido -->
                             @if($pedido->comment)
                             <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 8px;">

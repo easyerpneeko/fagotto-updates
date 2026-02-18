@@ -680,11 +680,13 @@ class RequestsController extends Controller
         // ✅ Enviar notificación por email sobre el nuevo comentario
         try {
             $local = CurrentApp::App();
+            $productos = json_decode($pedido->products, true);
             
             $emailData = [
                 'pedido' => $pedido,
                 'local' => $local,
-                'comentario' => $request['review']
+                'comentario' => $request['review'],
+                'productos' => $productos
             ];
             
             // Lista de destinatarios

@@ -999,32 +999,56 @@
             </div>
         </div>
 
-        <!-- Modal de Reseña/Comentario (igual que pedidos.vue) -->
+        <!-- Modal de Reseña/Comentario con Historial tipo Chat -->
         <div class="modal fade modal-modern" id="modalReview" tabindex="-1" role="dialog" aria-labelledby="modalReview"
             aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">✍️ Comentar Pedido</h5>
+                        <h5 class="modal-title">💬 Comentarios del Pedido #{{ idRequest }}</h5>
                         <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
+                        <!-- Historial de Comentarios -->
+                        <div v-if="comentarios.length > 0" class="mb-3">
+                            <h6 class="text-muted mb-3">📜 Historial de Comentarios</h6>
+                            <div class="chat-container" style="max-height: 300px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                                <div v-for="(comentario, index) in comentarios" :key="index" class="chat-message mb-3" 
+                                    style="background: white; padding: 12px; border-radius: 8px; border-left: 4px solid #667eea; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <strong style="color: #667eea;">
+                                            <i class="fas fa-user-circle"></i> {{ comentario.user_name || 'Usuario' }}
+                                        </strong>
+                                        <small class="text-muted">
+                                            <i class="far fa-clock"></i> {{ formatDate(comentario.created_at) }}
+                                        </small>
+                                    </div>
+                                    <p style="margin: 0; color: #333; white-space: pre-wrap;">{{ comentario.comentario }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No hay comentarios previos. ¡Sé el primero en comentar!
+                        </div>
+                        
+                        <!-- Formulario para Nuevo Comentario -->
                         <div class="form-group-modern">
-                            <label for="review" class="info-label">📝 Escribe tu comentario:</label>
-                            <textarea v-model="review" @keyup.enter="sendReview" id="review" 
+                            <label for="review" class="info-label">✍️ Nuevo Comentario:</label>
+                            <textarea v-model="review" @keyup.ctrl.enter="sendReview" id="review" 
                                 class="form-control-modern textarea-modern" 
-                                placeholder="Comentario sobre el estado del pedido..."></textarea>
-                            <i class="input-icon fas fa-comment-alt"></i>
+                                rows="4"
+                                placeholder="Escribe tu comentario sobre el pedido..."></textarea>
+                            <small class="text-muted">Presiona Ctrl+Enter para enviar</small>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-modern btn-secondary-modern" data-dismiss="modal">
                             ✖️ Cerrar
                         </button>
-                        <button type="button" class="btn-modern btn-primary-modern" @click="sendReview">
-                            💬 Enviar Comentario
+                        <button type="button" class="btn-modern btn-primary-modern" @click="sendReview" :disabled="!review.trim()">
+                            📤 Enviar Comentario
                         </button>
                     </div>
                 </div>
@@ -1082,6 +1106,7 @@ export default {
             // Reseña/Comentario
             review: '',
             idRequest: null,
+            comentarios: [], // Historial de comentarios del pedido
             
             // Datos de negocio
             app: null,
@@ -2543,9 +2568,35 @@ export default {
         
         // ==================== MÉTODOS DE COMENTARIOS/RESEÑA ====================
         
-        openReview(pedido) {
+        async openReview(pedido) {
             this.idRequest = pedido.id;
+            this.review = ''; // Limpiar textarea
+            
+            // Cargar historial de comentarios
+            await this.cargarComentarios(pedido.id);
+            
             $('#modalReview').modal('show');
+        },
+        
+        async cargarComentarios(pedidoId) {
+            console.log('📜 Cargando historial de comentarios para pedido:', pedidoId);
+            try {
+                const response = await Connection.request(
+                    'GET',
+                    BaseUrl.getUrl(`api/local/request/${pedidoId}/comentarios`)
+                );
+                
+                if (response.success) {
+                    this.comentarios = response.comentarios;
+                    console.log('✅ Comentarios cargados:', this.comentarios.length);
+                } else {
+                    console.error('❌ Error al cargar comentarios');
+                    this.comentarios = [];
+                }
+            } catch (error) {
+                console.error('❌ Error al cargar comentarios:', error);
+                this.comentarios = [];
+            }
         },
         
         async sendReview() {
@@ -2555,13 +2606,23 @@ export default {
                 let data = new FormData();
                 data.append('review', this.review);
                 
+                // Obtener nombre del usuario desde localStorage
+                const turnoData = JSON.parse(localStorage.getItem('turnoActivo') || '{}');
+                const userName = turnoData.nombre || 'Usuario';
+                data.append('user_name', userName);
+                
                 try {
                     var request = await this.$store.dispatch("requests/update", { id: this.idRequest, data });
                     
                     if (request.success) {
-                        this.$awn.success("Comentario enviado correctamente");
-                        // Recargar historial para mostrar el comentario actualizado
+                        this.$awn.success("💬 Comentario enviado correctamente");
+                        
+                        // Recargar comentarios para mostrar el nuevo
+                        await this.cargarComentarios(this.idRequest);
+                        
+                        // Recargar historial de pedidos
                         await this.cargarHistorial();
+                        
                         this.review = ''; // Limpiar el comentario
                     } else {
                         this.$awn.alert("Error al enviar el comentario");
@@ -2571,7 +2632,8 @@ export default {
                     this.$awn.alert("Error al enviar el comentario");
                 }
                 
-                $('#modalReview').modal('hide');
+                // No cerrar el modal para poder seguir viendo el historial
+                // $('#modalReview').modal('hide');
             } else {
                 this.$awn.alert("Es necesario escribir un comentario");
             }

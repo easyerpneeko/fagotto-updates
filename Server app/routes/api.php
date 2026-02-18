@@ -679,6 +679,7 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::get('/local/request/view/{app_id}/{id}', 'Controllers_local\RequestsController@view');
           Route::put('/local/request/voucher/{id}', 'Controllers_local\RequestsController@voucher');
           Route::put('/local/request/review/{id}', 'Controllers_local\RequestsController@review');
+          Route::get('/local/request/{id}/comentarios', 'Controllers_local\RequestsController@getComentarios');
           Route::put('/local/request/hide/{app_id}/{id}', 'Controllers_local\RequestsController@hide');
           //Facturar Pedido
           Route::post('/web/pedido/facturar', 'Controllers_local\RequestsController@facturarPedido'); 

@@ -8,6 +8,7 @@ use App\models_local\Requests;
 use App\models_local\RequestsReposteria;
 use App\models_local\Payment;
 use App\models_local\PaymentReposteria;
+use App\models_local\PedidoComentario;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -673,6 +674,15 @@ class RequestsController extends Controller
 
         if(!$pedido) return response()->json('Pedido no encontrado',404);
     
+        // 💾 Guardar comentario en historial de comentarios
+        $comentario = PedidoComentario::create([
+            'request_id' => $pedido->id,
+            'user_name' => $request->input('user_name', 'Usuario'),
+            'user_id' => $request->input('user_id', null),
+            'comentario' => $request['review']
+        ]);
+
+        // Actualizar el campo review del pedido (último comentario para compatibilidad)
         $pedido->review = $request['review'];
           
         if(!$pedido->save()) return response()->json('Error del servidor',500);
@@ -686,7 +696,8 @@ class RequestsController extends Controller
                 'pedido' => $pedido,
                 'local' => $local,
                 'comentario' => $request['review'],
-                'productos' => $productos
+                'productos' => $productos,
+                'user_name' => $request->input('user_name', 'Usuario')
             ];
             
             // Lista de destinatarios
@@ -715,7 +726,37 @@ class RequestsController extends Controller
             Log::error('❌ Error al enviar notificación de comentario para pedido #' . $pedido->id . ': ' . $e->getMessage());
         }
         
-        return response()->json('Pedido actualizado exitosamente',200);
+        return response()->json([
+            'message' => 'Comentario guardado exitosamente',
+            'comentario' => $comentario
+        ], 200);
+    }
+
+    /**
+     * Obtener historial de comentarios de un pedido
+     * GET api/requests/{id}/comentarios
+     */
+    public function getComentarios($id)
+    {
+        try {
+            $pedido = Requests::findOrFail($id);
+            
+            // Obtener todos los comentarios ordenados cronológicamente
+            $comentarios = PedidoComentario::where('request_id', $id)
+                ->orderBy('created_at', 'asc')
+                ->get();
+            
+            return response()->json([
+                'success' => true,
+                'comentarios' => $comentarios
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener comentarios: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function getCantPedidosNew(){

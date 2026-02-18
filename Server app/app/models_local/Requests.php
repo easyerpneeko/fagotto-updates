@@ -25,6 +25,7 @@ class Requests extends Model
         'despacho',
         'products',
         'comment',
+        'review',
         'app_id'
     ];
 

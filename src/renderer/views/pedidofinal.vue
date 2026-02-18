@@ -195,10 +195,16 @@
                                         </div>
                                     </div>
                                     
-                                    <!-- Botón de pago si está pendiente -->
-                                    <div v-if="pedido.payment_status === 'pending' || !pedido.payment_status" class="historial-actions" style="margin-top: 1rem;">
-                                        <button @click="pagarPedidoExistente(pedido)" class="btn-pagar-historial" style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
-                                            <i class="fas fa-credit-card"></i> Pagar Ahora - ${{ formatNumber(calcularTotalHistorial(pedido)) }}
+                                    <!-- Botones de acción -->
+                                    <div class="historial-actions" style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                                        <!-- Botón Comentar (siempre visible) -->
+                                        <button @click="openReview(pedido)" class="btn-comentar-historial" style="flex: 1; background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                            <i class="fas fa-comment-alt"></i> Comentar
+                                        </button>
+                                        
+                                        <!-- Botón de pago si está pendiente -->
+                                        <button v-if="pedido.payment_status === 'pending' || !pedido.payment_status" @click="pagarPedidoExistente(pedido)" class="btn-pagar-historial" style="flex: 2; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                            <i class="fas fa-credit-card"></i> Pagar - ${{ formatNumber(calcularTotalHistorial(pedido)) }}
                                         </button>
                                     </div>
                                 </div>
@@ -992,6 +998,38 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal de Reseña/Comentario (igual que pedidos.vue) -->
+        <div class="modal fade modal-modern" id="modalReview" tabindex="-1" role="dialog" aria-labelledby="modalReview"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">✍️ Comentar Pedido</h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group-modern">
+                            <label for="review" class="info-label">📝 Escribe tu comentario:</label>
+                            <textarea v-model="review" @keyup.enter="sendReview" id="review" 
+                                class="form-control-modern textarea-modern" 
+                                placeholder="Comentario sobre el estado del pedido..."></textarea>
+                            <i class="input-icon fas fa-comment-alt"></i>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-modern btn-secondary-modern" data-dismiss="modal">
+                            ✖️ Cerrar
+                        </button>
+                        <button type="button" class="btn-modern btn-primary-modern" @click="sendReview">
+                            💬 Enviar Comentario
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -1040,6 +1078,10 @@ export default {
             phone: '', // No se usa pero se mantiene para compatibilidad
             comment: '', // No se usa pero se mantiene para compatibilidad
             paymode: 'Efectivo', // Por defecto Efectivo
+            
+            // Reseña/Comentario
+            review: '',
+            idRequest: null,
             
             // Datos de negocio
             app: null,
@@ -2496,6 +2538,42 @@ export default {
                 console.log('   - Total pedidos:', this.historialPedidos.length);
                 console.log('   - loadingHistorial:', this.loadingHistorial);
                 console.log('   - mostrarHistorial:', this.mostrarHistorial);
+            }
+        },
+        
+        // ==================== MÉTODOS DE COMENTARIOS/RESEÑA ====================
+        
+        openReview(pedido) {
+            this.idRequest = pedido.id;
+            $('#modalReview').modal('show');
+        },
+        
+        async sendReview() {
+            console.log('📝 Enviando comentario para pedido:', this.idRequest, 'Comentario:', this.review);
+            
+            if (this.review.length > 0) {
+                let data = new FormData();
+                data.append('review', this.review);
+                
+                try {
+                    var request = await this.$store.dispatch("requests/update", { id: this.idRequest, data });
+                    
+                    if (request.success) {
+                        this.$awn.success("Comentario enviado correctamente");
+                        // Recargar historial para mostrar el comentario actualizado
+                        await this.cargarHistorial();
+                        this.review = ''; // Limpiar el comentario
+                    } else {
+                        this.$awn.alert("Error al enviar el comentario");
+                    }
+                } catch (error) {
+                    console.error('❌ Error al enviar comentario:', error);
+                    this.$awn.alert("Error al enviar el comentario");
+                }
+                
+                $('#modalReview').modal('hide');
+            } else {
+                this.$awn.alert("Es necesario escribir un comentario");
             }
         },
         

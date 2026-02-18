@@ -367,24 +367,24 @@ class RequestsController extends Controller
                     'soledad.zavalaga@fagotto.cl',
                     'erick@fagotto.cl',
                     'ma.gabriela@fagotto.cl',
-                    'margarita@fagotto.cl'
+                    'margarita@fagotto.cl',
+                    'soporte@fagotto.cl'
                 ];
                 
-                // Enviar email a cada destinatario
+                // ✅ FIX: Enviar UN SOLO email a todos los destinatarios (en BCC)
+                // En lugar de enviar 4 correos acumulativos separados
                 $mailer = new PHPMailerService();
-                foreach ($destinatarios as $email) {
-                    $resultado = $mailer->sendWithView(
-                        $email,
-                        'Pedido ' . ($local->Name ?? $local->name ?? $local->nombre ?? 'Local'),
-                        'emails.pedido_final',
-                        $emailData
-                    );
-                    
-                    if ($resultado) {
-                        Log::info('✅ Email de pedido #' . $newRequest->id . ' enviado a: ' . $email);
-                    } else {
-                        Log::warning('⚠️ Error al enviar email de pedido #' . $newRequest->id . ' a: ' . $email);
-                    }
+                $resultado = $mailer->sendWithViewToMultiple(
+                    $destinatarios,
+                    'Pedido ' . ($local->Name ?? $local->name ?? $local->nombre ?? 'Local'),
+                    'emails.pedido_final',
+                    $emailData
+                );
+                
+                if ($resultado) {
+                    Log::info('✅ Email de pedido #' . $newRequest->id . ' enviado a ' . count($destinatarios) . ' destinatarios');
+                } else {
+                    Log::warning('⚠️ Error al enviar email de pedido #' . $newRequest->id);
                 }
             } catch (\Exception $e) {
                 // No interrumpir el flujo si falla el email

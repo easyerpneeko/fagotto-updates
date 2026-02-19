@@ -46,7 +46,7 @@ class RequestsController extends Controller
             'contact_name' => 'required|string|max:70',
             'contact_phone' => 'required|string|max:20',
             'paymode' => 'required',
-            'payment_method' => 'nullable|string|in:contado,credito,efectivo,debito,transferencia,cheque,banco,amipass,multicaja,edenred,convenio_empresa,sodexo,rappi,junaeb,uber,pedidos_ya,pluxee,banco_chile_20,fluxi',
+            'payment_method' => 'nullable|string|in:contado,credito,efectivo,debito,transferencia,cheque,banco,amipass,multicaja,edenred,convenio_empresa,sodexo,rappi,junaeb,uber,pedidos_ya,pluxee,banco_chile_20,fluxi,cheaf',
             'invoice_type' => 'nullable|string|in:ticket,boleta',
             'voucher' => 'nullable|file',
             'status' => 'required',
@@ -154,20 +154,115 @@ class RequestsController extends Controller
         return response()->json(['message' => 'Pedido creado con éxito'], 201);
     }
 
+    /**
+     * 🔧 Obtener configuración dinámica de horarios para pedidos
+     * Este endpoint permite cambiar horarios sin recompilar el .exe
+     */
+    public function getPedidoFinalConfig(Request $request)
+    {
+        try {
+            $appId = (int) $request->input('app_id');
+            
+            // 🚨 CONFIGURACIÓN CENTRALIZADA DE HORARIOS
+            // Para cambiar horarios, solo modifica estos valores
+            
+            // Excepciones: Locales sin restricción de horario ni día
+            $idsExcepcionHorario = [121, 119]; // Food Truck, Local 119
+            $sinRestriccion = in_array($appId, $idsExcepcionHorario, true);
+            
+            // ⏰ HORARIO GLOBAL (5:00 AM - 1:00 PM)
+            $horaInicio = 7;  // 5:00 AM
+            $horaFin = 13;    // 1:00 PM (cambiar a 15 para extender a 3 PM)
+            
+            // Validar horario actual
+            $horaActual = Carbon::now('America/Santiago');
+            $horarioActivo = $sinRestriccion || $horaActual->between(
+                Carbon::createFromTime($horaInicio, 0, 0, 'America/Santiago'),
+                Carbon::createFromTime($horaFin, 0, 0, 'America/Santiago')
+            );
+            
+            // 📅 DÍAS PERMITIDOS POR TIPO DE NEGOCIO
+            $idsPropios = [58, 59, 78, 86, 97, 107, 111]; // Martes, Jueves, Viernes
+            $idsFranquicias = [114, 95, 77, 108, 117, 113, 96, 102, 98, 116]; // Lunes, Miércoles, Viernes
+            
+            $esPropio = in_array($appId, $idsPropios);
+            $esFranquicia = in_array($appId, $idsFranquicias);
+            
+            // Obtener día actual (0=Domingo, 1=Lunes, ..., 6=Sábado)
+            $diaActual = (int) $horaActual->dayOfWeek;
+            
+            $diaPermitido = $sinRestriccion;
+            $diasPermitidos = [];
+            
+            if ($esPropio) {
+                $diasPermitidos = ['Martes', 'Jueves', 'Viernes']; // 2, 4, 5
+                $diaPermitido = in_array($diaActual, [2, 4, 5]);
+            } elseif ($esFranquicia) {
+                $diasPermitidos = ['Lunes', 'Miércoles', 'Viernes']; // 1, 3, 5
+                $diaPermitido = in_array($diaActual, [1, 3, 5]);
+            } else {
+                // Sin restricción de días si no está en ninguna lista
+                $diaPermitido = true;
+                $diasPermitidos = ['Todos los días'];
+            }
+            
+            // Hora de cierre para countdown
+            $horaCierre = Carbon::today('America/Santiago')->setTime($horaFin, 0, 0);
+            $tiempoRestante = null;
+            
+            if ($horarioActivo && $diaPermitido && !$sinRestriccion) {
+                $diferencia = $horaCierre->diffInSeconds($horaActual);
+                if ($diferencia > 0) {
+                    $tiempoRestante = [
+                        'horas' => floor($diferencia / 3600),
+                        'minutos' => floor(($diferencia % 3600) / 60),
+                        'segundos' => $diferencia % 60
+                    ];
+                }
+            }
+            
+            return response()->json([
+                'success' => true,
+                'config' => [
+                    'horario_activo' => $horarioActivo && $diaPermitido,
+                    'hora_inicio' => $horaInicio,
+                    'hora_fin' => $horaFin,
+                    'horario_texto' => sprintf('%d:00 AM - %d:00 %s', 
+                        $horaInicio, 
+                        $horaFin > 12 ? $horaFin - 12 : $horaFin,
+                        $horaFin >= 12 ? 'PM' : 'AM'
+                    ),
+                    'dia_permitido' => $diaPermitido,
+                    'dias_permitidos' => $diasPermitidos,
+                    'sin_restriccion' => $sinRestriccion,
+                    'hora_actual' => $horaActual->format('H:i:s'),
+                    'dia_actual' => $horaActual->locale('es')->isoFormat('dddd'),
+                    'tiempo_restante' => $tiempoRestante
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error en getPedidoFinalConfig: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener configuración'
+            ], 500);
+        }
+    }
+
     public function storePedidoFinal(Request $request)
     {
         // Convertir app_id a integer para comparación type-safe
         $appId = (int) $request->input('app_id');
         
-        // � EXCEPCIÓN: Food Truck (ID 121) sin restricción de horario ni día
-        $idsExcepcionHorario = [121]; // Food Truck - Sin restricción de horario ni día
+        // � EXCEPCIÓN: Food Truck (ID 121) y Local 119 sin restricción de horario ni día
+        $idsExcepcionHorario = [121, 119]; // Food Truck, Local 119 - Sin restricción de horario ni día
         $sinRestriccion = in_array($appId, $idsExcepcionHorario, true);
         
         // 🕐 Validar horario permitido para pedidos (5:00 AM - 1:00 PM)
         if (!$sinRestriccion) {
             $horaActual = Carbon::now('America/Santiago');
             $horaInicio = Carbon::createFromTime(5, 0, 0, 'America/Santiago');
-            $horaFin = Carbon::createFromTime(13, 0, 0, 'America/Santiago'); // 1:00 PM
+            $horaFin = Carbon::createFromTime(13, 0, 0, 'America/Santiago'); // 1:00 PM (cambiar a 15 para extender a 3 PM)
             
             if (!$horaActual->between($horaInicio, $horaFin)) {
                 $horaActualFormateada = $horaActual->format('H:i');
@@ -226,7 +321,7 @@ class RequestsController extends Controller
             'contact_name' => 'required|string|max:70',
             'contact_phone' => 'required|string|max:20',
             'paymode' => 'required',
-            'payment_method' => 'nullable|string|in:contado,credito,efectivo,debito,transferencia,cheque,banco,amipass,multicaja,edenred,convenio_empresa,sodexo,rappi,junaeb,uber,pedidos_ya,pluxee,banco_chile_20,fluxi',
+            'payment_method' => 'nullable|string|in:contado,credito,efectivo,debito,transferencia,cheque,banco,amipass,multicaja,edenred,convenio_empresa,sodexo,rappi,junaeb,uber,pedidos_ya,pluxee,banco_chile_20,fluxi,cheaf',
             'invoice_type' => 'nullable|string|in:ticket,boleta',
             'status' => 'required',
             'products' => 'required|string',
@@ -377,8 +472,7 @@ class RequestsController extends Controller
                     'soledad.zavalaga@fagotto.cl',
                     'erick@fagotto.cl',
                     'ma.gabriela@fagotto.cl',
-                    'margarita@fagotto.cl',
-                    'soporte@fagotto.cl'
+                    'margarita@fagotto.cl'
                 ];
                 
                 // ✅ FIX: Enviar UN SOLO email a todos los destinatarios (en BCC)
@@ -515,6 +609,72 @@ class RequestsController extends Controller
         $request->delete();
 
         return response()->json(['message' => 'Request deleted successfully'], 200);
+    }
+
+    /**
+     * 🗑️ Eliminar pedido de pedidofinal_detalle (para corregir duplicados)
+     * DELETE /api/local/pedidofinal/eliminar/{app_id}/{request_id}
+     */
+    public function eliminarPedidoFinalDetalle(Request $request, $app_id, $request_id)
+    {
+        try {
+            \Log::info('🗑️ Eliminando pedido de pedidofinal_detalle', [
+                'app_id' => $app_id,
+                'request_id' => $request_id
+            ]);
+
+            // Contar registros antes de eliminar
+            $eliminados = DB::connection('easyerp_master')
+                ->table('pedidofinal_detalle')
+                ->where('app_id', $app_id)
+                ->where('request_id', $request_id)
+                ->count();
+
+            if ($eliminados > 0) {
+                // 📝 GUARDAR LOG DE AUDITORÍA antes de eliminar
+                DB::connection('easyerp_master')->table('pedidofinal_eliminaciones_log')->insert([
+                    'app_id' => $app_id,
+                    'request_id' => $request_id,
+                    'registros_eliminados' => $eliminados,
+                    'usuario_nombre' => $request->input('usuario_nombre', 'Usuario Web'),
+                    'usuario_id' => $request->input('usuario_id', null),
+                    'motivo' => $request->input('motivo', 'Corrección de pedido duplicado'),
+                    'fecha_eliminacion' => Carbon::now('America/Santiago')
+                ]);
+
+                // Ahora sí, eliminar los registros
+                DB::connection('easyerp_master')
+                    ->table('pedidofinal_detalle')
+                    ->where('app_id', $app_id)
+                    ->where('request_id', $request_id)
+                    ->delete();
+
+                \Log::info('✅ Eliminación exitosa y registrada', [
+                    'app_id' => $app_id,
+                    'request_id' => $request_id,
+                    'eliminados' => $eliminados,
+                    'usuario' => $request->input('usuario_nombre', 'Usuario Web')
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => "✅ Se eliminaron {$eliminados} registro(s) del pedido #{$request_id}",
+                    'registros_eliminados' => $eliminados
+                ], 200);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => '⚠️ No se encontraron registros para eliminar'
+                ], 404);
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Error al eliminar pedido de pedidofinal_detalle: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar pedido: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function decline($app_id,$id)

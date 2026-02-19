@@ -115,7 +115,7 @@ class ArqueoCajaController extends Controller
                 'efectivo', 'debito', 'credito', 'transferencia', 'cheque', 
                 'banco', 'amipass', 'multicaja', 'edenred', 'convenio_empresa', 
                 'sodexo', 'rappi', 'junaeb', 'uber', 'pedidos_ya', 'pluxee', 
-                'banco_chile_20', 'fluxi'
+                'banco_chile_20', 'fluxi', 'cheaf'
             ];
             
             $ventasPorMedio = [];

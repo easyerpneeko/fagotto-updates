@@ -511,6 +511,9 @@ async function getCounters(startDate, endDate) {
                 });
 
                 console.log('📊 Productos ordenados por cantidad:', productsArray);
+                
+                // Calcular KPIs de salsas y jugos usando los mismos datos
+                calculateSauceKPIs(productsArray);
             } else {
                 tablaProducts.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No hay datos de productos disponibles</td></tr>';
             }
@@ -4495,14 +4498,28 @@ function processSauceDataFromSells(response, startDate, endDate) {
     ventas.forEach(venta => {
         if (venta.products && Array.isArray(venta.products)) {
             venta.products.forEach(producto => {
+                // Intentar diferentes campos para obtener el precio
+                const precio = parseFloat(producto.price) || 
+                              parseFloat(producto.unit_price) || 
+                              parseFloat(producto.unitPrice) ||
+                              parseFloat(producto.total / (producto.quantity || 1)) || 
+                              0;
+                
                 productos.push({
                     name: producto.name,
                     quantity: producto.quantity || 1,
+                    price: precio,
                     created_at: venta.created_at
                 });
             });
         }
     });
+    
+    // Log para debugging - mostrar estructura de los primeros productos
+    if (productos.length > 0) {
+        console.log('📦 Ejemplo de producto extraído:', productos[0]);
+        console.log('📦 Campos del primer producto de venta:', ventas[0]?.products?.[0]);
+    }
     
     console.log(`📦 Total productos extraídos: ${productos.length}`);
     
@@ -4610,8 +4627,8 @@ function processSauceData(productos, startDate, endDate) {
     
     console.log('📊 Ventas procesadas por salsa:', ventasPorSalsa);
     
-    // Calcular KPIs
-    calculateSauceKPIs(productos);
+    // ⚠️ KPIs ahora se calculan desde getProducts() con los datos correctos de precios
+    // calculateSauceKPIs(productos);
     
     // Renderizar tabla
     renderSauceHeatmap(ventasPorSalsa, dias);
@@ -4625,11 +4642,17 @@ function calculateSauceKPIs(productos) {
     let quesoExtra = 0;
     let focaccias = 0;
     let focacciasDesglose = {}; // Objeto para contar focaccias por nombre
+    let jugos = 0; // Nuevo contador para jugos
+    let jugosDesglose = {}; // Objeto para contar jugos por nombre con cantidad y monto
+    let bebidasDesglose = {}; // Objeto para contar TODAS las bebidas por nombre
+    let iceTea = 0; // Nuevo contador para Ice Tea
     
     productos.forEach(producto => {
         const nombreLower = (producto.name || '').toLowerCase();
         const nombreOriginal = producto.name || '';
+        const categoria = (producto.category || '').toLowerCase();
         const cantidad = parseInt(producto.quantity) || 1;
+        const precio = parseFloat(producto.price) || 0;
         
         // Salsa Extra (categoría Extras - salsas vendidas solas, sin pasta)
         // Detectar si tiene nombre de salsa PERO NO es parte de una pasta
@@ -4675,6 +4698,33 @@ function calculateSauceKPIs(productos) {
             }
             focacciasDesglose[nombreOriginal] += cantidad;
         }
+        
+        // Jugos - detectar productos con "jugo" en el nombre
+        if (nombreLower.includes('jugo')) {
+            jugos += cantidad;
+            
+            // Agregar al desglose con cantidad y monto
+            if (!jugosDesglose[nombreOriginal]) {
+                jugosDesglose[nombreOriginal] = { cantidad: 0, monto: 0 };
+            }
+            jugosDesglose[nombreOriginal].cantidad += cantidad;
+            jugosDesglose[nombreOriginal].monto += (precio * cantidad);
+        }
+        
+        // TODAS LAS BEBIDAS - detectar por categoría "Bebidas"
+        if (categoria === 'bebidas') {
+            // Agregar al desglose con cantidad y monto
+            if (!bebidasDesglose[nombreOriginal]) {
+                bebidasDesglose[nombreOriginal] = { cantidad: 0, monto: 0 };
+            }
+            bebidasDesglose[nombreOriginal].cantidad += cantidad;
+            bebidasDesglose[nombreOriginal].monto += (precio * cantidad);
+        }
+        
+        // Ice Tea - detectar productos que empiecen con "ice" (Ice Tea, Ice Coffee, etc.)
+        if (nombreLower.includes('ice')) {
+            iceTea += cantidad;
+        }
     });
     
     // Actualizar UI - Totales
@@ -4683,9 +4733,17 @@ function calculateSauceKPIs(productos) {
     document.getElementById('bigoliTotal').textContent = bigoli;
     document.getElementById('quesoExtraTotal').textContent = quesoExtra;
     document.getElementById('focacciasTotal').textContent = focaccias;
+    document.getElementById('jugosTotal').textContent = jugos;
+    document.getElementById('iceTeaTotal').textContent = iceTea;
     
     // Actualizar tabla de desglose de focaccias
     renderFocacciasBreakdown(focacciasDesglose);
+    
+    // Actualizar tabla de desglose de jugos
+    renderJugosBreakdown(jugosDesglose);
+    
+    // Actualizar tabla de desglose de bebidas
+    renderBebidasBreakdown(bebidasDesglose);
 }
 
 // Renderizar tabla de desglose de focaccias
@@ -4739,6 +4797,135 @@ function renderFocacciasBreakdown(focacciasDesglose) {
         </td>
     `;
     tbody.appendChild(rowTotal);
+}
+
+// Renderizar tabla de desglose de jugos
+function renderJugosBreakdown(jugosDesglose) {
+    const tbody = document.getElementById('jugosBreakdownBody');
+    
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    // Convertir a array y ordenar por cantidad (mayor a menor)
+    const jugosArray = Object.entries(jugosDesglose).sort((a, b) => b[1].cantidad - a[1].cantidad);
+    
+    if (jugosArray.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" class="text-center text-muted py-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No se vendieron jugos en este período
+                </td>
+            </tr>
+        `;
+        // Actualizar totales a 0
+        document.getElementById('jugosBreakdownTotalCantidad').textContent = '0';
+        document.getElementById('jugosBreakdownTotalMonto').textContent = '$0';
+        return;
+    }
+    
+    // Generar filas con ranking
+    jugosArray.forEach(([nombre, datos], index) => {
+        const ranking = index + 1;
+        const row = document.createElement('tr');
+        
+        // Resaltar top 3 con fondo amarillo
+        if (index < 3) {
+            row.style.backgroundColor = '#fff9c4';
+        }
+        
+        row.innerHTML = `
+            <td style="font-weight: 500;">
+                <span style="color: #666; font-weight: 600; margin-right: 5px;">#${ranking}</span>
+                <i class="fas fa-glass-water me-2" style="color: #fb8c00;"></i>
+                ${nombre}
+            </td>
+            <td style="text-align: center; font-weight: 600;">
+                ${datos.cantidad}
+            </td>
+            <td style="text-align: center; font-weight: 600; color: #fb8c00;">
+                $${datos.monto.toLocaleString('es-CL')}
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    // Calcular totales
+    const totalCantidad = jugosArray.reduce((sum, [_, datos]) => sum + datos.cantidad, 0);
+    const totalMonto = jugosArray.reduce((sum, [_, datos]) => sum + datos.monto, 0);
+    
+    // Calcular porcentaje del total de ventas (si tienes el total de ventas general)
+    // Por ahora solo mostrar el conteo
+    
+    // Actualizar totales en el footer de la tabla
+    document.getElementById('jugosBreakdownTotalCantidad').textContent = totalCantidad;
+    document.getElementById('jugosBreakdownTotalMonto').textContent = '$' + totalMonto.toLocaleString('es-CL');
+    
+    console.log('🥤 Desglose de jugos completo:', jugosArray);
+}
+
+// Renderizar tabla de desglose de bebidas
+function renderBebidasBreakdown(bebidasDesglose) {
+    const tbody = document.getElementById('bebidasBreakdownBody');
+    
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    // Convertir a array y ordenar por cantidad (mayor a menor)
+    const bebidasArray = Object.entries(bebidasDesglose).sort((a, b) => b[1].cantidad - a[1].cantidad);
+    
+    if (bebidasArray.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" class="text-center text-muted py-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No se vendieron bebidas en este período
+                </td>
+            </tr>
+        `;
+        // Actualizar totales a 0
+        document.getElementById('bebidasBreakdownTotalCantidad').textContent = '0';
+        document.getElementById('bebidasBreakdownTotalMonto').textContent = '$0';
+        return;
+    }
+    
+    // Generar filas con ranking
+    bebidasArray.forEach(([nombre, datos], index) => {
+        const ranking = index + 1;
+        const row = document.createElement('tr');
+        
+        // Resaltar top 3 con fondo amarillo
+        if (index < 3) {
+            row.style.backgroundColor = '#fff9c4';
+        }
+        
+        row.innerHTML = `
+            <td style="font-weight: 500;">
+                <span style="color: #666; font-weight: 600; margin-right: 5px;">#${ranking}</span>
+                <i class="fas fa-cocktail me-2" style="color: #00acc1;"></i>
+                ${nombre}
+            </td>
+            <td style="text-align: center; font-weight: 600;">
+                ${datos.cantidad}
+            </td>
+            <td style="text-align: center; font-weight: 600; color: #00acc1;">
+                $${datos.monto.toLocaleString('es-CL')}
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    // Calcular totales
+    const totalCantidad = bebidasArray.reduce((sum, [_, datos]) => sum + datos.cantidad, 0);
+    const totalMonto = bebidasArray.reduce((sum, [_, datos]) => sum + datos.monto, 0);
+    
+    // Actualizar totales en el footer de la tabla
+    document.getElementById('bebidasBreakdownTotalCantidad').textContent = totalCantidad;
+    document.getElementById('bebidasBreakdownTotalMonto').textContent = '$' + totalMonto.toLocaleString('es-CL');
+    
+    console.log('🥤 Desglose de bebidas completo:', bebidasArray);
 }
 
 // Renderizar tabla de mapa de calor

@@ -1548,7 +1548,8 @@ export default {
           'pedidos_ya': 0,
           'pluxee': 0,
           'banco_chile_20': 0,
-          'fluxi': 0
+          'fluxi': 0,
+          'cheaf': 0
         };
         
         // Asignar valores legacy para compatibilidad

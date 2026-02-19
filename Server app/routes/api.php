@@ -634,6 +634,9 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::post('/local/request', 'Controllers_local\RequestsController@store');
           Route::post('/local/request/pedido-final', 'Controllers_local\RequestsController@storePedidoFinal');
           
+          // 🔧 Configuración dinámica de horarios (sin recompilar .exe)
+          Route::get('/local/pedidofinal/config', 'Controllers_local\RequestsController@getPedidoFinalConfig');
+          
           // Envío de WhatsApp via Twilio
           Route::post('/local/send-whatsapp', 'Controllers_local\WhatsAppController@sendWhatsApp');
           
@@ -641,6 +644,9 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::get('/local/pedidofinal/historial', 'Controllers_local\RequestsController@getHistorialPedidos');
           Route::get('/local/pedidofinal/reporte-productos', 'Controllers_local\RequestsController@getReporteProductos');
           Route::get('/local/pedidofinal/reporte-timeline', 'Controllers_local\RequestsController@getReporteTimeline');
+          
+          // 🗑️ Eliminar pedido de pedidofinal_detalle (corregir duplicados)
+          Route::delete('/local/pedidofinal/eliminar/{app_id}/{request_id}', 'Controllers_local\RequestsController@eliminarPedidoFinalDetalle');
           
           // Stock por negocio
           Route::get('/local/pedidofinal/stock-negocio/resumen', 'Controllers_local\RequestsController@getStockNegocioResumen');

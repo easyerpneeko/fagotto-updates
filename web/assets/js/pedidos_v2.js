@@ -154,13 +154,16 @@ async function getPedidos(startDate = null, endDate = null, page) {
                                                     <th scope="col">Metodo de pago</th>
                                                     <th scope="col">Comentario</th>
                                                     <th scope="col">Fecha</th>
-                                                    <th scope="col">Estado</th>
-                                                    <th scope="col">Estado de pago</th>
+                                                    <!-- <th scope="col">Estado</th> -->
+                                                    <!-- <th scope="col">Estado de pago</th> -->
                                                     <th scope="col">Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody> `;
 
+                    // 🗑️ Verificar si hay un pedido recién eliminado para resaltarlo
+                    const pedidoEliminadoId = localStorage.getItem('pedidoEliminadoId');
+                    
                     for (const pedido in pedidos) {
                         // console.log(pedidos[pedido].contact_name);
                         let pedido_status;
@@ -177,23 +180,40 @@ async function getPedidos(startDate = null, endDate = null, page) {
                         }
                         // 🚨 VERIFICAR SI ES PEDIDO DE EMERGENCIA
                         const esEmergencia = pedidos[pedido].emergency && parseFloat(pedidos[pedido].emergency) > 0;
-                        const emergenciaStyle = esEmergencia ? 'style="background-color: #ffeaa7; border-left: 4px solid #e17055;"' : '';
-                        const emergenciaIcon = esEmergencia ? '<span title="Pedido de Emergencia">🚨</span> ' : '';
+                        
+                        // 🗑️ VERIFICAR SI ES EL PEDIDO RECIÉN ELIMINADO
+                        const esEliminado = pedidoEliminadoId && pedidos[pedido].id == pedidoEliminadoId;
+                        
+                        // Determinar el estilo de fila según prioridad: eliminado > emergencia
+                        let filaStyle = '';
+                        let filaClass = '';
+                        let iconoPedido = '';
+                        
+                        if (esEliminado) {
+                            // ELIMINADO: Fondo rojo claro con borde rojo
+                            filaStyle = 'style="background-color: #fee; border-left: 5px solid #dc2626;"';
+                            filaClass = 'class="table-danger"';
+                            iconoPedido = '🗑️ ';
+                        } else if (esEmergencia) {
+                            // EMERGENCIA: Fondo amarillo con borde naranja
+                            filaStyle = 'style="background-color: #ffeaa7; border-left: 4px solid #e17055;"';
+                            iconoPedido = '🚨 ';
+                        }
                         
                         if (pedidos[pedido].print != 1) {
-                            fila += `<tr ${emergenciaStyle}>
-                                        <td><b>${emergenciaIcon}${pedidos[pedido].id}</b></td>
+                            fila += `<tr ${filaStyle} ${filaClass}>
+                                        <td><b>${iconoPedido}${pedidos[pedido].id}</b></td>
                                         <td><b>${app}</b></td>
                                         <td>${pedidos[pedido].contact_name}</td>
                                         <td>${pedidos[pedido].contact_phone}</td>
                                         <td>${pedidos[pedido].paymode}</td>
                                         <td>${pedidos[pedido].comment}</td>
                                         <td>${pedidos[pedido].created_at}</td>
-                                        <td>${pedido_status}</td>
-                                        <td>${pedidos[pedido].status_payment}</td>
+                                        <!-- <td>${pedido_status}</td> -->
+                                        <!-- <td>${pedidos[pedido].status_payment}</td> -->
                                         <td>
-                                            <button class='btn btn-success' onclick="aprobarPedido(${pedidos[pedido].app_id},${pedidos[pedido].id})"><i class="fa-solid fa-check"></i></button>
-                                            <button class='btn btn-danger' onclick="rechazarPedido(${pedidos[pedido].app_id},${pedidos[pedido].id})"><i class="fa-solid fa-ban"></i></button>
+                                            <!-- <button class='btn btn-success' onclick="aprobarPedido(${pedidos[pedido].app_id},${pedidos[pedido].id})"><i class="fa-solid fa-check"></i></button> -->
+                                            <!-- <button class='btn btn-danger' onclick="rechazarPedido(${pedidos[pedido].app_id},${pedidos[pedido].id})"><i class="fa-solid fa-ban"></i></button> -->
                                             <button class='btn btn-info' data-bs-toggle="modal" data-bs-target="#productsModal" 
                                                 onclick="verPedido(${pedidos[pedido].app_id},${pedidos[pedido].id}),mirarPedido(${pedidos[pedido].app_id},${pedidos[pedido].id})"><i class="fa-solid fa-eye"></i>
                                             </button>
@@ -203,19 +223,19 @@ async function getPedidos(startDate = null, endDate = null, page) {
                                         </td>
                                     </tr>`;
                         } else {
-                            fila += `<tr>
-                                        <td><b>${pedidos[pedido].id}</b></td>
+                            fila += `<tr ${filaStyle} ${filaClass}>
+                                        <td><b>${iconoPedido}${pedidos[pedido].id}</b></td>
                                         <td><b>${app}</b></td>
                                         <td>${pedidos[pedido].contact_name}</td>
                                         <td>${pedidos[pedido].contact_phone}</td>
                                         <td>${pedidos[pedido].paymode}</td>
                                         <td>${pedidos[pedido].comment}</td>
                                         <td>${pedidos[pedido].created_at}</td>
-                                        <td>${pedido_status}</td>
-                                        <td>${pedidos[pedido].status_payment}</td>
+                                        <!-- <td>${pedido_status}</td> -->
+                                        <!-- <td>${pedidos[pedido].status_payment}</td> -->
                                         <td>
-                                            <button class='btn btn-success' onclick="aprobarPedido(${pedidos[pedido].app_id},${pedidos[pedido].id})"><i class="fa-solid fa-check"></i></button>
-                                            <button class='btn btn-danger' onclick="rechazarPedido(${pedidos[pedido].app_id},${pedidos[pedido].id})"><i class="fa-solid fa-ban"></i></button>
+                                            <!-- <button class='btn btn-success' onclick="aprobarPedido(${pedidos[pedido].app_id},${pedidos[pedido].id})"><i class="fa-solid fa-check"></i></button> -->
+                                            <!-- <button class='btn btn-danger' onclick="rechazarPedido(${pedidos[pedido].app_id},${pedidos[pedido].id})"><i class="fa-solid fa-ban"></i></button> -->
                                             <button class='btn btn-info' data-bs-toggle="modal" data-bs-target="#productsModal" 
                                                 onclick="verPedido(${pedidos[pedido].app_id},${pedidos[pedido].id}),mirarPedido(${pedidos[pedido].app_id},${pedidos[pedido].id})"><i class="fa-solid fa-eye"></i>
                                             </button>
@@ -252,6 +272,15 @@ async function getPedidos(startDate = null, endDate = null, page) {
 
                 // Mostrar los controles de paginaciÃ³n en la pÃ¡gina
                 document.getElementById('pagination').innerHTML = paginationHtml;
+            }
+            
+            // 🗑️ Limpiar el indicador de pedido eliminado después de 10 segundos
+            const pedidoEliminadoId = localStorage.getItem('pedidoEliminadoId');
+            if (pedidoEliminadoId) {
+                setTimeout(() => {
+                    localStorage.removeItem('pedidoEliminadoId');
+                    console.log('🧹 Limpiado indicador de pedido eliminado');
+                }, 10000);
             }
         });
     } else {
@@ -446,22 +475,22 @@ function verPedido(app_id, id) {
 
 }
 
-function aprobarPedido(app_id, id) {
+// function aprobarPedido(app_id, id) {
 
-    __conection({
-        url: generarURLApi(`/local/request/approve/${app_id}/${id}`),
-        header: credentials(),
-        dev: true,
-        method: 'PUT'
+//     __conection({
+//         url: generarURLApi(`/local/request/approve/${app_id}/${id}`),
+//         header: credentials(),
+//         dev: true,
+//         method: 'PUT'
 
-    }, {}, function (request) {
+//     }, {}, function (request) {
 
-        console.log(request);
+//         console.log(request);
 
-        getPedidos();
+//         getPedidos();
 
-    });
-}
+//     });
+// }
 
 function mirarPedido(app_id, id) {
 
@@ -480,21 +509,21 @@ function mirarPedido(app_id, id) {
     });
 }
 
-function rechazarPedido(app_id, id) {
+// function rechazarPedido(app_id, id) {
 
-    __conection({
-        url: generarURLApi(`/local/request/decline/${app_id}/${id}`),
-        header: credentials(),
-        dev: true,
-        method: 'PUT'
+//     __conection({
+//         url: generarURLApi(`/local/request/decline/${app_id}/${id}`),
+//         header: credentials(),
+//         dev: true,
+//         method: 'PUT'
 
-    }, {}, function (request) {
+//     }, {}, function (request) {
 
-        console.log(request);
+//         console.log(request);
 
-        getPedidos();
-    });
-}
+//         getPedidos();
+//     });
+// }
 
 // Variable global para tracking de notificaciones
 let lastNotificationCount = {};

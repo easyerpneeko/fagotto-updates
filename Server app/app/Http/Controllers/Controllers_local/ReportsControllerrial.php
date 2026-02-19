@@ -248,7 +248,7 @@ class ReportsController extends Controller
         'fastSell', 'boleta', 'factura', 'noSii', 'amipass', 'rappi', 'uber', 'junaeb', 
         'multicaja', 'edenred', 'sodexo', 'convenio_empresa', 'debito', 'credito', 
         'transferencia', 'cheque', 'banco', 'pluxee', 'pedidos_ya', 'guia_despacho', 
-        'banco_chile_20', 'nota_de_credito', 'efectivo'
+        'banco_chile_20', 'fluxi', 'cheaf', 'nota_de_credito', 'efectivo'
     ];
     
     foreach ($paymentMethods as $method) {
@@ -283,6 +283,8 @@ class ReportsController extends Controller
         'pedidos_ya' => 0,
         'pluxee' => 0,
         'banco_chile_20' => 0,
+        'fluxi' => 0,
+        'cheaf' => 0,
         'guia_despacho' => 0,
         'fastSells' => 0,
         'noSii' => 0,
@@ -304,6 +306,8 @@ class ReportsController extends Controller
       'pluxee' => ['modulos.ventas.submodulos.sii.ajustes.pluxee', ['pluxee', 'Pluxee']],
       'amipass' => ['modulos.ventas.submodulos.sii.ajustes.amipass', ['amipass', 'Amipass']],
       'banco_chile_20' => ['modulos.ventas.submodulos.sii.ajustes.banco_chile_20', ['banco_chile_20', 'Banco_chile_20']],
+      'fluxi' => ['modulos.ventas.submodulos.sii.ajustes.fluxi', ['fluxi', 'Fluxi']],
+      'cheaf' => ['modulos.ventas.submodulos.sii.ajustes.cheaf', ['cheaf', 'Cheaf']],
       
       // Métodos estándar DESPUÉS
       'debito' => ['modulos.ventas.submodulos.sii.ajustes.debito', ['debito', 'Debito']],
@@ -396,7 +400,11 @@ class ReportsController extends Controller
 
       $counted = false;
       foreach ($ajustes as $key => $config) {
-          if (CurrentApp::ConfStr($config[0])) {
+          // Métodos de pago permanentes (sin configuración): cheaf y fluxi
+          $permanentMethods = ['cheaf', 'fluxi'];
+          $isEnabled = in_array($key, $permanentMethods) || CurrentApp::ConfStr($config[0]);
+          
+          if ($isEnabled) {
               if (in_array($venta->other_type, $config[1]) || in_array($venta->paymode, $config[1]) || in_array($venta->type_sell, $config[1])) {
                   $counters[$key] += $venta->total;
                   $counted = true;

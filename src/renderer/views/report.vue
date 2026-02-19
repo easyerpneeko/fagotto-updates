@@ -412,6 +412,7 @@ export default {
         {key:'banco_chile_20',label:'Banco De Chile 20%', value:true},
         {key:'fagotto_10',label:'Exclusivo Fagotto 10%', value:true},
         {key:'turbus_10',label:'Turbus 10%', value:true},
+        {key:'cheaf',label:'Cheaf', value:true},
 
       ]
     }
@@ -922,6 +923,9 @@ export default {
             
             // 13. Rappi
             if(this.settingRappi) this.listCounter.push(['Rappi', '$'+this.formatNumber(String(request.rappi))]);
+            
+            // 14. Cheaf (siempre visible)
+            this.listCounter.push(['Cheaf', '$'+this.formatNumber(String(request.cheaf))]);
 
             // if(this.settingBoletaLocal) this.listCounter.push( ['Efectivo', '$'+this.formatNumber(String(request.noSii))]);
             if(this.settingBoletaLocal) this.listCounter.push( ['Efectivo', '$'+this.formatNumber(String(request.efectivo))]);

@@ -408,7 +408,8 @@ export default {
         {key:'pluxee',label:'Pluxee', value:true},
         {key:'banco_chile_20',label:'Banco De Chile 20%', value:true},
         {key:'fagotto_10',label:'Exclusivo Fagotto 10%', value:true},
-        {key:'turbus_10',label:'Turbus 10%', value:true}
+        {key:'turbus_10',label:'Turbus 10%', value:true},
+        {key:'cheaf',label:'Cheaf', value:true}
       ]
     }
   },
@@ -891,6 +892,7 @@ export default {
             if(this.settingBancoChile20) this.listCounter.push( ['Banco De Chile 20%', '$'+this.formatNumber(String(request.banco_chile_20))]);
             if(this.settingFagotto10) this.listCounter.push( ['Exclusivo Fagotto 10%', '$'+this.formatNumber(String(request.fagotto_10))]);
             if(this.settingTurbus10) this.listCounter.push( ['Turbus 10%', '$'+this.formatNumber(String(request.turbus_10))]);
+            this.listCounter.push( ['Cheaf', '$'+this.formatNumber(String(request.cheaf))]);
             
           }
           if(this.fastSellInstalled){

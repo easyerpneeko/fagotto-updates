@@ -157,6 +157,14 @@ export default class PaymentMethodsHelper {
         color: 'success',
         emoji: '📱',
         category: 'digital'
+      },
+      {
+        key: 'cheaf',
+        name: 'Cheaf',
+        icon: 'fas fa-utensils',
+        color: 'primary',
+        emoji: '🍽️',
+        category: 'digital'
       }
     ];
     console.log('✅ Métodos cargados:', methods.length);

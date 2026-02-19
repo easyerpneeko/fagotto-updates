@@ -347,6 +347,11 @@
                 Ticket + Boleta Pluxee
               </button>
               
+              <button @click="viewTicket('cheaf')" type="button"
+                class="btn bg-primario text-white">
+                Ticket + Cheaf
+              </button>
+              
               <!-- Botón especial para Banco De Chile 20% (solo lunes y martes) -->
               <button v-if="settingBancoChile20 && isSpecialPaymentDay" @click="viewTicket('banco_chile_20')" type="button"
                 class="btn bg-success text-white" style="font-weight: bold;">
@@ -541,6 +546,13 @@
               class="payment-method-btn">
               <i class="fas fa-wallet"></i>
               <span>Pluxee</span>
+            </button>
+            
+            <button 
+              @click="viewTicket('cheaf'); closePaymentModal()" 
+              class="payment-method-btn">
+              <i class="fas fa-utensils"></i>
+              <span>Cheaf</span>
             </button>
             
             <button v-if="settingBancoChile20 && isSpecialPaymentDay" 

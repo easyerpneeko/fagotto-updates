@@ -25,6 +25,8 @@ class PaymentMethodHelper
         'banco_chile_20' => 'Banco Chile 20%',
         'fagotto_10' => 'Fagotto 10%',
         'turbus_10' => 'Turbus 10%',
+        'fluxi' => 'Fluxi',
+        'cheaf' => 'Cheaf',
     ];
 
     const INVOICE_TYPES = [

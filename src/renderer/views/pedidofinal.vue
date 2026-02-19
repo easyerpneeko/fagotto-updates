@@ -42,14 +42,14 @@
                         </div>
                     </div>
                     <div class="horario-info">
-                        <i class="fas fa-info-circle"></i> Horario: 5:00 AM - 1:00 PM
+                        <i class="fas fa-info-circle"></i> Horario: {{ pedidoConfig.horario_texto }}
                     </div>
                 </div>
                 
                 <!-- Mensaje fuera de horario -->
                 <div v-else class="fuera-horario">
                     <i class="fas fa-moon"></i>
-                    <p>Los pedidos están disponibles de 5:00 AM a 1:00 PM</p>
+                    <p>Los pedidos están disponibles de {{ pedidoConfig.horario_texto }}</p>
                     <p class="next-disponible">Vuelve mañana a las 5:00 AM</p>
                 </div>
                 
@@ -301,7 +301,7 @@
                     </div>
                     <div class="banner-content">
                         <strong>Modo Solo Lectura</strong>
-                        <p>Fuera del horario de pedidos (5:00 AM - 1:00 PM). Puedes ver tu historial pero no crear nuevos pedidos.</p>
+                        <p>Fuera del horario de pedidos ({{ pedidoConfig.horario_texto }}). Puedes ver tu historial pero no crear nuevos pedidos.</p>
                     </div>
                 </div>
 
@@ -402,9 +402,12 @@
                                             <input type="number" 
                                                 v-model.number="producto.cantidad" 
                                                 min="0"
+                                                :max="producto.stock !== null ? producto.stock : 9999"
                                                 class="input-qty-modern"
                                                 :disabled="producto.stock !== null && producto.stock <= 0"
-                                                @input="calcularTotal">
+                                                @input="validarCantidad(producto)"
+                                                @blur="validarCantidad(producto)"
+                                                @keyup="validarCantidad(producto)">
                                             <button @click="incrementar(producto)" class="btn-qty-modern" :disabled="producto.stock !== null && producto.stock <= 0">
                                                 <i class="fas fa-plus"></i>
                                             </button>
@@ -667,6 +670,7 @@
                             <i class="fas fa-times"></i> Cancelar
                         </button>
                         <button @click="procesarPago" 
+                                :disabled="processingPayment"
                                 class="btn btn-primary" 
                                 style="
                                     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
@@ -676,8 +680,8 @@
                                     font-weight: 600;
                                     font-size: 1.05rem;
                                 ">
-                            <i class="fas fa-check-circle"></i> 
-                            Crear Pedido - ${{ formatNumber(modalTotalConIVA) }}
+                            <i :class="processingPayment ? 'fas fa-spinner fa-spin' : 'fas fa-check-circle'"></i> 
+                            {{ processingPayment ? 'Enviando pedido...' : `Crear Pedido - $${formatNumber(modalTotalConIVA)}` }}
                         </button>
                     </div>
                 </div>
@@ -1145,7 +1149,21 @@ export default {
             minutosRestantes: 0,
             segundosRestantes: 0,
             
-            // 📅 Control de días permitidos por negocio
+            // � Configuración dinámica desde backend (sin recompilar .exe)
+            pedidoConfig: {
+                horario_activo: true,
+                hora_inicio: 5,
+                hora_fin: 13,
+                horario_texto: '5:00 AM - 1:00 PM',
+                dia_permitido: true,
+                dias_permitidos: [],
+                sin_restriccion: false,
+                hora_actual: '',
+                dia_actual: '',
+                tiempo_restante: null
+            },
+            
+            // 📅 Control de días permitidos por negocio (DEPRECADO - ahora viene del backend)
             diaPermitido: true,
             idsPropios: [58, 59, 78, 86, 97, 107, 111, 116], // Agustinas, Plaza De Armas, Encomenderos, Ahumada, Rosario norte, Bulnes, Mall Imperio, Las Condes
             idsFranquicias: [114, 95, 77, 108, 117, 113, 96, 102, 98], // Amunategui, Bombero Ossa, Merced, Puente Alto, Rancagua, Vergara, Suecia, Turbus, Manuel Montt
@@ -1158,6 +1176,9 @@ export default {
     },
     async mounted() {
         this.name = this.me.fullname;
+        
+        // 🔧 Cargar configuración dinámica desde backend (sin recompilar .exe)
+        await this.cargarConfiguracion();
         
         // Cargar productos al iniciar
         await this.cargarPreciosCentralizados();
@@ -1249,46 +1270,49 @@ export default {
         },
         
         // 📅 Mensaje de días permitidos según tipo de negocio
+        // 🔧 USA CONFIGURACIÓN DINÁMICA DEL BACKEND
         mensajeDiasPermitidos() {
-            if (this.esFranquicia) {
-                return `📅 ${this.nombreLocal} (franquicia) puede pedir: Lunes, Miércoles y Viernes`;
-            } else if (this.esPropio) {
-                return `📅 ${this.nombreLocal} (propio) puede pedir: Martes, Jueves y Viernes`;
-            } else {
-                return ''; // Sin restricción
+            if (this.pedidoConfig.dias_permitidos && this.pedidoConfig.dias_permitidos.length > 0) {
+                const diasTexto = this.pedidoConfig.dias_permitidos.join(', ');
+                return `📅 ${this.nombreLocal} puede pedir: ${diasTexto}`;
             }
+            return ''; // Sin restricción
         },
         
         // 📅 Calcular próximo día disponible
+        // 🔧 USA CONFIGURACIÓN DINÁMICA DEL BACKEND
         proximoDiaDisponible() {
-            // Si el negocio no tiene restricción de días, retornar mensaje genérico
-            if (!this.esPropio && !this.esFranquicia) {
-                return 'cualquier día';
+            // Si está activo hoy o sin restricción, retornar mensaje genérico
+            if (this.pedidoConfig.horario_activo || this.pedidoConfig.sin_restriccion) {
+                return 'hoy';
             }
             
-            const hoy = moment();
-            const diaActual = hoy.day(); // 0=domingo, 1=lunes, etc.
-            
-            // Días permitidos según tipo
-            let diasPermitidos = null;
-            if (this.esPropio) {
-                diasPermitidos = [2, 4, 5]; // Martes, Jueves, Viernes
-            } else if (this.esFranquicia) {
-                diasPermitidos = [1, 3, 5]; // Lunes, Miércoles, Viernes
-            }
-            
-            if (!diasPermitidos) return 'pronto';
-            
-            // Buscar el próximo día disponible
-            for (let i = 1; i <= 7; i++) {
-                const proximoDia = (diaActual + i) % 7;
-                if (diasPermitidos.includes(proximoDia)) {
-                    const nombresDias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-                    const fechaProxima = moment().add(i, 'days');
-                    return `el ${nombresDias[proximoDia]} ${fechaProxima.format('DD/MM')}`;
+            // Si hay días permitidos específicos, calcular próximo
+            if (this.pedidoConfig.dias_permitidos && this.pedidoConfig.dias_permitidos.length > 0 && this.pedidoConfig.dias_permitidos[0] !== 'Todos los días') {
+                const hoy = moment();
+                const diaActual = hoy.day();
+                const nombresDias = {
+                    'Lunes': 1, 'Martes': 2, 'Miércoles': 3, 'Jueves': 4, 
+                    'Viernes': 5, 'Sábado': 6, 'Domingo': 0
+                };
+                
+                // Convertir nombres a números
+                const diasPermitidos = this.pedidoConfig.dias_permitidos
+                    .map(d => nombresDias[d])
+                    .filter(d => d !== undefined);
+                
+                // Buscar el próximo día disponible
+                for (let i = 1; i <= 7; i++) {
+                    const proximoDia = (diaActual + i) % 7;
+                    if (diasPermitidos.includes(proximoDia)) {
+                        const nombresDiasArray = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+                        const fechaProxima = moment().add(i, 'days');
+                        return `el ${nombresDiasArray[proximoDia]} ${fechaProxima.format('DD/MM')}`;
+                    }
                 }
             }
-            return 'pronto';
+            
+            return 'mañana';
         },
         
         // 📅 Texto del botón según estado
@@ -1501,60 +1525,19 @@ export default {
         },
         
         // 🕐 Validar si estamos dentro del horario permitido para pedidos
+        // 🔧 AHORA USA CONFIGURACIÓN DINÁMICA DEL BACKEND (sin recompilar .exe)
         validarHorarioPedidos() {
-            // 🚀 EXCEPCIÓN: Si el negocio está en la lista de excepción, permitir siempre
-            const appId = this.app && this.app.Id ? this.app.Id : null;
-            if (appId && this.idsExcepcionHorario && this.idsExcepcionHorario.includes(appId)) {
-                return true; // Sin restricción de día ni horario
-            }
-            
-            const ahora = moment();
-            const horaActual = ahora.hour();
-            const minutoActual = ahora.minute();
-            const diaActual = ahora.day(); // 0=domingo, 1=lunes, etc.
-            
-            // 📅 VALIDAR DÍA DE LA SEMANA PERMITIDO (solo para propios y franquicias)
-            let diasPermitidos = null;
-            let tipoNegocio = '';
-            
-            if (this.esPropio) {
-                diasPermitidos = [2, 4, 5]; // Martes, Jueves, Viernes
-                tipoNegocio = 'propio';
-            } else if (this.esFranquicia) {
-                diasPermitidos = [1, 3, 5]; // Lunes, Miércoles, Viernes
-                tipoNegocio = 'franquicia';
-            }
-            
-            // Solo validar día si el negocio tiene restricción
-            if (diasPermitidos !== null && !diasPermitidos.includes(diaActual)) {
-                const nombresDias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-                const nombreDiasPermitidos = diasPermitidos.map(d => nombresDias[d]).join(', ');
+            // Usar configuración cargada desde el backend
+            if (!this.pedidoConfig.horario_activo) {
+                const horaFormateada = moment().format('HH:mm');
+                const mensajeDias = this.pedidoConfig.dias_permitidos.length > 0 
+                    ? `\nD\u00edas permitidos: ${this.pedidoConfig.dias_permitidos.join(', ')}`
+                    : '';
                 
                 this.$awn.alert(
-                    `📅 ${this.nombreLocal} (${tipoNegocio}) solo puede hacer pedidos los días: ${nombreDiasPermitidos}.\n\n` +
-                    `Hoy es ${nombresDias[diaActual]}.\n\n` +
-                    `Próximo día disponible: ${this.proximoDiaDisponible}`,
-                    {
-                        labels: { alert: 'DÍA NO PERMITIDO' }
-                    }
-                );
-                return false;
-            }
-            
-            // ⏰ VALIDAR HORARIO (5:00 AM - 1:00 PM)
-            const horaInicio = 5;
-            const horaFin = 13; // 1:00 PM
-            
-            // Convertir a minutos totales para comparación precisa
-            const minutosActuales = horaActual * 60 + minutoActual;
-            const minutosInicio = horaInicio * 60;
-            const minutosFin = horaFin * 60;
-            
-            if (minutosActuales < minutosInicio || minutosActuales >= minutosFin) {
-                const horaFormateada = ahora.format('HH:mm');
-                this.$awn.alert(
-                    `⏰ Los pedidos solo están habilitados entre las 5:00 AM y la 1:00 PM.\n\n` +
-                    `Hora actual: ${horaFormateada}\n\n` +
+                    `\u23f0 Los pedidos solo est\u00e1n habilitados en el horario: ${this.pedidoConfig.horario_texto}.${mensajeDias}\n\n` +
+                    `Hora actual: ${horaFormateada}\n` +
+                    `D\u00eda actual: ${this.pedidoConfig.dia_actual}\n\n` +
                     `Por favor, intenta nuevamente dentro del horario permitido.`,
                     {
                         labels: { alert: 'HORARIO NO PERMITIDO' }
@@ -1575,79 +1558,31 @@ export default {
         },
         
         actualizarCountdown() {
-            const ahora = moment();
-            const horaActual = ahora.hour();
-            const minutoActual = ahora.minute();
-            const segundoActual = ahora.second();
-            const diaActual = ahora.day(); // 0=domingo, 1=lunes, etc.
-            
-            // � EXCEPCIÓN: Si el negocio está en la lista de excepción, permitir siempre
-            const appId = this.app && this.app.Id ? this.app.Id : null;
-            if (appId && this.idsExcepcionHorario && this.idsExcepcionHorario.includes(appId)) {
-                this.diaPermitido = true;
-                this.horarioActivo = true;
-                this.horasRestantes = 24;
-                this.minutosRestantes = 0;
-                this.segundosRestantes = 0;
-                this.tiempoRestante = 'Sin restricción';
-                return;
+            // 🔧 USA CONFIGURACIÓN DINÁMICA DEL BACKEND (sin recompilar .exe)
+            // Recargar configuración cada vez para estar siempre actualizado
+            if (this.app && this.app.Id) {
+                this.cargarConfiguracion(); // Actualizar config en background
             }
             
-            // �📅 VALIDAR DÍA DE LA SEMANA (solo si el negocio tiene restricción)
-            if (this.esPropio || this.esFranquicia) {
-                let diasPermitidos = null;
-                if (this.esPropio) {
-                    diasPermitidos = [2, 4, 5]; // Martes, Jueves, Viernes
-                } else if (this.esFranquicia) {
-                    diasPermitidos = [1, 3, 5]; // Lunes, Miércoles, Viernes
-                }
+            // Usar configuración cargada
+            this.horarioActivo = this.pedidoConfig.horario_activo;
+            this.diaPermitido = this.pedidoConfig.dia_permitido;
+            
+            // Actualizar countdown desde el backend
+            if (this.pedidoConfig.tiempo_restante) {
+                this.horasRestantes = this.pedidoConfig.tiempo_restante.horas;
+                this.minutosRestantes = this.pedidoConfig.tiempo_restante.minutos;
+                this.segundosRestantes = this.pedidoConfig.tiempo_restante.segundos;
                 
-                this.diaPermitido = diasPermitidos ? diasPermitidos.includes(diaActual) : true;
-                
-                if (!this.diaPermitido) {
-                    // Día no permitido
-                    this.horarioActivo = false;
-                    this.horasRestantes = 0;
-                    this.minutosRestantes = 0;
-                    this.segundosRestantes = 0;
-                    this.tiempoRestante = 'Día no permitido';
-                    return;
-                }
-            } else {
-                // Negocio sin restricción de días
-                this.diaPermitido = true;
-            }
-            
-            // ⏰ VALIDAR HORARIO: 5:00 AM - 1:00 PM
-            const horaInicio = 5;
-            const horaFin = 13; // 1:00 PM
-            
-            // Crear momento de cierre (1:00 PM hoy)
-            const horaCierre = moment().hours(horaFin).minutes(0).seconds(0);
-            
-            // Calcular diferencia
-            const diferencia = horaCierre.diff(ahora);
-            
-            if (diferencia <= 0 || horaActual < horaInicio) {
-                // Fuera de horario
-                this.horarioActivo = false;
-                this.horasRestantes = 0;
-                this.minutosRestantes = 0;
-                this.segundosRestantes = 0;
-                this.tiempoRestante = 'Fuera de horario';
-            } else {
-                // Dentro del horario
-                this.horarioActivo = true;
-                const duracion = moment.duration(diferencia);
-                this.horasRestantes = Math.floor(duracion.asHours());
-                this.minutosRestantes = duracion.minutes();
-                this.segundosRestantes = duracion.seconds();
-                
-                // Formatear para string legible
                 const horas = String(this.horasRestantes).padStart(2, '0');
                 const minutos = String(this.minutosRestantes).padStart(2, '0');
                 const segundos = String(this.segundosRestantes).padStart(2, '0');
                 this.tiempoRestante = `${horas}:${minutos}:${segundos}`;
+            } else {
+                this.horasRestantes = 0;
+                this.minutosRestantes = 0;
+                this.segundosRestantes = 0;
+                this.tiempoRestante = this.pedidoConfig.sin_restriccion ? 'Sin restricción' : 'Fuera de horario';
             }
         },
         
@@ -1688,8 +1623,17 @@ export default {
         },
         
         incrementar(producto) {
+            // Validar que no se exceda el stock disponible
+            if (producto.stock !== null && producto.stock !== undefined) {
+                if (producto.cantidad >= producto.stock) {
+                    this.$awn.warning(`⚠️ Solo hay ${producto.stock} ${producto.unidad_medida} disponibles de ${producto.producto}`);
+                    producto.cantidad = producto.stock;
+                    return;
+                }
+            }
             producto.cantidad++;
-            this.calcularTotal();
+            // Validar nuevamente después de incrementar
+            this.validarCantidad(producto);
         },
         
         decrementar(producto) {
@@ -1697,6 +1641,42 @@ export default {
                 producto.cantidad--;
                 this.calcularTotal();
             }
+        },
+        
+        validarCantidad(producto) {
+            // Forzar actualización en el próximo tick del DOM
+            this.$nextTick(() => {
+                let cantidadOriginal = producto.cantidad;
+                let cantidadAjustada = false;
+                
+                // Validar que la cantidad ingresada no exceda el stock
+                if (producto.stock !== null && producto.stock !== undefined) {
+                    if (producto.cantidad > producto.stock) {
+                        producto.cantidad = producto.stock;
+                        cantidadAjustada = true;
+                        this.$awn.warning(`⚠️ Solo hay ${producto.stock} ${producto.unidad_medida} disponibles de ${producto.producto}`);
+                    }
+                }
+                
+                // Asegurar que no sea negativo
+                if (producto.cantidad < 0 || isNaN(producto.cantidad)) {
+                    producto.cantidad = 0;
+                    cantidadAjustada = true;
+                }
+                
+                // Asegurar que sea entero
+                if (!Number.isInteger(producto.cantidad)) {
+                    producto.cantidad = Math.floor(producto.cantidad);
+                    cantidadAjustada = true;
+                }
+                
+                // Si se ajustó, forzar re-render
+                if (cantidadAjustada && cantidadOriginal !== producto.cantidad) {
+                    this.$forceUpdate();
+                }
+                
+                this.calcularTotal();
+            });
         },
         
         getProductosByCategoria(categoria) {
@@ -1806,6 +1786,48 @@ export default {
                 }
             } catch (error) {
                 console.error('❌ Error actualizando stock:', error);
+            }
+        },
+        
+        // 🔧 CARGAR CONFIGURACIÓN DINÁMICA DESDE BACKEND (sin recompilar .exe)
+        async cargarConfiguracion() {
+            try {
+                console.log('🔧 Cargando configuración de horarios desde backend...');
+                
+ if (!this.app || !this.app.Id) {
+                    console.warn('⚠️ app.Id no disponible aún, usando valores por defecto');
+                    return;
+                }
+                
+                const response = await Connection.request(
+                    'GET',
+                    BaseUrl.getUrl(`api/local/pedidofinal/config?app_id=${this.app.Id}`)
+                );
+                
+                if (response.success && response.data && response.data.config) {
+                    this.pedidoConfig = response.data.config;
+                    
+                    // Actualizar variables locales para compatibilidad
+                    this.horarioActivo = this.pedidoConfig.horario_activo;
+                    this.diaPermitido = this.pedidoConfig.dia_permitido;
+                    
+                    // Actualizar countdown si hay tiempo restante
+                    if (this.pedidoConfig.tiempo_restante) {
+                        this.horasRestantes = this.pedidoConfig.tiempo_restante.horas;
+                        this.minutosRestantes = this.pedidoConfig.tiempo_restante.minutos;
+                        this.segundosRestantes = this.pedidoConfig.tiempo_restante.segundos;
+                    }
+                    
+                    console.log('✅ Configuración cargada:', this.pedidoConfig);
+                    console.log(`   Horario: ${this.pedidoConfig.horario_texto}`);
+                    console.log(`   Días permitidos: ${this.pedidoConfig.dias_permitidos.join(', ')}`);
+                    console.log(`   Activo: ${this.pedidoConfig.horario_activo ? 'SÍ' : 'NO'}`);
+                } else {
+                    console.warn('⚠️ No se pudo obtener configuración, usando valores por defecto');
+                }
+            } catch (error) {
+                console.error('❌ Error cargando configuración:', error);
+                // Continuar con valores por defecto
             }
         },
         
@@ -2023,6 +2045,12 @@ export default {
                 return;
             }
             
+            // 🚫 Prevenir doble clic
+            if (this.processingPayment) {
+                console.warn('⚠️ Ya hay un pedido en proceso, ignorando...');
+                return;
+            }
+            
             this.processingPayment = true;
             
             try {
@@ -2036,8 +2064,29 @@ export default {
                 // }
                 
                 // Crear el pedido directamente
-                await this.crearPedidoSinPago();
-                this.$awn.success('✅ ¡Pedido enviado exitosamente! Se Enviara un correo a la jefa de local informando el pedido saludos Jimmy.');
+                const pedidoCreado = await this.crearPedidoSinPago();
+                
+                // Solo continuar si el pedido se creó exitosamente
+                if (pedidoCreado) {
+                    this.$awn.success('✅ ¡Pedido enviado exitosamente! Se enviará un correo a la jefa de local informando el pedido. Saludos Jimmy.');
+                    
+                    // 🎯 CERRAR MODAL (esto evita que la gente duplique el pedido)
+                    $('#modalPagoStripe').modal('hide');
+                    
+                    // 🧹 Limpiar formulario y carrito
+                    this.comment = '';
+                    this.totalPedido = 0;
+                    this.productosCentralizados.forEach(p => p.cantidad = 0);
+                    this.calcularTotal();
+                    
+                    // 🔄 Recargar historial para mostrar el nuevo pedido
+                    await this.cargarHistorial();
+                    
+                    console.log('✅ Pedido completado y modal cerrado');
+                } else {
+                    // El error ya fue mostrado en crearPedidoSinPago()
+                    console.warn('⚠️ No se pudo crear el pedido');
+                }
             } catch (error) {
                 console.error('❌ Error procesando pago:', error);
                 this.$awn.alert('Error al procesar el pago: ' + error.message);
@@ -2203,6 +2252,9 @@ export default {
                 return null;
             }
             
+            // Actualizar stock antes de crear pedido
+            await this.actualizarStockSilencioso();
+            
             // Crear pedido con status_payment='impagado' para Linkyfi
             // Filtrar solo productos con cantidad > 0
             const productosSeleccionados = this.productosCentralizados
@@ -2216,6 +2268,46 @@ export default {
                     unidad_venta: p.unidad_venta,
                     vasos: 0
                 }));
+            
+            // 🚨 VALIDACIÓN CRÍTICA: Verificar stock antes de crear pedido
+            const productosSinStock = [];
+            const productosConExceso = [];
+            
+            productosSeleccionados.forEach(p => {
+                const productoDB = this.productosCentralizados.find(prod => prod.id === p.id);
+                
+                // Verificar productos sin stock
+                if (productoDB && productoDB.stock !== null && productoDB.stock <= 0) {
+                    productosSinStock.push(p.name);
+                }
+                // Verificar productos que exceden el stock
+                else if (productoDB && productoDB.stock !== null && p.quantity > productoDB.stock) {
+                    productosConExceso.push({
+                        name: p.name,
+                        solicitado: p.quantity,
+                        disponible: productoDB.stock
+                    });
+                }
+            });
+            
+            if (productosSinStock.length > 0) {
+                this.$awn.alert(`⚠️ Los siguientes productos se agotaron: ${productosSinStock.join(', ')}. Actualiza tu pedido.`);
+                return null;
+            }
+            
+            if (productosConExceso.length > 0) {
+                const detalles = productosConExceso.map(p => `${p.name} (solicitaste ${p.solicitado}, solo hay ${p.disponible})`).join(', ');
+                this.$awn.alert(`⚠️ Cantidad excedida: ${detalles}. Ajusta las cantidades.`);
+                // Ajustar automáticamente
+                productosConExceso.forEach(item => {
+                    const producto = this.productosCentralizados.find(p => p.producto === item.name);
+                    if (producto) {
+                        producto.cantidad = item.disponible;
+                    }
+                });
+                this.calcularTotal();
+                return null;
+            }
             
             const data = {
                 contact_name: this.name,
@@ -2457,6 +2549,31 @@ export default {
                 });
                 this.calcularTotal();
                 return;
+            }
+            
+            // 🚨 VALIDACIÓN CRÍTICA: Verificar que ningún producto exceda el stock disponible
+            const productosConExceso = [];
+            productosSeleccionados.forEach(p => {
+                const productoDB = this.productosCentralizados.find(prod => prod.id === p.id);
+                if (productoDB && productoDB.stock !== null && p.quantity > productoDB.stock) {
+                    productosConExceso.push({
+                        name: p.name,
+                        solicitado: p.quantity,
+                        disponible: productoDB.stock
+                    });
+                    // Ajustar automáticamente al stock disponible
+                    const producto = this.productosCentralizados.find(prod => prod.id === p.id);
+                    if (producto) {
+                        producto.cantidad = productoDB.stock;
+                    }
+                }
+            });
+            
+            if (productosConExceso.length > 0) {
+                const detalles = productosConExceso.map(p => `${p.name} (solicitaste ${p.solicitado}, solo hay ${p.disponible})`).join(', ');
+                this.$awn.alert(`⚠️ Cantidad excedida: ${detalles}. Se ajustó automáticamente.`);
+                this.calcularTotal();
+                return; // No enviar el pedido, dejar que el usuario revise
             }
             
             const data = {

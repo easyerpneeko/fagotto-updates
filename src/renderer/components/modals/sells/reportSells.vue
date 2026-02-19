@@ -77,7 +77,8 @@ export default {
                 { key: 'junaeb', label: 'Junaeb', value: false },
                 { key: 'uber', label: 'Uber', value: false },
                 { key: 'pedidos_ya', label: 'Pedidos Ya', value: false },
-                { key: 'pluxee', label: 'Pluxee', value: false }
+                { key: 'pluxee', label: 'Pluxee', value: false },
+                { key: 'cheaf', label: 'Cheaf', value: false }
             ]
         }
     },

@@ -711,6 +711,9 @@
                                     <button type="button" class="btn btn-success me-2" onclick="imprimirPedidoPDF()">
                                         <i class="fas fa-file-pdf"></i> Guía de Despacho
                                     </button>
+                                    <button type="button" class="btn btn-danger me-2" onclick="eliminarPedidoDetalle()">
+                                        <i class="fas fa-trash-alt"></i> 🗑️ Eliminar Pedido
+                                    </button>
                                     <button type="button" class="btn btn-primary"
                                         data-bs-dismiss="modal">Cerrar</button>
                                 </div>
@@ -1533,6 +1536,133 @@
                 cargarComentarios();
             }
         }, 15000);
+    </script>
+
+    <!-- ==================== ELIMINAR PEDIDO DE PEDIDOFINAL_DETALLE ==================== -->
+    <script>
+        // Función para eliminar pedido de pedidofinal_detalle (corregir duplicados)
+        async function eliminarPedidoDetalle() {
+            try {
+                // Obtener el ID del pedido actual (desde el modal de productos)
+                const pedidoTitle = document.getElementById('productsModalLabel').textContent;
+                const match = pedidoTitle.match(/#\s*-\s*(\d+)/);
+                
+                if (!match) {
+                    alert('❌ No se pudo identificar el pedido');
+                    return;
+                }
+                
+                const requestId = match[1];
+                
+                // Obtener app_id de la URL (pedidos.html?id=119)
+                const urlParams = new URLSearchParams(window.location.search);
+                const appId = urlParams.get('id');
+                
+                if (!appId) {
+                    alert('❌ No se pudo identificar el local (app_id)');
+                    return;
+                }
+                
+                // Confirmar eliminación
+                const confirmacion = await Swal.fire({
+                    title: '⚠️ ¿Eliminar este pedido?',
+                    html: `
+                        <p><strong>Pedido #${requestId}</strong></p>
+                        <p>Se eliminarán TODOS los registros de este pedido de la tabla <code>pedidofinal_detalle</code>.</p>
+                        <p class="text-danger"><strong>⚠️ Esta acción NO se puede deshacer</strong></p>
+                        <p class="text-muted">Usar solo para corregir pedidos duplicados</p>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '🗑️ Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                });
+                
+                if (!confirmacion.isConfirmed) {
+                    return;
+                }
+                
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Eliminando...',
+                    html: 'Por favor espera',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Obtener información del usuario
+                const session = _store().session.get();
+                const userInfo = session && session.usuario ? session.usuario : {nombre: 'Usuario Web', id: null};
+                
+                // Preparar datos de auditoría
+                const formData = new FormData();
+                formData.append('usuario_nombre', userInfo.nombre || userInfo.fullname || 'Usuario Web');
+                formData.append('usuario_id', userInfo.id || '');
+                formData.append('motivo', 'Corrección de pedido duplicado desde panel web');
+                
+                console.log('👤 Usuario que elimina:', userInfo.nombre || 'Usuario Web');
+                
+                // Hacer DELETE request
+                await __conection({
+                    url: generarURLApi(`/local/pedidofinal/eliminar/${appId}/${requestId}`),
+                    header: credentials(),
+                    dev: true,
+                    method: 'DELETE'
+                }, formData, function(response) {
+                    console.log('🗑️ Response:', response);
+                    
+                    if (response.success) {
+                        // Cerrar modal de productos
+                        const productsModal = bootstrap.Modal.getInstance(document.getElementById('productsModal'));
+                        if (productsModal) {
+                            productsModal.hide();
+                        }
+                        
+                        // Mostrar éxito
+                        Swal.fire({
+                            icon: 'success',
+                            title: '✅ Pedido eliminado',
+                            html: `<p>${response.message}</p><p class="text-muted">Registros eliminados: ${response.registros_eliminados}</p>`,
+                            timer: 3000,
+                            showConfirmButton: false
+                        });
+                        
+                        // Guardar ID del pedido eliminado para resaltarlo en rojo
+                        localStorage.setItem('pedidoEliminadoId', requestId);
+                        
+                        // Recargar página después de 2 segundos
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '❌ Error',
+                            text: response.message || 'No se pudo eliminar el pedido'
+                        });
+                    }
+                }, function(error) {
+                    console.error('❌ Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: '❌ Error',
+                        text: 'Error al eliminar el pedido'
+                    });
+                });
+                
+            } catch (error) {
+                console.error('❌ Error eliminando pedido:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: '❌ Error',
+                    text: 'Error al procesar la solicitud'
+                });
+            }
+        }
     </script>
 </body>
 

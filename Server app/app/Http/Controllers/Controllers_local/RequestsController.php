@@ -167,7 +167,7 @@ class RequestsController extends Controller
             // Para cambiar horarios, solo modifica estos valores
             
             // Excepciones: Locales sin restricción de horario ni día
-            $idsExcepcionHorario = [121, 119]; // Food Truck, Local 119
+            $idsExcepcionHorario = [121, 119, 116, 113]; // Food Truck, Local 119, Las Condes, 113
             $sinRestriccion = in_array($appId, $idsExcepcionHorario, true);
             
             // ⏰ HORARIO GLOBAL (5:00 AM - 1:00 PM)
@@ -182,8 +182,8 @@ class RequestsController extends Controller
             );
             
             // 📅 DÍAS PERMITIDOS POR TIPO DE NEGOCIO
-            $idsPropios = [58, 59, 78, 86, 97, 107, 111]; // Martes, Jueves, Viernes
-            $idsFranquicias = [114, 95, 77, 108, 117, 113, 96, 102, 98, 116]; // Lunes, Miércoles, Viernes
+            $idsPropios = [58, 59, 78, 86, 97, 107, 111 , 118]; // Martes, Jueves, Viernes
+            $idsFranquicias = [114, 95, 77, 108, 117, 96, 102, 98, 118]; // Lunes, Miércoles, Viernes (113, 116 en excepciones)
             
             $esPropio = in_array($appId, $idsPropios);
             $esFranquicia = in_array($appId, $idsFranquicias);
@@ -254,8 +254,8 @@ class RequestsController extends Controller
         // Convertir app_id a integer para comparación type-safe
         $appId = (int) $request->input('app_id');
         
-        // � EXCEPCIÓN: Food Truck (ID 121) y Local 119 sin restricción de horario ni día
-        $idsExcepcionHorario = [121, 119]; // Food Truck, Local 119 - Sin restricción de horario ni día
+        // � EXCEPCIÓN: Food Truck (ID 121), Local 119, Las Condes (116) y 113 sin restricción de horario ni día
+        $idsExcepcionHorario = [121, 119, 116, 113]; // Food Truck, Local 119, Las Condes, 113 - Sin restricción
         $sinRestriccion = in_array($appId, $idsExcepcionHorario, true);
         
         // 🕐 Validar horario permitido para pedidos (5:00 AM - 1:00 PM)
@@ -279,8 +279,8 @@ class RequestsController extends Controller
         // IDs de locales propios (Martes, Jueves, Viernes)
         $idsPropios = [58, 59, 78, 86, 97, 107, 111]; // Agustinas, Plaza De Armas, Encomenderos, Ahumada, Rosario norte, Bulnes, Mall Imperio
         
-        // IDs de franquicias (Lunes, Miércoles, Viernes)
-        $idsFranquicias = [114, 95, 77, 108, 117, 113, 96, 102, 98, 116]; // Amunategui, Bombero Ossa, Merced, Puente Alto, Rancagua, Vergara, Suecia, Turbus, Manuel Montt, Las Condes
+        // IDs de franquicias (Lunes, Miércoles, Viernes) (113, 116 en excepciones)
+        $idsFranquicias = [114, 95, 77, 108, 117, 96, 102, 98]; // Amunategui, Bombero Ossa, Merced, Puente Alto, Rancagua, Suecia, Turbus, Manuel Montt
         
         $esPropio = in_array($appId, $idsPropios);
         $esFranquicia = in_array($appId, $idsFranquicias);
@@ -2174,4 +2174,65 @@ class RequestsController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Verificar si hay deuda pendiente para un local
+     * 
+     * Consulta pedidos con status_payment distinto de 'pagado'
+     * Retorna información sobre la deuda pendiente
+     * 
+     * @param Request $request (app_id)
+     * @return JsonResponse
+     */
+    public function verificarDeudaPendiente(Request $request)
+    {
+        try {
+            $appId = (int) $request->input('app_id');
+            
+            if (!$appId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'app_id es requerido'
+                ], 400);
+            }
+            
+            // 💰 Buscar pedidos con deuda pendiente (status_payment != 'pagado')
+            $pedidosImpagados = Requests::where('app_id', $appId)
+                ->where('status_payment', '!=', 'pagado')
+                ->where('status', '!=', 'rechazado')
+                ->where('status', '!=', 'cancelado')
+                ->get();
+            
+            $tieneDeuda = $pedidosImpagados->count() > 0;
+            $montoTotal = $pedidosImpagados->sum('price');
+            $cantidadPedidos = $pedidosImpagados->count();
+            
+            // Obtener detalles de los pedidos pendientes
+            $detalleDeuda = $pedidosImpagados->map(function($pedido) {
+                return [
+                    'id' => $pedido->id,
+                    'fecha' => $pedido->created_at,
+                    'monto' => $pedido->price,
+                    'estado' => $pedido->status,
+                    'contacto' => $pedido->contact_name
+                ];
+            });
+            
+            return response()->json([
+                'success' => true,
+                'tiene_deuda' => $tieneDeuda,
+                'monto_total' => $montoTotal,
+                'cantidad_pedidos' => $cantidadPedidos,
+                'pedidos_pendientes' => $detalleDeuda
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error en verificarDeudaPendiente: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al verificar deuda: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
+

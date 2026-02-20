@@ -12,37 +12,49 @@
                 <h1 class="welcome-title-modern">Sistema de Pedidos</h1>
                 <p class="welcome-subtitle-modern">Gestión inteligente de pedidos centralizados</p>
                 
-                <!-- 📅 Mensaje de día no permitido -->
-                <div v-if="!diaPermitido" class="dia-no-permitido">
+                <!-- 📅 Mensaje de día no permitido (no mostrar si tiene excepción) -->
+                <div v-if="!diaPermitido && !pedidoConfig.sin_restriccion" class="dia-no-permitido">
                     <i class="fas fa-calendar-times"></i>
                     <p>Hoy no es día de pedidos para tu local</p>
                     <p class="dias-permitidos">{{ mensajeDiasPermitidos }}</p>
                     <p class="next-disponible">Vuelve {{ proximoDiaDisponible }}</p>
                 </div>
                 
-                <!-- ⏰ Countdown Timer -->
-                <div v-else-if="horarioActivo" class="countdown-container">
-                    <div class="countdown-label">
-                        <i class="fas fa-clock"></i> Tiempo restante para hacer pedidos hoy
-                    </div>
-                    <div class="countdown-timer">
-                        <div class="time-block">
-                            <span class="time-value">{{ horasRestantes }}</span>
-                            <span class="time-label">HORAS</span>
+                <!-- ⏰ Countdown Timer (mostrar si está activo O tiene excepción) -->
+                <div v-else-if="horarioActivo || pedidoConfig.sin_restriccion" class="countdown-container">
+                    <!-- Mensaje para locales sin restricción -->
+                    <div v-if="pedidoConfig.sin_restriccion" class="sin-restriccion-info">
+                        <div class="countdown-label">
+                            <i class="fas fa-infinity"></i> Pedidos disponibles 24/7
                         </div>
-                        <div class="time-separator">:</div>
-                        <div class="time-block">
-                            <span class="time-value">{{ minutosRestantes }}</span>
-                            <span class="time-label">MIN</span>
-                        </div>
-                        <div class="time-separator">:</div>
-                        <div class="time-block">
-                            <span class="time-value">{{ segundosRestantes }}</span>
-                            <span class="time-label">SEG</span>
+                        <div class="horario-info">
+                            <i class="fas fa-check-circle"></i> Tu local no tiene restricciones de horario ni día
                         </div>
                     </div>
-                    <div class="horario-info">
-                        <i class="fas fa-info-circle"></i> Horario: {{ pedidoConfig.horario_texto }}
+                    <!-- Countdown normal para locales con horario -->
+                    <div v-else>
+                        <div class="countdown-label">
+                            <i class="fas fa-clock"></i> Tiempo restante para hacer pedidos hoy
+                        </div>
+                        <div class="countdown-timer">
+                            <div class="time-block">
+                                <span class="time-value">{{ horasRestantes }}</span>
+                                <span class="time-label">HORAS</span>
+                            </div>
+                            <div class="time-separator">:</div>
+                            <div class="time-block">
+                                <span class="time-value">{{ minutosRestantes }}</span>
+                                <span class="time-label">MIN</span>
+                            </div>
+                            <div class="time-separator">:</div>
+                            <div class="time-block">
+                                <span class="time-value">{{ segundosRestantes }}</span>
+                                <span class="time-label">SEG</span>
+                            </div>
+                        </div>
+                        <div class="horario-info">
+                            <i class="fas fa-info-circle"></i> Horario: {{ pedidoConfig.horario_texto }}
+                        </div>
                     </div>
                 </div>
                 
@@ -56,7 +68,7 @@
                 <!-- CTA Buttons -->
                 <div class="buttons-container">
                     <!-- Botón Crear Pedido -->
-                    <button @click="iniciarPedido" class="btn-iniciar-modern" :disabled="!diaPermitido || !horarioActivo">
+                    <button @click="iniciarPedido" class="btn-iniciar-modern" :disabled="(!diaPermitido || !horarioActivo) && !pedidoConfig.sin_restriccion">
                         <span class="btn-icon"><i class="fas fa-rocket"></i></span>
                         <span class="btn-text">{{ obtenerTextoBoton }}</span>
                         <span class="btn-arrow"><i class="fas fa-arrow-right"></i></span>
@@ -70,7 +82,7 @@
                 </div>
                 
                 <!-- Mensaje informativo -->
-                <div v-if="!horarioActivo && diaPermitido" class="info-acceso">
+                <div v-if="!horarioActivo && diaPermitido && !pedidoConfig.sin_restriccion" class="info-acceso">
                     <i class="fas fa-info-circle"></i>
                     <small>Puedes ver tu historial de pedidos en cualquier momento</small>
                 </div>
@@ -85,7 +97,9 @@
         </div>
 
         <!-- Vista de Historial Independiente (24/7 disponible) -->
-        <div v-else-if="mostrarHistorial" class="historial-standalone-container">
+        <!-- ⚠️ IMPORTANTE: Solo se renderiza cuando AMBAS condiciones son true -->
+        <!-- Esto evita el error "insertBefore" de Vue -->
+        <div v-else-if="mostrarHistorial && historialListo" class="historial-standalone-container">
             <div class="historial-main">
                 <!-- Header del Historial -->
                 <div class="historial-header-standalone fade-in-up">
@@ -119,18 +133,18 @@
                     </div>
                     <div class="section-card-body">
                         <!-- Estado de carga -->
-                        <div v-show="loadingHistorial" class="loading-modern">
+                        <div v-if="loadingHistorial" class="loading-modern">
                             <i class="fas fa-spinner fa-spin"></i> Cargando historial...
                         </div>
 
                         <!-- Sin datos -->
-                        <div v-show="!loadingHistorial && historialPedidos.length === 0" class="empty-state fade-in-up">
+                        <div v-else-if="historialPedidos.length === 0" class="empty-state fade-in-up">
                             <i class="fas fa-inbox fa-3x"></i>
                             <p>No hay pedidos registrados</p>
                         </div>
 
                         <!-- Con datos -->
-                        <div v-show="!loadingHistorial && historialPedidos.length > 0" class="historial-grid">
+                        <div v-else :key="'grid-' + historialKey" class="historial-grid">
                             <div v-for="pedido in historialPedidos" :key="'pedido-' + pedido.id" class="historial-card">
                                 <div class="historial-card-header">
                                     <div class="pedido-numero">
@@ -294,8 +308,8 @@
                     </div>
                 </div>
 
-                <!-- Banner de Solo Lectura fuera de Horario -->
-                <div v-if="!horarioActivo" class="banner-solo-lectura fade-in-up">
+                <!-- Banner de Solo Lectura fuera de Horario (no mostrar si tiene excepción) -->
+                <div v-if="!horarioActivo && !pedidoConfig.sin_restriccion" class="banner-solo-lectura fade-in-up">
                     <div class="banner-icon">
                         <i class="fas fa-eye"></i>
                     </div>
@@ -1078,6 +1092,7 @@ export default {
             // Control de pantallas
             inicioSesion: false,
             mostrarHistorial: false,
+            historialListo: false, // Solo true cuando datos están cargados
             mostrarModalPresupuesto: false,
             loadingHistorial: false,
             historialPedidos: [],
@@ -1088,6 +1103,8 @@ export default {
             stockRefreshInterval: null, // Timer para actualizar stock
             historialRefreshInterval: null, // Timer para actualizar historial
             isLoadingHistorial: false, // Flag para prevenir múltiples cargas simultáneas
+            lastConfigLoadTime: 0, // Timestamp de la última carga de configuración
+            historialKey: 0, // Key para forzar re-render completo del historial
             
             // Administración de productos
             productoEditando: {
@@ -1193,10 +1210,8 @@ export default {
             }, 500);
         }
         
-        // Si ya inició sesión, cargar historial
-        if (this.inicioSesion && this.app && this.app.Id) {
-            this.cargarHistorial();
-        }
+        // NO cargar historial automáticamente - solo cuando usuario presiona botón
+        // El historial se carga manualmente con el botón "VER HISTORIAL"
         
         this.iniciarActualizacionStock();
         this.iniciarActualizacionHistorial();
@@ -1217,7 +1232,11 @@ export default {
         }
     },
     watch: {
-        // Watcher para detectar cambios en historialPedidos
+        // ⚠️ TODOS LOS WATCHERS DESHABILITADOS PARA EVITAR RE-RENDERS
+        // Los watchers causan conflictos de render cuando el historial se actualiza
+        
+        // Watcher para detectar cambios en historialPedidos - DESHABILITADO
+        /*
         historialPedidos: {
             handler(newVal, oldVal) {
                 console.log('🔔 [WATCHER] historialPedidos cambió:');
@@ -1226,23 +1245,23 @@ export default {
             },
             deep: true
         },
+        */
         
         // Watcher removido - ahora verHistorialDirecto maneja la carga
         
-        // Watcher para detectar cambios en loadingHistorial
-        loadingHistorial(newVal) {
-            console.log('🔔 [WATCHER] loadingHistorial cambió a:', newVal);
-        },
-        
-        // Watcher para detectar cambios en loadingProducts
+        // Watcher para detectar cambios en loadingProducts - DESHABILITADO
+        /*
         loadingProducts(newVal) {
             console.log('🔔 [WATCHER] loadingProducts cambió a:', newVal);
         },
+        */
         
-        // Watcher para detectar cambios en inicioSesion
+        // Watcher para detectar cambios en inicioSesion - DESHABILITADO
+        /*
         inicioSesion(newVal) {
             console.log('🔔 [WATCHER] inicioSesion cambió a:', newVal);
         }
+        */
     },
     computed: {
         me: { get() { return this.$store.getters['main/user']; } },
@@ -1527,6 +1546,11 @@ export default {
         // 🕐 Validar si estamos dentro del horario permitido para pedidos
         // 🔧 AHORA USA CONFIGURACIÓN DINÁMICA DEL BACKEND (sin recompilar .exe)
         validarHorarioPedidos() {
+            // Permitir siempre si el local está en excepciones (sin restricción)
+            if (this.pedidoConfig.sin_restriccion) {
+                return true;
+            }
+            
             // Usar configuración cargada desde el backend
             if (!this.pedidoConfig.horario_activo) {
                 const horaFormateada = moment().format('HH:mm');
@@ -1559,20 +1583,39 @@ export default {
         
         actualizarCountdown() {
             // 🔧 USA CONFIGURACIÓN DINÁMICA DEL BACKEND (sin recompilar .exe)
-            // Recargar configuración cada vez para estar siempre actualizado
-            if (this.app && this.app.Id) {
-                this.cargarConfiguracion(); // Actualizar config en background
+            // Recargar configuración cada 30 segundos para sincronizar
+            const ahora = Date.now();
+            const tiempoTranscurrido = ahora - this.lastConfigLoadTime;
+            
+            // Sincronizar con backend cada 30 segundos (pero no bloquear el countdown)
+            if (this.app && this.app.Id && tiempoTranscurrido > 30000) {
+                this.cargarConfiguracion(); // Actualizar en background (async)
+                // NO hacer return - continuar actualizando countdown localmente
             }
             
             // Usar configuración cargada
             this.horarioActivo = this.pedidoConfig.horario_activo;
             this.diaPermitido = this.pedidoConfig.dia_permitido;
             
-            // Actualizar countdown desde el backend
-            if (this.pedidoConfig.tiempo_restante) {
-                this.horasRestantes = this.pedidoConfig.tiempo_restante.horas;
-                this.minutosRestantes = this.pedidoConfig.tiempo_restante.minutos;
-                this.segundosRestantes = this.pedidoConfig.tiempo_restante.segundos;
+            // Calcular countdown localmente cada segundo
+            if (this.horarioActivo && this.diaPermitido) {
+                // Restar 1 segundo
+                if (this.segundosRestantes > 0) {
+                    this.segundosRestantes--;
+                } else if (this.minutosRestantes > 0) {
+                    this.minutosRestantes--;
+                    this.segundosRestantes = 59;
+                } else if (this.horasRestantes > 0) {
+                    this.horasRestantes--;
+                    this.minutosRestantes = 59;
+                    this.segundosRestantes = 59;
+                } else {
+                    // Tiempo agotado
+                    this.horasRestantes = 0;
+                    this.minutosRestantes = 0;
+                    this.segundosRestantes = 0;
+                    this.horarioActivo = false;
+                }
                 
                 const horas = String(this.horasRestantes).padStart(2, '0');
                 const minutos = String(this.minutosRestantes).padStart(2, '0');
@@ -1586,33 +1629,64 @@ export default {
             }
         },
         
-        iniciarPedido() {
+        async iniciarPedido() {
             // Validar horario antes de iniciar
             if (!this.validarHorarioPedidos()) {
                 return;
             }
+            
+            // Si todo está bien, iniciar sesión de pedido
             this.inicioSesion = true;
             // Cargar meta semanal
             this.cargarMetaSemanal();
-            // Cargar historial solo si app está disponible
-            if (this.app && this.app.Id) {
-                this.cargarHistorial();
-            }
+            // NO cargar historial automáticamente - solo cuando usuario presiona botón
         },
         
-        verHistorialDirecto() {
+        // 📋 Ver historial directamente (24/7 disponible, sin restricciones)
+        // ⚠️ FLUJO EXACTO según documentación para evitar error "insertBefore":
+        // 1. Ocultar + Limpiar PRIMERO
+        // 2. nextTick para que Vue destruya el DOM anterior
+        // 3. Activar AMBAS flags (mostrarHistorial=true, historialListo=true)
+        // 4. Cargar datos (la vista internamente muestra loading)
+        // 5. Cuando termina, loadingHistorial=false y se muestran los datos
+        // 6. Incrementar key para forzar re-render del grid
+        async verHistorialDirecto() {
             console.log('📋 Ver Historial - ACCESO DIRECTO 24/7');
             
-            // Activar vista de historial
+            // Validar que app esté disponible
+            if (!this.app || !this.app.Id) {
+                console.warn('⚠️ [HISTORIAL] App no disponible');
+                this.$awn.alert('Sistema no está listo para mostrar historial');
+                return;
+            }
+            
+            // PASO 1: Ocultar vista si ya está visible (para limpiar)
+            this.historialListo = false;
+            this.mostrarHistorial = false;
+            
+            // PASO 2: Limpiar datos
+            this.historialPedidos = [];
+            this.loadingHistorial = true;
+            
+            // PASO 3: Esperar a que Vue destruya el DOM anterior
+            await this.$nextTick();
+            
+            // PASO 4: Activar vista (mostrarHistorial=true, historialListo=true)
+            // La vista se renderiza y muestra loading internamente
             this.mostrarHistorial = true;
             
-            // Cargar datos (no bloqueante)
-            this.cargarHistorial();
+            // PASO 5: Cargar datos completamente
+            await this.cargarHistorial();
+            
+            // PASO 6: AHORA SÍ mostrar con datos completos
+            this.historialListo = true;
+            this.historialKey++;
         },
         
         volverAlInicio() {
             console.log('🔙 Volviendo al inicio');
             this.mostrarHistorial = false;
+            this.historialListo = false;
             // NO cambiar inicioSesion - mantener en welcome screen
         },
         
@@ -1714,22 +1788,26 @@ export default {
         },
         
         iniciarActualizacionHistorial() {
-            // Actualizar historial cada 15 segundos solo si está visible y hay pedidos pendientes
+            // DESHABILITADO - causa conflictos de render
+            // No actualizar automáticamente mientras se ve el historial
+            console.log('⏸️ Actualización automática de historial DESHABILITADA');
+            return;
+            
+            /* CÓDIGO ORIGINAL COMENTADO
             this.historialRefreshInterval = setInterval(async () => {
-                if (this.mostrarHistorial && this.app && this.app.Id) {
-                    // Verificar si hay pedidos pendientes de pago
+                if (!this.mostrarHistorial && this.app && this.app.Id && this.historialPedidos.length > 0) {
                     const hayPendientes = this.historialPedidos.some(p => 
                         p.payment_status !== 'paid' && p.payment_status !== 'pagado'
                     );
                     
                     if (hayPendientes) {
-                        console.log('🔄 Actualizando historial (hay pagos pendientes)...');
+                        console.log('🔄 [BACKGROUND] Actualizando historial (hay pagos pendientes)...');
                         await this.cargarHistorial();
                     }
                 }
-            }, 15000); // 15 segundos
-            
-            console.log('🔄 Actualización automática de historial iniciada (cada 15s)');
+            }, 30000);
+            console.log('🔄 Actualización automática de historial iniciada (cada 30s en background)');
+            */
         },
         
         async actualizarStockSilencioso() {
@@ -1794,7 +1872,7 @@ export default {
             try {
                 console.log('🔧 Cargando configuración de horarios desde backend...');
                 
- if (!this.app || !this.app.Id) {
+                if (!this.app || !this.app.Id) {
                     console.warn('⚠️ app.Id no disponible aún, usando valores por defecto');
                     return;
                 }
@@ -1817,6 +1895,9 @@ export default {
                         this.minutosRestantes = this.pedidoConfig.tiempo_restante.minutos;
                         this.segundosRestantes = this.pedidoConfig.tiempo_restante.segundos;
                     }
+                    
+                    // Marcar timestamp de carga para el sistema de cache
+                    this.lastConfigLoadTime = Date.now();
                     
                     console.log('✅ Configuración cargada:', this.pedidoConfig);
                     console.log(`   Horario: ${this.pedidoConfig.horario_texto}`);
@@ -2638,67 +2719,48 @@ export default {
                 
                 // Prevenir múltiples cargas simultáneas
                 if (this.isLoadingHistorial) {
-                    console.warn('⚠️ [HISTORIAL] Ya hay una carga en progreso, saltando...');
+                    console.warn('⚠️ [HISTORIAL] Ya hay una carga en progreso');
+                    return;
+                }
+                
+                // Validar app
+                if (!this.app || !this.app.Id) {
+                    console.warn('⚠️ [HISTORIAL] App no disponible');
                     return;
                 }
                 
                 this.isLoadingHistorial = true;
                 this.loadingHistorial = true;
-                console.log('🔍 [HISTORIAL] loadingHistorial establecido en:', this.loadingHistorial);
                 
-                // Validar que app esté disponible
-                if (!this.app || !this.app.Id) {
-                    console.warn('⚠️ [HISTORIAL] App no disponible aún, esperando...');
-                    return;
-                }
+                // Llamar al store - super simple
+                const params = '?params=true&appId=' + this.app.Id;
+                console.log('🔍 [HISTORIAL] Params:', params);
                 
-                console.log('🔍 [HISTORIAL] App ID:', this.app.Id);
+                const response = await this.$store.dispatch('requests/getRequests', params);
+                console.log('📦 [HISTORIAL] Response:', response);
                 
-                // Usar la misma estructura que pedidos.vue
-                var params = '?params=true&appId=' + this.app.Id;
-                
-                console.log('🔍 [HISTORIAL] Llamando a getRequests con params:', params);
-                var request = await this.$store.dispatch('requests/getRequests', params);
-                console.log('📦 [HISTORIAL] Response completo:', request);
-                
-                if (!request.success) {
-                    console.error('❌ [HISTORIAL] Request no exitoso:', request.data);
-                    this.$awn.alert(request.data);
-                    this.historialPedidos = [];
-                    return;
-                }
-                
-                // Misma estructura que pedidos.vue: request.data.items
-                if (request.data && request.data.items) {
-                    console.log('🔍 [HISTORIAL] Items recibidos:', request.data.items.length);
-                    
-                    // Ordenar por fecha más reciente primero
-                    const pedidosOrdenados = request.data.items.sort((a, b) => {
+                if (response.success && response.data && response.data.items) {
+                    // Ordenar por fecha
+                    const pedidos = response.data.items.slice().sort((a, b) => {
                         return new Date(b.created_at) - new Date(a.created_at);
                     });
                     
-                    // Usar $set para asegurar reactividad en Vue 2
-                    this.$set(this, 'historialPedidos', pedidosOrdenados);
-                    
-                    console.log('✅ [HISTORIAL] Historial asignado:', this.historialPedidos.length, 'pedidos');
-                    console.log('🔍 [HISTORIAL] Primer pedido:', this.historialPedidos[0]);
+                    this.historialPedidos = pedidos;
+                    console.log('✅ [HISTORIAL] Cargados:', pedidos.length, 'pedidos');
                 } else {
-                    console.warn('⚠️ [HISTORIAL] No hay items en la respuesta');
-                    this.$set(this, 'historialPedidos', []);
+                    console.warn('⚠️ [HISTORIAL] Sin items en respuesta');
+                    this.historialPedidos = [];
                 }
             } catch (error) {
-                console.error('❌ [HISTORIAL] Error cargando historial:', error);
-                this.$awn.alert('Error al cargar historial de pedidos');
-                this.$set(this, 'historialPedidos', []);
+                console.error('❌ [HISTORIAL] Error:', error);
+                this.$awn.alert('Error al cargar historial');
+                this.historialPedidos = [];
             } finally {
-                // Actualizar estados directamente sin $set
                 this.isLoadingHistorial = false;
                 this.loadingHistorial = false;
-                
-                console.log('🏁 [HISTORIAL] Carga finalizada.');
-                console.log('   - Total pedidos:', this.historialPedidos.length);
-                console.log('   - loadingHistorial:', this.loadingHistorial);
-                console.log('   - mostrarHistorial:', this.mostrarHistorial);
+                console.log('🏁 [HISTORIAL] Finalizado');
+                console.log('   loadingHistorial:', this.loadingHistorial);
+                console.log('   historialPedidos.length:', this.historialPedidos.length);
             }
         },
         
@@ -3312,6 +3374,129 @@ export default {
     color: #991b1b !important;
     font-size: 16px !important;
     font-weight: 500 !important;
+}
+
+/* 💰 Estilos para mensaje de deuda pendiente */
+.deuda-pendiente-mensaje {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe4e4 100%);
+    border-radius: 24px;
+    padding: 40px;
+    margin: 0 0 40px 0;
+    border: 3px solid #fca5a5;
+    box-shadow: 0 12px 40px rgba(239, 68, 68, 0.2);
+    animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s backwards, pulse-border 2s ease infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.deuda-pendiente-mensaje::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(239, 68, 68, 0.05) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+.deuda-pendiente-mensaje > * {
+    position: relative;
+    z-index: 1;
+}
+
+.deuda-pendiente-mensaje i.fa-exclamation-triangle {
+    font-size: 64px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+    animation: shake 3s ease infinite;
+}
+
+.deuda-pendiente-mensaje h3 {
+    color: #991b1b;
+    font-size: 26px;
+    margin: 15px 0;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.deuda-pendiente-mensaje .deuda-descripcion {
+    color: #7f1d1d;
+    font-size: 17px;
+    margin: 15px 0;
+    font-weight: 500;
+}
+
+.deuda-pendiente-mensaje .deuda-monto {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 25px 0;
+    border: 2px solid #fca5a5;
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.deuda-pendiente-mensaje .deuda-monto .deuda-label {
+    color: #7f1d1d;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.deuda-pendiente-mensaje .deuda-monto .deuda-valor {
+    color: #dc2626;
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.deuda-pendiente-mensaje .deuda-instruccion {
+    color: #991b1b;
+    font-size: 16px;
+    margin: 20px 0 15px 0;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.deuda-pendiente-mensaje .deuda-historial {
+    color: #7f1d1d;
+    font-size: 14px;
+    margin: 10px 0 0 0;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.deuda-pendiente-mensaje .deuda-historial i {
+    font-size: 14px;
+    color: #dc2626;
+}
+
+@keyframes pulse-border {
+    0%, 100% {
+        border-color: #fca5a5;
+        box-shadow: 0 12px 40px rgba(239, 68, 68, 0.2);
+    }
+    50% {
+        border-color: #ef4444;
+        box-shadow: 0 16px 48px rgba(239, 68, 68, 0.3);
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px) rotate(-2deg); }
+    20%, 40%, 60%, 80% { transform: translateX(2px) rotate(2deg); }
 }
 
 @keyframes pulse {

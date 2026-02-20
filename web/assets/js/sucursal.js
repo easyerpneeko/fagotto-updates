@@ -2980,7 +2980,23 @@ async function loadAnalyticsKPIs(startDate, endDate) {
                 peakSalesElement.textContent = `${peakHour.sales} ventas`;
             }
             
-            updateKPI('analytics-customers', totalCustomers, calculateChange(totalCustomers, 0));
+            // Calcular porcentaje de Jugos sobre el total de líquidos (Jugos + Bebidas)
+            const totalLiquidos = globalJugosTotal + globalBebidasTotal;
+            const porcentajeJugos = totalLiquidos > 0 
+                ? ((globalJugosTotal / totalLiquidos) * 100).toFixed(1)
+                : 0;
+            
+            const beveragesElement = document.getElementById('analytics-beverages');
+            const beveragesChangeElement = document.getElementById('analytics-beverages-change');
+            
+            if (beveragesElement) {
+                beveragesElement.textContent = `${porcentajeJugos}%`;
+            }
+            if (beveragesChangeElement) {
+                beveragesChangeElement.textContent = `${globalJugosTotal} de ${totalLiquidos} líquidos`;
+                beveragesChangeElement.className = 'trend-indicator neutral';
+            }
+            
             // updateKPI('analytics-conversion', `${conversion.toFixed(1)}%`, calculateChange(conversion, 0)); // ELIMINADO
         });
 
@@ -4634,6 +4650,11 @@ function processSauceData(productos, startDate, endDate) {
     renderSauceHeatmap(ventasPorSalsa, dias);
 }
 
+// Variables globales para KPI de Jugos & Bebidas
+let globalJugosTotal = 0;
+let globalBebidasTotal = 0;
+let globalProductosTotal = 0;
+
 // Calcular KPIs de totales
 function calculateSauceKPIs(productos) {
     let salsaExtra = 0;
@@ -4646,6 +4667,7 @@ function calculateSauceKPIs(productos) {
     let jugosDesglose = {}; // Objeto para contar jugos por nombre con cantidad y monto
     let bebidasDesglose = {}; // Objeto para contar TODAS las bebidas por nombre
     let iceTea = 0; // Nuevo contador para Ice Tea
+    let totalProductos = 0; // Contador total de productos
     
     productos.forEach(producto => {
         const nombreLower = (producto.name || '').toLowerCase();
@@ -4653,6 +4675,9 @@ function calculateSauceKPIs(productos) {
         const categoria = (producto.category || '').toLowerCase();
         const cantidad = parseInt(producto.quantity) || 1;
         const precio = parseFloat(producto.price) || 0;
+        
+        // Contar total de productos
+        totalProductos += cantidad;
         
         // Salsa Extra (categoría Extras - salsas vendidas solas, sin pasta)
         // Detectar si tiene nombre de salsa PERO NO es parte de una pasta
@@ -4699,8 +4724,11 @@ function calculateSauceKPIs(productos) {
             focacciasDesglose[nombreOriginal] += cantidad;
         }
         
-        // Jugos - detectar productos con "jugo" en el nombre
-        if (nombreLower.includes('jugo')) {
+        // Jugos - detectar productos con "jugo" en el nombre O productos con "ice tea" o "ice"
+        const esJugo = nombreLower.includes('jugo');
+        const esIceTea = nombreLower.includes('ice tea') || nombreLower.includes('ice');
+        
+        if (esJugo || esIceTea) {
             jugos += cantidad;
             
             // Agregar al desglose con cantidad y monto
@@ -4711,8 +4739,13 @@ function calculateSauceKPIs(productos) {
             jugosDesglose[nombreOriginal].monto += (precio * cantidad);
         }
         
-        // TODAS LAS BEBIDAS - detectar por categoría "Bebidas"
-        if (categoria === 'bebidas') {
+        // Ice Tea - contador total (ya incluido en jugos)
+        if (esIceTea) {
+            iceTea += cantidad;
+        }
+        
+        // BEBIDAS (EXCLUIR JUGOS E ICE TEA) - detectar por categoría "Bebidas"
+        if (categoria === 'bebidas' && !esJugo && !esIceTea) {
             // Agregar al desglose con cantidad y monto
             if (!bebidasDesglose[nombreOriginal]) {
                 bebidasDesglose[nombreOriginal] = { cantidad: 0, monto: 0 };
@@ -4720,12 +4753,13 @@ function calculateSauceKPIs(productos) {
             bebidasDesglose[nombreOriginal].cantidad += cantidad;
             bebidasDesglose[nombreOriginal].monto += (precio * cantidad);
         }
-        
-        // Ice Tea - detectar productos que empiecen con "ice" (Ice Tea, Ice Coffee, etc.)
-        if (nombreLower.includes('ice')) {
-            iceTea += cantidad;
-        }
     });
+    
+    // Actualizar variables globales para KPI de Jugos & Bebidas
+    globalJugosTotal = jugos;
+    // Calcular total de bebidas (no jugos, no ice tea)
+    globalBebidasTotal = Object.values(bebidasDesglose).reduce((sum, item) => sum + item.cantidad, 0);
+    globalProductosTotal = totalProductos;
     
     // Actualizar UI - Totales
     document.getElementById('sauceExtraTotal').textContent = salsaExtra;

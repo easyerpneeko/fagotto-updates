@@ -1982,12 +1982,12 @@
                                     <div class="col-lg-2 col-md-4 col-6">
                                         <div class="analytics-kpi">
                                             <div class="kpi-icon bg-purple">
-                                                <i class="fas fa-users"></i>
+                                                <i class="fas fa-glass-water"></i>
                                             </div>
                                             <div class="kpi-data">
-                                                <h3 id="analytics-customers">0</h3>
-                                                <span>Clientes</span>
-                                                <small id="analytics-customers-change" class="trend-indicator">+0%</small>
+                                                <h3 id="analytics-beverages">0%</h3>
+                                                <span>Jugos & Bebidas</span>
+                                                <small id="analytics-beverages-change" class="trend-indicator">0 unidades</small>
                                             </div>
                                         </div>
                                     </div>
@@ -2950,6 +2950,8 @@
 
     <script>
         // ========== SISTEMA DE DISPONIBILIDAD DE SALSAS ==========
+        // Consulta tabla maestra: pedidofinal_precios (EasyERP)
+        // Filtra 7 salsas específicas y muestra estado basado en campo 'stock'
         
         // Función para obtener icono de salsa (igual que en stock.js)
         function getSauceIcon(productName) {
@@ -2977,9 +2979,9 @@
             return '<i class="fas fa-pepper-hot text-danger"></i>';
         }
 
-        // Función para cargar estado de salsas
+        // Función para cargar estado de salsas (igual que stock.js)
         async function loadSaucesAvailability() {
-            const url = generarURLApi(`/local/products/index`);
+            const url = generarURLApi(`/local/pedidofinal/stock`);
             
             try {
                 await __conection({
@@ -2988,48 +2990,57 @@
                     dev: true,
                     method: 'GET'
                 }, {}, function (request) {
-                    let products = request;
+                    // ✅ Manejar respuesta igual que stock.js (línea 122)
+                    let products = request.data || request || [];
                     const container = document.getElementById('sauces-status-container');
                     container.innerHTML = "";
                     
-                    // Filtrar solo salsas (categoría 2)
-                    const sauces = products.filter(p => p.category == 2);
+                    // Lista de salsas específicas a mostrar desde pedidofinal_precios (tabla maestra)
+                    const saucesNames = [
+                        'Salsa Alfredo',
+                        'Salsa Camarón',
+                        'Salsa Champiñón',
+                        'Salsa Pesto',
+                        'Salsa Boloñesa',
+                        'Salsa Pollo Mostaza',
+                        'Salsa Pomodoro'
+                    ];
+                    
+                    // Filtrar solo las 7 salsas específicas
+                    const sauces = products.filter(p => 
+                        saucesNames.some(sauceName => 
+                            p.producto && p.producto.toLowerCase().includes(sauceName.toLowerCase())
+                        )
+                    );
                     
                     if (sauces.length > 0) {
                         sauces.forEach(sauce => {
-                            const isPesto = sauce.name.toLowerCase().includes('pesto');
-                            const vasosPerBag = isPesto ? 27 : 13.5;
-                            const totalVasos = vasosPerBag * sauce.stock;
-                            const kgPerBag = sauce.min_quantity || 2.079;
-                            const totalKg = (sauce.stock * kgPerBag).toFixed(2);
+                            const sauceName = sauce.producto || sauce.name || 'Sin nombre';
+                            const sauceStock = sauce.stock !== null && sauce.stock !== undefined ? sauce.stock : 0;
                             
-                            // Determinar estado: verde (>=2 bolsas), amarillo (1 bolsa), rojo (0 bolsas)
+                            // Determinar estado: verde (stock > 0), rojo (stock == 0)
                             let statusClass = '';
                             let statusBadge = '';
                             let statusIcon = '';
                             
-                            if (sauce.stock >= 2) {
+                            if (sauceStock > 0) {
                                 statusClass = 'available';
-                                statusBadge = 'Disponible';
+                                statusBadge = `Disponible (${sauceStock})`;
                                 statusIcon = '<i class="fas fa-check-circle"></i>';
-                            } else if (sauce.stock === 1) {
-                                statusClass = 'low-stock';
-                                statusBadge = 'Stock Bajo';
-                                statusIcon = '<i class="fas fa-exclamation-triangle"></i>';
                             } else {
                                 statusClass = 'unavailable';
-                                statusBadge = 'Sin Stock';
+                                statusBadge = 'Agotada';
                                 statusIcon = '<i class="fas fa-times-circle"></i>';
                             }
                             
-                            const sauceIcon = getSauceIcon(sauce.name);
+                            const sauceIcon = getSauceIcon(sauceName);
                             
                             const card = `
                                 <div class="col-lg-4 col-md-6">
                                     <div class="sauce-item ${statusClass}">
                                         <div class="sauce-name">
                                             ${sauceIcon}
-                                            <span>${sauce.name}</span>
+                                            <span>${sauceName}</span>
                                         </div>
                                         <div class="sauce-stock">
                                             <div class="stock-badge ${statusClass}">

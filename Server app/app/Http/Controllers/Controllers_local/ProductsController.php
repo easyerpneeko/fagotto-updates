@@ -213,7 +213,7 @@ class ProductsController extends Controller
       }
       
       // Agregar pasos del combo si es un combo
-      if ($key->is_combo == 1) {
+      if (isset($key->is_combo) && $key->is_combo == 1) {
         $key->combo_steps = ComboStep::getStepsByProduct($key->id);
       }
     }

@@ -637,6 +637,9 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           // 🔧 Configuración dinámica de horarios (sin recompilar .exe)
           Route::get('/local/pedidofinal/config', 'Controllers_local\RequestsController@getPedidoFinalConfig');
           
+          // 💰 Verificar deuda pendiente
+          Route::get('/local/pedidofinal/verificar-deuda', 'Controllers_local\RequestsController@verificarDeudaPendiente');
+          
           // Envío de WhatsApp via Twilio
           Route::post('/local/send-whatsapp', 'Controllers_local\WhatsAppController@sendWhatsApp');
           

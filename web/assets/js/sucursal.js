@@ -4413,7 +4413,8 @@ const SALSAS_CONFIG = [
     { nombre: 'Champiñón', keywords: ['champinon', 'champiñon', 'champiñón'], emoji: '🍄', gramaje: 140 },
     { nombre: 'Camarón', keywords: ['camaron', 'camarón'], emoji: '🦐', gramaje: 140 },
     { nombre: 'Pollo Mostaza', keywords: ['pollo mostaza', 'crema/pollo/mostaza', 'crema pollo mostaza'], emoji: '🍗', gramaje: 140 },
-    { nombre: 'Cheddar', keywords: ['cheddar'], emoji: '🧀', gramaje: 140 }
+    { nombre: 'Cheddar', keywords: ['cheddar'], emoji: '🧀', gramaje: 140 },
+    { nombre: 'Pomodoro', keywords: ['pomodoro'], emoji: '🍅', gramaje: 125 }
 ];
 
 let currentSauceView = 'month'; // 'month' o 'week'
@@ -4661,8 +4662,8 @@ function calculateSauceKPIs(productos) {
     let fettucine = 0;
     let bigoli = 0;
     let quesoExtra = 0;
-    let focaccias = 0;
-    let focacciasDesglose = {}; // Objeto para contar focaccias por nombre
+    let ciabattas = 0;
+    let ciabattasDesglose = {}; // Objeto para contar ciabattas por nombre
     let jugos = 0; // Nuevo contador para jugos
     let jugosDesglose = {}; // Objeto para contar jugos por nombre con cantidad y monto
     let bebidasDesglose = {}; // Objeto para contar TODAS las bebidas por nombre
@@ -4713,15 +4714,15 @@ function calculateSauceKPIs(productos) {
             quesoExtra += cantidad;
         }
         
-        // Focaccias - contador general y desglose por nombre
-        if (nombreLower.includes('focaccia')) {
-            focaccias += cantidad;
+        // Ciabattas - contador general y desglose por nombre
+        if (nombreLower.includes('ciabatta')) {
+            ciabattas += cantidad;
             
             // Agregar al desglose
-            if (!focacciasDesglose[nombreOriginal]) {
-                focacciasDesglose[nombreOriginal] = 0;
+            if (!ciabattasDesglose[nombreOriginal]) {
+                ciabattasDesglose[nombreOriginal] = 0;
             }
-            focacciasDesglose[nombreOriginal] += cantidad;
+            ciabattasDesglose[nombreOriginal] += cantidad;
         }
         
         // Jugos - detectar productos con "jugo" en el nombre O productos con "ice tea" o "ice"
@@ -4766,12 +4767,12 @@ function calculateSauceKPIs(productos) {
     document.getElementById('fettucineTotal').textContent = fettucine;
     document.getElementById('bigoliTotal').textContent = bigoli;
     document.getElementById('quesoExtraTotal').textContent = quesoExtra;
-    document.getElementById('focacciasTotal').textContent = focaccias;
+    document.getElementById('ciabattasTotal').textContent = ciabattas;
     document.getElementById('jugosTotal').textContent = jugos;
     document.getElementById('iceTeaTotal').textContent = iceTea;
     
-    // Actualizar tabla de desglose de focaccias
-    renderFocacciasBreakdown(focacciasDesglose);
+    // Actualizar tabla de desglose de ciabattas
+    renderCiabattasBreakdown(ciabattasDesglose);
     
     // Actualizar tabla de desglose de jugos
     renderJugosBreakdown(jugosDesglose);
@@ -4780,23 +4781,23 @@ function calculateSauceKPIs(productos) {
     renderBebidasBreakdown(bebidasDesglose);
 }
 
-// Renderizar tabla de desglose de focaccias
-function renderFocacciasBreakdown(focacciasDesglose) {
-    const tbody = document.getElementById('focacciasBreakdownBody');
+// Renderizar tabla de desglose de ciabattas
+function renderCiabattasBreakdown(ciabattasDesglose) {
+    const tbody = document.getElementById('ciabattasBreakdownBody');
     
     if (!tbody) return;
     
     tbody.innerHTML = '';
     
     // Convertir a array y ordenar por cantidad (mayor a menor)
-    const focacciasArray = Object.entries(focacciasDesglose).sort((a, b) => b[1] - a[1]);
+    const ciabattasArray = Object.entries(ciabattasDesglose).sort((a, b) => b[1] - a[1]);
     
-    if (focacciasArray.length === 0) {
+    if (ciabattasArray.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="2" class="text-center text-muted py-3">
                     <i class="fas fa-info-circle me-2"></i>
-                    No se vendieron focaccias en este período
+                    No se vendieron ciabattas en este período
                 </td>
             </tr>
         `;
@@ -4804,7 +4805,7 @@ function renderFocacciasBreakdown(focacciasDesglose) {
     }
     
     // Generar filas
-    focacciasArray.forEach(([nombre, cantidad]) => {
+    ciabattasArray.forEach(([nombre, cantidad]) => {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td style="font-weight: 500;">
@@ -4819,12 +4820,12 @@ function renderFocacciasBreakdown(focacciasDesglose) {
     });
     
     // Agregar fila de total
-    const totalCantidad = focacciasArray.reduce((sum, [_, cant]) => sum + cant, 0);
+    const totalCantidad = ciabattasArray.reduce((sum, [_, cant]) => sum + cant, 0);
     const rowTotal = document.createElement('tr');
     rowTotal.style.backgroundColor = '#fff3e0';
     rowTotal.innerHTML = `
         <td style="font-weight: 700; text-align: right;">
-            TOTAL FOCACCIAS:
+            TOTAL CIABATTAS:
         </td>
         <td style="text-align: center; font-weight: 700; color: #f57c00;">
             ${totalCantidad}

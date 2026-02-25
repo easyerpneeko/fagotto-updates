@@ -251,10 +251,12 @@ class SellsController extends Controller
 
     $items = json_decode($_request['products']);
     foreach ($items as $item) {
-      // ✅ FIX MERCHISE, COLACIÓN Y CHEAF: Saltear validación si es producto merchise, colación o cheaf (no están en tabla products)
+      // ✅ FIX MERCHISE, COLACIÓN, CHEAF, MUVIFY Y MENU FAGOTTO: Saltear validación si es producto especial (no están en tabla products)
       $is_merchise = isset($item->is_merchise) && $item->is_merchise === true;
       $is_colacion = isset($item->is_colacion) && $item->is_colacion === true;
       $is_cheaf = isset($item->is_cheaf) && $item->is_cheaf === true;
+      $is_muvify = isset($item->is_muvify) && $item->is_muvify === true;
+      $is_menu_fagotto = isset($item->is_menu_fagotto) && $item->is_menu_fagotto === true;
       
       \Log::info('🍝 COLACIÓN VALIDACIÓN:', [
         'product_id' => $item->id,
@@ -264,7 +266,7 @@ class SellsController extends Controller
         'type_of_is_colacion' => gettype($item->is_colacion ?? null)
       ]);
       
-      if (!$is_merchise && !$is_colacion && !$is_cheaf) {
+      if (!$is_merchise && !$is_colacion && !$is_cheaf && !$is_muvify && !$is_menu_fagotto) {
         $product = Product::find($item->id);
         if (!$product) {
           \Log::error('❌ PRODUCTO NO ENCONTRADO:', ['id' => $item->id, 'is_colacion' => $is_colacion]);
@@ -374,12 +376,14 @@ class SellsController extends Controller
 
     // Creando cada columna en la pivote de cada producto por cada venta
     foreach ($items as $item) {
-      // ✅ FIX MERCHISE, COLACIÓN Y CHEAF: Saltear validación de producto si es merchise, colación o cheaf
+      // ✅ FIX MERCHISE, COLACIÓN, CHEAF, MUVIFY Y MENU FAGOTTO: Saltear validación de producto si es producto especial
       $is_merchise = isset($item->is_merchise) && $item->is_merchise === true;
       $is_colacion = isset($item->is_colacion) && $item->is_colacion === true;
       $is_cheaf = isset($item->is_cheaf) && $item->is_cheaf === true;
+      $is_muvify = isset($item->is_muvify) && $item->is_muvify === true;
+      $is_menu_fagotto = isset($item->is_menu_fagotto) && $item->is_menu_fagotto === true;
       
-      if (!$is_merchise && !$is_colacion && !$is_cheaf) {
+      if (!$is_merchise && !$is_colacion && !$is_cheaf && !$is_muvify && !$is_menu_fagotto) {
         $product = Product::find($item->id);
         if (!$product) {
           if (isset($_request['ticket'])) return "Producto no encontrado";
@@ -449,6 +453,29 @@ class SellsController extends Controller
         ]);
       }
       
+      // ✅ MUVIFY: Guardar nombre del combo en description_sii y detalles del cliente
+      $is_muvify = isset($item->is_muvify) && $item->is_muvify === true;
+      if ($is_muvify && isset($item->name)) {
+        $newProductSell['description_sii'] = $item->name;
+        $newProductSell['product'] = null; // NULL para muvify (no existe en tabla products)
+        \Log::info('🚌 MUVIFY - Guardando description_sii:', [
+          'product_id' => $item->id,
+          'name' => $item->name,
+          'rut_cliente' => $item->rut_cliente ?? 'NO SET',
+          'muvify_details' => isset($item->muvify_details) ? json_encode($item->muvify_details) : 'NO SET'
+        ]);
+      }
+      
+      // ✅ MENU FAGOTTO: Guardar nombre del combo en description_sii
+      if ($is_menu_fagotto && isset($item->name)) {
+        $newProductSell['description_sii'] = $item->name;
+        $newProductSell['product'] = null; // NULL para menu fagotto (no existe en tabla products)
+        \Log::info('🍝 MENU FAGOTTO - Guardando description_sii:', [
+          'product_id' => $item->id,
+          'name' => $item->name,
+        ]);
+      }
+      
       \Log::info('🔍 MERCHISE - newProductSell antes de crear:', $newProductSell);
       
       if (CurrentApp::ConfStr('modulos.ventas.ajustes.permitir_ganancia')) {
@@ -496,8 +523,8 @@ class SellsController extends Controller
         }
       }
       
-      // ✅ FIX MERCHISE, COLACIÓN Y CHEAF: Solo actualizar stock si NO es producto merchise, colación o cheaf
-      if (!$is_merchise && !$is_colacion && !$is_cheaf && CurrentApp::ConfStr('modulos.productos.ajustes.permitir_stock')) {
+      // ✅ FIX MERCHISE, COLACIÓN, CHEAF Y MUVIFY: Solo actualizar stock si NO es producto especial
+      if (!$is_merchise && !$is_colacion && !$is_cheaf && !$is_muvify && !$is_menu_fagotto && CurrentApp::ConfStr('modulos.productos.ajustes.permitir_stock')) {
         $product->stock = (float) $product->stock - $item->quantity;
         if (!$product->save()) {
           if (isset($_request['ticket'])) return 'Error en la base de datos';
@@ -701,21 +728,25 @@ class SellsController extends Controller
 
         $items = json_decode($_request['products']);
         foreach ($items as $item) {
-            $product = Product::find($item->id);
-            if (!$product) {
-                if (isset($_request['ticket'])) return "Producto no encontrado";
-                else return response()->json("Producto no encontrado", 404);
-            }
-            // if (CurrentApp::ConfStr('modulos.productos.ajustes.permitir_stock')){
-            //   if ($product->stock < $item->quantity){
-            //     if(isset($_request['ticket'])) return "No hay suficiente stock";
-            //     else return response()->json("No hay suficiente stock",400);
-            //   }
-            // }
-            if (CurrentApp::ConfStr('modulos.productos.ajustes.permitir_cantidad_minima')) {
-                if ($product->min_quantity > $item->quantity) {
-                    if (isset($_request['ticket'])) return "El producto " . $product->name . " permite comprar minimo " . $product->min_quantity . " productos";
-                    else return response()->json("El producto " . $product->name . " permite comprar minimo " . $product->min_quantity . " productos", 400);
+            // ✅ FIX MENU FAGOTTO: Saltear validación si es producto especial (no está en tabla products)
+            $is_menu_fagotto = isset($item->is_menu_fagotto) && $item->is_menu_fagotto === true;
+            if (!$is_menu_fagotto) {
+                $product = Product::find($item->id);
+                if (!$product) {
+                    if (isset($_request['ticket'])) return "Producto no encontrado";
+                    else return response()->json("Producto no encontrado", 404);
+                }
+                // if (CurrentApp::ConfStr('modulos.productos.ajustes.permitir_stock')){
+                //   if ($product->stock < $item->quantity){
+                //     if(isset($_request['ticket'])) return "No hay suficiente stock";
+                //     else return response()->json("No hay suficiente stock",400);
+                //   }
+                // }
+                if (CurrentApp::ConfStr('modulos.productos.ajustes.permitir_cantidad_minima')) {
+                    if ($product->min_quantity > $item->quantity) {
+                        if (isset($_request['ticket'])) return "El producto " . $product->name . " permite comprar minimo " . $product->min_quantity . " productos";
+                        else return response()->json("El producto " . $product->name . " permite comprar minimo " . $product->min_quantity . " productos", 400);
+                    }
                 }
             }
         }
@@ -778,11 +809,16 @@ class SellsController extends Controller
 
         // Creando cada columna en la pivote de cada producto por cada venta
         foreach ($items as $item) {
-            $product = Product::find($item->id);
-            if (!$product) {
-                if (isset($_request['ticket'])) return "Producto no encontrado";
-                else return response()->json("Producto no encontrado", 404);
+            // ✅ FIX MENU FAGOTTO: Saltear validación de producto si es producto especial
+            $is_menu_fagotto = isset($item->is_menu_fagotto) && $item->is_menu_fagotto === true;
+            if (!$is_menu_fagotto) {
+                $product = Product::find($item->id);
+                if (!$product) {
+                    if (isset($_request['ticket'])) return "Producto no encontrado";
+                    else return response()->json("Producto no encontrado", 404);
+                }
             }
+
             $price = floatval($item->price);
 
             if (isset($item->product_promo) && $item->product_promo) {
@@ -805,6 +841,16 @@ class SellsController extends Controller
                 ];
             }
 
+            // ✅ MENU FAGOTTO: Guardar nombre del combo en description_sii
+            if ($is_menu_fagotto && isset($item->name)) {
+                $newProductSell['description_sii'] = $item->name;
+                $newProductSell['product'] = null; // NULL para menu fagotto (no existe en tabla products)
+                \Log::info('🍝 MENU FAGOTTO - Guardando description_sii:', [
+                    'product_id' => $item->id,
+                    'name' => $item->name,
+                ]);
+            }
+
             if (CurrentApp::ConfStr('modulos.ventas.ajustes.permitir_ganancia')) {
                 $newProductSell['gananciaTotal'] = $item->ganancia;
             }
@@ -814,8 +860,8 @@ class SellsController extends Controller
                 else return response()->json("Error del servidor", 500);
             }
 
-            // Descontar stock de ingredientes
-            if (CurrentApp::ConfStr('modulos.ingredients')) {
+            // Descontar stock de ingredientes (solo para productos reales)
+            if (!$is_menu_fagotto && CurrentApp::ConfStr('modulos.ingredients')) {
 
               // Cargar los ingredientes del producto.
               $product->load('ingredients');
@@ -886,7 +932,7 @@ class SellsController extends Controller
             }
 
             // El bloque de código original para el stock del producto (si aplica)
-            if (CurrentApp::ConfStr('modulos.productos.ajustes.permitir_stock')) {
+            if (!$is_menu_fagotto && CurrentApp::ConfStr('modulos.productos.ajustes.permitir_stock')) {
                 $product->stock = (float) $product->stock - $item->quantity;
                 if (!$product->save()) {
                     if (isset($_request['ticket'])) return 'Error en la base de datos';

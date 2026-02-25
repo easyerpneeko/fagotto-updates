@@ -369,6 +369,14 @@ export default {
           route: '/inicio',
           icon: 'fa-home'
         }];
+        // Pruebas 1 - OCULTO
+        // menu.push({
+        //   label: 'Pruebas 1',
+        //   route: '/inicio/pruebas-1',
+        //   icon: 'fa-flask',
+        //   requiresTurno: false,
+        //   badge: 'TEST'
+        // });
         // Modulo de usuarios
         if (usersGestion) {
           menu.push({

@@ -68,6 +68,10 @@ const router = new Router({
           component: require('@/views/home.vue').default
         },
         {
+          path: 'pruebas-1',
+          component: require('@/views/pruebas-1.vue').default
+        },
+        {
           path: 'arqueo-caja',
           component: require('@/views/arqueo-caja.vue').default
         },

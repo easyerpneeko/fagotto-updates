@@ -1026,11 +1026,22 @@ async function procesarNotaCredito() {
 
 async function verFacturaPDF(pedidoId) {
     try {
+        // Obtener app_id de la URL (pedidos.html?id=119)
+        const urlParams = new URLSearchParams(window.location.search);
+        const appId = urlParams.get('id');
+        
+        if (!appId) {
+            alert('❌ Error: No se pudo identificar el negocio (app_id)');
+            return;
+        }
+
         activateLoader();
+        
+        console.log(`📄 Obteniendo factura PDF del pedido ${pedidoId} para negocio ${appId}...`);
         
         await __conection(
             {
-                url: generarURLApi(`/local/sell/${pedidoId}/pdf`),
+                url: generarURLApi(`/local/request/factura-pdf/${appId}/${pedidoId}`),
                 header: credentials(),
                 dev: true,
                 method: 'GET',
@@ -1038,24 +1049,24 @@ async function verFacturaPDF(pedidoId) {
             {},
             function (request) {
                 desactivateLoader();
-                console.log('Respuesta PDF factura:', request);
+                console.log('✅ Respuesta PDF factura desde requests:', request);
                 
-                // El endpoint devuelve directamente el base64 del PDF
-                if (request && typeof request === 'string' && request.startsWith('JVBERi0x')) {
-                    // Es un PDF válido en base64 (comienza con JVBERi0x que es "%PDF-1" en base64)
-                    generatePDF(request);
-                } else if (request.success && request.data) {
-                    // Formato alternativo con estructura success/data
+                if (request.success && request.data) {
+                    // El backend devuelve el PDF en base64 desde response_folio
                     generatePDF(request.data);
+                    console.log(`✅ Factura generada correctamente. Folio: ${request.folio || 'N/A'}`);
                 } else {
-                    alert('❌ Error: No se pudo obtener el PDF de la factura.');
+                    // Mostrar mensaje específico si no tiene factura
+                    const mensaje = request.message || 'No se pudo obtener el PDF de la factura.';
+                    alert('❌ Error: ' + mensaje);
+                    console.error('❌ Error:', mensaje);
                 }
             }
         );
 
     } catch (error) {
-        desactivateLoader(); // Ensure loader is always deactivated
-        console.error("Error al obtener PDF de factura:", error);
+        desactivateLoader();
+        console.error("❌ Error al obtener PDF de factura:", error);
         alert('❌ Error de conexión al obtener la factura.');
     }
 }

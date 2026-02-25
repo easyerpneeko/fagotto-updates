@@ -83,7 +83,7 @@
             <div class="kpi-card" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
               <i class="fas fa-bread-slice fa-2x"></i>
               <div class="kpi-content">
-                <div class="kpi-label">Focaccias Total</div>
+                <div class="kpi-label">Ciabattas Total</div>
                 <div class="kpi-value">{{ totales.focaccias }}</div>
               </div>
             </div>
@@ -156,18 +156,18 @@
           </div>
         </div>
         
-        <!-- Desglose de Focaccias -->
+        <!-- Desglose de Ciabattas -->
         <div v-show="!cargando && focacciasDesglose.length > 0" class="focaccias-section">
           <div class="focaccias-card">
             <h6 class="mb-3">
               <i class="fas fa-bread-slice me-2"></i>
-              Desglose de Focaccias por Nombre
+              Desglose de Ciabattas por Nombre
             </h6>
             <div class="table-responsive">
               <table class="table table-sm table-bordered mb-0">
                 <thead>
                   <tr>
-                    <th>Nombre Focaccia</th>
+                    <th>Nombre Ciabatta</th>
                     <th class="text-center">Cantidad Total</th>
                   </tr>
                 </thead>
@@ -177,7 +177,7 @@
                     <td class="text-center"><strong>{{ focaccia.total }}</strong></td>
                   </tr>
                   <tr class="table-active">
-                    <td><strong>TOTAL FOCACCIAS:</strong></td>
+                    <td><strong>TOTAL CIABATTAS:</strong></td>
                     <td class="text-center"><strong>{{ totales.focaccias }}</strong></td>
                   </tr>
                 </tbody>
@@ -202,7 +202,8 @@ const SALSAS_CONFIG = [
   { nombre: 'Champiñón', keywords: ['champinon', 'champiñon', 'champiñón'], emoji: '🍄', gramaje: 140 },
   { nombre: 'Camarón', keywords: ['camaron', 'camarón'], emoji: '🦐', gramaje: 140 },
   { nombre: 'Pollo Mostaza', keywords: ['pollo mostaza', 'crema/pollo/mostaza', 'crema pollo mostaza'], emoji: '🍗', gramaje: 140 },
-  { nombre: 'Cheddar', keywords: ['cheddar'], emoji: '🧀', gramaje: 140 }
+  { nombre: 'Cheddar', keywords: ['cheddar'], emoji: '🧀', gramaje: 140 },
+  { nombre: 'Pomodoro', keywords: ['pomodoro'], emoji: '🍅', gramaje: 125 }
 ];
 
 export default {
@@ -347,6 +348,7 @@ export default {
             if (producto.name && typeof producto.name === 'string') {
               productos.push({
                 name: producto.name.toLowerCase(),
+                originalName: producto.name,
                 quantity: parseInt(producto.quantity) || 1,
                 created_at: venta.created_at
               });
@@ -399,16 +401,16 @@ export default {
         if (nombreLower.includes('extra') && nombreLower.includes('queso')) {
           this.totales.quesoExtra += parseInt(producto.quantity) || 0;
         }
-        if (nombreLower.includes('focaccia')) {
+        if (nombreLower.includes('ciabatta')) {
           this.totales.focaccias += parseInt(producto.quantity) || 0;
           
           // Agregar al desglose
-          const focacciaExistente = this.focacciasDesglose.find(f => f.nombre === producto.name);
+          const focacciaExistente = this.focacciasDesglose.find(f => f.nombre === producto.originalName);
           if (focacciaExistente) {
             focacciaExistente.total += parseInt(producto.quantity) || 0;
           } else {
             this.focacciasDesglose.push({
-              nombre: producto.name,
+              nombre: producto.originalName,
               total: parseInt(producto.quantity) || 0
             });
           }

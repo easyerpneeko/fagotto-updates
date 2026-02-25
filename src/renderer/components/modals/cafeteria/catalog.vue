@@ -106,6 +106,21 @@
               <!-- Categorías siempre visibles -->
               <div v-if="(categoriesInstalled && Allcategories && Allcategories.length > 0)" 
                 class="categories-list-center">
+
+                <!-- Botón especial Menu Fagotto (siempre al tope) -->
+                <button 
+                  v-if="settingMenuFagotto"
+                  @click="openMenuFagotto()"
+                  class="category-item-center category-special category-menu-fagotto">
+                  <div class="category-icon">
+                    <i class="fas fa-star"></i>
+                  </div>
+                  <span class="category-name">Menu Fagotto</span>
+                  <div class="category-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                  </div>
+                </button>
+
                 <button 
                   @click="changeCategorie(categorie.id)"
                   :class="['category-item-center', (categorieNow == categorie.id) ? 'active' : '']"
@@ -184,6 +199,19 @@
                     <i class="fas fa-fire"></i>
                   </div>
                   <span class="category-name">Días Locos</span>
+                  <div class="category-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                  </div>
+                </button>
+                
+                <!-- Botón MUVIFY -->
+                <button 
+                  @click="openMuvify()"
+                  class="category-item-center category-special category-muvify">
+                  <div class="category-icon">
+                    <i class="fas fa-bus"></i>
+                  </div>
+                  <span class="category-name">MUVIFY</span>
                   <div class="category-arrow">
                     <i class="fas fa-chevron-right"></i>
                   </div>
@@ -419,6 +447,8 @@
     <colacion ref="colacion" @addColacion="handleAddColacion" />
     <cheaf ref="cheaf" @addCheaf="handleAddCheaf" />
     <dias-locos ref="diasLocos" :products="productsRequest" @addDiasLocos="handleAddDiasLocos" />
+    <muvify ref="muvify" :allProducts="products" @addMuvify="handleAddMuvify" />
+    <menu-fagotto ref="menuFagotto" :allProducts="productsRequest" @addMenuFagotto="handleAddMenuFagotto" />
     
     <!-- Modal de métodos de pago -->
     <div v-show="showPaymentModal" :key="`payment-modal-${ticketComponentKey}`" class="payment-modal-overlay" @click="closePaymentModal">
@@ -600,6 +630,8 @@ import testMerchise from '@/components/modals/cafeteria/testMerchise.vue';
 import colacion from '@/components/modals/cafeteria/colacion.vue';
 import cheaf from '@/components/modals/cafeteria/cheaf.vue';
 import diasLocos from '@/components/modals/cafeteria/diasLocos.vue';
+import muvify from '@/components/modals/cafeteria/muvify.vue';
+import menuFagotto from '@/components/modals/cafeteria/menu-fagotto.vue';
 
 // Helpers y plugins
 import ConfigHelper from '@/helpers/ConfigHelper.js';
@@ -683,6 +715,8 @@ export default {
     colacion,
     cheaf,
     diasLocos,
+    muvify,
+    menuFagotto,
   },
   mounted() {
     //HavePermission
@@ -1499,6 +1533,10 @@ export default {
         // Verificar si el id es igual a promoCategorieId
         if (this.categorieNow === this.promoCategorieId) {
           productsFind = this.productsRequest.filter(product => product.promo_active === 1);
+        } else if (this.categorieNow === 'MENU_FAGOTTO') {
+          // Menu Fagotto: mostrar productos con flag menu_fagotto o todos si no hay etiquetados
+          const menuFagottoProducts = this.productsRequest.filter(product => product.menu_fagotto == 1);
+          productsFind = menuFagottoProducts.length > 0 ? menuFagottoProducts : this.productsRequest;
         } else {
           productsFind = this.productsRequest.filter(product => {
             if (product.category == this.categorieNow) {
@@ -1563,6 +1601,33 @@ export default {
     // Abrir modal de Días Locos
     openDiasLocos() {
       this.$refs.diasLocos.openModal();
+    },
+
+    // Abrir modal de MUVIFY
+    openMuvify() {
+      this.$refs.muvify.openModal();
+    },
+
+    // Abrir modal de Menu Fagotto
+    openMenuFagotto() {
+      this.$refs.menuFagotto.openModal();
+    },
+
+    // Manejar adición desde modal Menu Fagotto
+    handleAddMenuFagotto(comboData) {
+      console.log('⭐ Datos recibidos de Menu Fagotto:', comboData);
+      this.quantityAdd({
+        id:          comboData.id,
+        name:        comboData.name,
+        price:       parseFloat(comboData.price),
+        promo_price: null,
+        quantity:    1,
+        prices:      comboData.prices || [{ precio: parseFloat(comboData.price) }],
+        cecina:      false,
+        ganancia:    0,
+        is_menu_fagotto: true,
+      });
+      console.log('✅ Combo Fagotto agregado al carrito:', comboData.name);
     },
 
     // Manejar adición de copa desde modal ventaCopas
@@ -1721,6 +1786,28 @@ export default {
       });
 
       console.log('✅ Producto Días Locos agregado al carrito:', diasLocosData.name);
+    },
+
+    // Manejar adición de producto MUVIFY desde modal muvify
+    handleAddMuvify(muvifyData) {
+      console.log('🚌 Datos recibidos de MUVIFY:', muvifyData);
+      
+      // Agregar producto MUVIFY al carrito (productos de categorías 1 y 2)
+      this.quantityAdd({
+        id: muvifyData.id,
+        name: muvifyData.name,
+        price: parseFloat(muvifyData.price),
+        promo_price: muvifyData.promo_price ? parseFloat(muvifyData.promo_price) : null,
+        quantity: 1,
+        prices: muvifyData.prices || [{ precio: parseFloat(muvifyData.price) }],
+        cecina: muvifyData.cecina || false,
+        ganancia: muvifyData.ganancia || 0,
+        category: muvifyData.category || null,
+        is_muvify: true, // ← Flag para identificar productos MUVIFY
+        rut_cliente: muvifyData.rut_cliente // ← RUT del cliente validado
+      });
+
+      console.log('✅ Producto MUVIFY agregado al carrito:', muvifyData.name);
     },
 
     search(input) {
@@ -2270,6 +2357,13 @@ export default {
       }
     },
 
+    settingMenuFagotto: {
+      get() {
+        if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
+        return ConfigHelper.ConfStr('modulos.ventas.submodulos.sii.ajustes.menu_fagotto');
+      }
+    },
+
     settingGelateria: {
       get() {
         if (!ConfigHelper.ConfStr('modulos.ventas.submodulos.sii')) return false;
@@ -2464,6 +2558,43 @@ export default {
   box-shadow: 0 8px 25px rgba(245, 87, 108, 0.3) !important;
 }
 
+/* ⭐ Botón especial Menu Fagotto */
+.category-menu-fagotto {
+  background: linear-gradient(135deg, #c0392b 0%, #8e1a0e 100%) !important;
+  animation: pulse-menu-fagotto 2.5s ease-in-out infinite;
+  border: 2px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+@keyframes pulse-menu-fagotto {
+  0%, 100% {
+    box-shadow: 0 4px 15px rgba(192, 57, 43, 0.5);
+  }
+  50% {
+    box-shadow: 0 8px 30px rgba(192, 57, 43, 0.8);
+  }
+}
+
+.category-menu-fagotto:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 35px rgba(192, 57, 43, 0.6) !important;
+  animation: none;
+}
+
+.category-menu-fagotto .category-icon {
+  animation: star-spin 3s linear infinite;
+}
+
+@keyframes star-spin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.2); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.category-menu-fagotto.active {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.7) !important;
+}
+
 /* Botón especial Colación */
 .category-colacion {
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important;
@@ -2525,7 +2656,37 @@ export default {
   75% { transform: rotate(5deg); }
 }
 
-/* 💳 Estilos para el botón de MercadoPago Point */
+/* � Estilos para el botón MUVIFY */
+.category-muvify {
+  background: linear-gradient(135deg, #003399 0%, #0051cc 100%) !important;
+  animation: pulse-muvify 2s ease-in-out infinite;
+}
+
+@keyframes pulse-muvify {
+  0%, 100% { 
+    box-shadow: 0 4px 15px rgba(0, 51, 153, 0.4);
+  }
+  50% { 
+    box-shadow: 0 8px 30px rgba(0, 81, 204, 0.6);
+  }
+}
+
+.category-muvify:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 35px rgba(0, 51, 153, 0.5) !important;
+  animation: none;
+}
+
+.category-muvify .category-icon {
+  animation: bus-bounce 1s ease-in-out infinite;
+}
+
+@keyframes bus-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+/* �💳 Estilos para el botón de MercadoPago Point */
 .payment-mercadopago {
   background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%) !important;
   color: white !important;

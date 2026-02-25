@@ -2234,5 +2234,61 @@ class RequestsController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Obtener el PDF de la factura desde la tabla requests
+     * GET /api/local/request/{app_id}/{id}/factura-pdf
+     */
+    public function obtenerFacturaPDF($app_id, $id)
+    {
+        try {
+            // Obtener la aplicación y cambiar a su BD
+            $app = Aplication::where('id', $app_id)->with('database')->first();
+            
+            if (!$app) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Negocio no encontrado'
+                ], 404);
+            }
+
+            // Conectar a la base de datos del negocio
+            $connection = new ConectionDB($app);
+            $connection->ChangeDBToApp($app, $reconect = true);
+
+            // Buscar el pedido en la tabla requests
+            $pedido = Requests::find($id);
+
+            if (!$pedido) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pedido no encontrado'
+                ], 404);
+            }
+
+            // Verificar si tiene factura
+            if (empty($pedido->response_folio) || $pedido->response_folio === 'false') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Este pedido no tiene factura electrónica generada'
+                ], 404);
+            }
+
+            // El response_folio ya es el PDF en base64
+            return response()->json([
+                'success' => true,
+                'data' => $pedido->response_folio,
+                'folio' => $pedido->folio ?? 'Sin folio',
+                'message' => 'Factura obtenida exitosamente'
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Error al obtener factura PDF: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener la factura: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 

@@ -224,22 +224,46 @@ class ProductController extends Controller
 
   /**
    * Obtener precios centralizados desde la DB maestra (easyerp)
-   * Tabla: pedidofinal_precios
+   * Tabla: pedidofinal_precios + pedidofinal_precios_negocio
+   * Sistema de precios personalizados por negocio
    */
   public function getPreciosCentralizados()
   {
       try {
+          // Obtener app_id del negocio actual
+          $myApp = CurrentApp::App();
+          $appId = $myApp->id;
+
           // Conectar a la base de datos maestra (easyerp)
+          // LEFT JOIN para traer precios custom si existen, sino usa precio base
           $preciosCentralizados = DB::connection('easyerp_master')
-              ->table('pedidofinal_precios')
-              ->where('activo', 1)
-              ->orderBy('categoria')
-              ->orderBy('producto')
+              ->table('pedidofinal_precios as p')
+              ->leftJoin('pedidofinal_precios_negocio as ppn', function($join) use ($appId) {
+                  $join->on('ppn.producto_id', '=', 'p.id')
+                       ->where('ppn.app_id', '=', $appId)
+                       ->where('ppn.activo', '=', 1);
+              })
+              ->where('p.activo', 1)
+              ->select(
+                  'p.id',
+                  'p.producto',
+                  'p.unidad_venta',
+                  'p.unidad_medida',
+                  'p.categoria',
+                  'p.stock',
+                  'p.min_stock',
+                  'p.fecha_actualizacion',
+                  // ⭐ CLAVE: COALESCE usa precio custom si existe, sino precio base
+                  DB::raw('COALESCE(ppn.precio_por_unidad, p.precio_por_unidad) as precio_por_unidad')
+              )
+              ->orderBy('p.categoria')
+              ->orderBy('p.producto')
               ->get();
 
           return response()->json([
               'success' => true,
-              'data' => $preciosCentralizados
+              'data' => $preciosCentralizados,
+              'app_id' => $appId  // Para debug
           ], 200);
 
       } catch (\Exception $e) {

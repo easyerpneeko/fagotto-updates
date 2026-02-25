@@ -633,6 +633,8 @@ Route::group(['middleware' => ['AppSecurity']], function () {
           Route::get('/local/requests', 'Controllers_local\RequestsController@index');
           Route::post('/local/request', 'Controllers_local\RequestsController@store');
           Route::post('/local/request/pedido-final', 'Controllers_local\RequestsController@storePedidoFinal');
+          // Obtener PDF de Factura desde requests (debe ir aquí para evitar conflictos)
+          Route::get('/local/request/factura-pdf/{app_id}/{id}', 'Controllers_local\RequestsController@obtenerFacturaPDF');
           
           // 🔧 Configuración dinámica de horarios (sin recompilar .exe)
           Route::get('/local/pedidofinal/config', 'Controllers_local\RequestsController@getPedidoFinalConfig');

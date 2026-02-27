@@ -127,16 +127,49 @@
               <span class="step-included-badge">incluida en el precio</span>
             </h4>
 
+            <!-- Salsas base (single-select) -->
             <div class="salsa-grid">
               <div
                 v-for="salsa in salsas"
-                :key="salsa.id"
+                :key="salsa.key"
                 @click="selectedSalsa = salsa"
                 :class="['salsa-card', { selected: selectedSalsa && selectedSalsa.key === salsa.key }]">
                 <div class="salsa-icon">🌶️</div>
                 <div class="salsa-name">{{ salsa.name }}</div>
                 <div v-if="selectedSalsa && selectedSalsa.key === salsa.key" class="selected-check">
                   <i class="fas fa-check-circle"></i>
+                </div>
+              </div>
+              <!-- Sin salsa -->
+              <div
+                @click="selectedSalsa = { key: 'sin_salsa', id: null, name: 'Sin salsa' }"
+                :class="['salsa-card salsa-card-none', { selected: selectedSalsa && selectedSalsa.key === 'sin_salsa' }]">
+                <div class="salsa-icon">🚫</div>
+                <div class="salsa-name">Sin salsa</div>
+                <div v-if="selectedSalsa && selectedSalsa.key === 'sin_salsa'" class="selected-check">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Salsas especiales opcionales: multi-select, siempre visibles -->
+            <div class="salsa-extras-optional">
+              <div class="salsa-extras-label">
+                <i class="fas fa-plus-circle"></i>
+                Añadir salsa especial <span class="step-included-badge" style="background:#fff0e0;color:#c0392b;border-color:#f5c6cb">+$1.000 c/u</span>
+              </div>
+              <div class="salsa-grid">
+                <div
+                  v-for="ps in PROTEIN_SALSAS.filter(p => p.key === 'pollo_mostaza' || p.key === 'camaron')"
+                  :key="ps.key"
+                  @click="toggleProteinSalsa('bowl', ps)"
+                  :class="['salsa-card salsa-card-premium', { selected: selectedBowlProteinSals.some(x => x.key === ps.key) }]">
+                  <div class="salsa-icon">{{ ps.emoji }}</div>
+                  <div class="salsa-name">{{ ps.name }}</div>
+                  <div class="salsa-extra-price">+${{ formatNumber(ps.price) }}</div>
+                  <div v-if="selectedBowlProteinSals.some(x => x.key === ps.key)" class="selected-check">
+                    <i class="fas fa-check-circle"></i>
+                  </div>
                 </div>
               </div>
             </div>
@@ -235,7 +268,7 @@
             </div>
             <div class="extras-cat-grid">
               <div
-                v-for="ps in PROTEIN_SALSAS"
+                v-for="ps in PROTEIN_SALSAS.filter(p => p.key !== 'pollo_mostaza' && p.key !== 'camaron')"
                 :key="ps.key"
                 @click="toggleProteinSalsa('bowl', ps)"
                 :class="['extra-cat-card', { selected: selectedBowlProteinSals.some(x => x.key === ps.key) }]">
@@ -266,7 +299,7 @@
                 <span>${{ formatNumber(selectedSize.basePrice) }}</span>
               </div>
               <div class="summary-line">
-                <span>Salsa {{ selectedSalsa.name }}</span>
+                <span>{{ selectedSalsa.key === 'sin_salsa' ? 'Sin salsa' : 'Salsa ' + selectedSalsa.name }}</span>
                 <span class="text-included">incluida</span>
               </div>
               <div v-if="selectedProtein" class="summary-line extra">
@@ -348,7 +381,7 @@
                   </div>
                 </div>
 
-                <!-- Salsa -->
+                <!-- Salsa base (single-select) -->
                 <div v-if="step.type === 'salsa'" class="salsa-grid">
                   <div
                     v-for="salsa in SALSAS_COMUNES"
@@ -359,6 +392,38 @@
                     <div class="salsa-name">{{ salsa.name }}</div>
                     <div v-if="comboSelections[step.key] && comboSelections[step.key].key === salsa.key" class="selected-check">
                       <i class="fas fa-check-circle"></i>
+                    </div>
+                  </div>
+                  <!-- Sin salsa -->
+                  <div
+                    @click="setComboSelection(step.key, { key: 'sin_salsa', id: null, name: 'Sin salsa' })"
+                    :class="['salsa-card salsa-card-none', { selected: comboSelections[step.key] && comboSelections[step.key].key === 'sin_salsa' }]">
+                    <div class="salsa-icon">🚫</div>
+                    <div class="salsa-name">Sin salsa</div>
+                    <div v-if="comboSelections[step.key] && comboSelections[step.key].key === 'sin_salsa'" class="selected-check">
+                      <i class="fas fa-check-circle"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Salsas especiales: multi-select, siempre visibles en pasos de salsa -->
+                <div v-if="step.type === 'salsa'" class="salsa-extras-optional">
+                  <div class="salsa-extras-label">
+                    <i class="fas fa-plus-circle"></i>
+                    Añadir salsa especial <span class="step-included-badge" style="background:#fff0e0;color:#c0392b;border-color:#f5c6cb">+$1.000 c/u</span>
+                  </div>
+                  <div class="salsa-grid">
+                    <div
+                      v-for="ps in PROTEIN_SALSAS.filter(p => p.key === 'pollo_mostaza' || p.key === 'camaron')"
+                      :key="ps.key"
+                      @click="toggleComboProteinSalsaForStep(step.key, ps)"
+                      :class="['salsa-card salsa-card-premium', { selected: (comboProteinSalsasByStep[step.key] || []).some(x => x.key === ps.key) }]">
+                      <div class="salsa-icon">{{ ps.emoji }}</div>
+                      <div class="salsa-name">{{ ps.name }}</div>
+                      <div class="salsa-extra-price">+${{ formatNumber(ps.price) }}</div>
+                      <div v-if="(comboProteinSalsasByStep[step.key] || []).some(x => x.key === ps.key)" class="selected-check">
+                        <i class="fas fa-check-circle"></i>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -420,17 +485,17 @@
               </div>
             </transition>
 
-            <!-- Sugerencia: Salsa Especial (Combo) -->
+            <!-- Sugerencia: Proteínas Extra (solo Pollo Cryspy + Mechada, las salsas especiales van por paso) -->
             <transition name="slide-down">
-              <div v-if="comboRequiredDone" class="extras-group protein-salsas-upsell">
+              <div v-if="comboRequiredDone && PROTEIN_SALSAS.filter(p => p.key !== 'pollo_mostaza' && p.key !== 'camaron').length > 0" class="extras-group protein-salsas-upsell">
                 <div class="extras-label">
                   <i class="fas fa-magic"></i>
                   Sugerencia: Proteína Extra
-                  <span class="extra-price-tag">desde +$1.000</span>
+                  <span class="extra-price-tag">desde +$1.990</span>
                 </div>
                 <div class="extras-cat-grid">
                   <div
-                    v-for="ps in PROTEIN_SALSAS"
+                    v-for="ps in PROTEIN_SALSAS.filter(p => p.key !== 'pollo_mostaza' && p.key !== 'camaron')"
                     :key="ps.key"
                     @click="toggleProteinSalsa('combo', ps)"
                     :class="['extra-cat-card', { selected: selectedComboProteinSals.some(x => x.key === ps.key) }]">
@@ -474,6 +539,12 @@
                     <span>+ {{ ex.name }}</span>
                     <span>+${{ formatNumber(parseInt(ex.price, 10)) }}</span>
                   </div>
+                  <template v-for="(stepPsArr, stepK) in comboProteinSalsasByStep">
+                    <div v-for="ps in stepPsArr" :key="'cps-step-' + stepK + '-' + ps.key" class="summary-line extra">
+                      <span>+ {{ ps.name }}</span>
+                      <span>+${{ formatNumber(ps.price) }}</span>
+                    </div>
+                  </template>
                   <div v-for="ps in selectedComboProteinSals" :key="'cps-' + ps.key" class="summary-line extra">
                     <span>+ {{ ps.name }}</span>
                     <span>+${{ formatNumber(ps.price) }}</span>
@@ -540,7 +611,7 @@
                   </div>
                 </div>
 
-                <!-- Salsa hardcoded -->
+                <!-- Salsa hardcoded (single-select) -->
                 <div v-if="step.type === 'salsa_hard'" class="salsa-grid">
                   <div
                     v-for="salsa in SALSAS_COMUNES" :key="salsa.key"
@@ -550,6 +621,38 @@
                     <div class="salsa-name">{{ salsa.name }}</div>
                     <div v-if="combo2Selections[step.key] && combo2Selections[step.key].key === salsa.key" class="selected-check">
                       <i class="fas fa-check-circle"></i>
+                    </div>
+                  </div>
+                  <!-- Sin salsa -->
+                  <div
+                    @click="setCombo2Selection(step.key, { key: 'sin_salsa', id: null, name: 'Sin salsa' })"
+                    :class="['salsa-card salsa-card-none', { selected: combo2Selections[step.key] && combo2Selections[step.key].key === 'sin_salsa' }]">
+                    <div class="salsa-icon">🚫</div>
+                    <div class="salsa-name">Sin salsa</div>
+                    <div v-if="combo2Selections[step.key] && combo2Selections[step.key].key === 'sin_salsa'" class="selected-check">
+                      <i class="fas fa-check-circle"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Salsas especiales para salsa_hard: multi-select, siempre visibles -->
+                <div v-if="step.type === 'salsa_hard'" class="salsa-extras-optional">
+                  <div class="salsa-extras-label">
+                    <i class="fas fa-plus-circle"></i>
+                    Añadir salsa especial <span class="step-included-badge" style="background:#fff0e0;color:#c0392b;border-color:#f5c6cb">+$1.000 c/u</span>
+                  </div>
+                  <div class="salsa-grid">
+                    <div
+                      v-for="ps in PROTEIN_SALSAS.filter(p => p.key === 'pollo_mostaza' || p.key === 'camaron')"
+                      :key="ps.key"
+                      @click="toggleComboProteinSalsaForStep(step.key, ps)"
+                      :class="['salsa-card salsa-card-premium', { selected: (comboProteinSalsasByStep[step.key] || []).some(x => x.key === ps.key) }]">
+                      <div class="salsa-icon">{{ ps.emoji }}</div>
+                      <div class="salsa-name">{{ ps.name }}</div>
+                      <div class="salsa-extra-price">+${{ formatNumber(ps.price) }}</div>
+                      <div v-if="(comboProteinSalsasByStep[step.key] || []).some(x => x.key === ps.key)" class="selected-check">
+                        <i class="fas fa-check-circle"></i>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -564,6 +667,38 @@
                     <div class="salsa-name">{{ salsa.name }}</div>
                     <div v-if="combo2Selections[step.key] && combo2Selections[step.key].id === salsa.id" class="selected-check">
                       <i class="fas fa-check-circle"></i>
+                    </div>
+                  </div>
+                  <!-- Sin salsa -->
+                  <div
+                    @click="setCombo2Selection(step.key, { key: 'sin_salsa', id: null, name: 'Sin salsa' })"
+                    :class="['salsa-card salsa-card-none', { selected: combo2Selections[step.key] && combo2Selections[step.key].key === 'sin_salsa' }]">
+                    <div class="salsa-icon">🚫</div>
+                    <div class="salsa-name">Sin salsa</div>
+                    <div v-if="combo2Selections[step.key] && combo2Selections[step.key].key === 'sin_salsa'" class="selected-check">
+                      <i class="fas fa-check-circle"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Salsas especiales para salsa_db: multi-select, siempre visibles -->
+                <div v-if="step.type === 'salsa_db'" class="salsa-extras-optional">
+                  <div class="salsa-extras-label">
+                    <i class="fas fa-plus-circle"></i>
+                    Añadir salsa especial <span class="step-included-badge" style="background:#fff0e0;color:#c0392b;border-color:#f5c6cb">+$1.000 c/u</span>
+                  </div>
+                  <div class="salsa-grid">
+                    <div
+                      v-for="ps in PROTEIN_SALSAS.filter(p => p.key === 'pollo_mostaza' || p.key === 'camaron')"
+                      :key="ps.key"
+                      @click="toggleComboProteinSalsaForStep(step.key, ps)"
+                      :class="['salsa-card salsa-card-premium', { selected: (comboProteinSalsasByStep[step.key] || []).some(x => x.key === ps.key) }]">
+                      <div class="salsa-icon">{{ ps.emoji }}</div>
+                      <div class="salsa-name">{{ ps.name }}</div>
+                      <div class="salsa-extra-price">+${{ formatNumber(ps.price) }}</div>
+                      <div v-if="(comboProteinSalsasByStep[step.key] || []).some(x => x.key === ps.key)" class="selected-check">
+                        <i class="fas fa-check-circle"></i>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1098,6 +1233,7 @@ export default {
       // Salsa especial sugerida (+$1.000 c/u)
       selectedBowlProteinSals:  [],
       selectedComboProteinSals: [],
+      comboProteinSalsasByStep: {},
       selectedCombo2ProteinSals: [],
     };
   },
@@ -1176,6 +1312,7 @@ export default {
       let price = this.selectedCombo.price;
       this.selectedComboExtras.forEach(e => { price += parseInt(e.price, 10) || 0; });
       this.selectedComboProteinSals.forEach(p => { price += p.price; });
+      Object.values(this.comboProteinSalsasByStep).forEach(arr => arr.forEach(p => { price += p.price; }));
       return price;
     },
 
@@ -1252,6 +1389,7 @@ export default {
       if (s.salsa_2) name += `+${s.salsa_2.name}`;
       if (s.pasta_2) name += ` / ${s.pasta_2.name} ${s.salsa_2 ? s.salsa_2.name : ''}`;
       if (bebidasNombres) name += ` + ${bebidasNombres}`;
+      Object.values(this.comboProteinSalsasByStep).forEach(arr => arr.forEach(p => { name += ` + ${p.name}`; }));
       this.selectedComboProteinSals.forEach(p => { name += ` + ${p.name}`; });
 
       const comboData = {
@@ -1271,7 +1409,12 @@ export default {
           ...s,
           bebidas: this.comboBebidas.filter(Boolean).map(b => ({ id: b.id, name: b.name })),
           extras:  this.selectedComboExtras.map(e => ({ id: e.id, name: e.name, price: parseInt(e.price, 10) || 0 })),
-          protein_salsas: this.selectedComboProteinSals.map(p => ({ key: p.key, name: p.name, price: 1000 })),
+          protein_salsas: [
+            ...Object.entries(this.comboProteinSalsasByStep).flatMap(([stepKey, arr]) =>
+              arr.map(p => ({ key: p.key, name: p.name, price: p.price, step: stepKey }))
+            ),
+            ...this.selectedComboProteinSals.map(p => ({ key: p.key, name: p.name, price: p.price })),
+          ],
         },
       };
 
@@ -1317,6 +1460,7 @@ export default {
       // protein salsas upsell
       this.selectedBowlProteinSals   = [];
       this.selectedComboProteinSals  = [];
+      this.comboProteinSalsasByStep  = {};
       this.selectedCombo2ProteinSals = [];
       // ciabatta
       this.selectedCiabatta = null;
@@ -1398,6 +1542,13 @@ export default {
       const idx = this.combo2Extras.findIndex(e => e.id === extra.id);
       if (idx >= 0) this.combo2Extras.splice(idx, 1);
       else this.combo2Extras.push(extra);
+    },
+
+    toggleComboProteinSalsaForStep(stepKey, ps) {
+      const current = this.comboProteinSalsasByStep[stepKey] || [];
+      const idx = current.findIndex(x => x.key === ps.key);
+      const next = idx >= 0 ? current.filter((_, i) => i !== idx) : [...current, ps];
+      this.$set(this.comboProteinSalsasByStep, stepKey, next);
     },
 
     toggleProteinSalsa(mode, ps) {
@@ -1986,6 +2137,64 @@ export default {
   font-size: 0.9rem;
   font-weight: 600;
   color: #2d2d2d;
+}
+
+.salsa-extras-optional {
+  margin-top: 14px;
+}
+
+.salsa-extras-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.salsa-extra-price {
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #c0392b;
+  background: #fff0f0;
+  border: 1px solid #f5c6cb;
+  border-radius: 20px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.salsa-card-premium {
+  border-color: #f5c6cb;
+  background: #fffafa;
+}
+
+.salsa-card-premium:hover {
+  border-color: #c0392b;
+  background: #fff0f0;
+}
+
+.salsa-card-premium.selected {
+  border-color: #c0392b;
+  background: linear-gradient(135deg, #fff0f0 0%, #ffe0e0 100%);
+}
+
+.salsa-card-none {
+  border-color: #ccc;
+  background: #f5f5f5;
+  color: #888;
+}
+
+.salsa-card-none:hover {
+  border-color: #999;
+  background: #ececec;
+}
+
+.salsa-card-none.selected {
+  border-color: #7f8c8d;
+  background: #ecf0f1;
+  color: #2c3e50;
 }
 
 /* ---- Extras cat 4 ---- */

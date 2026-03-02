@@ -4414,7 +4414,11 @@ const SALSAS_CONFIG = [
     { nombre: 'Camarón', keywords: ['camaron', 'camarón'], emoji: '🦐', gramaje: 140 },
     { nombre: 'Pollo Mostaza', keywords: ['pollo mostaza', 'crema/pollo/mostaza', 'crema pollo mostaza'], emoji: '🍗', gramaje: 140 },
     { nombre: 'Cheddar', keywords: ['cheddar'], emoji: '🧀', gramaje: 140 },
-    { nombre: 'Pomodoro', keywords: ['pomodoro'], emoji: '🍅', gramaje: 125 }
+    { nombre: 'Pomodoro', keywords: ['pomodoro'], emoji: '🍅', gramaje: 125 },
+    { nombre: 'Ñoqui Cocido', keywords: ['ñoqui cocido', 'noqui cocido'], emoji: '🥟', gramaje: 300 },
+    { nombre: 'Ñoqui Fritos', keywords: ['ñoqui frito', 'noqui frito'], emoji: '🍳', gramaje: 320 },
+    { nombre: 'Ñoqui (Combo)', keywords: ['ñoqui', 'noqui'], emoji: '🥟', gramaje: 300, excludeKeywords: ['ñoqui cocido', 'noqui cocido', 'ñoqui frito', 'noqui frito'] },
+    { nombre: 'Risotto', keywords: ['risotto'], emoji: '🍚', gramaje: 440 }
 ];
 
 let currentSauceView = 'month'; // 'month' o 'week'
@@ -4629,7 +4633,12 @@ function processSauceData(productos, startDate, endDate) {
                 return includes;
             });
             
-            if (coincide && ventasPorSalsa[salsa.nombre][diaVenta] !== undefined) {
+            // Verificar que no está excluido (para "Ñoqui Combo" que no debe contar cocido/fritos)
+            const excluido = salsa.excludeKeywords
+                ? salsa.excludeKeywords.some(exc => nombreProducto.includes(exc.toLowerCase()))
+                : false;
+            
+            if (coincide && !excluido && ventasPorSalsa[salsa.nombre][diaVenta] !== undefined) {
                 ventasPorSalsa[salsa.nombre][diaVenta] += cantidad;
                 productosContados++;
                 
@@ -4668,6 +4677,10 @@ function calculateSauceKPIs(productos) {
     let jugosDesglose = {}; // Objeto para contar jugos por nombre con cantidad y monto
     let bebidasDesglose = {}; // Objeto para contar TODAS las bebidas por nombre
     let iceTea = 0; // Nuevo contador para Ice Tea
+    let noquiCocido = 0; // Contador Ñoqui Cocido
+    let noquiFritos = 0; // Contador Ñoqui Fritos
+    let risotto = 0; // Contador Risotto
+    let noquiRisottoDesglose = {}; // Desglose de ñoquis y risotto por variante
     let totalProductos = 0; // Contador total de productos
     
     productos.forEach(producto => {
@@ -4692,7 +4705,10 @@ function calculateSauceKPIs(productos) {
         
         const esPasta = nombreLower.includes('pasta') ||
                        nombreLower.includes('fettucine') ||
-                       nombreLower.includes('bigoli');
+                       nombreLower.includes('bigoli') ||
+                       nombreLower.includes('ñoqui') ||
+                       nombreLower.includes('noqui') ||
+                       nombreLower.includes('risotto');
         
         // Si tiene salsa pero NO es pasta, es salsa extra
         if (tieneSalsa && !esPasta) {
@@ -4725,9 +4741,9 @@ function calculateSauceKPIs(productos) {
             ciabattasDesglose[nombreOriginal] += cantidad;
         }
         
-        // Jugos - detectar productos con "jugo" en el nombre O productos con "ice tea" o "ice"
-        const esJugo = nombreLower.includes('jugo');
-        const esIceTea = nombreLower.includes('ice tea') || nombreLower.includes('ice');
+        // Jugos - solo si el nombre EMPIEZA con "jugo" o "ice" (evita contar combos que incluyen jugo)
+        const esJugo = nombreLower.startsWith('jugo');
+        const esIceTea = nombreLower.startsWith('ice tea') || nombreLower.startsWith('ice');
         
         if (esJugo || esIceTea) {
             jugos += cantidad;
@@ -4743,6 +4759,26 @@ function calculateSauceKPIs(productos) {
         // Ice Tea - contador total (ya incluido en jugos)
         if (esIceTea) {
             iceTea += cantidad;
+        }
+        
+        // Ñoqui - detectar cualquier producto que contenga "ñoqui" (incluye combos)
+        const tieneNoqui = nombreLower.includes('ñoqui') || nombreLower.includes('noqui');
+        const esNoquiCocido = nombreLower.includes('ñoqui cocido') || nombreLower.includes('noqui cocido');
+        const esNoquiFritos = nombreLower.includes('ñoqui frito') || nombreLower.includes('noqui frito');
+        const esRisotto = nombreLower.includes('risotto');
+        
+        if (tieneNoqui || esRisotto) {
+            if (esNoquiCocido) noquiCocido += cantidad;
+            else if (esNoquiFritos) noquiFritos += cantidad;
+            else if (tieneNoqui) noquiCocido += cantidad; // ñoqui genérico (combos) suma a cocido como default
+            if (esRisotto) risotto += cantidad;
+            
+            // Agregar al desglose con cantidad y monto
+            if (!noquiRisottoDesglose[nombreOriginal]) {
+                noquiRisottoDesglose[nombreOriginal] = { cantidad: 0, monto: 0 };
+            }
+            noquiRisottoDesglose[nombreOriginal].cantidad += cantidad;
+            noquiRisottoDesglose[nombreOriginal].monto += (precio * cantidad);
         }
         
         // BEBIDAS (EXCLUIR JUGOS E ICE TEA) - detectar por categoría "Bebidas"
@@ -4770,12 +4806,18 @@ function calculateSauceKPIs(productos) {
     document.getElementById('ciabattasTotal').textContent = ciabattas;
     document.getElementById('jugosTotal').textContent = jugos;
     document.getElementById('iceTeaTotal').textContent = iceTea;
+    document.getElementById('noquiCocidoTotal').textContent = noquiCocido;
+    document.getElementById('noquiFritosTotal').textContent = noquiFritos;
+    document.getElementById('risottoTotal').textContent = risotto;
     
     // Actualizar tabla de desglose de ciabattas
     renderCiabattasBreakdown(ciabattasDesglose);
     
     // Actualizar tabla de desglose de jugos
     renderJugosBreakdown(jugosDesglose);
+    
+    // Actualizar tabla de desglose de ñoquis y risotto
+    renderNoquiRisottoBreakdown(noquiRisottoDesglose);
     
     // Actualizar tabla de desglose de bebidas
     renderBebidasBreakdown(bebidasDesglose);
@@ -4832,6 +4874,52 @@ function renderCiabattasBreakdown(ciabattasDesglose) {
         </td>
     `;
     tbody.appendChild(rowTotal);
+}
+
+// Renderizar tabla de desglose de ñoquis y risotto
+function renderNoquiRisottoBreakdown(noquiRisottoDesglose) {
+    const tbody = document.getElementById('noquiRisottoBreakdownBody');
+    
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    const arr = Object.entries(noquiRisottoDesglose).sort((a, b) => b[1].cantidad - a[1].cantidad);
+    
+    if (arr.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" class="text-center text-muted py-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No se vendieron ñoquis ni risotto en este período
+                </td>
+            </tr>
+        `;
+        document.getElementById('noquiRisottoTotalCantidad').textContent = '0';
+        document.getElementById('noquiRisottoTotalMonto').textContent = '$0';
+        return;
+    }
+    
+    arr.forEach(([nombre, datos], index) => {
+        const row = document.createElement('tr');
+        if (index < 3) row.style.backgroundColor = '#f3e5f5';
+        row.innerHTML = `
+            <td style="font-weight: 500;">
+                <span style="color: #666; font-weight: 600; margin-right: 5px;">#${index + 1}</span>
+                <i class="fas fa-bowl-food me-2" style="color: #a18cd1;"></i>
+                ${nombre}
+            </td>
+            <td style="text-align: center; font-weight: 600;">${datos.cantidad}</td>
+            <td style="text-align: center; font-weight: 600; color: #a18cd1;">$${datos.monto.toLocaleString('es-CL')}</td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    const totalCantidad = arr.reduce((sum, [_, d]) => sum + d.cantidad, 0);
+    const totalMonto = arr.reduce((sum, [_, d]) => sum + d.monto, 0);
+    
+    document.getElementById('noquiRisottoTotalCantidad').textContent = totalCantidad;
+    document.getElementById('noquiRisottoTotalMonto').textContent = '$' + totalMonto.toLocaleString('es-CL');
 }
 
 // Renderizar tabla de desglose de jugos

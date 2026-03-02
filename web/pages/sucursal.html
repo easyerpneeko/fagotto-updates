@@ -1763,6 +1763,39 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-md-3">
+                                        <div class="p-3 rounded" style="background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-bowl-food fa-2x text-white me-3"></i>
+                                                <div class="text-white">
+                                                    <div style="font-size: 0.75rem; opacity: 0.9;">Ñoqui Cocido Total</div>
+                                                    <div style="font-size: 1.5rem; font-weight: bold;" id="noquiCocidoTotal">0</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="p-3 rounded" style="background: linear-gradient(135deg, #f77062 0%, #fe5196 100%);">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-fire fa-2x text-white me-3"></i>
+                                                <div class="text-white">
+                                                    <div style="font-size: 0.75rem; opacity: 0.9;">Ñoqui Fritos Total</div>
+                                                    <div style="font-size: 1.5rem; font-weight: bold;" id="noquiFritosTotal">0</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="p-3 rounded" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-bowl-rice fa-2x text-white me-3"></i>
+                                                <div class="text-white">
+                                                    <div style="font-size: 0.75rem; opacity: 0.9;">Risotto Total</div>
+                                                    <div style="font-size: 1.5rem; font-weight: bold;" id="risottoTotal">0</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-sm table-bordered sauce-heatmap-table" id="sauceHeatmapTable">
@@ -1867,6 +1900,46 @@
                                                                 <th style="font-weight: 700;">Total Jugos</th>
                                                                 <th style="font-weight: 700; text-align: center;" id="jugosBreakdownTotalCantidad">0</th>
                                                                 <th style="font-weight: 700; text-align: center;" id="jugosBreakdownTotalMonto">$0</th>
+                                                            </tr>
+                                                        </tfoot>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- DESGLOSE DE ÑOQUIS Y RISOTTO POR VARIANTE -->
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <div class="p-3 rounded" style="background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);">
+                                            <h6 class="mb-3 text-white">
+                                                <i class="fas fa-bowl-food me-2"></i>
+                                                Desglose de Ñoquis & Risotto por Variante
+                                            </h6>
+                                            <div class="bg-white rounded p-3">
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm table-bordered mb-0">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th style="font-weight: 600;">Producto</th>
+                                                                <th style="font-weight: 600; text-align: center;">Cantidad</th>
+                                                                <th style="font-weight: 600; text-align: center;">Monto</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="noquiRisottoBreakdownBody">
+                                                            <tr>
+                                                                <td colspan="3" class="text-center text-muted py-3">
+                                                                    <i class="fas fa-spinner fa-spin me-2"></i>
+                                                                    Esperando datos...
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                        <tfoot class="table-warning">
+                                                            <tr>
+                                                                <th style="font-weight: 700;">Total Ñoquis & Risotto</th>
+                                                                <th style="font-weight: 700; text-align: center;" id="noquiRisottoTotalCantidad">0</th>
+                                                                <th style="font-weight: 700; text-align: center;" id="noquiRisottoTotalMonto">$0</th>
                                                             </tr>
                                                         </tfoot>
                                                     </table>

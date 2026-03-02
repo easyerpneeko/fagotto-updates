@@ -127,6 +127,7 @@
               <span class="step-included-badge">incluida en el precio</span>
             </h4>
 
+            <!-- Salsas base (single-select) -->
             <div class="salsa-grid">
               <div
                 v-for="salsa in salsas"
@@ -137,6 +138,46 @@
                 <div class="salsa-name">{{ salsa.name }}</div>
                 <div v-if="selectedSalsa && selectedSalsa.key === salsa.key" class="selected-check">
                   <i class="fas fa-check-circle"></i>
+                </div>
+              </div>
+              <!-- Sin salsa -->
+              <div
+                @click="selectedSalsa = { key: 'sin_salsa', id: null, name: 'Sin salsa' }"
+                :class="['salsa-card salsa-card-none', { selected: selectedSalsa && selectedSalsa.key === 'sin_salsa' }]">
+                <div class="salsa-icon">🚫</div>
+                <div class="salsa-name">Sin salsa</div>
+                <div v-if="selectedSalsa && selectedSalsa.key === 'sin_salsa'" class="selected-check">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Salsas especiales: multi-qty, siempre visibles -->
+            <div class="salsa-extras-optional">
+              <div class="salsa-extras-label">
+                <i class="fas fa-plus-circle"></i>
+                Añadir salsa especial
+                <span class="step-included-badge" style="background:#fff0e0;color:#c0392b;border-color:#f5c6cb">+$1.000 c/u — opcional</span>
+              </div>
+              <div class="salsa-grid">
+                <div
+                  v-for="ps in PROTEIN_SALSAS.filter(p => p.key === 'pollo_mostaza' || p.key === 'camaron')"
+                  :key="ps.key"
+                  class="ps-salsa-wrapper">
+                  <div
+                    @click="addProteinSalsa('bowl', ps)"
+                    :class="['salsa-card salsa-card-premium', { selected: (selectedBowlProteinSals[ps.key] || 0) > 0 }]">
+                    <span class="ps-qty-badge" v-if="(selectedBowlProteinSals[ps.key] || 0) > 0">+{{ selectedBowlProteinSals[ps.key] }}</span>
+                    <div class="salsa-icon">{{ ps.emoji }}</div>
+                    <div class="salsa-name">{{ ps.name }}</div>
+                    <div class="salsa-extra-price">+${{ formatNumber(ps.price) }}</div>
+                  </div>
+                  <div class="ps-card-controls">
+                    <button class="ps-qty-btn" @click.stop="removeProteinSalsa('bowl', ps)"
+                      :style="(selectedBowlProteinSals[ps.key] || 0) === 0 ? 'opacity:0;pointer-events:none' : ''">−</button>
+                    <span class="ps-qty-num">{{ selectedBowlProteinSals[ps.key] || 0 }}</span>
+                    <button class="ps-qty-btn ps-qty-plus" @click.stop="addProteinSalsa('bowl', ps)">+</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -237,13 +278,17 @@
               <div
                 v-for="ps in PROTEIN_SALSAS"
                 :key="ps.key"
-                @click="toggleProteinSalsa('bowl', ps)"
-                :class="['extra-cat-card', { selected: selectedBowlProteinSals.some(x => x.key === ps.key) }]">
+                @click="addProteinSalsa('bowl', ps)"
+                :class="['extra-cat-card', { selected: (selectedBowlProteinSals[ps.key] || 0) > 0 }]">
+                <span class="ps-qty-badge" v-if="(selectedBowlProteinSals[ps.key] || 0) > 0">+{{ selectedBowlProteinSals[ps.key] }}</span>
                 <span class="extra-cat-name">{{ ps.emoji }} {{ ps.name }}</span>
                 <span class="extra-cat-price">+${{ formatNumber(ps.price) }}</span>
-                <span v-if="selectedBowlProteinSals.some(x => x.key === ps.key)" class="extra-check">
-                  <i class="fas fa-check"></i>
-                </span>
+                <div class="ps-qty-counter" v-if="(selectedBowlProteinSals[ps.key] || 0) > 0">
+                  <button class="ps-qty-btn" @click.stop="removeProteinSalsa('bowl', ps)">−</button>
+                  <span class="ps-qty-num">{{ selectedBowlProteinSals[ps.key] }}</span>
+                  <button class="ps-qty-btn ps-qty-plus" @click.stop="addProteinSalsa('bowl', ps)">+</button>
+                </div>
+                <span v-else class="extra-check" style="opacity:0.35"><i class="fas fa-plus"></i></span>
               </div>
             </div>
           </div>
@@ -281,10 +326,12 @@
                 <span>+ {{ ex.name }}</span>
                 <span>+${{ formatNumber(parseInt(ex.price, 10)) }}</span>
               </div>
-              <div v-for="ps in selectedBowlProteinSals" :key="'bps-' + ps.key" class="summary-line extra">
-                <span>+ {{ ps.name }}</span>
-                <span>+${{ formatNumber(ps.price) }}</span>
-              </div>
+              <template v-for="ps in PROTEIN_SALSAS">
+                <div v-if="(selectedBowlProteinSals[ps.key] || 0) > 0" :key="'bps-' + ps.key" class="summary-line extra">
+                  <span>+ {{ ps.name }}{{ (selectedBowlProteinSals[ps.key] || 0) > 1 ? ' x' + selectedBowlProteinSals[ps.key] : '' }}</span>
+                  <span>+${{ formatNumber(ps.price * (selectedBowlProteinSals[ps.key] || 0)) }}</span>
+                </div>
+              </template>
               <div class="summary-total">
                 <span>TOTAL</span>
                 <span>${{ formatNumber(currentPrice) }}</span>
@@ -348,7 +395,7 @@
                   </div>
                 </div>
 
-                <!-- Salsa -->
+                <!-- Salsa base (single-select) -->
                 <div v-if="step.type === 'salsa'" class="salsa-grid">
                   <div
                     v-for="salsa in SALSAS_COMUNES"
@@ -359,6 +406,46 @@
                     <div class="salsa-name">{{ salsa.name }}</div>
                     <div v-if="comboSelections[step.key] && comboSelections[step.key].key === salsa.key" class="selected-check">
                       <i class="fas fa-check-circle"></i>
+                    </div>
+                  </div>
+                  <!-- Sin salsa -->
+                  <div
+                    @click="setComboSelection(step.key, { key: 'sin_salsa', id: null, name: 'Sin salsa' })"
+                    :class="['salsa-card salsa-card-none', { selected: comboSelections[step.key] && comboSelections[step.key].key === 'sin_salsa' }]">
+                    <div class="salsa-icon">🚫</div>
+                    <div class="salsa-name">Sin salsa</div>
+                    <div v-if="comboSelections[step.key] && comboSelections[step.key].key === 'sin_salsa'" class="selected-check">
+                      <i class="fas fa-check-circle"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Salsas especiales por paso: multi-select, siempre visibles -->
+                <div v-if="step.type === 'salsa'" class="salsa-extras-optional">
+                  <div class="salsa-extras-label">
+                    <i class="fas fa-plus-circle"></i>
+                    Añadir salsa especial
+                    <span class="step-included-badge" style="background:#fff0e0;color:#c0392b;border-color:#f5c6cb">+$1.000 c/u — opcional</span>
+                  </div>
+                  <div class="salsa-grid">
+                    <div
+                      v-for="ps in PROTEIN_SALSAS.filter(p => p.key === 'pollo_mostaza' || p.key === 'camaron')"
+                      :key="ps.key"
+                      class="ps-salsa-wrapper">
+                      <div
+                        @click="addProteinSalsaForStep(step.key, ps)"
+                        :class="['salsa-card salsa-card-premium', { selected: ((comboProteinSalsasByStep[step.key] || {})[ps.key] || 0) > 0 }]">
+                        <span class="ps-qty-badge" v-if="((comboProteinSalsasByStep[step.key] || {})[ps.key] || 0) > 0">+{{ (comboProteinSalsasByStep[step.key] || {})[ps.key] }}</span>
+                        <div class="salsa-icon">{{ ps.emoji }}</div>
+                        <div class="salsa-name">{{ ps.name }}</div>
+                        <div class="salsa-extra-price">+${{ formatNumber(ps.price) }}</div>
+                      </div>
+                      <div class="ps-card-controls">
+                        <button class="ps-qty-btn" @click.stop="removeProteinSalsaForStep(step.key, ps)"
+                          :style="((comboProteinSalsasByStep[step.key] || {})[ps.key] || 0) === 0 ? 'opacity:0;pointer-events:none' : ''">−</button>
+                        <span class="ps-qty-num">{{ (comboProteinSalsasByStep[step.key] || {})[ps.key] || 0 }}</span>
+                        <button class="ps-qty-btn ps-qty-plus" @click.stop="addProteinSalsaForStep(step.key, ps)">+</button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -432,13 +519,17 @@
                   <div
                     v-for="ps in PROTEIN_SALSAS"
                     :key="ps.key"
-                    @click="toggleProteinSalsa('combo', ps)"
-                    :class="['extra-cat-card', { selected: selectedComboProteinSals.some(x => x.key === ps.key) }]">
+                    @click="addProteinSalsa('combo', ps)"
+                    :class="['extra-cat-card', { selected: (selectedComboProteinSals[ps.key] || 0) > 0 }]">
+                    <span class="ps-qty-badge" v-if="(selectedComboProteinSals[ps.key] || 0) > 0">+{{ selectedComboProteinSals[ps.key] }}</span>
                     <span class="extra-cat-name">{{ ps.emoji }} {{ ps.name }}</span>
                     <span class="extra-cat-price">+${{ formatNumber(ps.price) }}</span>
-                    <span v-if="selectedComboProteinSals.some(x => x.key === ps.key)" class="extra-check">
-                      <i class="fas fa-check"></i>
-                    </span>
+                    <div class="ps-qty-counter" v-if="(selectedComboProteinSals[ps.key] || 0) > 0">
+                      <button class="ps-qty-btn" @click.stop="removeProteinSalsa('combo', ps)">−</button>
+                      <span class="ps-qty-num">{{ selectedComboProteinSals[ps.key] }}</span>
+                      <button class="ps-qty-btn ps-qty-plus" @click.stop="addProteinSalsa('combo', ps)">+</button>
+                    </div>
+                    <span v-else class="extra-check" style="opacity:0.35"><i class="fas fa-plus"></i></span>
                   </div>
                 </div>
               </div>
@@ -474,10 +565,20 @@
                     <span>+ {{ ex.name }}</span>
                     <span>+${{ formatNumber(parseInt(ex.price, 10)) }}</span>
                   </div>
-                  <div v-for="ps in selectedComboProteinSals" :key="'cps-' + ps.key" class="summary-line extra">
-                    <span>+ {{ ps.name }}</span>
-                    <span>+${{ formatNumber(ps.price) }}</span>
-                  </div>
+                  <template v-for="ps in PROTEIN_SALSAS">
+                    <div v-if="(selectedComboProteinSals[ps.key] || 0) > 0" :key="'cps-' + ps.key" class="summary-line extra">
+                      <span>+ {{ ps.name }}{{ (selectedComboProteinSals[ps.key] || 0) > 1 ? ' x' + selectedComboProteinSals[ps.key] : '' }}</span>
+                      <span>+${{ formatNumber(ps.price * (selectedComboProteinSals[ps.key] || 0)) }}</span>
+                    </div>
+                  </template>
+                  <template v-for="(stepMap, stepKey) in comboProteinSalsasByStep">
+                    <template v-for="ps in PROTEIN_SALSAS">
+                      <div v-if="(stepMap[ps.key] || 0) > 0" :key="'sps-' + stepKey + '-' + ps.key" class="summary-line extra">
+                        <span>+ {{ ps.name }}{{ (stepMap[ps.key] || 0) > 1 ? ' x' + stepMap[ps.key] : '' }}</span>
+                        <span>+${{ formatNumber(ps.price * (stepMap[ps.key] || 0)) }}</span>
+                      </div>
+                    </template>
+                  </template>
                   <div class="summary-total">
                     <span>TOTAL</span>
                     <span>${{ formatNumber(comboPrice) }}</span>
@@ -540,7 +641,7 @@
                   </div>
                 </div>
 
-                <!-- Salsa hardcoded -->
+                <!-- Salsa hardcoded (single-select) -->
                 <div v-if="step.type === 'salsa_hard'" class="salsa-grid">
                   <div
                     v-for="salsa in SALSAS_COMUNES" :key="salsa.key"
@@ -552,9 +653,49 @@
                       <i class="fas fa-check-circle"></i>
                     </div>
                   </div>
+                  <!-- Sin salsa -->
+                  <div
+                    @click="setCombo2Selection(step.key, { key: 'sin_salsa', id: null, name: 'Sin salsa' })"
+                    :class="['salsa-card salsa-card-none', { selected: combo2Selections[step.key] && combo2Selections[step.key].key === 'sin_salsa' }]">
+                    <div class="salsa-icon">🚫</div>
+                    <div class="salsa-name">Sin salsa</div>
+                    <div v-if="combo2Selections[step.key] && combo2Selections[step.key].key === 'sin_salsa'" class="selected-check">
+                      <i class="fas fa-check-circle"></i>
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Salsa DB -->
+                <!-- Salsas especiales salsa_hard: multi-select -->
+                <div v-if="step.type === 'salsa_hard'" class="salsa-extras-optional">
+                  <div class="salsa-extras-label">
+                    <i class="fas fa-plus-circle"></i>
+                    Añadir salsa especial
+                    <span class="step-included-badge" style="background:#fff0e0;color:#c0392b;border-color:#f5c6cb">+$1.000 c/u — opcional</span>
+                  </div>
+                  <div class="salsa-grid">
+                    <div
+                      v-for="ps in PROTEIN_SALSAS.filter(p => p.key === 'pollo_mostaza' || p.key === 'camaron')"
+                      :key="ps.key"
+                      class="ps-salsa-wrapper">
+                      <div
+                        @click="addProteinSalsaForStep(step.key, ps)"
+                        :class="['salsa-card salsa-card-premium', { selected: ((comboProteinSalsasByStep[step.key] || {})[ps.key] || 0) > 0 }]">
+                        <span class="ps-qty-badge" v-if="((comboProteinSalsasByStep[step.key] || {})[ps.key] || 0) > 0">+{{ (comboProteinSalsasByStep[step.key] || {})[ps.key] }}</span>
+                        <div class="salsa-icon">{{ ps.emoji }}</div>
+                        <div class="salsa-name">{{ ps.name }}</div>
+                        <div class="salsa-extra-price">+${{ formatNumber(ps.price) }}</div>
+                      </div>
+                      <div class="ps-card-controls">
+                        <button class="ps-qty-btn" @click.stop="removeProteinSalsaForStep(step.key, ps)"
+                          :style="((comboProteinSalsasByStep[step.key] || {})[ps.key] || 0) === 0 ? 'opacity:0;pointer-events:none' : ''">−</button>
+                        <span class="ps-qty-num">{{ (comboProteinSalsasByStep[step.key] || {})[ps.key] || 0 }}</span>
+                        <button class="ps-qty-btn ps-qty-plus" @click.stop="addProteinSalsaForStep(step.key, ps)">+</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Salsa DB (single-select) -->
                 <div v-if="step.type === 'salsa_db'" class="salsa-grid">
                   <div
                     v-for="salsa in salsasDB" :key="salsa.id"
@@ -564,6 +705,46 @@
                     <div class="salsa-name">{{ salsa.name }}</div>
                     <div v-if="combo2Selections[step.key] && combo2Selections[step.key].id === salsa.id" class="selected-check">
                       <i class="fas fa-check-circle"></i>
+                    </div>
+                  </div>
+                  <!-- Sin salsa -->
+                  <div
+                    @click="setCombo2Selection(step.key, { key: 'sin_salsa', id: null, name: 'Sin salsa' })"
+                    :class="['salsa-card salsa-card-none', { selected: combo2Selections[step.key] && combo2Selections[step.key].key === 'sin_salsa' }]">
+                    <div class="salsa-icon">🚫</div>
+                    <div class="salsa-name">Sin salsa</div>
+                    <div v-if="combo2Selections[step.key] && combo2Selections[step.key].key === 'sin_salsa'" class="selected-check">
+                      <i class="fas fa-check-circle"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Salsas especiales salsa_db: multi-qty -->
+                <div v-if="step.type === 'salsa_db'" class="salsa-extras-optional">
+                  <div class="salsa-extras-label">
+                    <i class="fas fa-plus-circle"></i>
+                    Añadir salsa especial
+                    <span class="step-included-badge" style="background:#fff0e0;color:#c0392b;border-color:#f5c6cb">+$1.000 c/u — opcional</span>
+                  </div>
+                  <div class="salsa-grid">
+                    <div
+                      v-for="ps in PROTEIN_SALSAS.filter(p => p.key === 'pollo_mostaza' || p.key === 'camaron')"
+                      :key="ps.key"
+                      class="ps-salsa-wrapper">
+                      <div
+                        @click="addProteinSalsaForStep(step.key, ps)"
+                        :class="['salsa-card salsa-card-premium', { selected: ((comboProteinSalsasByStep[step.key] || {})[ps.key] || 0) > 0 }]">
+                        <span class="ps-qty-badge" v-if="((comboProteinSalsasByStep[step.key] || {})[ps.key] || 0) > 0">+{{ (comboProteinSalsasByStep[step.key] || {})[ps.key] }}</span>
+                        <div class="salsa-icon">{{ ps.emoji }}</div>
+                        <div class="salsa-name">{{ ps.name }}</div>
+                        <div class="salsa-extra-price">+${{ formatNumber(ps.price) }}</div>
+                      </div>
+                      <div class="ps-card-controls">
+                        <button class="ps-qty-btn" @click.stop="removeProteinSalsaForStep(step.key, ps)"
+                          :style="((comboProteinSalsasByStep[step.key] || {})[ps.key] || 0) === 0 ? 'opacity:0;pointer-events:none' : ''">−</button>
+                        <span class="ps-qty-num">{{ (comboProteinSalsasByStep[step.key] || {})[ps.key] || 0 }}</span>
+                        <button class="ps-qty-btn ps-qty-plus" @click.stop="addProteinSalsaForStep(step.key, ps)">+</button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -641,13 +822,17 @@
                   <div
                     v-for="ps in PROTEIN_SALSAS"
                     :key="ps.key"
-                    @click="toggleProteinSalsa('combo2', ps)"
-                    :class="['extra-cat-card', { selected: selectedCombo2ProteinSals.some(x => x.key === ps.key) }]">
+                    @click="addProteinSalsa('combo2', ps)"
+                    :class="['extra-cat-card', { selected: (selectedCombo2ProteinSals[ps.key] || 0) > 0 }]">
+                    <span class="ps-qty-badge" v-if="(selectedCombo2ProteinSals[ps.key] || 0) > 0">+{{ selectedCombo2ProteinSals[ps.key] }}</span>
                     <span class="extra-cat-name">{{ ps.emoji }} {{ ps.name }}</span>
                     <span class="extra-cat-price">+${{ formatNumber(ps.price) }}</span>
-                    <span v-if="selectedCombo2ProteinSals.some(x => x.key === ps.key)" class="extra-check">
-                      <i class="fas fa-check"></i>
-                    </span>
+                    <div class="ps-qty-counter" v-if="(selectedCombo2ProteinSals[ps.key] || 0) > 0">
+                      <button class="ps-qty-btn" @click.stop="removeProteinSalsa('combo2', ps)">−</button>
+                      <span class="ps-qty-num">{{ selectedCombo2ProteinSals[ps.key] }}</span>
+                      <button class="ps-qty-btn ps-qty-plus" @click.stop="addProteinSalsa('combo2', ps)">+</button>
+                    </div>
+                    <span v-else class="extra-check" style="opacity:0.35"><i class="fas fa-plus"></i></span>
                   </div>
                 </div>
               </div>
@@ -660,7 +845,7 @@
                 <div class="summary-lines">
                   <div class="summary-line">
                     <span>{{ selectedCombo2Item.name }}{{ combo2Selections.size ? ' ' + combo2Selections.size.label : '' }}</span>
-                    <span>${{ formatNumber(combo2Price - combo2Extras.reduce((a,e)=>a+(parseInt(e.price,10)||0),0) - selectedCombo2ProteinSals.reduce((a,p)=>a+p.price,0)) }}</span>
+                    <span>${{ formatNumber(combo2Price - combo2Extras.reduce((a,e)=>a+(parseInt(e.price,10)||0),0) - PROTEIN_SALSAS.reduce((sum,ps)=>sum+ps.price*(selectedCombo2ProteinSals[ps.key]||0),0) - proteinSalsasByStepTotalPrice) }}</span>
                   </div>
                   <div v-if="selectedCombo2Item.includeCheddar" class="summary-line">
                     <span>🧀 Cheddar</span>
@@ -678,10 +863,20 @@
                     <span>+ {{ ex.name }}</span>
                     <span>+${{ formatNumber(parseInt(ex.price,10)) }}</span>
                   </div>
-                  <div v-for="ps in selectedCombo2ProteinSals" :key="'c2ps-' + ps.key" class="summary-line extra">
-                    <span>+ {{ ps.name }}</span>
-                    <span>+${{ formatNumber(ps.price) }}</span>
-                  </div>
+                  <template v-for="ps in PROTEIN_SALSAS">
+                    <div v-if="(selectedCombo2ProteinSals[ps.key] || 0) > 0" :key="'c2ps-' + ps.key" class="summary-line extra">
+                      <span>+ {{ ps.name }}{{ (selectedCombo2ProteinSals[ps.key] || 0) > 1 ? ' x' + selectedCombo2ProteinSals[ps.key] : '' }}</span>
+                      <span>+${{ formatNumber(ps.price * (selectedCombo2ProteinSals[ps.key] || 0)) }}</span>
+                    </div>
+                  </template>
+                  <template v-for="(stepMap, stepKey) in comboProteinSalsasByStep">
+                    <template v-for="ps in PROTEIN_SALSAS">
+                      <div v-if="(stepMap[ps.key] || 0) > 0" :key="'s2ps-' + stepKey + '-' + ps.key" class="summary-line extra">
+                        <span>+ {{ ps.name }}{{ (stepMap[ps.key] || 0) > 1 ? ' x' + stepMap[ps.key] : '' }}</span>
+                        <span>+${{ formatNumber(ps.price * (stepMap[ps.key] || 0)) }}</span>
+                      </div>
+                    </template>
+                  </template>
                   <div class="summary-total">
                     <span>TOTAL</span>
                     <span>${{ formatNumber(combo2Price) }}</span>
@@ -1095,10 +1290,12 @@ export default {
       selectedCiabatta:   null,
       ciabattaAddExtra:   null,
       ciabattaBebida:     null,
-      // Salsa especial sugerida (+$1.000 c/u)
-      selectedBowlProteinSals:  [],
-      selectedComboProteinSals: [],
-      selectedCombo2ProteinSals: [],
+      // Salsa especial sugerida (+$1.000 c/u) — qty dict: { ps_key: cantidad }
+      selectedBowlProteinSals:   {},
+      selectedComboProteinSals:  {},
+      selectedCombo2ProteinSals: {},
+      // Salsas especiales por paso de combo: { step_key: { ps_key: cantidad } }
+      comboProteinSalsasByStep:  {},
     };
   },
 
@@ -1134,7 +1331,8 @@ export default {
       let price = item.price || 0;
       if (item.sizes && this.combo2Selections.size) price = this.combo2Selections.size.price;
       this.combo2Extras.forEach(e => { price += parseInt(e.price, 10) || 0; });
-      this.selectedCombo2ProteinSals.forEach(p => { price += p.price; });
+      this.PROTEIN_SALSAS.forEach(ps => { price += ps.price * (this.selectedCombo2ProteinSals[ps.key] || 0); });
+      price += this.proteinSalsasByStepTotalPrice;
       return price;
     },
     // ---------- CIABATTA ----------
@@ -1156,7 +1354,7 @@ export default {
       if (this.selectedProtein) price += this.selectedSize.proteinExtra;
       if (this.selectedBebida)  price += this.selectedSize.drinkExtra;
       this.selectedBowlExtras.forEach(e => { price += parseInt(e.price, 10) || 0; });
-      this.selectedBowlProteinSals.forEach(p => { price += p.price; });
+      this.PROTEIN_SALSAS.forEach(ps => { price += ps.price * (this.selectedBowlProteinSals[ps.key] || 0); });
       return price;
     },
 
@@ -1166,7 +1364,7 @@ export default {
       if (this.selectedProtein) name += ` + ${this.selectedProtein.name}`;
       if (this.selectedBebida)  name += ` + ${this.selectedBebida.name}`;
       this.selectedBowlExtras.forEach(e => { name += ` + ${e.name}`; });
-      this.selectedBowlProteinSals.forEach(p => { name += ` + ${p.name}`; });
+      this.PROTEIN_SALSAS.forEach(ps => { for (let i = 0; i < (this.selectedBowlProteinSals[ps.key] || 0); i++) name += ` + ${ps.name}`; });
       return name;
     },
 
@@ -1175,13 +1373,23 @@ export default {
       if (!this.selectedCombo) return 0;
       let price = this.selectedCombo.price;
       this.selectedComboExtras.forEach(e => { price += parseInt(e.price, 10) || 0; });
-      this.selectedComboProteinSals.forEach(p => { price += p.price; });
+      this.PROTEIN_SALSAS.forEach(ps => { price += ps.price * (this.selectedComboProteinSals[ps.key] || 0); });
+      price += this.proteinSalsasByStepTotalPrice;
       return price;
     },
 
     comboRequiredDone() {
       if (!this.selectedCombo) return false;
       return this.selectedCombo.steps.every(step => !!this.comboSelections[step.key]);
+    },
+
+    // Suma total salsas especiales por paso
+    proteinSalsasByStepTotalPrice() {
+      let total = 0;
+      for (const stepMap of Object.values(this.comboProteinSalsasByStep)) {
+        this.PROTEIN_SALSAS.forEach(ps => { total += ps.price * (stepMap[ps.key] || 0); });
+      }
+      return total;
     },
 
     comboShowBebidas() {
@@ -1252,7 +1460,10 @@ export default {
       if (s.salsa_2) name += `+${s.salsa_2.name}`;
       if (s.pasta_2) name += ` / ${s.pasta_2.name} ${s.salsa_2 ? s.salsa_2.name : ''}`;
       if (bebidasNombres) name += ` + ${bebidasNombres}`;
-      this.selectedComboProteinSals.forEach(p => { name += ` + ${p.name}`; });
+      this.PROTEIN_SALSAS.forEach(ps => { for (let i = 0; i < (this.selectedComboProteinSals[ps.key] || 0); i++) name += ` + ${ps.name}`; });
+      Object.values(this.comboProteinSalsasByStep).forEach(stepMap => {
+        this.PROTEIN_SALSAS.forEach(ps => { for (let i = 0; i < (stepMap[ps.key] || 0); i++) name += ` + ${ps.name}`; });
+      });
 
       const comboData = {
         id: `fagotto_combo_${Date.now()}`,
@@ -1271,7 +1482,12 @@ export default {
           ...s,
           bebidas: this.comboBebidas.filter(Boolean).map(b => ({ id: b.id, name: b.name })),
           extras:  this.selectedComboExtras.map(e => ({ id: e.id, name: e.name, price: parseInt(e.price, 10) || 0 })),
-          protein_salsas: this.selectedComboProteinSals.map(p => ({ key: p.key, name: p.name, price: 1000 })),
+          protein_salsas: [
+            ...this.PROTEIN_SALSAS.flatMap(ps => Array.from({length: this.selectedComboProteinSals[ps.key] || 0}, () => ({ key: ps.key, name: ps.name, price: ps.price }))),
+            ...Object.entries(this.comboProteinSalsasByStep).flatMap(([stepKey, stepMap]) =>
+              this.PROTEIN_SALSAS.flatMap(ps => Array.from({length: stepMap[ps.key] || 0}, () => ({ key: ps.key, name: ps.name, price: ps.price, step: stepKey })))
+            ),
+          ],
         },
       };
 
@@ -1315,9 +1531,10 @@ export default {
       this.combo2Bebida        = null;
       this.combo2Extras        = [];
       // protein salsas upsell
-      this.selectedBowlProteinSals   = [];
-      this.selectedComboProteinSals  = [];
-      this.selectedCombo2ProteinSals = [];
+      this.selectedBowlProteinSals   = {};
+      this.selectedComboProteinSals  = {};
+      this.selectedCombo2ProteinSals = {};
+      this.comboProteinSalsasByStep  = {};
       // ciabatta
       this.selectedCiabatta = null;
       this.ciabattaAddExtra = null;
@@ -1400,13 +1617,26 @@ export default {
       else this.combo2Extras.push(extra);
     },
 
-    toggleProteinSalsa(mode, ps) {
-      const arr = mode === 'bowl' ? 'selectedBowlProteinSals'
-                : mode === 'combo' ? 'selectedComboProteinSals'
-                : 'selectedCombo2ProteinSals';
-      const idx = this[arr].findIndex(x => x.key === ps.key);
-      if (idx >= 0) this[arr].splice(idx, 1);
-      else this[arr].push(ps);
+    addProteinSalsa(mode, ps) {
+      const d = mode === 'bowl' ? 'selectedBowlProteinSals'
+              : mode === 'combo' ? 'selectedComboProteinSals'
+              : 'selectedCombo2ProteinSals';
+      this.$set(this[d], ps.key, (this[d][ps.key] || 0) + 1);
+    },
+    removeProteinSalsa(mode, ps) {
+      const d = mode === 'bowl' ? 'selectedBowlProteinSals'
+              : mode === 'combo' ? 'selectedComboProteinSals'
+              : 'selectedCombo2ProteinSals';
+      this.$set(this[d], ps.key, Math.max(0, (this[d][ps.key] || 0) - 1));
+    },
+
+    addProteinSalsaForStep(stepKey, ps) {
+      const step = this.comboProteinSalsasByStep[stepKey] || {};
+      this.$set(this.comboProteinSalsasByStep, stepKey, { ...step, [ps.key]: (step[ps.key] || 0) + 1 });
+    },
+    removeProteinSalsaForStep(stepKey, ps) {
+      const step = this.comboProteinSalsasByStep[stepKey] || {};
+      this.$set(this.comboProteinSalsasByStep, stepKey, { ...step, [ps.key]: Math.max(0, (step[ps.key] || 0) - 1) });
     },
 
     confirmarCombo2() {
@@ -1420,7 +1650,10 @@ export default {
       if (s.protein) name += ` ${s.protein.name}`;
       if (this.combo2Bebida) name += ` + ${this.combo2Bebida.name}`;
       this.combo2Extras.forEach(e => { name += ` + ${e.name}`; });
-      this.selectedCombo2ProteinSals.forEach(p => { name += ` + ${p.name}`; });
+      this.PROTEIN_SALSAS.forEach(ps => { for (let i = 0; i < (this.selectedCombo2ProteinSals[ps.key] || 0); i++) name += ` + ${ps.name}`; });
+      Object.values(this.comboProteinSalsasByStep).forEach(stepMap => {
+        this.PROTEIN_SALSAS.forEach(ps => { for (let i = 0; i < (stepMap[ps.key] || 0); i++) name += ` + ${ps.name}`; });
+      });
 
       const comboData = {
         id: `fagotto_combo2_${Date.now()}`,
@@ -1439,7 +1672,12 @@ export default {
           ...Object.fromEntries(Object.entries(s).map(([k,v]) => [k, v ? v.name : null])),
           bebida: this.combo2Bebida ? this.combo2Bebida.name : null,
           extras: this.combo2Extras.map(e => ({ id: e.id, name: e.name, price: parseInt(e.price, 10) || 0 })),
-          protein_salsas: this.selectedCombo2ProteinSals.map(p => ({ key: p.key, name: p.name, price: 1000 })),
+          protein_salsas: [
+            ...this.PROTEIN_SALSAS.flatMap(ps => Array.from({length: this.selectedCombo2ProteinSals[ps.key] || 0}, () => ({ key: ps.key, name: ps.name, price: ps.price }))),
+            ...Object.entries(this.comboProteinSalsasByStep).flatMap(([stepKey, stepMap]) =>
+              this.PROTEIN_SALSAS.flatMap(ps => Array.from({length: stepMap[ps.key] || 0}, () => ({ key: ps.key, name: ps.name, price: ps.price, step: stepKey })))
+            ),
+          ],
         },
       };
       console.log('⭐ [MENU-FAGOTTO] Combo2:', comboData);
@@ -1509,7 +1747,7 @@ export default {
           bebida_name:  this.selectedBebida ? this.selectedBebida.name : null,
           bebida_price: this.selectedBebida ? this.selectedSize.drinkExtra : 0,
           extras:         this.selectedBowlExtras.map(e => ({ id: e.id, name: e.name, price: parseInt(e.price, 10) || 0 })),
-          protein_salsas: this.selectedBowlProteinSals.map(p => ({ key: p.key, name: p.name, price: 1000 })),
+          protein_salsas: this.PROTEIN_SALSAS.flatMap(ps => Array.from({length: this.selectedBowlProteinSals[ps.key] || 0}, () => ({ key: ps.key, name: ps.name, price: ps.price }))),
         },
       };
 
@@ -1967,6 +2205,99 @@ export default {
   position: relative;
 }
 
+.salsa-card-none {
+  border-color: #ccc;
+  background: #f5f5f5;
+  color: #888;
+}
+.salsa-card-none:hover { border-color: #999; background: #ececec; }
+.salsa-card-none.selected { border-color: #7f8c8d; background: #ecf0f1; color: #2c3e50; }
+
+.salsa-card-premium {
+  border-color: #f5c6cb;
+  background: #fffafa;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px 16px;
+  min-width: 100px;
+}
+.salsa-card-premium .salsa-extra-price {
+  margin-left: 0;
+}
+.salsa-card-premium:hover { border-color: #c0392b; background: #fff0f0; }
+.salsa-card-premium.selected { border-color: #c0392b; background: linear-gradient(135deg, #fff0f0 0%, #ffe0e0 100%); }
+
+.salsa-extras-optional { margin-top: 14px; }
+.salsa-extras-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.82rem; font-weight: 600; color: #888; margin-bottom: 8px;
+}
+.salsa-extra-price {
+  margin-left: auto; font-size: 0.78rem; font-weight: 700;
+  color: #c0392b; background: #fff0f0; border: 1px solid #f5c6cb;
+  border-radius: 20px; padding: 2px 8px;
+}
+
+/* ── Wrapper externo para salsa-card-premium con controles debajo ── */
+.ps-salsa-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.ps-card-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.ps-card-add {
+  font-size: 1rem;
+  color: #c0392b;
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.ps-card-add:hover { opacity: 1; }
+
+/* ── Qty counter (salsas especiales) ── */
+.ps-qty-badge {
+  position: absolute;
+  top: -7px; right: -7px;
+  background: #c0392b;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  border-radius: 20px;
+  padding: 2px 6px;
+  min-width: 20px;
+  text-align: center;
+  line-height: 1.4;
+  box-shadow: 0 1px 5px rgba(192,57,43,0.5);
+  pointer-events: none;
+  z-index: 2;
+}
+.ps-qty-counter {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.ps-qty-btn {
+  width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #c0392b;
+  background: #fff; color: #c0392b; font-size: 1rem; font-weight: 700;
+  line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  padding: 0; transition: background .15s, color .15s;
+}
+.ps-qty-btn:hover { background: #c0392b; color: #fff; }
+.ps-qty-plus { border-color: #27ae60; color: #27ae60; }
+.ps-qty-plus:hover { background: #27ae60; color: #fff; }
+.ps-qty-num {
+  min-width: 22px; text-align: center; font-size: 0.88rem; font-weight: 800; color: #2c3e50;
+}
+.ps-qty-add {
+  margin-top: 4px; font-size: 0.9rem; color: #bbb; opacity: 0.6;
+}
+
 .salsa-card:hover {
   border-color: #e74c3c;
   background: #fff5f5;
@@ -2005,6 +2336,7 @@ export default {
   cursor: pointer;
   background: #fafafa;
   transition: all 0.2s;
+  position: relative;
 }
 
 .extra-cat-card:hover {
